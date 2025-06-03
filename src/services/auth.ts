@@ -4,10 +4,10 @@ import {
   createUserWithEmailAndPassword, 
   signOut as firebaseSignOut,
   User as FirebaseUser,
-  GoogleAuthProvider,
-  signInWithCredential,
+  // GoogleAuthProvider,
+  // signInWithCredential,
 } from 'firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+// import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from './firebase';
 import { Credentials } from './storage';
 
@@ -15,10 +15,10 @@ export class AuthService {
   private credentials = new Credentials();
 
   constructor() {
-    // Configure Google Sign In
-    GoogleSignin.configure({
-      webClientId: 'your-web-client-id', // Add your actual web client ID
-    });
+    // TODO: Google Sign In configuration disabled for Expo Go compatibility
+    // GoogleSignin.configure({
+    //   webClientId: 'your-web-client-id', // Add your actual web client ID
+    // });
   }
 
   async signInWithEmail(email: string, password: string): Promise<FirebaseUser | null> {
@@ -102,8 +102,9 @@ export class AuthService {
       await firebaseSignOut(auth);
       await this.credentials.removeToken();
       await this.credentials.removeUser();
-      await GoogleSignin.revokeAccess();
-      await GoogleSignin.signOut();
+      // TODO: Google Sign In calls disabled for Expo Go compatibility
+      // await GoogleSignin.revokeAccess();
+      // await GoogleSignin.signOut();
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;
