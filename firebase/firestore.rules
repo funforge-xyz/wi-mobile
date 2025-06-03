@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    match /users/{userId} {
+    	allow read, create;
+    	allow update, delete: if isSignedIn() && request.auth.uid == userId;
+      
+      // Added this without much consideration - please review. — ihsan
+      match /notifTokens/{tokenId} {
+      	allow read, create, update, delete: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // TODO: Review (was unable to allow only notifications targeted at querying user)
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.targetUserId == request.auth.uid;
+    }
+    
+    // TODO: Review
+    match /posts/{postId} {
+    	allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.authorId;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.authorId;
+    }
+
+    // TODO: Review
+    match /posts/{postId}/likes/{likeId} {
+    	allow read: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+    }
+
+    // TODO: Review
+    match /posts/{postId}/comments/{commentId} {
+    	allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.authorId;
+    }
+    
+    // TODO: Review
+    match /posts/{postId}/comments/{commentId}/likes/{likeId} {
+    	allow read: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+    }
+
+    // TODO: Review
+    match /posts/{postId}/comments/{commentId}/replies/{replyId} {
+    	allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.authorId;
+    }
+
+    // TODO: Review
+    match /posts/{postId}/comments/{commentId}/replies/{replyId}/likes/{likeId} {
+    	allow read: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+    }
+
+    match /settings/{userId} {
+    	allow read, create, update, delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /threads/{threadId} {
+      function isUserParticipantOrBlocked() {
+				let participants = get(/databases/$(database)/documents/threads/$(threadId)).data.users;
+				let blockedUser1Path = /databases/$(database)/documents/users/$(participants[0])/blockedUsers/$(participants[1]);
+				let blockedUser2Path = /databases/$(database)/documents/users/$(participants[1])/blockedUsers/$(participants[0]);
+				let isBlockActive = exists(blockedUser1Path) || exists(blockedUser2Path);
+  
+				return isSignedIn() && request.auth.uid in participants && !isBlockActive;
+			}
+
+      function userIsThreadMember() {
+        return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/threads/$(threadId)).data.users;
+      }
+      
+      allow create: if isSignedIn();
+      allow update, read: if isSignedIn() && request.auth.uid in resource.data.users;
+
+      match /messages/{messageId} {
+      	allow create: if isUserParticipantOrBlocked();
+      	allow read: if userIsThreadMember();
+        allow delete: if isSignedIn() && request.auth.uid == resource.data.sender_id;
+      	allow update: if userIsThreadMember() && 
+        (request.auth.uid == resource.data.sender_id ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'delivered']));
+      }
+    }
+  
+    match /locations/{locationId} {
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId; 
+    }
+  }
+}

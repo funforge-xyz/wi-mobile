@@ -1,0 +1,4 @@
+node_modules/
+dist/
+package-lock.json
+cloud_sql_proxy.exe

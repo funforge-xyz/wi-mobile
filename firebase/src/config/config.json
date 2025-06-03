@@ -1,0 +1,29 @@
+{
+  "dev": {
+    "pgusername": "postgres",
+    "pgpassword": "omar",
+    "pgdatabase": "WiChatDB",
+    "pghost": "localhost",
+    "pgport": "5432",
+    "pgdialect": "postgres",
+    "pgtimeout": 25000,
+    "pgtransactiontimeout": 60000,
+    "pgMigrationStorageTableName": "db_migrations_meta",
+    "pgSeederStorage": "sequelize",
+    "pgSeederStorageTableName": "db_seeders_data"
+  },
+  "test": {
+    "pgusername": "postgres",
+    "pgpassword": "",
+    "pgdatabase": "wiTestDb",
+    "pgport": "5432",
+    "pghost": "/cloudsql/wichat-2684e:europe-west1:wichatpgtest",
+    "pgdialect": "postgres",
+    "pgtimeout": 25000,
+    "pgtransactiontimeout": 60000,
+    "pgMigrationStorageTableName": "db_migrations_meta",
+    "pgSeederStorage": "sequelize",
+    "pgSeederStorageTableName": "db_seeders_data",
+    "socketPath": "/cloudsql/wichat-2684e:europe-west1:wichatpgtest"
+  }
+}
