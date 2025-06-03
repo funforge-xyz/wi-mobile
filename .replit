@@ -17,12 +17,16 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "nvm use 20.10.0"
+args = "git checkout react-native"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "yarn install"
+args = "node --version"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "yarn start"
+args = "npm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run start"
