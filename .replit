@@ -17,16 +17,8 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "git checkout react-native"
+args = "npm install --legacy-peer-deps"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node --version"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "yarn install --ignore-engines"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "yarn start"
+args = "npm start"
