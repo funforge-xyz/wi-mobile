@@ -25,8 +25,8 @@ args = "node --version"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm install"
+args = "yarn install --ignore-engines"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run start"
+args = "yarn start"
