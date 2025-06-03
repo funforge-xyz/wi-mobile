@@ -2,7 +2,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '@config/constants';
 
 // Tab Screens
 import FeedScreen from './FeedScreen';
@@ -10,6 +9,7 @@ import NearbyScreen from './NearbyScreen';
 import AddPostScreen from './AddPostScreen';
 import ChatsScreen from './ChatsScreen';
 import ProfileScreen from './ProfileScreen';
+import { COLORS } from '../config/constants';
 
 const Tab = createBottomTabNavigator();
 

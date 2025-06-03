@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Settings } from '@/services/storage';
-import { COLORS, SPACING, FONTS } from '@config/constants';
+import { Settings } from '../services/storage';
+import { COLORS, SPACING, FONTS } from '../config/constants';
 
 const { width, height } = Dimensions.get('window');
 
