@@ -1,0 +1,95 @@
+
+import React, { useEffect, useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import * as SplashScreen from 'expo-splash-screen';
+import * as Font from 'expo-font';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+// Screens
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import RootScreen from './src/screens/RootScreen';
+import ChatImagesScreen from './src/screens/ChatImagesScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import DeleteAccountScreen from './src/screens/DeleteAccountScreen';
+import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
+
+// Services
+import { initializeFirebase } from './src/services/firebase';
+import { initializeNotifications } from './src/services/notifications';
+import { Settings } from './src/services/storage';
+
+// Types
+import { RootStackParamList } from './src/types/navigation';
+
+// Keep splash screen visible while loading
+SplashScreen.preventAutoHideAsync();
+
+const Stack = createStackNavigator<RootStackParamList>();
+
+export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [onboardingDone, setOnboardingDone] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Initialize Firebase
+        await initializeFirebase();
+        
+        // Initialize notifications
+        await initializeNotifications();
+        
+        // Load fonts
+        await Font.loadAsync({
+          // Add your custom fonts here if needed
+        });
+
+        // Check onboarding status
+        const settings = new Settings();
+        const onboardingStatus = await settings.getOnboardingDone();
+        setOnboardingDone(onboardingStatus);
+
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setIsLoading(false);
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
+
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={onboardingDone ? 'Root' : 'Onboarding'}
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="Root" component={RootScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <StatusBar style="auto" />
+    </SafeAreaProvider>
+  );
+}

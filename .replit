@@ -6,3 +6,23 @@ channel = "stable-24_05"
 
 [deployment]
 run = ["sh", "-c", "flutter run"]
+
+[workflows]
+runButton = "Install and Run"
+
+[[workflows.workflow]]
+name = "Install and Run"
+author = 24709384
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "nvm use 20.10.0"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "yarn install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "yarn start"
