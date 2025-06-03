@@ -68,30 +68,33 @@ export class AuthService {
   }
 
   async signInWithGoogle(): Promise<FirebaseUser | null> {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
-      
-      const googleCredential = GoogleAuthProvider.credential(idToken);
-      const userCredential = await signInWithCredential(auth, googleCredential);
-      const user = userCredential.user;
-      
-      if (user) {
-        const token = await user.getIdToken();
-        await this.credentials.setToken(token);
-        await this.credentials.setUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-        });
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      throw error;
-    }
+    // TODO: Google Sign In not working with Expo Go - temporarily disabled
+    throw new Error('Google Sign In is temporarily disabled in development');
+    
+    // try {
+    //   await GoogleSignin.hasPlayServices();
+    //   const { idToken } = await GoogleSignin.signIn();
+    //   
+    //   const googleCredential = GoogleAuthProvider.credential(idToken);
+    //   const userCredential = await signInWithCredential(auth, googleCredential);
+    //   const user = userCredential.user;
+    //   
+    //   if (user) {
+    //     const token = await user.getIdToken();
+    //     await this.credentials.setToken(token);
+    //     await this.credentials.setUser({
+    //       uid: user.uid,
+    //       email: user.email,
+    //       displayName: user.displayName,
+    //       photoURL: user.photoURL,
+    //     });
+    //   }
+    //   
+    //   return user;
+    // } catch (error) {
+    //   console.error('Google sign in error:', error);
+    //   throw error;
+    // }
   }
 
   async signOut(): Promise<void> {

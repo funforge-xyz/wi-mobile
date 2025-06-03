@@ -44,15 +44,19 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await authService.signInWithGoogle();
-      navigation.navigate('Root' as never);
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Google Sign In not working with Expo Go - temporarily disabled
+    Alert.alert('Coming Soon', 'Google Sign In will be available in the production app');
+    return;
+    
+    // setIsLoading(true);
+    // try {
+    //   await authService.signInWithGoogle();
+    //   navigation.navigate('Root' as never);
+    // } catch (error: any) {
+    //   Alert.alert('Error', error.message);
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   return (
