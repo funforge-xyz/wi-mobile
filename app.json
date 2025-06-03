@@ -1,4 +1,3 @@
-
 {
   "expo": {
     "name": "Wi Chat",
@@ -50,9 +49,8 @@
       "expo-notifications",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
-      "@react-native-firebase/firestore",
-      "@react-native-firebase/storage",
-      "@react-native-firebase/messaging"
+      "@react-native-firebase/messaging",
+      "expo-font"
     ]
   }
 }
