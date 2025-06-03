@@ -1,8 +1,8 @@
 
 import { initializeApp } from 'firebase/app';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getFirestore as getFirestoreSDK } from 'firebase/firestore';
+import { getStorage as getStorageSDK } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -32,8 +32,8 @@ export const initializeFirebase = async () => {
         persistence: getReactNativePersistence(AsyncStorage)
       });
       
-      firestore = getFirestore(app);
-      storage = getStorage(app);
+      firestore = getFirestoreSDK(app);
+      storage = getStorageSDK(app);
       
       // Only initialize analytics in production or when needed
       try {
@@ -72,5 +72,13 @@ export const getStorage = () => {
   return storage;
 };
 
+export const getAnalytics = () => {
+  if (!analytics) {
+    throw new Error('Firebase Analytics not initialized. Call initializeFirebase() first.');
+  }
+  return analytics;
+};
+
+// Export initialized instances (will be null until initializeFirebase is called)
 export { auth, firestore, storage, analytics };
 export default app;
