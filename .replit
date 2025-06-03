@@ -1,0 +1,8 @@
+modules = ["nodejs-20", "ruby-3.2", "swift-5.8"]
+run = "flutter run"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "flutter run"]
