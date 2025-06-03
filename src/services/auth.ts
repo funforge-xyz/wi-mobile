@@ -8,7 +8,7 @@ import {
   // signInWithCredential,
 } from 'firebase/auth';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { auth } from './firebase';
+import { getAuth } from './firebase';
 import { Credentials } from './storage';
 
 export class AuthService {
@@ -23,6 +23,7 @@ export class AuthService {
 
   async signInWithEmail(email: string, password: string): Promise<FirebaseUser | null> {
     try {
+      const auth = getAuth();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -46,6 +47,7 @@ export class AuthService {
 
   async signUpWithEmail(email: string, password: string): Promise<FirebaseUser | null> {
     try {
+      const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -99,6 +101,7 @@ export class AuthService {
 
   async signOut(): Promise<void> {
     try {
+      const auth = getAuth();
       await firebaseSignOut(auth);
       await this.credentials.removeToken();
       await this.credentials.removeUser();
