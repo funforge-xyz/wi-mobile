@@ -12,6 +12,7 @@ export type RootStackParamList = {
   Settings: undefined;
   DeleteAccount: undefined;
   ChangePassword: undefined;
+  Terms: undefined;
 };
 
 export type BottomTabParamList = {

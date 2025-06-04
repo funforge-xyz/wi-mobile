@@ -8,11 +8,14 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { authService } from '../services/auth';
+import { storageService } from '../services/storage';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
 interface LoginScreenProps {
@@ -57,6 +60,26 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     }
   };
 
+  const handleImagePicker = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
   const handleEmailAuth = async () => {
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Email and password are required');
@@ -84,11 +107,27 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setErrorMessage('');
     try {
       if (isSignUp) {
+        let photoURL = '';
+        
+        // Upload image to Firebase Storage if a local image is selected
+        if (profileImage && profileImage.startsWith('file://')) {
+          try {
+            // Create a temporary user ID for upload (will be replaced with actual user ID after signup)
+            const tempUserId = Date.now().toString();
+            photoURL = await storageService.uploadProfilePicture(tempUserId, profileImage);
+          } catch (uploadError) {
+            console.error('Image upload error:', uploadError);
+            setErrorMessage('Failed to upload profile picture');
+            setIsLoading(false);
+            return;
+          }
+        }
+        
         await authService.signUpWithEmail(email, password, {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           bio: bio.trim(),
-          photoURL: profileImage,
+          photoURL: photoURL,
         });
       } else {
         await authService.signInWithEmail(email, password);
@@ -162,17 +201,17 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="image-outline" size={20} color={COLORS.textSecondary} />
-              <TextInput
-                style={[styles.input, { color: COLORS.text }]}
-                placeholder="Profile Image URL (optional)"
-                placeholderTextColor={COLORS.textSecondary}
-                value={profileImage}
-                onChangeText={setProfileImage}
-                autoCapitalize="none"
-              />
-            </View>
+            <TouchableOpacity style={styles.imagePickerContainer} onPress={handleImagePicker}>
+              <View style={styles.imagePickerContent}>
+                <Ionicons name="camera-outline" size={24} color={COLORS.primary} />
+                <Text style={styles.imagePickerText}>
+                  {profileImage ? 'Change Profile Picture' : 'Add Profile Picture (optional)'}
+                </Text>
+              </View>
+              {profileImage && (
+                <Image source={{ uri: profileImage }} style={styles.selectedImage} />
+              )}
+            </TouchableOpacity>
 
             <View style={styles.inputContainer}>
               <Ionicons name="document-text-outline" size={20} color={COLORS.textSecondary} />
@@ -439,5 +478,31 @@ const styles = StyleSheet.create({
   termsLink: {
     color: COLORS.primary,
     textDecorationLine: 'underline',
+  },
+  imagePickerContainer: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  imagePickerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  imagePickerText: {
+    marginLeft: SPACING.sm,
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
+    flex: 1,
+  },
+  selectedImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginTop: SPACING.sm,
+    alignSelf: 'center',
   },
 });

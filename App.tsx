@@ -18,6 +18,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import DeleteAccountScreen from './src/screens/DeleteAccountScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
+import TermsScreen from './src/screens/TermsScreen';
 
 // Services
 import { initializeFirebase } from './src/services/firebase';
@@ -78,6 +79,7 @@ export default function App() {
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
             <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+            <Stack.Screen name="Terms" component={TermsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
         <StatusBar style="auto" />
