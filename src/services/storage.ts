@@ -2,12 +2,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class Settings {
-  private static ONBOARDING_KEY = 'onboarding_done';
-  private static USER_SETTINGS_KEY = 'user_settings';
+  private static readonly ONBOARDING_DONE_KEY = 'onboarding_done';
+  private static readonly USER_SETTINGS_KEY = 'user_settings';
 
   async getOnboardingDone(): Promise<boolean> {
     try {
-      const value = await AsyncStorage.getItem(Settings.ONBOARDING_KEY);
+      const value = await AsyncStorage.getItem(Settings.ONBOARDING_DONE_KEY);
       return value === 'true';
     } catch (error) {
       console.error('Error getting onboarding status:', error);
@@ -17,7 +17,7 @@ export class Settings {
 
   async setOnboardingDone(done: boolean): Promise<void> {
     try {
-      await AsyncStorage.setItem(Settings.ONBOARDING_KEY, done.toString());
+      await AsyncStorage.setItem(Settings.ONBOARDING_DONE_KEY, done.toString());
     } catch (error) {
       console.error('Error setting onboarding status:', error);
     }

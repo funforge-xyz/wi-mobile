@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../config/constants';
-import { Settings } from '../services/settings';
+import { Settings } from '../services/storage';
 
 import HomeScreen from './HomeScreen';
 import FeedScreen from './FeedScreen';
