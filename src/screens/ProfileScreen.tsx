@@ -63,8 +63,12 @@ export default function ProfileScreen() {
     try {
       setLoading(true);
 
+      // Wait for Firebase to be initialized
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      
       // Get current user from Firebase Auth
-      const currentUser = await authService.getCurrentUser();
+      const currentUser = auth.currentUser || await authService.getCurrentUser();
 
       if (currentUser) {
         // Try to get profile data from Firestore
@@ -82,7 +86,7 @@ export default function ProfileScreen() {
             lastName: firestoreData.lastName || '',
             displayName: firestoreData.displayName || currentUser.displayName || 'Anonymous User',
             email: currentUser.email || '',
-            photoURL: firestoreData.photoURL || currentUser.photoURL || 'https://via.placeholder.com/120',
+            photoURL: firestoreData.photoURL || currentUser.photoURL || '',
             bio: firestoreData.bio || '',
             postsCount: 0,
             followersCount: 0,
@@ -96,7 +100,7 @@ export default function ProfileScreen() {
             lastName: '',
             displayName: currentUser.displayName || 'Anonymous User',
             email: currentUser.email || '',
-            photoURL: currentUser.photoURL || 'https://via.placeholder.com/120',
+            photoURL: currentUser.photoURL || '',
             bio: '',
             postsCount: 0,
             followersCount: 0,
@@ -140,7 +144,8 @@ export default function ProfileScreen() {
         photoURL: editedProfile.photoURL,
       });
 
-      setProfile(editedProfile);
+      // Reload profile to get updated data
+      await loadUserProfile();
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
@@ -233,7 +238,11 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity onPress={isEditing ? handleImagePicker : undefined}>
-            <Image source={{ uri: profile.photoURL }} style={styles.avatar} />
+            <Image 
+              source={{ uri: profile.photoURL || 'https://via.placeholder.com/120' }} 
+              style={styles.avatar} 
+              defaultSource={{ uri: 'https://via.placeholder.com/120' }}
+            />
             {isEditing && (
               <View style={styles.editImageOverlay}>
                 <Ionicons name="camera" size={20} color="white" />
@@ -242,7 +251,9 @@ export default function ProfileScreen() {
           </TouchableOpacity>
 
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
-            {profile.displayName}
+            {profile.firstName && profile.lastName 
+              ? `${profile.firstName} ${profile.lastName}` 
+              : profile.displayName || 'Anonymous User'}
           </Text>
           <Text style={[styles.email, { color: currentTheme.textSecondary }]}>
             {profile.email}

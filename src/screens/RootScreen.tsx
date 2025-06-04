@@ -40,6 +40,10 @@ export default function RootScreen() {
 
   const checkAuthState = async () => {
     try {
+      // Ensure Firebase is initialized
+      const { initializeFirebase } = await import('../services/firebase');
+      await initializeFirebase();
+      
       const isLoggedIn = await authService.isAuthenticated();
       setIsAuthenticated(isLoggedIn);
 
