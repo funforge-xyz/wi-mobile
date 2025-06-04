@@ -321,7 +321,7 @@ export default function AddPostScreen() {
               </Text>
             </View>
             <Ionicons 
-              name={allowComments ? "radio-button-on" : "radio-button-off"} 
+              name={allowComments ? "toggle" : "toggle-outline"} 
               size={24} 
               color={allowComments ? COLORS.primary : currentTheme.textSecondary} 
             />
@@ -344,7 +344,7 @@ export default function AddPostScreen() {
               </Text>
             </View>
             <Ionicons 
-              name={showLikeCount ? "radio-button-on" : "radio-button-off"} 
+              name={showLikeCount ? "toggle" : "toggle-outline"} 
               size={24} 
               color={showLikeCount ? COLORS.primary : currentTheme.textSecondary} 
             />
