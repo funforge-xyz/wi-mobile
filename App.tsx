@@ -8,7 +8,6 @@ import * as Font from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Screens
-import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import RootScreen from './src/screens/RootScreen';
@@ -21,7 +20,6 @@ import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 // Services
 import { initializeFirebase } from './src/services/firebase';
 import { initializeNotifications } from './src/services/notifications';
-import { Settings } from './src/services/storage';
 
 // Types
 import { RootStackParamList } from './src/types/navigation';
@@ -33,7 +31,6 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [onboardingDone, setOnboardingDone] = useState(false);
 
   useEffect(() => {
     async function prepare() {
@@ -48,11 +45,6 @@ export default function App() {
         await Font.loadAsync({
           // Add your custom fonts here if needed
         });
-
-        // Check onboarding status
-        const settings = new Settings();
-        const onboardingStatus = await settings.getOnboardingDone();
-        setOnboardingDone(onboardingStatus);
 
       } catch (e) {
         console.warn(e);
@@ -73,12 +65,11 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName={onboardingDone ? 'Root' : 'Onboarding'}
+          initialRouteName="Root"
           screenOptions={{
             headerShown: false,
           }}
         >
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Root" component={RootScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
