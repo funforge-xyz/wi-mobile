@@ -1,7 +1,3 @@
-The code is modified to include a loading indicator for the ChatsScreen.
-```
-
-```text
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -421,4 +417,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-</replit_final_file>
