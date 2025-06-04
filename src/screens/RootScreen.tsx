@@ -112,15 +112,15 @@ export default function RootScreen() {
       })}
     >
       <Tab.Screen name="Home" component={FeedScreen} />
+      <Tab.Screen name="Nearby" component={NearbyScreen} />
       <Tab.Screen 
         name="Add" 
         component={AddPostScreen}
         options={{
-          tabBarLabel: '',
+          tabBarLabel: 'Add',
           tabBarIconStyle: { marginTop: 5 },
         }}
       />
-      <Tab.Screen name="Nearby" component={NearbyScreen} />
       <Tab.Screen name="Chats" component={ChatsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
