@@ -1,9 +1,10 @@
 
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeAuth } from 'firebase/auth';
+import { getReactNativePersistence } from 'firebase/auth/react-native';
 import { getFirestore as getFirestoreSDK } from 'firebase/firestore';
 import { getStorage as getStorageSDK } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
+import { getAnalytics as getAnalyticsSDK } from 'firebase/analytics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -37,7 +38,7 @@ export const initializeFirebase = async () => {
       
       // Only initialize analytics in production or when needed
       try {
-        analytics = getAnalytics(app);
+        analytics = getAnalyticsSDK(app);
       } catch (analyticsError) {
         console.log('Analytics not available in this environment');
       }
@@ -72,7 +73,7 @@ export const getStorage = () => {
   return storage;
 };
 
-export const getAnalytics = () => {
+export const getFirebaseAnalytics = () => {
   if (!analytics) {
     throw new Error('Firebase Analytics not initialized. Call initializeFirebase() first.');
   }
