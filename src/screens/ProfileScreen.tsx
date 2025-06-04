@@ -131,13 +131,20 @@ export default function ProfileScreen() {
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
-      // In a real app, this would update the backend/Firebase
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update profile using authService
+      await authService.updateProfile({
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        bio: editedProfile.bio,
+        photoURL: editedProfile.photoURL,
+      });
 
       setProfile(editedProfile);
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
+      console.error('Profile save error:', error);
       Alert.alert('Error', 'Failed to update profile');
     } finally {
       setLoading(false);
@@ -325,16 +332,31 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Display Name</Text>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
               <TextInput
                 style={[styles.input, { 
                   backgroundColor: currentTheme.surface, 
                   color: currentTheme.text,
                   borderColor: currentTheme.border 
                 }]}
-                value={editedProfile.displayName}
-                onChangeText={(text) => setEditedProfile({ ...editedProfile, displayName: text })}
-                placeholder="Enter your display name"
+                value={editedProfile.firstName}
+                onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
+                placeholder="Enter your first name"
+                placeholderTextColor={currentTheme.textSecondary}
+              />
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: currentTheme.surface, 
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border 
+                }]}
+                value={editedProfile.lastName}
+                onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
+                placeholder="Enter your last name"
                 placeholderTextColor={currentTheme.textSecondary}
               />
             </View>

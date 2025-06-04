@@ -110,6 +110,24 @@ export class AuthService {
       const user = userCredential.user;
 
       if (user) {
+        // Create user document in Firestore
+        const { getFirestore } = await import('./firebase');
+        const { doc, setDoc } = await import('firebase/firestore');
+        
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', user.uid);
+        
+        await setDoc(userDocRef, {
+          email: user.email,
+          firstName: '',
+          lastName: '',
+          displayName: user.displayName || 'Anonymous User',
+          bio: '',
+          photoURL: user.photoURL || '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+
         const token = await user.getIdToken();
         await this.credentials.setToken(token);
         await this.credentials.setUser({
