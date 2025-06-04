@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,6 +9,7 @@ import {
   RefreshControl,
   Alert,
   Dimensions,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -212,7 +212,7 @@ export default function FeedScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: currentTheme.textSecondary }]}>Loading posts...</Text>
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       </SafeAreaView>
     );

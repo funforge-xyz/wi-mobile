@@ -1,4 +1,7 @@
+The code is modified to include a loading indicator for the ChatsScreen.
+```
 
+```text
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -170,7 +173,7 @@ export default function ChatsScreen() {
         />
         {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />}
       </View>
-      
+
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
           <Text style={[styles.chatName, { color: currentTheme.text }]}>{item.otherUserName}</Text>
@@ -178,7 +181,7 @@ export default function ChatsScreen() {
             {item.lastMessage && formatTime(item.lastMessage.createdAt)}
           </Text>
         </View>
-        
+
         <View style={styles.chatFooter}>
           <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }, item.unreadCount > 0 && [styles.unreadMessage, { color: currentTheme.text }]]} numberOfLines={1}>
             {item.lastMessage?.type === 'image' ? '📷 Photo' : item.lastMessage?.content || 'No messages yet'}
@@ -207,6 +210,16 @@ export default function ChatsScreen() {
   );
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -402,4 +415,10 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     color: 'white',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
+</replit_final_file>

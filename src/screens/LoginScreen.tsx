@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -159,16 +160,23 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          {isSignUp ? 'Create Account' : 'Welcome Back'}
-        </Text>
-        <Text style={styles.subtitle}>
-          {isSignUp ? 'Sign up to get started' : 'Sign in to continue'}
-        </Text>
-      </View>
+      <KeyboardAwareScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        enableOnAndroid={true}
+        extraScrollHeight={100}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
+          </Text>
+          <Text style={styles.subtitle}>
+            {isSignUp ? 'Sign up to get started' : 'Sign in to continue'}
+          </Text>
+        </View>
 
-      <View style={styles.form}>
+        <View style={styles.form}>
         {errorMessage ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{errorMessage}</Text>
@@ -203,8 +211,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
             <TouchableOpacity style={styles.imagePickerContainer} onPress={handleImagePicker}>
               <View style={styles.imagePickerContent}>
-                <Ionicons name="camera-outline" size={24} color={COLORS.primary} />
-                <Text style={styles.imagePickerText}>
+                <Ionicons name="camera-outline" size={20} color={COLORS.textSecondary} />
+                <Text style={[styles.imagePickerText, { color: COLORS.text }]}>
                   {profileImage ? 'Change Profile Picture' : 'Add Profile Picture (optional)'}
                 </Text>
               </View>
@@ -213,16 +221,19 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               )}
             </TouchableOpacity>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="document-text-outline" size={20} color={COLORS.textSecondary} />
+            <View style={styles.bioContainer}>
+              <View style={styles.bioIconContainer}>
+                <Ionicons name="document-text-outline" size={20} color={COLORS.textSecondary} />
+              </View>
               <TextInput
-                style={[styles.input, { color: COLORS.text }]}
+                style={[styles.bioInput, { color: COLORS.text }]}
                 placeholder="Bio (optional)"
                 placeholderTextColor={COLORS.textSecondary}
                 value={bio}
                 onChangeText={setBio}
                 multiline
-                numberOfLines={2}
+                numberOfLines={3}
+                textAlignVertical="top"
               />
             </View>
           </>
@@ -335,7 +346,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             {isSignUp ? 'Already have an account? Sign In' : 'Don\'t have an account? Sign Up'}
           </Text>
         </TouchableOpacity>
-      </View>
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -344,6 +356,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     paddingHorizontal: SPACING.md,
@@ -495,7 +513,6 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.sm,
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
     flex: 1,
   },
   selectedImage: {
@@ -504,5 +521,26 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginTop: SPACING.sm,
     alignSelf: 'center',
+  },
+  bioContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minHeight: 80,
+  },
+  bioIconContainer: {
+    paddingTop: 2,
+  },
+  bioInput: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    minHeight: 60,
   },
 });

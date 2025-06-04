@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -25,9 +24,15 @@ export default function AddPostScreen() {
   const [locationEnabled, setLocationEnabled] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadSettings();
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const loadSettings = async () => {
@@ -37,7 +42,7 @@ export default function AddPostScreen() {
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       Alert.alert('Permission Required', 'Permission to access photo library is required!');
       return;
@@ -59,7 +64,7 @@ export default function AddPostScreen() {
 
   const takePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       Alert.alert('Permission Required', 'Permission to access camera is required!');
       return;
@@ -90,7 +95,7 @@ export default function AddPostScreen() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       Alert.alert('Success', 'Your post has been shared!', [
         { text: 'OK', onPress: () => {
           setContent('');
@@ -117,6 +122,16 @@ export default function AddPostScreen() {
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -349,5 +364,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: FONTS.regular,
     marginLeft: 'auto',
+  },
+    loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
