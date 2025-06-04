@@ -25,6 +25,7 @@ export default function AddPostScreen() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -40,11 +41,11 @@ export default function AddPostScreen() {
     setIsDarkMode(darkMode);
   };
 
-  const pickImage = async () => {
+  const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access photo library is required!');
+      Alert.alert('Permission Required', 'Permission to access the photo library is required!');
       return;
     }
 
@@ -53,20 +54,23 @@ export default function AddPostScreen() {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-      allowsMultipleSelection: true,
     });
 
-    if (!result.canceled && result.assets) {
-      const imageUris = result.assets.map(asset => asset.uri);
-      setSelectedImages(prev => [...prev, ...imageUris]);
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 2621440) {
+        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
+        return;
+      }
+      setSelectedImage(asset.uri);
     }
   };
 
-  const takePhoto = async () => {
+  const handleCameraCapture = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera is required!');
+      Alert.alert('Permission Required', 'Permission to access the camera is required!');
       return;
     }
 
@@ -76,9 +80,40 @@ export default function AddPostScreen() {
       quality: 1,
     });
 
-    if (!result.canceled && result.assets) {
-      setSelectedImages(prev => [...prev, result.assets[0].uri]);
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 2621440) {
+        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
+        return;
+      }
+      setSelectedImage(asset.uri);
     }
+  };
+
+  const showImagePicker = () => {
+    Alert.alert(
+      'Select Photo',
+      'Choose how you want to add a photo',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Gallery',
+          onPress: handleImagePicker,
+        },
+        {
+          text: 'Camera',
+          onPress: handleCameraCapture,
+        },
+        ...(selectedImage ? [{
+          text: 'Remove',
+          style: 'destructive' as const,
+          onPress: () => setSelectedImage(''),
+        }] : []),
+      ]
+    );
   };
 
   const removeImage = (index: number) => {
@@ -107,18 +142,6 @@ export default function AddPostScreen() {
     } finally {
       setIsPosting(false);
     }
-  };
-
-  const showImageOptions = () => {
-    Alert.alert(
-      'Add Photo',
-      'Choose how you want to add a photo',
-      [
-        { text: 'Camera', onPress: takePhoto },
-        { text: 'Photo Library', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -168,6 +191,30 @@ export default function AddPostScreen() {
             {content.length}/500
           </Text>
         </View>
+         <View style={styles.imageSection}>
+            <TouchableOpacity style={[styles.imagePickerContainer, { 
+              backgroundColor: currentTheme.surface,
+              borderColor: currentTheme.border 
+            }]} onPress={showImagePicker}>
+              <View style={styles.imagePickerContent}>
+                <Ionicons name="camera-outline" size={20} color={currentTheme.textSecondary} />
+                <Text style={[styles.imagePickerText, { color: currentTheme.textSecondary }]}>
+                  {selectedImage ? 'Change Photo' : 'Add Photo (optional)'}
+                </Text>
+              </View>
+              {selectedImage && (
+                <View style={styles.selectedImageContainer}>
+                  <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
+                  <TouchableOpacity 
+                    style={styles.removeImageButton} 
+                    onPress={() => setSelectedImage('')}
+                  >
+                    <Ionicons name="close-circle" size={24} color={COLORS.error} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
 
         {selectedImages.length > 0 && (
           <View style={styles.imagesContainer}>
@@ -189,11 +236,6 @@ export default function AddPostScreen() {
         )}
 
         <View style={styles.optionsContainer}>
-          <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]} onPress={showImageOptions}>
-            <Ionicons name="camera-outline" size={24} color={COLORS.primary} />
-            <Text style={[styles.optionText, { color: currentTheme.text }]}>Add Photo</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]}>
             <Ionicons name="location-outline" size={24} color={COLORS.primary} />
             <Text style={[styles.optionText, { color: currentTheme.text }]}>Add Location</Text>
@@ -367,5 +409,41 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  imageSection: {
+    marginBottom: SPACING.lg,
+  },
+  imagePickerContainer: {
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+  },
+  imagePickerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  imagePickerText: {
+    marginLeft: SPACING.sm,
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    flex: 1,
+  },
+  selectedImageContainer: {
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+    position: 'relative',
+  },
+  selectedImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 12,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -10,
+    right: '25%',
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
 });
