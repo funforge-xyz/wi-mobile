@@ -10,6 +10,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  ActionSheetIOS, // Import ActionSheetIOS
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -321,7 +323,7 @@ export default function ProfileScreen() {
                 // Continue with removal even if storage deletion fails
               }
             }
-            
+
             setEditedProfile({
               ...editedProfile,
               photoURL: '',
@@ -333,6 +335,48 @@ export default function ProfileScreen() {
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
+    const showImagePickerOptions = () => {
+    const options = ['Take Photo', 'Choose from Library', 'Cancel'];
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: 2,
+        },
+        buttonIndex => {
+          if (buttonIndex === 0) {
+            handleCameraCapture();
+          } else if (buttonIndex === 1) {
+            handleImagePicker();
+          }
+        }
+      );
+    } else {
+      // For Android, you might want to use a Modal or Alert to display the options
+      Alert.alert(
+        'Choose an option',
+        'Select how you want to set your profile picture',
+        [
+          {
+            text: 'Take Photo',
+            onPress: handleCameraCapture,
+          },
+          {
+            text: 'Choose from Library',
+            onPress: handleImagePicker,
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
 
   if (loading && !isEditing) {
     return (
@@ -360,7 +404,7 @@ export default function ProfileScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
-          <TouchableOpacity onPress={isEditing ? handleImagePicker : undefined}>
+          <TouchableOpacity onPress={isEditing ? showImagePickerOptions : undefined}>
             {profile.photoURL ? (
               <Image 
                 source={{ uri: profile.photoURL }} 
@@ -466,50 +510,17 @@ export default function ProfileScreen() {
           </View>
 
           <ScrollView style={styles.modalContent}>
-            <View style={styles.modalSection}>
-              <View style={styles.modalImageContainer}>
-                <View style={styles.avatarContainer}>
-                  <TouchableOpacity onPress={handleImagePicker}>
-                    {editedProfile.photoURL ? (
-                      <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
-                    ) : (
-                      <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
-                        <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
-                      </View>
-                    )}
-                    <View style={styles.editImageOverlay}>
-                      <Ionicons name="camera" size={20} color="white" />
-                    </View>
-                  </TouchableOpacity>
-                  {editedProfile.photoURL && (
-                    <TouchableOpacity 
-                      style={styles.deleteImageButton} 
-                      onPress={handleRemoveImage}
-                    >
-                      <Ionicons name="trash" size={18} color="white" />
-                    </TouchableOpacity>
-                  )}
+          <View style={styles.modalSection}>
+            <TouchableOpacity onPress={showImagePickerOptions}>
+              {editedProfile.photoURL ? (
+                <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
+              ) : (
+                <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                  <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
                 </View>
-
-                <View style={styles.imageOptionsContainer}>
-                  <TouchableOpacity style={[styles.imageOptionButton, { 
-                    backgroundColor: currentTheme.surface,
-                    borderColor: currentTheme.border 
-                  }]} onPress={handleImagePicker}>
-                    <Ionicons name="images-outline" size={20} color={currentTheme.text} />
-                    <Text style={[styles.imageOptionText, { color: currentTheme.text }]}>Gallery</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={[styles.imageOptionButton, { 
-                    backgroundColor: currentTheme.surface,
-                    borderColor: currentTheme.border 
-                  }]} onPress={handleCameraCapture}>
-                    <Ionicons name="camera-outline" size={20} color={currentTheme.text} />
-                    <Text style={[styles.imageOptionText, { color: currentTheme.text }]}>Camera</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
+              )}
+            </TouchableOpacity>
+          </View>
 
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
@@ -806,5 +817,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.regular,
     marginLeft: SPACING.xs,
+  },
+  imagePickerContainer: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  imagePickerContent: {
+    alignItems: 'center',
+  },
+  imagePickerText: {
+    marginTop: SPACING.xs,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+  },
+  selectedImageContainer: {
+    position: 'relative',
+  },
+  selectedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -12,
+    right: -12,
+    backgroundColor: COLORS.surface,
+    borderRadius: 15,
   },
 });

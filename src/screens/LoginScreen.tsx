@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -61,6 +60,27 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     }
   };
 
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Select Image',
+      'Choose how you want to add a photo',
+      [
+        {
+          text: 'Camera',
+          onPress: handleCameraCapture,
+        },
+        {
+          text: 'Photo Library',
+          onPress: handleImagePicker,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
   const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -78,13 +98,38 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      
+
       // Check file size (2.5MB = 2,621,440 bytes)
       if (asset.fileSize && asset.fileSize > 2621440) {
         Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
         return;
       }
-      
+
+      setProfileImage(asset.uri);
+    }
+  };
+
+  const handleCameraCapture = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access the camera is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 2621440) {
+        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
+        return;
+      }
+
       setProfileImage(asset.uri);
     }
   };
@@ -100,12 +145,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         setErrorMessage('First name and last name are required');
         return;
       }
-      
+
       if (password !== confirmPassword) {
         setErrorMessage('Passwords do not match');
         return;
       }
-      
+
       if (!acceptTerms) {
         setErrorMessage('Please accept the terms and conditions');
         return;
@@ -117,7 +162,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     try {
       if (isSignUp) {
         let photoURL = '';
-        
+
         // Upload image to Firebase Storage if a local image is selected
         if (profileImage && profileImage.startsWith('file://')) {
           try {
@@ -131,7 +176,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             return;
           }
         }
-        
+
         await authService.signUpWithEmail(email, password, {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
@@ -153,7 +198,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     // TODO: Google Sign In not working with Expo Go - temporarily disabled
     setErrorMessage('Google Sign In will be available in the production app');
     return;
-    
+
     // setIsLoading(true);
     // setErrorMessage('');
     // try {
@@ -217,7 +262,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               />
             </View>
 
-            <TouchableOpacity style={styles.imagePickerContainer} onPress={handleImagePicker}>
+            <TouchableOpacity style={styles.imagePickerContainer} onPress={showImagePickerOptions}>
               <View style={styles.imagePickerContent}>
                 <Ionicons name="camera-outline" size={20} color={COLORS.textSecondary} />
                 <Text style={[styles.imagePickerText, { color: COLORS.textSecondary }]}>
@@ -254,7 +299,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             </View>
           </>
         )}
-        
+
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
           <TextInput
