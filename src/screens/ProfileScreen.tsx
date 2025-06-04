@@ -19,7 +19,8 @@ import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { getFirestore } from '../services/firebase';
 
 interface UserProfile {
   id: string;
