@@ -311,7 +311,17 @@ export default function ProfileScreen() {
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            // Delete the image from Firebase Storage if it's a Firebase URL
+            if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
+              try {
+                await storageService.deleteProfilePicture(editedProfile.photoURL);
+              } catch (error) {
+                console.error('Error deleting image from storage:', error);
+                // Continue with removal even if storage deletion fails
+              }
+            }
+            
             setEditedProfile({
               ...editedProfile,
               photoURL: '',
@@ -482,12 +492,18 @@ export default function ProfileScreen() {
                 </View>
 
                 <View style={styles.imageOptionsContainer}>
-                  <TouchableOpacity style={styles.imageOptionButton} onPress={handleImagePicker}>
+                  <TouchableOpacity style={[styles.imageOptionButton, { 
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border 
+                  }]} onPress={handleImagePicker}>
                     <Ionicons name="images-outline" size={20} color={currentTheme.text} />
                     <Text style={[styles.imageOptionText, { color: currentTheme.text }]}>Gallery</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.imageOptionButton} onPress={handleCameraCapture}>
+                  <TouchableOpacity style={[styles.imageOptionButton, { 
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border 
+                  }]} onPress={handleCameraCapture}>
                     <Ionicons name="camera-outline" size={20} color={currentTheme.text} />
                     <Text style={[styles.imageOptionText, { color: currentTheme.text }]}>Camera</Text>
                   </TouchableOpacity>
@@ -780,11 +796,11 @@ const styles = StyleSheet.create({
   imageOptionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: 20,
     marginHorizontal: SPACING.sm,
+    borderWidth: 1,
   },
   imageOptionText: {
     fontSize: 14,
