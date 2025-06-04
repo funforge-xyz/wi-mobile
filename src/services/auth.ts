@@ -205,6 +205,59 @@ export class AuthService {
     const token = await this.credentials.getToken();
     return !!token;
   }
+
+  async deleteProfile(): Promise<void> {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        throw new Error('No authenticated user');
+      }
+
+      // Get user data to find profile picture URL
+      const { getFirestore } = await import('./firebase');
+      const { doc, getDoc, deleteDoc } = await import('firebase/firestore');
+      
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      // Delete profile picture from storage if it exists
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.photoURL && userData.photoURL.includes('firebase')) {
+          try {
+            const { storageService } = await import('./storage');
+            await storageService.deleteProfilePicture(userData.photoURL);
+          } catch (storageError) {
+            console.error('Error deleting profile picture:', storageError);
+            // Continue with profile deletion even if image deletion fails
+          }
+        }
+      }
+
+      // Delete user document from Firestore
+      await deleteDoc(userDocRef);
+
+      // Delete the Firebase Auth user account (this also frees up the email)
+      const { deleteUser } = await import('firebase/auth');
+      await deleteUser(user);
+
+      // Clear local storage
+      await this.credentials.removeToken();
+      await this.credentials.removeUser();
+
+      // Trigger navigation reset
+      if (this.onSignOutCallback) {
+        this.onSignOutCallback();
+      }
+
+    } catch (error) {
+      console.error('Profile deletion error:', error);
+      throw error;
+    }
+  }
 }
 
 export const authService = new AuthService();

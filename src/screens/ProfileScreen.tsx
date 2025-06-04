@@ -197,6 +197,34 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleDeleteProfile = async () => {
+    Alert.alert(
+      'Delete Profile',
+      'Are you sure you want to permanently delete your profile? This action cannot be undone and will delete all your data including posts, messages, and profile information.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await authService.deleteProfile();
+              // Navigation will be handled by the callback set in RootScreen
+            } catch (error) {
+              console.error('Delete profile error:', error);
+              Alert.alert('Error', 'Failed to delete profile');
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -249,11 +277,16 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity onPress={isEditing ? handleImagePicker : undefined}>
-            <Image 
-              source={{ uri: profile.photoURL || 'https://via.placeholder.com/120' }} 
-              style={styles.avatar} 
-              defaultSource={{ uri: 'https://via.placeholder.com/120' }}
-            />
+            {profile.photoURL ? (
+              <Image 
+                source={{ uri: profile.photoURL }} 
+                style={styles.avatar} 
+              />
+            ) : (
+              <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
+                <Ionicons name="person-add" size={40} color={currentTheme.textSecondary} />
+              </View>
+            )}
             {isEditing && (
               <View style={styles.editImageOverlay}>
                 <Ionicons name="camera" size={20} color="white" />
@@ -323,6 +356,11 @@ export default function ProfileScreen() {
             <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
             <Text style={[styles.menuText, { color: COLORS.error }]}>Sign Out</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleDeleteProfile}>
+            <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+            <Text style={[styles.menuText, { color: COLORS.error }]}>Delete Profile</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -346,7 +384,13 @@ export default function ProfileScreen() {
           <ScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
               <TouchableOpacity onPress={handleImagePicker} style={styles.modalImageContainer}>
-                <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
+                {editedProfile.photoURL ? (
+                  <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
+                ) : (
+                  <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                    <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                  </View>
+                )}
                 <View style={styles.editImageOverlay}>
                   <Ionicons name="camera" size={24} color="white" />
                 </View>
@@ -463,6 +507,13 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: SPACING.md,
   },
+  placeholderAvatar: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+  },
   editImageOverlay: {
     position: 'absolute',
     bottom: SPACING.md,
@@ -578,6 +629,13 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
+  },
+  placeholderModalAvatar: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
   },
   inputLabel: {
     fontSize: 16,
