@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import * as ImagePicker from 'expo-image-picker';
 import { Settings } from '../services/storage';
+import { authService } from '../services/auth';
 
 interface UserProfile {
   id: string;
@@ -116,6 +117,31 @@ export default function ProfileScreen() {
   const handleCancelEdit = () => {
     setEditedProfile(profile);
     setIsEditing(false);
+  };
+
+  const handleSignOut = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await authService.signOut();
+              // The RootScreen will handle navigation back to login
+            } catch (error) {
+              Alert.alert('Error', 'Failed to sign out');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleImagePicker = async () => {
@@ -234,7 +260,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
             <Text style={[styles.menuText, { color: COLORS.error }]}>Sign Out</Text>
           </TouchableOpacity>

@@ -71,10 +71,7 @@ export default function App() {
           }}
         >
           <Stack.Screen name="Root" component={RootScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
           <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />

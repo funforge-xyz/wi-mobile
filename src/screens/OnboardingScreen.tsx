@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -73,7 +72,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
       <View style={styles.content}>
         <Image source={currentData.image} style={styles.image} />
-        
+
         <View style={styles.textContainer}>
           <Text style={styles.title}>{currentData.title}</Text>
           <Text style={styles.description}>{currentData.description}</Text>

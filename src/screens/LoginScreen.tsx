@@ -15,7 +15,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/auth';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
-export default function LoginScreen() {
+interface LoginScreenProps {
+  onLoginSuccess?: () => void;
+}
+
+export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +39,7 @@ export default function LoginScreen() {
       } else {
         await authService.signInWithEmail(email, password);
       }
-      navigation.navigate('Root' as never);
+      onLoginSuccess?.();
     } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
@@ -51,7 +55,7 @@ export default function LoginScreen() {
     // setIsLoading(true);
     // try {
     //   await authService.signInWithGoogle();
-    //   navigation.navigate('Root' as never);
+    //   onLoginSuccess?.();
     // } catch (error: any) {
     //   Alert.alert('Error', error.message);
     // } finally {

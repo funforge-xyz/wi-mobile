@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../config/constants';
 import { Settings } from '../services/storage';
+import { authService } from '../services/auth';
 
 import HomeScreen from './HomeScreen';
 import FeedScreen from './FeedScreen';
@@ -11,28 +13,35 @@ import NearbyScreen from './NearbyScreen';
 import ChatsScreen from './ChatsScreen';
 import ProfileScreen from './ProfileScreen';
 import OnboardingScreen from './OnboardingScreen';
+import LoginScreen from './LoginScreen';
 import AddPostScreen from './AddPostScreen';
 
 const Tab = createBottomTabNavigator();
 
 export default function RootScreen() {
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const settings = new Settings();
 
   useEffect(() => {
-    checkOnboardingStatus();
+    checkAuthState();
   }, []);
 
-  const checkOnboardingStatus = async () => {
+  const checkAuthState = async () => {
     try {
-      const onboardingDone = await settings.getOnboardingDone();
-      setShowOnboarding(!onboardingDone);
+      const isLoggedIn = await authService.isAuthenticated();
+      setIsAuthenticated(isLoggedIn);
+      
+      if (isLoggedIn) {
+        const onboardingDone = await settings.getOnboardingDone();
+        setShowOnboarding(!onboardingDone);
+      }
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
-      setShowOnboarding(true);
+      console.error('Error checking auth state:', error);
+      setIsAuthenticated(false);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -41,8 +50,27 @@ export default function RootScreen() {
     setShowOnboarding(false);
   };
 
-  if (loading) {
-    return null; // Or a loading screen
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    checkAuthState(); // Recheck to determine if onboarding is needed
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      setIsAuthenticated(false);
+      setShowOnboarding(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  if (isLoading) {
+    return null; // You could add a loading screen here
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (showOnboarding) {
@@ -55,32 +83,47 @@ export default function RootScreen() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
 
-          if (route.name === 'Feed') {
+          if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Feed') {
+            iconName = focused ? 'newspaper' : 'newspaper-outline';
+          } else if (route.name === 'Add') {
+            iconName = 'add-circle';
           } else if (route.name === 'Nearby') {
             iconName = focused ? 'location' : 'location-outline';
-          } else if (route.name === 'Add') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
           } else if (route.name === 'Chats') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
           } else {
-            iconName = 'help-outline';
+            iconName = 'home-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarStyle: {
+          backgroundColor: COLORS.surface,
+          borderTopColor: COLORS.border,
+        },
+        tabBarLabelStyle: {
+          fontFamily: FONTS.medium,
+          fontSize: 12,
+        },
         headerShown: false,
       })}
     >
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Feed" component={FeedScreen} />
+      <Tab.Screen 
+        name="Add" 
+        component={AddPostScreen}
+        options={{
+          tabBarLabel: '',
+          tabBarIconStyle: { marginTop: 5 },
+        }}
+      />
       <Tab.Screen name="Nearby" component={NearbyScreen} />
-      <Tab.Screen name="Add" component={AddPostScreen} />
       <Tab.Screen name="Chats" component={ChatsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
