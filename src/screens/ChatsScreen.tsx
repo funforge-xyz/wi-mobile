@@ -13,6 +13,7 @@ import {
   RefreshControl,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -96,12 +97,11 @@ export default function ChatsScreen() {
 
   useEffect(() => {
     loadChats();
-    loadSettings();
   }, []);
 
   const loadSettings = async () => {
-    const darkMode = await settings.getDarkMode();
-    setIsDarkMode(darkMode);
+    // Settings are now handled by Redux store
+    // No need to manually set dark mode here
   };
 
   const loadChats = async () => {
