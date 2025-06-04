@@ -1,4 +1,3 @@
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class Settings {
@@ -122,24 +121,36 @@ import { getStorage as getStorageInstance } from './firebase';
 export class StorageService {
   async uploadProfilePicture(userId: string, imageUri: string): Promise<string> {
     try {
-      const storage = getStorageInstance();
-      
-      // Convert image URI to blob
       const response = await fetch(imageUri);
       const blob = await response.blob();
-      
-      // Create reference
+
+      const storage = getStorage();
       const imageRef = ref(storage, `profile-pictures/${userId}/${Date.now()}.jpg`);
-      
-      // Upload image
+
       await uploadBytes(imageRef, blob);
-      
-      // Get download URL
       const downloadURL = await getDownloadURL(imageRef);
-      
+
       return downloadURL;
     } catch (error) {
       console.error('Error uploading profile picture:', error);
+      throw error;
+    }
+  }
+
+  async uploadPostImage(userId: string, imageUri: string): Promise<string> {
+    try {
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+
+      const storage = getStorage();
+      const imageRef = ref(storage, `post-images/${userId}/${Date.now()}.jpg`);
+
+      await uploadBytes(imageRef, blob);
+      const downloadURL = await getDownloadURL(imageRef);
+
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading post image:', error);
       throw error;
     }
   }

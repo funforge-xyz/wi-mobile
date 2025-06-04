@@ -14,32 +14,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-import { Settings } from '../services/storage';
+import { Settings, storageService } from '../services/storage';
 import { useAppSelector } from '../hooks/redux';
+import { authService } from '../services/auth';
+import { getFirestore } from '../services/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isPosting, setIsPosting] = useState(false);
-  const [locationEnabled, setLocationEnabled] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    loadSettings();
     const timer = setTimeout(() => {
       setLoading(false);
     }, 800);
 
     return () => clearTimeout(timer);
   }, []);
-
-  const loadSettings = async () => {
-    const darkMode = await settings.getDarkMode();
-    setIsDarkMode(darkMode);
-  };
 
   const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -116,29 +112,65 @@ export default function AddPostScreen() {
     );
   };
 
-  const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-  };
+  
 
   const handlePost = async () => {
-    if (!content.trim() && selectedImages.length === 0) {
-      Alert.alert('Error', 'Please add some content or images to your post');
+    if (!content.trim() && !selectedImage) {
+      Alert.alert('Error', 'Please add some content or an image to your post');
       return;
     }
 
     setIsPosting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get current user
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser || await authService.getCurrentUser();
+
+      if (!currentUser) {
+        Alert.alert('Error', 'You must be logged in to create a post');
+        return;
+      }
+
+      let mediaUrl = '';
+      
+      // Upload image if selected
+      if (selectedImage) {
+        try {
+          mediaUrl = await storageService.uploadPostImage(currentUser.uid, selectedImage);
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          Alert.alert('Error', 'Failed to upload image');
+          setIsPosting(false);
+          return;
+        }
+      }
+
+      // Create post in Firestore
+      const firestore = getFirestore();
+      const postsCollection = collection(firestore, 'posts');
+      
+      await addDoc(postsCollection, {
+        authorId: currentUser.uid,
+        content: content.trim(),
+        mediaUrl: mediaUrl || null,
+        thumbUrl: mediaUrl || null,
+        isPrivate: isPrivate,
+        allowComments: true,
+        allowLikes: true,
+        createdAt: serverTimestamp(),
+      });
 
       Alert.alert('Success', 'Your post has been shared!', [
         { text: 'OK', onPress: () => {
           setContent('');
-          setSelectedImages([]);
+          setSelectedImage(null);
+          setIsPrivate(false);
         }}
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to post. Please try again.');
+      console.error('Post creation error:', error);
+      Alert.alert('Error', 'Failed to create post. Please try again.');
     } finally {
       setIsPosting(false);
     }
@@ -162,9 +194,9 @@ export default function AddPostScreen() {
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>New Post</Text>
         <TouchableOpacity
-          style={[styles.postButton, (!content.trim() && selectedImages.length === 0) && styles.postButtonDisabled]}
+          style={[styles.postButton, (!content.trim() && !selectedImage) && styles.postButtonDisabled]}
           onPress={handlePost}
-          disabled={(!content.trim() && selectedImages.length === 0) || isPosting}
+          disabled={(!content.trim() && !selectedImage) || isPosting}
         >
           {isPosting ? (
             <ActivityIndicator size="small" color="white" />
@@ -216,48 +248,25 @@ export default function AddPostScreen() {
             </TouchableOpacity>
           </View>
 
-        {selectedImages.length > 0 && (
-          <View style={styles.imagesContainer}>
-            <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Photos</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {selectedImages.map((uri, index) => (
-                <View key={index} style={styles.imageContainer}>
-                  <Image source={{ uri }} style={styles.selectedImage} />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => removeImage(index)}
-                  >
-                    <Ionicons name="trash" size={16} color="white" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        <View style={styles.optionsContainer}>
-          <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]}>
-            <Ionicons name="location-outline" size={24} color={COLORS.primary} />
-            <Text style={[styles.optionText, { color: currentTheme.text }]}>Add Location</Text>
-            <View style={[styles.locationToggle, { backgroundColor: currentTheme.surface }]}>
-              <Text style={styles.locationStatus}>
-                {locationEnabled ? 'On' : 'Off'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]}>
-            <Ionicons name="people-outline" size={24} color={COLORS.primary} />
-            <Text style={[styles.optionText, { color: currentTheme.text }]}>Tag People</Text>
-          </TouchableOpacity>
-        </View>
+        
 
         <View style={[styles.privacyContainer, { backgroundColor: currentTheme.surface }]}>
-          <View style={styles.privacyOption}>
-            <Ionicons name="globe-outline" size={20} color={currentTheme.textSecondary} />
-            <Text style={[styles.privacyText, { color: currentTheme.text }]}>Public</Text>
-            <Text style={[styles.privacySubtext, { color: currentTheme.textSecondary }]}>Anyone can see this post</Text>
-          </View>
+          <TouchableOpacity style={styles.privacyOption} onPress={() => setIsPrivate(!isPrivate)}>
+            <Ionicons 
+              name={isPrivate ? "lock-closed-outline" : "globe-outline"} 
+              size={20} 
+              color={currentTheme.textSecondary} 
+            />
+            <View style={styles.privacyTextContainer}>
+              <Text style={[styles.privacyText, { color: currentTheme.text }]}>
+                {isPrivate ? 'Private' : 'Public'}
+              </Text>
+              <Text style={[styles.privacySubtext, { color: currentTheme.textSecondary }]}>
+                {isPrivate ? 'Only you can see this post' : 'Anyone can see this post'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -395,15 +404,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  privacyTextContainer: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+  },
   privacyText: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    marginLeft: SPACING.sm,
   },
   privacySubtext: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    marginLeft: 'auto',
+    marginTop: 2,
   },
     loadingContainer: {
     flex: 1,

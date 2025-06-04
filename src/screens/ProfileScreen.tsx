@@ -21,7 +21,7 @@ import { Settings, storageService } from '../services/storage';
 import { authService } from '../services/auth';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface UserProfile {
@@ -78,6 +78,12 @@ export default function ProfileScreen() {
 
         let userData: UserProfile;
 
+        // Get user's post count
+        const postsCollection = collection(firestore, 'posts');
+        const userPostsQuery = query(postsCollection, where('authorId', '==', currentUser.uid));
+        const userPostsSnapshot = await getDocs(userPostsQuery);
+        const postsCount = userPostsSnapshot.size;
+
         if (userDoc.exists()) {
           const firestoreData = userDoc.data();
           userData = {
@@ -87,7 +93,7 @@ export default function ProfileScreen() {
             email: currentUser.email || '',
             photoURL: firestoreData.photoURL || currentUser.photoURL || '',
             bio: firestoreData.bio || '',
-            postsCount: 0,
+            postsCount: postsCount,
             followersCount: 0,
             followingCount: 0,
           };
@@ -100,7 +106,7 @@ export default function ProfileScreen() {
             email: currentUser.email || '',
             photoURL: currentUser.photoURL || '',
             bio: '',
-            postsCount: 0,
+            postsCount: postsCount,
             followersCount: 0,
             followingCount: 0,
           };
