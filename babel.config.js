@@ -1,4 +1,3 @@
-
 module.exports = function(api) {
   api.cache(true);
   return {
@@ -19,7 +18,14 @@ module.exports = function(api) {
             '@config': './src/config'
           }
         }
-      ]
+      ],
+      [
+        'module:react-native-dotenv',
+        {
+          moduleName: 'react-native-dotenv',
+          verbose: false,
+        },
+      ],
     ]
   };
 };

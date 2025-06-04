@@ -5,11 +5,12 @@ import { getFirestore as getFirestoreSDK } from 'firebase/firestore';
 import { getStorage as getStorageSDK } from 'firebase/storage';
 import { getAnalytics as getAnalyticsSDK } from 'firebase/analytics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {FIREBASE_API_KEY} from 'react-native-dotenv';
 
 const firebaseConfig = {
   projectId: "wichat-2684e",
   storageBucket: "wichat-2684e.appspot.com",
-  apiKey: "AIzaSyDummyKeyForDevelopment", // Replace with your actual API key
+  apiKey: FIREBASE_API_KEY,
   authDomain: "wichat-2684e.firebaseapp.com",
   messagingSenderId: "350425373122",
   appId: "1:350425373122:android:d88c1c32c9b7e8275dde5b",

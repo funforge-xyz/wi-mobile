@@ -18,7 +18,8 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.js",
-    "**/*.jsx"
+    "**/*.jsx",
+     "./env.d.ts"
   ],
   "exclude": [
     "node_modules"
