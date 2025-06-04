@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export class Settings {
   private static readonly ONBOARDING_DONE_KEY = 'onboarding_done';
   private static readonly USER_SETTINGS_KEY = 'user_settings';
+  private static readonly DARK_MODE_KEY = 'dark_mode';
 
   async getOnboardingDone(): Promise<boolean> {
     try {
@@ -20,6 +21,24 @@ export class Settings {
       await AsyncStorage.setItem(Settings.ONBOARDING_DONE_KEY, done.toString());
     } catch (error) {
       console.error('Error setting onboarding status:', error);
+    }
+  }
+
+  async getDarkMode(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(Settings.DARK_MODE_KEY);
+      return value === 'true';
+    } catch (error) {
+      console.error('Error getting dark mode status:', error);
+      return false;
+    }
+  }
+
+  async setDarkMode(enabled: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(Settings.DARK_MODE_KEY, enabled.toString());
+    } catch (error) {
+      console.error('Error setting dark mode status:', error);
     }
   }
 
