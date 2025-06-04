@@ -13,10 +13,10 @@ import ProfileScreen from './ProfileScreen';
 import OnboardingScreen from './OnboardingScreen';
 import LoginScreen from './LoginScreen';
 import AddPostScreen from './AddPostScreen';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { setTheme } from '../store/themeSlice';
 
 // Redux imports
-import { useAppSelector, useAppDispatch } from '../redux/hooks';
-import { setTheme } from '../redux/themeSlice';
 
 const Tab = createBottomTabNavigator();
 
