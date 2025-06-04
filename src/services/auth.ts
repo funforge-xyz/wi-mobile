@@ -12,6 +12,7 @@ import { Credentials } from './storage';
 
 export class AuthService {
   private credentials = new Credentials();
+  private onSignOutCallback?: () => void;
 
   constructor() {
     // TODO: Google Sign In configuration disabled for Expo Go compatibility
@@ -98,6 +99,10 @@ export class AuthService {
     // }
   }
 
+  setOnSignOutCallback(callback: () => void) {
+    this.onSignOutCallback = callback;
+  }
+
   async signOut(): Promise<void> {
     try {
       const auth = getAuth();
@@ -107,6 +112,11 @@ export class AuthService {
       // TODO: Google Sign In calls disabled for Expo Go compatibility
       // await GoogleSignin.revokeAccess();
       // await GoogleSignin.signOut();
+      
+      // Trigger navigation reset
+      if (this.onSignOutCallback) {
+        this.onSignOutCallback();
+      }
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;

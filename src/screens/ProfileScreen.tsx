@@ -138,7 +138,7 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await authService.signOut();
-              // The RootScreen will handle navigation back to login
+              // Navigation will be handled by the callback set in RootScreen
             } catch (error) {
               Alert.alert('Error', 'Failed to sign out');
             }

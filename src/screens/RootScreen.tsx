@@ -21,10 +21,17 @@ export default function RootScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const settings = new Settings();
 
   useEffect(() => {
     checkAuthState();
+    
+    // Set up sign out callback to reset navigation
+    authService.setOnSignOutCallback(() => {
+      setIsAuthenticated(false);
+      setShowOnboarding(false);
+    });
   }, []);
 
   const checkAuthState = async () => {
@@ -36,6 +43,10 @@ export default function RootScreen() {
         const onboardingDone = await settings.getOnboardingDone();
         setShowOnboarding(!onboardingDone);
       }
+      
+      // Load dark mode setting
+      const darkMode = await settings.getDarkMode();
+      setIsDarkMode(darkMode);
     } catch (error) {
       console.error('Error checking auth state:', error);
       setIsAuthenticated(false);
@@ -99,10 +110,10 @@ export default function RootScreen() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarInactiveTintColor: isDarkMode ? '#B0B0B0' : COLORS.textSecondary,
         tabBarStyle: {
-          backgroundColor: COLORS.surface,
-          borderTopColor: COLORS.border,
+          backgroundColor: isDarkMode ? '#1E1E1E' : COLORS.surface,
+          borderTopColor: isDarkMode ? '#333333' : COLORS.border,
         },
         tabBarLabelStyle: {
           fontFamily: FONTS.medium,

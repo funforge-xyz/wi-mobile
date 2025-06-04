@@ -25,14 +25,40 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const getErrorMessage = (error: any): string => {
+    const errorCode = error.code;
+    switch (errorCode) {
+      case 'auth/user-not-found':
+        return 'No account found with this email address.';
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists.';
+      case 'auth/weak-password':
+        return 'Password should be at least 6 characters long.';
+      case 'auth/invalid-credential':
+        return 'Invalid email or password. Please check your credentials.';
+      default:
+        return 'An error occurred. Please try again.';
+    }
+  };
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setErrorMessage('Please fill in all fields');
       return;
     }
 
     setIsLoading(true);
+    setErrorMessage('');
     try {
       if (isSignUp) {
         await authService.signUpWithEmail(email, password);
@@ -41,7 +67,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       }
       onLoginSuccess?.();
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      setErrorMessage(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -49,15 +75,16 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleGoogleSignIn = async () => {
     // TODO: Google Sign In not working with Expo Go - temporarily disabled
-    Alert.alert('Coming Soon', 'Google Sign In will be available in the production app');
+    setErrorMessage('Google Sign In will be available in the production app');
     return;
     
     // setIsLoading(true);
+    // setErrorMessage('');
     // try {
     //   await authService.signInWithGoogle();
     //   onLoginSuccess?.();
     // } catch (error: any) {
-    //   Alert.alert('Error', error.message);
+    //   setErrorMessage(getErrorMessage(error));
     // } finally {
     //   setIsLoading(false);
     // }
@@ -75,6 +102,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       </View>
 
       <View style={styles.form}>
+        {errorMessage ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+        
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
           <TextInput
@@ -129,7 +162,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
         <TouchableOpacity
           style={styles.switchButton}
-          onPress={() => setIsSignUp(!isSignUp)}
+          onPress={() => {
+            setIsSignUp(!isSignUp);
+            setErrorMessage('');
+          }}
         >
           <Text style={styles.switchButtonText}>
             {isSignUp ? 'Already have an account? Sign In' : 'Don\'t have an account? Sign Up'}
@@ -234,5 +270,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontFamily: FONTS.medium,
+  },
+  errorContainer: {
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FEB2B2',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  errorText: {
+    color: '#E53E3E',
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    textAlign: 'center',
   },
 });
