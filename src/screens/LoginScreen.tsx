@@ -23,8 +23,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [bio, setBio] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -54,14 +58,26 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   const handleEmailAuth = async () => {
-    if (!email || !password) {
-      setErrorMessage('Please fill in all fields');
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage('Email and password are required');
       return;
     }
 
-    if (isSignUp && (!firstName.trim() || !lastName.trim())) {
-      setErrorMessage('First name and last name are required');
-      return;
+    if (isSignUp) {
+      if (!firstName.trim() || !lastName.trim()) {
+        setErrorMessage('First name and last name are required');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        setErrorMessage('Passwords do not match');
+        return;
+      }
+      
+      if (!acceptTerms) {
+        setErrorMessage('Please accept the terms and conditions');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -71,6 +87,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         await authService.signUpWithEmail(email, password, {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
+          bio: bio.trim(),
+          photoURL: profileImage,
         });
       } else {
         await authService.signInWithEmail(email, password);
@@ -143,6 +161,31 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 autoCapitalize="words"
               />
             </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="image-outline" size={20} color={COLORS.textSecondary} />
+              <TextInput
+                style={[styles.input, { color: COLORS.text }]}
+                placeholder="Profile Image URL (optional)"
+                placeholderTextColor={COLORS.textSecondary}
+                value={profileImage}
+                onChangeText={setProfileImage}
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="document-text-outline" size={20} color={COLORS.textSecondary} />
+              <TextInput
+                style={[styles.input, { color: COLORS.text }]}
+                placeholder="Bio (optional)"
+                placeholderTextColor={COLORS.textSecondary}
+                value={bio}
+                onChangeText={setBio}
+                multiline
+                numberOfLines={2}
+              />
+            </View>
           </>
         )}
         
@@ -150,7 +193,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
           <TextInput
             style={[styles.input, { color: COLORS.text }]}
-            placeholder="Email"
+            placeholder="Email *"
             placeholderTextColor={COLORS.textSecondary}
             value={email}
             onChangeText={setEmail}
@@ -163,13 +206,49 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <Ionicons name="lock-closed-outline" size={20} color={COLORS.textSecondary} />
           <TextInput
             style={[styles.input, { color: COLORS.text }]}
-            placeholder="Password"
+            placeholder="Password *"
             placeholderTextColor={COLORS.textSecondary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
         </View>
+
+        {isSignUp && (
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed-outline" size={20} color={COLORS.textSecondary} />
+            <TextInput
+              style={[styles.input, { color: COLORS.text }]}
+              placeholder="Confirm Password *"
+              placeholderTextColor={COLORS.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+          </View>
+        )}
+
+        {isSignUp && (
+          <TouchableOpacity 
+            style={styles.termsContainer} 
+            onPress={() => setAcceptTerms(!acceptTerms)}
+          >
+            <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
+              {acceptTerms && <Ionicons name="checkmark" size={16} color="white" />}
+            </View>
+            <Text style={styles.termsText}>
+              I accept the{' '}
+              <Text 
+                style={styles.termsLink}
+                onPress={() => {
+                  navigation.navigate('Terms' as never);
+                }}
+              >
+                Terms and Conditions
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={styles.primaryButton}
@@ -207,6 +286,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             setErrorMessage('');
             setFirstName('');
             setLastName('');
+            setConfirmPassword('');
+            setBio('');
+            setProfileImage('');
+            setAcceptTerms(false);
           }}
         >
           <Text style={styles.switchButtonText}>
@@ -326,5 +409,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.regular,
     textAlign: 'center',
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.xs,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    borderRadius: 4,
+    marginRight: SPACING.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  termsText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.text,
+  },
+  termsLink: {
+    color: COLORS.primary,
+    textDecorationLine: 'underline',
   },
 });
