@@ -48,7 +48,6 @@
     "expo-splash-screen": "~0.30.8",
     "expo-status-bar": "~2.2.3",
     "firebase": "^10.1.0",
-    "fs": "^0.0.1-security",
     "react": "19.0.0",
     "react-native": "0.79.2",
     "react-native-admob-native-ads": "^0.6.1",
