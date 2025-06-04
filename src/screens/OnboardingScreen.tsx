@@ -36,10 +36,12 @@ const onboardingData = [
   },
 ];
 
-export default function OnboardingScreen() {
-  const navigation = useNavigation();
+interface OnboardingScreenProps {
+  onComplete: () => void;
+}
+
+export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const [currentPage, setCurrentPage] = useState(0);
-  const settings = new Settings();
 
   const handleNext = () => {
     if (currentPage < onboardingData.length - 1) {
@@ -53,9 +55,8 @@ export default function OnboardingScreen() {
     handleComplete();
   };
 
-  const handleComplete = async () => {
-    await settings.setOnboardingDone(true);
-    navigation.navigate('Root' as never);
+  const handleComplete = () => {
+    onComplete();
   };
 
   const currentData = onboardingData[currentPage];

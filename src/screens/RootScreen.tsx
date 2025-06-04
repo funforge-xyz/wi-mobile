@@ -1,19 +1,53 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS, FONTS } from '../config/constants';
+import { Settings } from '../services/settings';
 
-// Tab Screens
+import HomeScreen from './HomeScreen';
 import FeedScreen from './FeedScreen';
 import NearbyScreen from './NearbyScreen';
-import AddPostScreen from './AddPostScreen';
 import ChatsScreen from './ChatsScreen';
 import ProfileScreen from './ProfileScreen';
-import { COLORS } from '../config/constants';
+import OnboardingScreen from './OnboardingScreen';
 
 const Tab = createBottomTabNavigator();
 
 export default function RootScreen() {
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const settings = new Settings();
+
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const onboardingDone = await settings.getOnboardingDone();
+      setShowOnboarding(!onboardingDone);
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      setShowOnboarding(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOnboardingComplete = async () => {
+    await settings.setOnboardingDone(true);
+    setShowOnboarding(false);
+  };
+
+  if (loading) {
+    return null; // Or a loading screen
+  }
+
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  }
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
