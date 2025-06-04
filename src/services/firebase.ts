@@ -8,12 +8,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {FIREBASE_API_KEY} from 'react-native-dotenv';
 
 const firebaseConfig = {
-  projectId: "wichat-2684e",
-  storageBucket: "wichat-2684e.appspot.com",
+  projectId: "wichat-a6e48",
+  storageBucket: "wichat-a6e48.firebasestorage.app",
   apiKey: FIREBASE_API_KEY,
-  authDomain: "wichat-2684e.firebaseapp.com",
-  messagingSenderId: "350425373122",
-  appId: "1:350425373122:android:d88c1c32c9b7e8275dde5b",
+  authDomain: "wichat-a6e48.firebaseapp.com",
+  messagingSenderId: "38067432350",
+  appId: "1:38067432350:web:735be2b68842788282448f",
 };
 
 let app: any = null;
