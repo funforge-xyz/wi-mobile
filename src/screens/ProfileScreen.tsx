@@ -26,7 +26,6 @@ interface UserProfile {
   id: string;
   firstName: string;
   lastName: string;
-  displayName: string;
   email: string;
   photoURL: string;
   bio: string;
@@ -40,7 +39,6 @@ export default function ProfileScreen() {
     id: '1',
     firstName: '',
     lastName: '',
-    displayName: 'Loading...',
     email: 'loading@example.com',
     photoURL: 'https://via.placeholder.com/120',
     bio: '',
@@ -84,7 +82,6 @@ export default function ProfileScreen() {
             id: currentUser.uid,
             firstName: firestoreData.firstName || '',
             lastName: firestoreData.lastName || '',
-            displayName: firestoreData.displayName || currentUser.displayName || 'Anonymous User',
             email: currentUser.email || '',
             photoURL: firestoreData.photoURL || currentUser.photoURL || '',
             bio: firestoreData.bio || '',
@@ -98,7 +95,6 @@ export default function ProfileScreen() {
             id: currentUser.uid,
             firstName: '',
             lastName: '',
-            displayName: currentUser.displayName || 'Anonymous User',
             email: currentUser.email || '',
             photoURL: currentUser.photoURL || '',
             bio: '',
@@ -253,7 +249,7 @@ export default function ProfileScreen() {
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
             {profile.firstName && profile.lastName 
               ? `${profile.firstName} ${profile.lastName}` 
-              : profile.displayName || 'Anonymous User'}
+              : 'Anonymous User'}
           </Text>
           <Text style={[styles.email, { color: currentTheme.textSecondary }]}>
             {profile.email}
