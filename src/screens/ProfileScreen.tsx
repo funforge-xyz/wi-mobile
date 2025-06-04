@@ -301,77 +301,77 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleRemoveImage = () => {
-    Alert.alert(
-      'Remove Photo',
-      'Are you sure you want to remove your profile picture?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            // Delete the image from Firebase Storage if it's a Firebase URL
-            if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
-              try {
-                await storageService.deleteProfilePicture(editedProfile.photoURL);
-              } catch (error) {
-                console.error('Error deleting image from storage:', error);
-                // Continue with removal even if storage deletion fails
-              }
-            }
+  const handleRemoveImage = async () => {
+    // Delete the image from Firebase Storage if it's a Firebase URL
+    if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
+      try {
+        await storageService.deleteProfilePicture(editedProfile.photoURL);
+      } catch (error) {
+        console.error('Error deleting image from storage:', error);
+        // Continue with removal even if storage deletion fails
+      }
+    }
 
-            setEditedProfile({
-              ...editedProfile,
-              photoURL: '',
-            });
-          },
-        },
-      ]
-    );
+    setEditedProfile({
+      ...editedProfile,
+      photoURL: '',
+    });
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
     const showImagePickerOptions = () => {
-    const options = ['Take Photo', 'Choose from Library', 'Cancel'];
+    const options = editedProfile.photoURL 
+      ? ['Take Photo', 'Choose from Library', 'Remove Photo', 'Cancel']
+      : ['Take Photo', 'Choose from Library', 'Cancel'];
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options,
-          cancelButtonIndex: 2,
+          cancelButtonIndex: editedProfile.photoURL ? 3 : 2,
+          destructiveButtonIndex: editedProfile.photoURL ? 2 : undefined,
         },
         buttonIndex => {
           if (buttonIndex === 0) {
             handleCameraCapture();
           } else if (buttonIndex === 1) {
             handleImagePicker();
+          } else if (buttonIndex === 2 && editedProfile.photoURL) {
+            handleRemoveImage();
           }
         }
       );
     } else {
-      // For Android, you might want to use a Modal or Alert to display the options
+      // For Android
+      const alertOptions = [
+        {
+          text: 'Take Photo',
+          onPress: handleCameraCapture,
+        },
+        {
+          text: 'Choose from Library',
+          onPress: handleImagePicker,
+        },
+      ];
+
+      if (editedProfile.photoURL) {
+        alertOptions.push({
+          text: 'Remove Photo',
+          onPress: handleRemoveImage,
+          style: 'destructive' as const,
+        });
+      }
+
+      alertOptions.push({
+        text: 'Cancel',
+        style: 'cancel' as const,
+      });
+
       Alert.alert(
         'Choose an option',
         'Select how you want to set your profile picture',
-        [
-          {
-            text: 'Take Photo',
-            onPress: handleCameraCapture,
-          },
-          {
-            text: 'Choose from Library',
-            onPress: handleImagePicker,
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-        ],
+        alertOptions,
         { cancelable: true }
       );
     }

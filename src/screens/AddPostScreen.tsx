@@ -227,7 +227,7 @@ export default function AddPostScreen() {
                     style={styles.removeImageButton}
                     onPress={() => removeImage(index)}
                   >
-                    <Ionicons name="close-circle" size={24} color="white" />
+                    <Ionicons name="trash" size={16} color="white" />
                   </TouchableOpacity>
                 </View>
               ))}

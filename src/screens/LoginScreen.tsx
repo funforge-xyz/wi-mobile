@@ -276,7 +276,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                     style={styles.removeImageButton} 
                     onPress={() => setProfileImage('')}
                   >
-                    <Ionicons name="close-circle" size={24} color={COLORS.error} />
+                    <Ionicons name="trash" size={16} color={COLORS.error} />
                   </TouchableOpacity>
                 </View>
               )}
