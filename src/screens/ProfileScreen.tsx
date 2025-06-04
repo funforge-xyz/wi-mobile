@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import * as ImagePicker from 'expo-image-picker';
-import { Settings } from '../services/storage';
+import { Settings, storageService } from '../services/storage';
 import { authService } from '../services/auth';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
@@ -132,12 +132,27 @@ export default function ProfileScreen() {
     try {
       setLoading(true);
       
-      // Update profile using authService
+      let photoURL = editedProfile.photoURL;
+      
+      // Check if the photo is a local file that needs to be uploaded
+      if (photoURL && photoURL.startsWith('file://')) {
+        try {
+          // Upload the image to Firebase Storage
+          photoURL = await storageService.uploadProfilePicture(profile.id, photoURL);
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          Alert.alert('Error', 'Failed to upload profile picture');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Update profile using authService with the Firebase Storage URL
       await authService.updateProfile({
         firstName: editedProfile.firstName,
         lastName: editedProfile.lastName,
         bio: editedProfile.bio,
-        photoURL: editedProfile.photoURL,
+        photoURL: photoURL,
       });
 
       // Reload profile to get updated data
