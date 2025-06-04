@@ -45,6 +45,64 @@ export class AuthService {
     }
   }
 
+  async updateProfile(userData: {
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    photoURL?: string;
+  }): Promise<void> {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        throw new Error('No authenticated user');
+      }
+
+      // Update Firebase Auth profile if displayName or photoURL changed
+      const displayName = userData.firstName && userData.lastName 
+        ? `${userData.firstName} ${userData.lastName}` 
+        : user.displayName;
+
+      if (displayName !== user.displayName || userData.photoURL !== user.photoURL) {
+        const { updateProfile } = await import('firebase/auth');
+        await updateProfile(user, {
+          displayName: displayName || undefined,
+          photoURL: userData.photoURL || undefined,
+        });
+      }
+
+      // Update Firestore profile document
+      const { getFirestore } = await import('./firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      
+      await setDoc(userDocRef, {
+        email: user.email,
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        displayName: displayName || '',
+        bio: userData.bio || '',
+        photoURL: userData.photoURL || '',
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+
+      // Update local storage
+      await this.credentials.setUser({
+        uid: user.uid,
+        email: user.email,
+        displayName: displayName,
+        photoURL: userData.photoURL || user.photoURL,
+      });
+
+    } catch (error) {
+      console.error('Profile update error:', error);
+      throw error;
+    }
+  }
+
   async signUpWithEmail(email: string, password: string): Promise<FirebaseUser | null> {
     try {
       const auth = getAuth();

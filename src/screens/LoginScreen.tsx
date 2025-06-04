@@ -111,8 +111,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: COLORS.text }]}
             placeholder="Email"
+            placeholderTextColor={COLORS.textSecondary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -123,8 +124,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <View style={styles.inputContainer}>
           <Ionicons name="lock-closed-outline" size={20} color={COLORS.textSecondary} />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: COLORS.text }]}
             placeholder="Password"
+            placeholderTextColor={COLORS.textSecondary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry

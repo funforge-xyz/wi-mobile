@@ -116,3 +116,44 @@ export class Credentials {
     }
   }
 }
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getStorage as getStorageInstance } from './firebase';
+
+export class StorageService {
+  async uploadProfilePicture(userId: string, imageUri: string): Promise<string> {
+    try {
+      const storage = getStorageInstance();
+      
+      // Convert image URI to blob
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      
+      // Create reference
+      const imageRef = ref(storage, `profile-pictures/${userId}/${Date.now()}.jpg`);
+      
+      // Upload image
+      await uploadBytes(imageRef, blob);
+      
+      // Get download URL
+      const downloadURL = await getDownloadURL(imageRef);
+      
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      throw error;
+    }
+  }
+
+  async deleteProfilePicture(photoURL: string): Promise<void> {
+    try {
+      const storage = getStorageInstance();
+      const imageRef = ref(storage, photoURL);
+      await deleteObject(imageRef);
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      // Don't throw error for delete failures
+    }
+  }
+}
+
+export const storageService = new StorageService();

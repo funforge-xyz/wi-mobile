@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -20,9 +19,12 @@ import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 interface UserProfile {
   id: string;
+  firstName: string;
+  lastName: string;
   displayName: string;
   email: string;
   photoURL: string;
@@ -35,10 +37,12 @@ interface UserProfile {
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile>({
     id: '1',
-    displayName: 'John Doe',
-    email: 'john@example.com',
+    firstName: '',
+    lastName: '',
+    displayName: 'Loading...',
+    email: 'loading@example.com',
     photoURL: 'https://via.placeholder.com/120',
-    bio: 'Mobile developer passionate about creating amazing apps',
+    bio: '',
     postsCount: 0,
     followersCount: 0,
     followingCount: 0,
@@ -57,26 +61,51 @@ export default function ProfileScreen() {
   const loadUserProfile = async () => {
     try {
       setLoading(true);
-      
+
       // Get current user from Firebase Auth
       const currentUser = await authService.getCurrentUser();
-      
+
       if (currentUser) {
-        const userData = {
-          id: currentUser.uid,
-          displayName: currentUser.displayName || 'Anonymous User',
-          email: currentUser.email || '',
-          photoURL: currentUser.photoURL || 'https://via.placeholder.com/120',
-          bio: 'Welcome to Wi Chat!', // Default bio, can be updated later
-          postsCount: 0, // These would come from your backend in a real app
-          followersCount: 0,
-          followingCount: 0,
-        };
-        
+        // Try to get profile data from Firestore
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        let userData: UserProfile;
+
+        if (userDoc.exists()) {
+          const firestoreData = userDoc.data();
+          userData = {
+            id: currentUser.uid,
+            firstName: firestoreData.firstName || '',
+            lastName: firestoreData.lastName || '',
+            displayName: firestoreData.displayName || currentUser.displayName || 'Anonymous User',
+            email: currentUser.email || '',
+            photoURL: firestoreData.photoURL || currentUser.photoURL || 'https://via.placeholder.com/120',
+            bio: firestoreData.bio || '',
+            postsCount: 0,
+            followersCount: 0,
+            followingCount: 0,
+          };
+        } else {
+          // Create default profile data if no Firestore document exists
+          userData = {
+            id: currentUser.uid,
+            firstName: '',
+            lastName: '',
+            displayName: currentUser.displayName || 'Anonymous User',
+            email: currentUser.email || '',
+            photoURL: currentUser.photoURL || 'https://via.placeholder.com/120',
+            bio: '',
+            postsCount: 0,
+            followersCount: 0,
+            followingCount: 0,
+          };
+        }
+
         setProfile(userData);
         setEditedProfile(userData);
       } else {
-        // If no user, this shouldn't happen since we're authenticated
         Alert.alert('Error', 'No user found');
       }
     } catch (error) {
@@ -103,7 +132,7 @@ export default function ProfileScreen() {
       setLoading(true);
       // In a real app, this would update the backend/Firebase
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setProfile(editedProfile);
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
@@ -146,7 +175,7 @@ export default function ProfileScreen() {
 
   const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       Alert.alert('Permission Required', 'Permission to access camera roll is required!');
       return;
@@ -203,7 +232,7 @@ export default function ProfileScreen() {
               </View>
             )}
           </TouchableOpacity>
-          
+
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
             {profile.displayName}
           </Text>
@@ -253,13 +282,13 @@ export default function ProfileScreen() {
             <Text style={[styles.menuText, { color: currentTheme.text }]}>Settings</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Ionicons name="help-circle-outline" size={20} color={currentTheme.text} />
             <Text style={[styles.menuText, { color: currentTheme.text }]}>Help & Support</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
             <Text style={[styles.menuText, { color: COLORS.error }]}>Sign Out</Text>
