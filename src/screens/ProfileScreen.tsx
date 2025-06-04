@@ -64,7 +64,7 @@ export default function ProfileScreen() {
       // Wait for Firebase to be initialized
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
-      
+
       // Get current user from Firebase Auth
       const currentUser = auth.currentUser || await authService.getCurrentUser();
 
@@ -131,9 +131,9 @@ export default function ProfileScreen() {
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
-      
+
       let photoURL = editedProfile.photoURL;
-      
+
       // Check if the photo is a local file that needs to be uploaded
       if (photoURL && photoURL.startsWith('file://')) {
         try {
@@ -146,7 +146,7 @@ export default function ProfileScreen() {
           return;
         }
       }
-      
+
       // Update profile using authService with the Firebase Storage URL
       await authService.updateProfile({
         firstName: editedProfile.firstName,
@@ -217,7 +217,7 @@ export default function ProfileScreen() {
             } catch (error: any) {
               console.error('Delete profile error:', error);
               setLoading(false);
-              
+
               // Handle specific re-authentication error
               if (error.message && error.message.includes('sign out and sign back in')) {
                 Alert.alert(
@@ -257,13 +257,41 @@ export default function ProfileScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      
+
       // Check file size (2.5MB = 2,621,440 bytes)
       if (asset.fileSize && asset.fileSize > 2621440) {
         Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
         return;
       }
-      
+
+      setEditedProfile({
+        ...editedProfile,
+        photoURL: asset.uri,
+      });
+    }
+  };
+
+  const handleCameraCapture = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access the camera is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 2621440) {
+        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
+        return;
+      }
+
       setEditedProfile({
         ...editedProfile,
         photoURL: asset.uri,
@@ -430,27 +458,40 @@ export default function ProfileScreen() {
           <ScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
               <View style={styles.modalImageContainer}>
-                <TouchableOpacity onPress={handleImagePicker}>
-                  {editedProfile.photoURL ? (
-                    <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
-                  ) : (
-                    <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
-                      <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                <View style={styles.avatarContainer}>
+                  <TouchableOpacity onPress={handleImagePicker}>
+                    {editedProfile.photoURL ? (
+                      <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
+                    ) : (
+                      <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                        <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                      </View>
+                    )}
+                    <View style={styles.editImageOverlay}>
+                      <Ionicons name="camera" size={20} color="white" />
                     </View>
-                  )}
-                  <View style={styles.editImageOverlay}>
-                    <Ionicons name="camera" size={24} color="white" />
-                  </View>
-                </TouchableOpacity>
-                {editedProfile.photoURL && (
-                  <TouchableOpacity 
-                    style={styles.removeImageButton} 
-                    onPress={handleRemoveImage}
-                  >
-                    <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-                    <Text style={[styles.removeImageText, { color: COLORS.error }]}>Remove Photo</Text>
                   </TouchableOpacity>
-                )}
+                  {editedProfile.photoURL && (
+                    <TouchableOpacity 
+                      style={styles.deleteImageButton} 
+                      onPress={handleRemoveImage}
+                    >
+                      <Ionicons name="trash" size={18} color="white" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <View style={styles.imageOptionsContainer}>
+                  <TouchableOpacity style={styles.imageOptionButton} onPress={handleImagePicker}>
+                    <Ionicons name="images-outline" size={20} color={currentTheme.text} />
+                    <Text style={[styles.imageOptionText, { color: currentTheme.text }]}>Gallery</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.imageOptionButton} onPress={handleCameraCapture}>
+                    <Ionicons name="camera-outline" size={20} color={currentTheme.text} />
+                    <Text style={[styles.imageOptionText, { color: currentTheme.text }]}>Camera</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
 
@@ -717,14 +758,35 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     minHeight: 100,
   },
-  removeImageButton: {
+    avatarContainer: {
+    position: 'relative',
+    marginBottom: SPACING.md,
+  },
+  deleteImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.error,
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageOptionsContainer: {
+    flexDirection: 'row',
+    marginTop: SPACING.md,
+  },
+  imageOptionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: SPACING.sm,
-    paddingVertical: SPACING.xs,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
+    marginHorizontal: SPACING.sm,
   },
-  removeImageText: {
+  imageOptionText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     marginLeft: SPACING.xs,
