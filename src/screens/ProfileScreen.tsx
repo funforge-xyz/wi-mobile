@@ -15,8 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-import { Settings } from '../services/settings';
 import * as ImagePicker from 'expo-image-picker';
+import { Settings } from '../services/storage';
 
 interface UserProfile {
   id: string;
