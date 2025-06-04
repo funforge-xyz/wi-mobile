@@ -58,28 +58,32 @@ export default function ProfileScreen() {
   };
 
   const loadUserProfile = async () => {
-    // In a real app, this would fetch from your backend/Firebase
-    // For now, we'll simulate loading user data
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // This would be replaced with actual user data from your auth service
-      const userData = {
-        id: '1',
-        displayName: 'John Doe',
-        email: 'john@example.com',
-        photoURL: 'https://via.placeholder.com/120',
-        bio: 'Mobile developer passionate about creating amazing apps',
-        postsCount: 12,
-        followersCount: 156,
-        followingCount: 89,
-      };
+      // Get current user from Firebase Auth
+      const currentUser = await authService.getCurrentUser();
       
-      setProfile(userData);
-      setEditedProfile(userData);
+      if (currentUser) {
+        const userData = {
+          id: currentUser.uid,
+          displayName: currentUser.displayName || 'Anonymous User',
+          email: currentUser.email || '',
+          photoURL: currentUser.photoURL || 'https://via.placeholder.com/120',
+          bio: 'Welcome to Wi Chat!', // Default bio, can be updated later
+          postsCount: 0, // These would come from your backend in a real app
+          followersCount: 0,
+          followingCount: 0,
+        };
+        
+        setProfile(userData);
+        setEditedProfile(userData);
+      } else {
+        // If no user, this shouldn't happen since we're authenticated
+        Alert.alert('Error', 'No user found');
+      }
     } catch (error) {
+      console.error('Error loading profile:', error);
       Alert.alert('Error', 'Failed to load profile');
     } finally {
       setLoading(false);

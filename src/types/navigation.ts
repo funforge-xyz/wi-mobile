@@ -15,7 +15,7 @@ export type RootStackParamList = {
 };
 
 export type BottomTabParamList = {
-  Feed: undefined;
+  Home: undefined;
   Nearby: undefined;
   Add: undefined;
   Chats: undefined;

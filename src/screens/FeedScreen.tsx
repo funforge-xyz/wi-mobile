@@ -211,7 +211,7 @@ export default function FeedScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Feed</Text>
+        <Text style={styles.headerTitle}>Home</Text>
         <TouchableOpacity>
           <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
         </TouchableOpacity>

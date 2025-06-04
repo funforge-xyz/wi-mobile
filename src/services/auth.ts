@@ -1,4 +1,3 @@
-
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -26,7 +25,7 @@ export class AuthService {
       const auth = getAuth();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
       if (user) {
         const token = await user.getIdToken();
         await this.credentials.setToken(token);
@@ -37,7 +36,7 @@ export class AuthService {
           photoURL: user.photoURL,
         });
       }
-      
+
       return user;
     } catch (error) {
       console.error('Email sign in error:', error);
@@ -50,7 +49,7 @@ export class AuthService {
       const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
       if (user) {
         const token = await user.getIdToken();
         await this.credentials.setToken(token);
@@ -61,7 +60,7 @@ export class AuthService {
           photoURL: user.photoURL,
         });
       }
-      
+
       return user;
     } catch (error) {
       console.error('Email sign up error:', error);
@@ -72,7 +71,7 @@ export class AuthService {
   async signInWithGoogle(): Promise<FirebaseUser | null> {
     // TODO: Google Sign In not working with Expo Go - temporarily disabled
     throw new Error('Google Sign In is temporarily disabled in development');
-    
+
     // try {
     //   await GoogleSignin.hasPlayServices();
     //   const { idToken } = await GoogleSignin.signIn();

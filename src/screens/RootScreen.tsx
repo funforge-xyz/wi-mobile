@@ -7,7 +7,6 @@ import { COLORS, FONTS } from '../config/constants';
 import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
 
-import HomeScreen from './HomeScreen';
 import FeedScreen from './FeedScreen';
 import NearbyScreen from './NearbyScreen';
 import ChatsScreen from './ChatsScreen';
@@ -84,8 +83,6 @@ export default function RootScreen() {
           let iconName: keyof typeof Ionicons.glyphMap;
 
           if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Feed') {
             iconName = focused ? 'newspaper' : 'newspaper-outline';
           } else if (route.name === 'Add') {
             iconName = 'add-circle';
@@ -93,6 +90,8 @@ export default function RootScreen() {
             iconName = focused ? 'location' : 'location-outline';
           } else if (route.name === 'Chats') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
           } else {
             iconName = 'home-outline';
           }
@@ -112,8 +111,7 @@ export default function RootScreen() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Feed" component={FeedScreen} />
+      <Tab.Screen name="Home" component={FeedScreen} />
       <Tab.Screen 
         name="Add" 
         component={AddPostScreen}
@@ -124,6 +122,7 @@ export default function RootScreen() {
       />
       <Tab.Screen name="Nearby" component={NearbyScreen} />
       <Tab.Screen name="Chats" component={ChatsScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
