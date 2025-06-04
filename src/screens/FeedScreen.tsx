@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Post } from '../types/models';
 import { Settings } from '../services/storage';
+import { useAppSelector } from '../hooks/redux';
 
 const { width } = Dimensions.get('window');
 
@@ -95,7 +96,7 @@ export default function FeedScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
 
   // Mock data - replace with actual API calls
@@ -153,13 +154,7 @@ export default function FeedScreen() {
 
   useEffect(() => {
     loadPosts();
-    loadSettings();
   }, []);
-
-  const loadSettings = async () => {
-    const darkMode = await settings.getDarkMode();
-    setIsDarkMode(darkMode);
-  };
 
   const loadPosts = async () => {
     setLoading(true);

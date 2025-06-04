@@ -6,6 +6,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
+import { store } from './src/store';
 
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -62,22 +64,24 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Root"
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="Root" component={RootScreen} />
-          <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
-          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName="Root"
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen name="Root" component={RootScreen} />
+            <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+            <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar style="auto" />
+      </SafeAreaProvider>
+    </Provider>
   );
 }

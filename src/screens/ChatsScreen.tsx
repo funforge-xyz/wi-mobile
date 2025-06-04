@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Thread, Message } from '../types/models';
 import { Settings } from '../services/storage';
+import { useAppSelector } from '../hooks/redux';
 
 interface ChatItem extends Thread {
   otherUserName: string;
@@ -29,7 +30,7 @@ export default function ChatsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
 
   // Mock data

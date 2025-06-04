@@ -16,13 +16,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Settings } from '../services/storage';
+import { useAppSelector } from '../hooks/redux';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isPosting, setIsPosting] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
 
   useEffect(() => {

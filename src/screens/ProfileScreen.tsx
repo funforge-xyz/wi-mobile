@@ -18,6 +18,8 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import * as ImagePicker from 'expo-image-picker';
 import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { toggleTheme } from '../store/themeSlice';
 
 interface UserProfile {
   id: string;
@@ -43,19 +45,14 @@ export default function ProfileScreen() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const settings = new Settings();
 
   useEffect(() => {
-    loadSettings();
     loadUserProfile();
   }, []);
-
-  const loadSettings = async () => {
-    const darkMode = await settings.getDarkMode();
-    setIsDarkMode(darkMode);
-  };
 
   const loadUserProfile = async () => {
     try {
@@ -92,7 +89,7 @@ export default function ProfileScreen() {
 
   const toggleDarkMode = async () => {
     const newValue = !isDarkMode;
-    setIsDarkMode(newValue);
+    dispatch(toggleTheme());
     await settings.setDarkMode(newValue);
   };
 

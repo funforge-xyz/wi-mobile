@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -15,18 +14,23 @@ import OnboardingScreen from './OnboardingScreen';
 import LoginScreen from './LoginScreen';
 import AddPostScreen from './AddPostScreen';
 
+// Redux imports
+import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import { setTheme } from '../redux/themeSlice';
+
 const Tab = createBottomTabNavigator();
 
 export default function RootScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const dispatch = useAppDispatch();
   const settings = new Settings();
 
   useEffect(() => {
     checkAuthState();
-    
+
     // Set up sign out callback to reset navigation
     authService.setOnSignOutCallback(() => {
       setIsAuthenticated(false);
@@ -38,15 +42,15 @@ export default function RootScreen() {
     try {
       const isLoggedIn = await authService.isAuthenticated();
       setIsAuthenticated(isLoggedIn);
-      
+
       if (isLoggedIn) {
         const onboardingDone = await settings.getOnboardingDone();
         setShowOnboarding(!onboardingDone);
       }
-      
+
       // Load dark mode setting
       const darkMode = await settings.getDarkMode();
-      setIsDarkMode(darkMode);
+      dispatch(setTheme(darkMode));
     } catch (error) {
       console.error('Error checking auth state:', error);
       setIsAuthenticated(false);

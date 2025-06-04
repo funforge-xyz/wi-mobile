@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Settings } from '../services/storage';
+import { useAppSelector } from '../hooks/redux';
 
 interface NearbyUser {
   id: string;
@@ -43,7 +44,7 @@ export default function NearbyScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
 
   // Mock data
@@ -99,13 +100,7 @@ export default function NearbyScreen() {
 
   useEffect(() => {
     loadNearbyData();
-    loadSettings();
   }, []);
-
-  const loadSettings = async () => {
-    const darkMode = await settings.getDarkMode();
-    setIsDarkMode(darkMode);
-  };
 
   const loadNearbyData = async () => {
     setLoading(true);
