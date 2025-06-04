@@ -19,15 +19,19 @@ import { useAppSelector } from '../hooks/redux';
 import { authService } from '../services/auth';
 import { getFirestore } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [allowComments, setAllowComments] = useState(true);
+  const [showLikeCount, setShowLikeCount] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -112,6 +116,35 @@ export default function AddPostScreen() {
     );
   };
 
+  const handleCancel = () => {
+    if (content.trim() || selectedImage) {
+      Alert.alert(
+        'Discard Post',
+        'Are you sure you want to discard this post?',
+        [
+          {
+            text: 'Keep Editing',
+            style: 'cancel',
+          },
+          {
+            text: 'Discard',
+            style: 'destructive',
+            onPress: () => {
+              setContent('');
+              setSelectedImage(null);
+              setIsPrivate(false);
+              setAllowComments(true);
+              setShowLikeCount(true);
+              navigation.goBack();
+            },
+          },
+        ]
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
   
 
   const handlePost = async () => {
@@ -156,8 +189,9 @@ export default function AddPostScreen() {
         mediaUrl: mediaUrl || null,
         thumbUrl: mediaUrl || null,
         isPrivate: isPrivate,
-        allowComments: true,
+        allowComments: allowComments,
         allowLikes: true,
+        showLikeCount: showLikeCount,
         createdAt: serverTimestamp(),
       });
 
@@ -166,6 +200,8 @@ export default function AddPostScreen() {
           setContent('');
           setSelectedImage(null);
           setIsPrivate(false);
+          setAllowComments(true);
+          setShowLikeCount(true);
         }}
       ]);
     } catch (error) {
@@ -189,7 +225,7 @@ export default function AddPostScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <TouchableOpacity style={styles.cancelButton}>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
           <Text style={[styles.cancelText, { color: currentTheme.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>New Post</Text>
@@ -266,6 +302,52 @@ export default function AddPostScreen() {
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.optionsContainer, { backgroundColor: currentTheme.surface }]}>
+          <TouchableOpacity style={styles.option} onPress={() => setAllowComments(!allowComments)}>
+            <Ionicons 
+              name={allowComments ? "chatbubble-outline" : "chatbubble-ellipses-outline"} 
+              size={20} 
+              color={currentTheme.textSecondary} 
+            />
+            <View style={styles.optionTextContainer}>
+              <Text style={[styles.optionText, { color: currentTheme.text }]}>
+                Allow Comments
+              </Text>
+              <Text style={[styles.optionSubtext, { color: currentTheme.textSecondary }]}>
+                {allowComments ? 'People can comment on this post' : 'Comments are disabled'}
+              </Text>
+            </View>
+            <Ionicons 
+              name={allowComments ? "toggle" : "toggle-outline"} 
+              size={24} 
+              color={allowComments ? COLORS.primary : currentTheme.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          <View style={[styles.separator, { backgroundColor: currentTheme.border }]} />
+
+          <TouchableOpacity style={styles.option} onPress={() => setShowLikeCount(!showLikeCount)}>
+            <Ionicons 
+              name={showLikeCount ? "heart-outline" : "heart-dislike-outline"} 
+              size={20} 
+              color={currentTheme.textSecondary} 
+            />
+            <View style={styles.optionTextContainer}>
+              <Text style={[styles.optionText, { color: currentTheme.text }]}>
+                Show Like Count
+              </Text>
+              <Text style={[styles.optionSubtext, { color: currentTheme.textSecondary }]}>
+                {showLikeCount ? 'Like count is visible' : 'Like count is hidden'}
+              </Text>
+            </View>
+            <Ionicons 
+              name={showLikeCount ? "toggle" : "toggle-outline"} 
+              size={24} 
+              color={showLikeCount ? COLORS.primary : currentTheme.textSecondary} 
+            />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -399,6 +481,7 @@ const styles = StyleSheet.create({
   privacyContainer: {
     borderRadius: 12,
     padding: SPACING.md,
+    marginBottom: SPACING.md,
   },
   privacyOption: {
     flexDirection: 'row',
@@ -416,6 +499,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: FONTS.regular,
     marginTop: 2,
+  },
+  optionsContainer: {
+    borderRadius: 12,
+    padding: SPACING.md,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+  },
+  optionTextContainer: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+  },
+  optionText: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+  },
+  optionSubtext: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+  separator: {
+    height: 1,
+    marginVertical: SPACING.sm,
   },
     loadingContainer: {
     flex: 1,
