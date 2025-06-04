@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, FONTS, SPACING } from '../config/constants';
+import { Settings } from '../services/storage';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isPosting, setIsPosting] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const settings = new Settings();
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    const darkMode = await settings.getDarkMode();
+    setIsDarkMode(darkMode);
+  };
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -103,13 +115,15 @@ export default function AddPostScreen() {
     );
   };
 
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <TouchableOpacity style={styles.cancelButton}>
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={[styles.cancelText, { color: currentTheme.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Post</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>New Post</Text>
         <TouchableOpacity
           style={[styles.postButton, (!content.trim() && selectedImages.length === 0) && styles.postButtonDisabled]}
           onPress={handlePost}
@@ -125,9 +139,9 @@ export default function AddPostScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { color: currentTheme.text }]}
           placeholder="What's on your mind?"
-          placeholderTextColor={COLORS.textSecondary}
+          placeholderTextColor={currentTheme.textSecondary}
           value={content}
           onChangeText={setContent}
           multiline
@@ -136,14 +150,14 @@ export default function AddPostScreen() {
         />
 
         <View style={styles.characterCount}>
-          <Text style={styles.characterCountText}>
+          <Text style={[styles.characterCountText, { color: currentTheme.textSecondary }]}>
             {content.length}/500
           </Text>
         </View>
 
         {selectedImages.length > 0 && (
           <View style={styles.imagesContainer}>
-            <Text style={styles.sectionTitle}>Photos</Text>
+            <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Photos</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {selectedImages.map((uri, index) => (
                 <View key={index} style={styles.imageContainer}>
@@ -161,32 +175,32 @@ export default function AddPostScreen() {
         )}
 
         <View style={styles.optionsContainer}>
-          <TouchableOpacity style={styles.option} onPress={showImageOptions}>
+          <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]} onPress={showImageOptions}>
             <Ionicons name="camera-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.optionText}>Add Photo</Text>
+            <Text style={[styles.optionText, { color: currentTheme.text }]}>Add Photo</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.option}>
+          <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]}>
             <Ionicons name="location-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.optionText}>Add Location</Text>
-            <View style={styles.locationToggle}>
+            <Text style={[styles.optionText, { color: currentTheme.text }]}>Add Location</Text>
+            <View style={[styles.locationToggle, { backgroundColor: currentTheme.surface }]}>
               <Text style={styles.locationStatus}>
                 {locationEnabled ? 'On' : 'Off'}
               </Text>
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.option}>
+          <TouchableOpacity style={[styles.option, { borderBottomColor: currentTheme.border }]}>
             <Ionicons name="people-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.optionText}>Tag People</Text>
+            <Text style={[styles.optionText, { color: currentTheme.text }]}>Tag People</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.privacyContainer}>
+        <View style={[styles.privacyContainer, { backgroundColor: currentTheme.surface }]}>
           <View style={styles.privacyOption}>
-            <Ionicons name="globe-outline" size={20} color={COLORS.textSecondary} />
-            <Text style={styles.privacyText}>Public</Text>
-            <Text style={styles.privacySubtext}>Anyone can see this post</Text>
+            <Ionicons name="globe-outline" size={20} color={currentTheme.textSecondary} />
+            <Text style={[styles.privacyText, { color: currentTheme.text }]}>Public</Text>
+            <Text style={[styles.privacySubtext, { color: currentTheme.textSecondary }]}>Anyone can see this post</Text>
           </View>
         </View>
       </ScrollView>
@@ -194,10 +208,25 @@ export default function AddPostScreen() {
   );
 }
 
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -206,7 +235,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   cancelButton: {
     paddingVertical: SPACING.xs,
@@ -214,12 +242,10 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
   },
   headerTitle: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
   },
   postButton: {
     backgroundColor: COLORS.primary,
@@ -244,7 +270,6 @@ const styles = StyleSheet.create({
   textInput: {
     fontSize: 18,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
     minHeight: 120,
     textAlignVertical: 'top',
     marginBottom: SPACING.sm,
@@ -256,7 +281,6 @@ const styles = StyleSheet.create({
   characterCountText: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
   },
   imagesContainer: {
     marginBottom: SPACING.lg,
@@ -264,7 +288,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.text,
     marginBottom: SPACING.sm,
   },
   imageContainer: {
@@ -291,19 +314,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   optionText: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
     marginLeft: SPACING.md,
     flex: 1,
   },
   locationToggle: {
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
-    backgroundColor: COLORS.surface,
     borderRadius: 16,
   },
   locationStatus: {
@@ -312,7 +332,6 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   privacyContainer: {
-    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: SPACING.md,
   },
@@ -323,13 +342,11 @@ const styles = StyleSheet.create({
   privacyText: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.text,
     marginLeft: SPACING.sm,
   },
   privacySubtext: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     marginLeft: 'auto',
   },
 });

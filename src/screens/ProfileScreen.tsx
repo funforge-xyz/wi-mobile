@@ -94,7 +94,6 @@ export default function ProfileScreen() {
     const newValue = !isDarkMode;
     setIsDarkMode(newValue);
     await settings.setDarkMode(newValue);
-    Alert.alert('Dark Mode', `Dark mode ${newValue ? 'enabled' : 'disabled'}`);
   };
 
   const handleEditProfile = () => {

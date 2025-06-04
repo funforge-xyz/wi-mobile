@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Thread, Message } from '../types/models';
+import { Settings } from '../services/storage';
 
 interface ChatItem extends Thread {
   otherUserName: string;
@@ -28,6 +29,8 @@ export default function ChatsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const settings = new Settings();
 
   // Mock data
   const mockChats: ChatItem[] = [
@@ -89,7 +92,13 @@ export default function ChatsScreen() {
 
   useEffect(() => {
     loadChats();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    const darkMode = await settings.getDarkMode();
+    setIsDarkMode(darkMode);
+  };
 
   const loadChats = async () => {
     setLoading(true);
@@ -150,7 +159,7 @@ export default function ChatsScreen() {
 
   const renderChatItem = ({ item }: { item: ChatItem }) => (
     <TouchableOpacity
-      style={styles.chatItem}
+      style={[styles.chatItem, { borderBottomColor: currentTheme.border }]}
       onPress={() => handleChatPress(item)}
     >
       <View style={styles.avatarContainer}>
@@ -158,19 +167,19 @@ export default function ChatsScreen() {
           source={{ uri: item.otherUserAvatar || 'https://via.placeholder.com/50' }}
           style={styles.avatar}
         />
-        {item.isOnline && <View style={styles.onlineIndicator} />}
+        {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />}
       </View>
       
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
-          <Text style={styles.chatName}>{item.otherUserName}</Text>
-          <Text style={styles.chatTime}>
+          <Text style={[styles.chatName, { color: currentTheme.text }]}>{item.otherUserName}</Text>
+          <Text style={[styles.chatTime, { color: currentTheme.textSecondary }]}>
             {item.lastMessage && formatTime(item.lastMessage.createdAt)}
           </Text>
         </View>
         
         <View style={styles.chatFooter}>
-          <Text style={[styles.lastMessage, item.unreadCount > 0 && styles.unreadMessage]} numberOfLines={1}>
+          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }, item.unreadCount > 0 && [styles.unreadMessage, { color: currentTheme.text }]]} numberOfLines={1}>
             {item.lastMessage?.type === 'image' ? '📷 Photo' : item.lastMessage?.content || 'No messages yet'}
           </Text>
           {item.unreadCount > 0 && (
@@ -185,9 +194,9 @@ export default function ChatsScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Ionicons name="chatbubbles-outline" size={64} color={COLORS.textSecondary} />
-      <Text style={styles.emptyTitle}>No Conversations</Text>
-      <Text style={styles.emptySubtitle}>
+      <Ionicons name="chatbubbles-outline" size={64} color={currentTheme.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Conversations</Text>
+      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
         Start a conversation with someone nearby
       </Text>
       <TouchableOpacity style={styles.startChatButton} onPress={handleNewChat}>
@@ -196,28 +205,30 @@ export default function ChatsScreen() {
     </View>
   );
 
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Chats</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Chats</Text>
         <TouchableOpacity onPress={handleNewChat}>
-          <Ionicons name="create-outline" size={24} color={COLORS.text} />
+          <Ionicons name="create-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+        <View style={[styles.searchInputContainer, { backgroundColor: currentTheme.surface }]}>
+          <Ionicons name="search" size={20} color={currentTheme.textSecondary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: currentTheme.text }]}
             placeholder="Search conversations"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={currentTheme.textSecondary}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={COLORS.textSecondary} />
+              <Ionicons name="close-circle" size={20} color={currentTheme.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -238,10 +249,25 @@ export default function ChatsScreen() {
   );
 }
 
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -250,12 +276,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
   },
   searchContainer: {
     paddingHorizontal: SPACING.md,
@@ -264,7 +288,6 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
     borderRadius: 20,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
@@ -274,7 +297,6 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.sm,
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
   },
   chatItem: {
     flexDirection: 'row',
@@ -282,7 +304,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   avatarContainer: {
     position: 'relative',
@@ -302,7 +323,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#4CAF50',
     borderWidth: 2,
-    borderColor: COLORS.background,
   },
   chatContent: {
     flex: 1,
@@ -316,12 +336,10 @@ const styles = StyleSheet.create({
   chatName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.text,
   },
   chatTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
   },
   chatFooter: {
     flexDirection: 'row',
@@ -331,12 +349,10 @@ const styles = StyleSheet.create({
   lastMessage: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     flex: 1,
   },
   unreadMessage: {
     fontFamily: FONTS.medium,
-    color: COLORS.text,
   },
   unreadBadge: {
     backgroundColor: COLORS.primary,
@@ -364,14 +380,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
   emptySubtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: SPACING.lg,

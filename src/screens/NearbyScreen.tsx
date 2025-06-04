@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
+import { Settings } from '../services/storage';
 
 interface NearbyUser {
   id: string;
@@ -42,6 +43,8 @@ export default function NearbyScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const settings = new Settings();
 
   // Mock data
   const mockUsers: NearbyUser[] = [
@@ -96,7 +99,13 @@ export default function NearbyScreen() {
 
   useEffect(() => {
     loadNearbyData();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    const darkMode = await settings.getDarkMode();
+    setIsDarkMode(darkMode);
+  };
 
   const loadNearbyData = async () => {
     setLoading(true);
@@ -128,7 +137,7 @@ export default function NearbyScreen() {
 
   const renderUserItem = ({ item }: { item: NearbyUser }) => (
     <TouchableOpacity
-      style={styles.userItem}
+      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
       onPress={() => handleUserPress(item)}
     >
       <View style={styles.userInfo}>
@@ -137,12 +146,12 @@ export default function NearbyScreen() {
             source={{ uri: item.photoURL || 'https://via.placeholder.com/50' }}
             style={styles.avatar}
           />
-          {item.isOnline && <View style={styles.onlineIndicator} />}
+          {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
         </View>
         <View style={styles.userDetails}>
-          <Text style={styles.userName}>{item.displayName}</Text>
+          <Text style={[styles.userName, { color: currentTheme.text }]}>{item.displayName}</Text>
           <Text style={styles.userDistance}>{item.distance} km away</Text>
-          <Text style={styles.userLastSeen}>
+          <Text style={[styles.userLastSeen, { color: currentTheme.textSecondary }]}>
             {item.isOnline ? 'Online' : `Last seen ${item.lastSeen.toLocaleTimeString()}`}
           </Text>
         </View>
@@ -157,22 +166,22 @@ export default function NearbyScreen() {
   );
 
   const renderPostItem = ({ item }: { item: NearbyPost }) => (
-    <View style={styles.postItem}>
+    <View style={[styles.postItem, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.postHeader}>
-        <Text style={styles.postUserName}>{item.userName}</Text>
+        <Text style={[styles.postUserName, { color: currentTheme.text }]}>{item.userName}</Text>
         <Text style={styles.postDistance}>{item.distance} km away</Text>
       </View>
-      <Text style={styles.postContent}>{item.content}</Text>
+      <Text style={[styles.postContent, { color: currentTheme.text }]}>{item.content}</Text>
       <View style={styles.postActions}>
         <View style={styles.postAction}>
-          <Ionicons name="heart-outline" size={16} color={COLORS.textSecondary} />
-          <Text style={styles.postActionText}>{item.likesCount}</Text>
+          <Ionicons name="heart-outline" size={16} color={currentTheme.textSecondary} />
+          <Text style={[styles.postActionText, { color: currentTheme.textSecondary }]}>{item.likesCount}</Text>
         </View>
         <View style={styles.postAction}>
-          <Ionicons name="chatbubble-outline" size={16} color={COLORS.textSecondary} />
-          <Text style={styles.postActionText}>{item.commentsCount}</Text>
+          <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
+          <Text style={[styles.postActionText, { color: currentTheme.textSecondary }]}>{item.commentsCount}</Text>
         </View>
-        <Text style={styles.postTime}>
+        <Text style={[styles.postTime, { color: currentTheme.textSecondary }]}>
           {item.createdAt.toLocaleTimeString()}
         </Text>
       </View>
@@ -184,12 +193,12 @@ export default function NearbyScreen() {
       <Ionicons
         name={activeTab === 'people' ? 'people-outline' : 'location-outline'}
         size={64}
-        color={COLORS.textSecondary}
+        color={currentTheme.textSecondary}
       />
-      <Text style={styles.emptyTitle}>
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
         {activeTab === 'people' ? 'No People Nearby' : 'No Posts Nearby'}
       </Text>
-      <Text style={styles.emptySubtitle}>
+      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
         {activeTab === 'people'
           ? 'Check back later to see who\'s around you'
           : 'Be the first to post something in your area!'
@@ -198,13 +207,15 @@ export default function NearbyScreen() {
     </View>
   );
 
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
   if (!locationEnabled) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={styles.permissionContainer}>
-          <Ionicons name="location-outline" size={64} color={COLORS.textSecondary} />
-          <Text style={styles.permissionTitle}>Location Permission Required</Text>
-          <Text style={styles.permissionSubtitle}>
+          <Ionicons name="location-outline" size={64} color={currentTheme.textSecondary} />
+          <Text style={[styles.permissionTitle, { color: currentTheme.text }]}>Location Permission Required</Text>
+          <Text style={[styles.permissionSubtitle, { color: currentTheme.textSecondary }]}>
             Enable location services to discover people and posts around you
           </Text>
           <TouchableOpacity
@@ -219,20 +230,20 @@ export default function NearbyScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Nearby</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Nearby</Text>
         <TouchableOpacity>
-          <Ionicons name="options-outline" size={24} color={COLORS.text} />
+          <Ionicons name="options-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'people' && styles.activeTab]}
           onPress={() => setActiveTab('people')}
         >
-          <Text style={[styles.tabText, activeTab === 'people' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: currentTheme.textSecondary }, activeTab === 'people' && styles.activeTabText]}>
             People
           </Text>
         </TouchableOpacity>
@@ -240,7 +251,7 @@ export default function NearbyScreen() {
           style={[styles.tab, activeTab === 'posts' && styles.activeTab]}
           onPress={() => setActiveTab('posts')}
         >
-          <Text style={[styles.tabText, activeTab === 'posts' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: currentTheme.textSecondary }, activeTab === 'posts' && styles.activeTabText]}>
             Posts
           </Text>
         </TouchableOpacity>
@@ -265,10 +276,25 @@ export default function NearbyScreen() {
   );
 }
 
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -277,16 +303,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
   },
   tab: {
     flex: 1,
@@ -300,7 +323,6 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.textSecondary,
   },
   activeTabText: {
     color: COLORS.primary,
@@ -313,7 +335,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: SPACING.md,
-    backgroundColor: COLORS.surface,
     marginHorizontal: SPACING.md,
     marginVertical: SPACING.xs,
     borderRadius: 12,
@@ -341,7 +362,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#4CAF50',
     borderWidth: 2,
-    borderColor: COLORS.surface,
   },
   userDetails: {
     flex: 1,
@@ -349,7 +369,6 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.text,
     marginBottom: 2,
   },
   userDistance: {
@@ -361,13 +380,11 @@ const styles = StyleSheet.create({
   userLastSeen: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
   },
   messageButton: {
     padding: SPACING.sm,
   },
   postItem: {
-    backgroundColor: COLORS.surface,
     marginHorizontal: SPACING.md,
     marginVertical: SPACING.xs,
     padding: SPACING.md,
@@ -382,7 +399,6 @@ const styles = StyleSheet.create({
   postUserName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.text,
   },
   postDistance: {
     fontSize: 14,
@@ -392,7 +408,6 @@ const styles = StyleSheet.create({
   postContent: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
     lineHeight: 24,
     marginBottom: SPACING.sm,
   },
@@ -408,13 +423,11 @@ const styles = StyleSheet.create({
   postActionText: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     marginLeft: 4,
   },
   postTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     marginLeft: 'auto',
   },
   emptyContainer: {
@@ -429,14 +442,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
   emptySubtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -449,14 +460,12 @@ const styles = StyleSheet.create({
   permissionTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
   permissionSubtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: SPACING.lg,

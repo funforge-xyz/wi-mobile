@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Post } from '../types/models';
+import { Settings } from '../services/storage';
 
 const { width } = Dimensions.get('window');
 
@@ -23,11 +24,12 @@ interface PostItemProps {
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
   onShare: (postId: string) => void;
+  currentTheme: any;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare }) => {
+const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, currentTheme }) => {
   return (
-    <View style={styles.postContainer}>
+    <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           <Image
@@ -35,18 +37,18 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare })
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.username}>User {post.userId.slice(0, 8)}</Text>
-            <Text style={styles.timestamp}>
+            <Text style={[styles.username, { color: currentTheme.text }]}>User {post.userId.slice(0, 8)}</Text>
+            <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
               {new Date(post.createdAt).toLocaleDateString()}
             </Text>
           </View>
         </View>
         <TouchableOpacity>
-          <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textSecondary} />
+          <Ionicons name="ellipsis-horizontal" size={20} color={currentTheme.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.postContent}>{post.content}</Text>
+      <Text style={[styles.postContent, { color: currentTheme.text }]}>{post.content}</Text>
 
       {post.attachments && post.attachments.length > 0 && (
         <View style={styles.mediaContainer}>
@@ -61,28 +63,28 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare })
         </View>
       )}
 
-      <View style={styles.postActions}>
+      <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onLike(post.id)}
         >
-          <Ionicons name="heart-outline" size={24} color={COLORS.textSecondary} />
-          <Text style={styles.actionText}>{post.likesCount}</Text>
+          <Ionicons name="heart-outline" size={24} color={currentTheme.textSecondary} />
+          <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.likesCount}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onComment(post.id)}
         >
-          <Ionicons name="chatbubble-outline" size={24} color={COLORS.textSecondary} />
-          <Text style={styles.actionText}>{post.commentsCount}</Text>
+          <Ionicons name="chatbubble-outline" size={24} color={currentTheme.textSecondary} />
+          <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.commentsCount}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onShare(post.id)}
         >
-          <Ionicons name="share-outline" size={24} color={COLORS.textSecondary} />
+          <Ionicons name="share-outline" size={24} color={currentTheme.textSecondary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -93,6 +95,8 @@ export default function FeedScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const settings = new Settings();
 
   // Mock data - replace with actual API calls
   const mockPosts: Post[] = [
@@ -149,7 +153,13 @@ export default function FeedScreen() {
 
   useEffect(() => {
     loadPosts();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    const darkMode = await settings.getDarkMode();
+    setIsDarkMode(darkMode);
+  };
 
   const loadPosts = async () => {
     setLoading(true);
@@ -188,32 +198,37 @@ export default function FeedScreen() {
     Alert.alert('Share', 'Share functionality coming soon!');
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Ionicons name="newspaper-outline" size={64} color={COLORS.textSecondary} />
-      <Text style={styles.emptyTitle}>No Posts Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        Be the first to share something with your community!
-      </Text>
-    </View>
-  );
+  const renderEmptyState = () => {
+    const currentTheme = isDarkMode ? darkTheme : lightTheme;
+    return (
+      <View style={styles.emptyState}>
+        <Ionicons name="newspaper-outline" size={64} color={currentTheme.textSecondary} />
+        <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Posts Yet</Text>
+        <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+          Be the first to share something with your community!
+        </Text>
+      </View>
+    );
+  };
+
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading posts...</Text>
+          <Text style={[styles.loadingText, { color: currentTheme.textSecondary }]}>Loading posts...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Home</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Home</Text>
         <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
+          <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
       </View>
 
@@ -226,6 +241,7 @@ export default function FeedScreen() {
             onLike={handleLike}
             onComment={handleComment}
             onShare={handleShare}
+            currentTheme={currentTheme}
           />
         )}
         refreshControl={
@@ -239,10 +255,25 @@ export default function FeedScreen() {
   );
 }
 
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -251,12 +282,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
   },
   loadingContainer: {
     flex: 1,
@@ -266,10 +295,8 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
   },
   postContainer: {
-    backgroundColor: COLORS.surface,
     marginBottom: SPACING.sm,
     paddingVertical: SPACING.md,
   },
@@ -293,17 +320,14 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.text,
   },
   timestamp: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
   },
   postContent: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.text,
     lineHeight: 24,
     paddingHorizontal: SPACING.md,
     marginBottom: SPACING.sm,
@@ -320,7 +344,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.sm,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
   },
   actionButton: {
     flexDirection: 'row',
@@ -330,7 +353,6 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     marginLeft: SPACING.xs,
   },
   emptyContainer: {
@@ -345,14 +367,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
   emptySubtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
