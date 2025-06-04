@@ -215,42 +215,52 @@ export class AuthService {
         throw new Error('No authenticated user');
       }
 
-      // Get user data to find profile picture URL
-      const { getFirestore } = await import('./firebase');
-      const { doc, getDoc, deleteDoc } = await import('firebase/firestore');
-      
-      const firestore = getFirestore();
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
+      // Check if re-authentication is needed
+      try {
+        // Get user data to find profile picture URL
+        const { getFirestore } = await import('./firebase');
+        const { doc, getDoc, deleteDoc } = await import('firebase/firestore');
+        
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-      // Delete profile picture from storage if it exists
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (userData.photoURL && userData.photoURL.includes('firebase')) {
-          try {
-            const { storageService } = await import('./storage');
-            await storageService.deleteProfilePicture(userData.photoURL);
-          } catch (storageError) {
-            console.error('Error deleting profile picture:', storageError);
-            // Continue with profile deletion even if image deletion fails
+        // Delete profile picture from storage if it exists
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.photoURL && userData.photoURL.includes('firebase')) {
+            try {
+              const { storageService } = await import('./storage');
+              await storageService.deleteProfilePicture(userData.photoURL);
+            } catch (storageError) {
+              console.error('Error deleting profile picture:', storageError);
+              // Continue with profile deletion even if image deletion fails
+            }
           }
         }
-      }
 
-      // Delete user document from Firestore
-      await deleteDoc(userDocRef);
+        // Delete user document from Firestore
+        await deleteDoc(userDocRef);
 
-      // Delete the Firebase Auth user account (this also frees up the email)
-      const { deleteUser } = await import('firebase/auth');
-      await deleteUser(user);
+        // Delete the Firebase Auth user account (this also frees up the email)
+        const { deleteUser } = await import('firebase/auth');
+        await deleteUser(user);
 
-      // Clear local storage
-      await this.credentials.removeToken();
-      await this.credentials.removeUser();
+        // Clear local storage
+        await this.credentials.removeToken();
+        await this.credentials.removeUser();
 
-      // Trigger navigation reset
-      if (this.onSignOutCallback) {
-        this.onSignOutCallback();
+        // Trigger navigation reset
+        if (this.onSignOutCallback) {
+          this.onSignOutCallback();
+        }
+
+      } catch (deleteError: any) {
+        // If the error is about recent login, we need to re-authenticate
+        if (deleteError.code === 'auth/requires-recent-login') {
+          throw new Error('For security reasons, please sign out and sign back in before deleting your account.');
+        }
+        throw deleteError;
       }
 
     } catch (error) {

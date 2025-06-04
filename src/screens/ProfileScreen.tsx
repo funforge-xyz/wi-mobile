@@ -214,10 +214,25 @@ export default function ProfileScreen() {
               setLoading(true);
               await authService.deleteProfile();
               // Navigation will be handled by the callback set in RootScreen
-            } catch (error) {
+            } catch (error: any) {
               console.error('Delete profile error:', error);
-              Alert.alert('Error', 'Failed to delete profile');
               setLoading(false);
+              
+              // Handle specific re-authentication error
+              if (error.message && error.message.includes('sign out and sign back in')) {
+                Alert.alert(
+                  'Re-authentication Required', 
+                  'For security reasons, please sign out and sign back in before deleting your account.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => handleSignOut(),
+                    },
+                  ]
+                );
+              } else {
+                Alert.alert('Error', 'Failed to delete profile. Please try again.');
+              }
             }
           },
         },
