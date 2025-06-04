@@ -383,7 +383,6 @@ export default function ProfileScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={[styles.loadingText, { color: currentTheme.text }]}>Loading profile...</Text>
         </View>
       </SafeAreaView>
     );
@@ -510,7 +509,7 @@ export default function ProfileScreen() {
           </View>
 
           <ScrollView style={styles.modalContent}>
-          <View style={styles.modalSection}>
+          <View style={[styles.modalSection, styles.modalImageContainer]}>
             <TouchableOpacity onPress={showImagePickerOptions}>
               {editedProfile.photoURL ? (
                 <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
@@ -748,6 +747,7 @@ const styles = StyleSheet.create({
   },
   modalImageContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
     marginVertical: SPACING.lg,
   },
   modalAvatar: {
