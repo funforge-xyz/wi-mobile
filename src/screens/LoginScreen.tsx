@@ -23,6 +23,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -57,11 +59,19 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       return;
     }
 
+    if (isSignUp && (!firstName.trim() || !lastName.trim())) {
+      setErrorMessage('First name and last name are required');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage('');
     try {
       if (isSignUp) {
-        await authService.signUpWithEmail(email, password);
+        await authService.signUpWithEmail(email, password, {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        });
       } else {
         await authService.signInWithEmail(email, password);
       }
@@ -107,6 +117,34 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <Text style={styles.errorText}>{errorMessage}</Text>
           </View>
         ) : null}
+
+        {isSignUp && (
+          <>
+            <View style={styles.inputContainer}>
+              <Ionicons name="person-outline" size={20} color={COLORS.textSecondary} />
+              <TextInput
+                style={[styles.input, { color: COLORS.text }]}
+                placeholder="First Name *"
+                placeholderTextColor={COLORS.textSecondary}
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="person-outline" size={20} color={COLORS.textSecondary} />
+              <TextInput
+                style={[styles.input, { color: COLORS.text }]}
+                placeholder="Last Name *"
+                placeholderTextColor={COLORS.textSecondary}
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+              />
+            </View>
+          </>
+        )}
         
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
@@ -167,6 +205,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           onPress={() => {
             setIsSignUp(!isSignUp);
             setErrorMessage('');
+            setFirstName('');
+            setLastName('');
           }}
         >
           <Text style={styles.switchButtonText}>

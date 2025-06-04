@@ -102,7 +102,12 @@ export class AuthService {
     }
   }
 
-  async signUpWithEmail(email: string, password: string): Promise<FirebaseUser | null> {
+  async signUpWithEmail(email: string, password: string, profileData?: {
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    photoURL?: string;
+  }): Promise<FirebaseUser | null> {
     try {
       const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -118,13 +123,21 @@ export class AuthService {
         
         await setDoc(userDocRef, {
           email: user.email,
-          firstName: '',
-          lastName: '',
-          bio: '',
-          photoURL: user.photoURL || '',
+          firstName: profileData?.firstName || '',
+          lastName: profileData?.lastName || '',
+          bio: profileData?.bio || '',
+          photoURL: profileData?.photoURL || user.photoURL || '',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
+
+        // Update Firebase Auth displayName if first and last names are provided
+        if (profileData?.firstName && profileData?.lastName) {
+          const { updateProfile } = await import('firebase/auth');
+          await updateProfile(user, {
+            displayName: `${profileData.firstName} ${profileData.lastName}`,
+          });
+        }
 
         const token = await user.getIdToken();
         await this.credentials.setToken(token);
