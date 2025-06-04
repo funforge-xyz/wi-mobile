@@ -256,11 +256,42 @@ export default function ProfileScreen() {
     });
 
     if (!result.canceled) {
+      const asset = result.assets[0];
+      
+      // Check file size (2.5MB = 2,621,440 bytes)
+      if (asset.fileSize && asset.fileSize > 2621440) {
+        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
+        return;
+      }
+      
       setEditedProfile({
         ...editedProfile,
-        photoURL: result.assets[0].uri,
+        photoURL: asset.uri,
       });
     }
+  };
+
+  const handleRemoveImage = () => {
+    Alert.alert(
+      'Remove Photo',
+      'Are you sure you want to remove your profile picture?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            setEditedProfile({
+              ...editedProfile,
+              photoURL: '',
+            });
+          },
+        },
+      ]
+    );
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -268,7 +299,7 @@ export default function ProfileScreen() {
   if (loading && !isEditing) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={[styles.loadingText, { color: currentTheme.text }]}>Loading profile...</Text>
         </View>
@@ -398,18 +429,29 @@ export default function ProfileScreen() {
 
           <ScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
-              <TouchableOpacity onPress={handleImagePicker} style={styles.modalImageContainer}>
-                {editedProfile.photoURL ? (
-                  <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
-                ) : (
-                  <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
-                    <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+              <View style={styles.modalImageContainer}>
+                <TouchableOpacity onPress={handleImagePicker}>
+                  {editedProfile.photoURL ? (
+                    <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
+                  ) : (
+                    <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                      <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                    </View>
+                  )}
+                  <View style={styles.editImageOverlay}>
+                    <Ionicons name="camera" size={24} color="white" />
                   </View>
+                </TouchableOpacity>
+                {editedProfile.photoURL && (
+                  <TouchableOpacity 
+                    style={styles.removeImageButton} 
+                    onPress={handleRemoveImage}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+                    <Text style={[styles.removeImageText, { color: COLORS.error }]}>Remove Photo</Text>
+                  </TouchableOpacity>
                 )}
-                <View style={styles.editImageOverlay}>
-                  <Ionicons name="camera" size={24} color="white" />
-                </View>
-              </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.modalSection}>
@@ -674,5 +716,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     textAlignVertical: 'top',
     minHeight: 100,
+  },
+  removeImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  removeImageText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
   },
 });

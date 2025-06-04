@@ -125,11 +125,9 @@ export default function AddPostScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      </SafeAreaView>
+      <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
     );
   }
 

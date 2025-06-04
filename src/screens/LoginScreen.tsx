@@ -77,7 +77,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     });
 
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      const asset = result.assets[0];
+      
+      // Check file size (2.5MB = 2,621,440 bytes)
+      if (asset.fileSize && asset.fileSize > 2621440) {
+        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
+        return;
+      }
+      
+      setProfileImage(asset.uri);
     }
   };
 
@@ -212,12 +220,20 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <TouchableOpacity style={styles.imagePickerContainer} onPress={handleImagePicker}>
               <View style={styles.imagePickerContent}>
                 <Ionicons name="camera-outline" size={20} color={COLORS.textSecondary} />
-                <Text style={[styles.imagePickerText, { color: COLORS.text }]}>
+                <Text style={[styles.imagePickerText, { color: COLORS.textSecondary }]}>
                   {profileImage ? 'Change Profile Picture' : 'Add Profile Picture (optional)'}
                 </Text>
               </View>
               {profileImage && (
-                <Image source={{ uri: profileImage }} style={styles.selectedImage} />
+                <View style={styles.selectedImageContainer}>
+                  <Image source={{ uri: profileImage }} style={styles.selectedImage} />
+                  <TouchableOpacity 
+                    style={styles.removeImageButton} 
+                    onPress={() => setProfileImage('')}
+                  >
+                    <Ionicons name="close-circle" size={24} color={COLORS.error} />
+                  </TouchableOpacity>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -515,12 +531,22 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     flex: 1,
   },
+  selectedImageContainer: {
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+    position: 'relative',
+  },
   selectedImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginTop: SPACING.sm,
-    alignSelf: 'center',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -5,
+    right: '35%',
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
   bioContainer: {
     flexDirection: 'row',

@@ -211,7 +211,7 @@ export default function FeedScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       </SafeAreaView>
