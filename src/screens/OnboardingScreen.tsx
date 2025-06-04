@@ -56,7 +56,9 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   };
 
   const handleComplete = () => {
-    onComplete();
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   const currentData = onboardingData[currentPage];

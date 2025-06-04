@@ -11,6 +11,7 @@ import NearbyScreen from './NearbyScreen';
 import ChatsScreen from './ChatsScreen';
 import ProfileScreen from './ProfileScreen';
 import OnboardingScreen from './OnboardingScreen';
+import AddPostScreen from './AddPostScreen';
 
 const Tab = createBottomTabNavigator();
 
