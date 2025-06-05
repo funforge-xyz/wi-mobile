@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -123,37 +122,39 @@ export default function ChatsScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      
-      // Get connection requests sent to current user
+
+      // Get pending requests for current user (simplified query)
       const requestsQuery = query(
         collection(firestore, 'connectionRequests'),
         where('toUserId', '==', currentUser.uid),
-        where('status', '==', 'pending'),
-        orderBy('createdAt', 'desc')
+        where('status', '==', 'pending')
       );
-      const requestsSnapshot = await getDocs(requestsQuery);
 
+      const requestsSnapshot = await getDocs(requestsQuery);
       const requests: ConnectionRequest[] = [];
 
       for (const requestDoc of requestsSnapshot.docs) {
         const requestData = requestDoc.data();
-        
-        // Get user data for the person who sent the request
-        const userDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
-        const userData = userDoc.exists() ? userDoc.data() : {};
+
+        // Get sender information
+        const senderDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
+        const senderData = senderDoc.exists() ? senderDoc.data() : {};
 
         requests.push({
           id: requestDoc.id,
           userId: requestData.fromUserId,
-          firstName: userData.firstName || '',
-          lastName: userData.lastName || '',
-          email: userData.email || '',
-          photoURL: userData.photoURL || '',
-          bio: userData.bio || '',
+          firstName: senderData.firstName || '',
+          lastName: senderData.lastName || '',
+          email: senderData.email || '',
+          photoURL: senderData.photoURL || '',
+          bio: senderData.bio || '',
           status: requestData.status,
           createdAt: requestData.createdAt?.toDate() || new Date(),
         });
       }
+
+      // Sort by creation date in memory
+      requests.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       setConnectionRequests(requests);
     } catch (error) {
@@ -170,23 +171,22 @@ export default function ChatsScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      
-      // Get connections where current user is involved
+
+      // Get connections for current user (simplified query)
       const connectionsQuery = query(
         collection(firestore, 'connections'),
-        where('participants', 'array-contains', currentUser.uid),
-        orderBy('connectedAt', 'desc')
+        where('participants', 'array-contains', currentUser.uid)
       );
-      const connectionsSnapshot = await getDocs(connectionsQuery);
 
+      const connectionsSnapshot = await getDocs(connectionsQuery);
       const connections: Connection[] = [];
 
       for (const connectionDoc of connectionsSnapshot.docs) {
         const connectionData = connectionDoc.data();
-        
+
         // Get the other participant's ID
         const otherUserId = connectionData.participants.find((id: string) => id !== currentUser.uid);
-        
+
         if (otherUserId) {
           // Get user data for the connected person
           const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
@@ -205,6 +205,9 @@ export default function ChatsScreen({ navigation }: any) {
           });
         }
       }
+
+      // Sort by connection date in memory
+      connections.sort((a, b) => b.connectedAt.getTime() - a.connectedAt.getTime());
 
       setConnections(connections);
     } catch (error) {
@@ -251,7 +254,7 @@ export default function ChatsScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      
+
       // Create connection
       await addDoc(collection(firestore, 'connections'), {
         participants: [currentUser.uid, request.userId],
@@ -276,7 +279,7 @@ export default function ChatsScreen({ navigation }: any) {
   const handleRejectRequest = async (request: ConnectionRequest) => {
     try {
       const firestore = getFirestore();
-      
+
       // Delete the request
       await deleteDoc(doc(firestore, 'connectionRequests', request.id));
 

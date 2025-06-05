@@ -142,6 +142,11 @@ export default function NearbyScreen({ navigation }: any) {
           continue;
         }
 
+        // Skip private posts - only show public posts
+        if (postData.isPrivate === true) {
+          continue;
+        }
+
         // Stop if we have enough posts
         if (postCount >= 20) {
           break;
