@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../config/constants';
@@ -43,7 +42,7 @@ export default function RootScreen() {
       // Ensure Firebase is initialized
       const { initializeFirebase } = await import('../services/firebase');
       await initializeFirebase();
-      
+
       const isLoggedIn = await authService.isAuthenticated();
       setIsAuthenticated(isLoggedIn);
 

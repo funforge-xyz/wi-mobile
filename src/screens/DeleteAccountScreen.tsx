@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -65,7 +64,7 @@ export default function DeleteAccountScreen() {
           <Text style={styles.warningText}>
             Deleting your account will permanently remove all your data, including:
           </Text>
-          
+
           <View style={styles.listContainer}>
             <Text style={styles.listItem}>• Your profile information</Text>
             <Text style={styles.listItem}>• All your posts and comments</Text>

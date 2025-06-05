@@ -9,6 +9,8 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -91,29 +93,60 @@ export default function AddPostScreen() {
   };
 
   const showImagePicker = () => {
-    Alert.alert(
-      'Select Photo',
-      'Choose how you want to add a photo',
-      [
+    const options = selectedImage 
+      ? ['Camera', 'Gallery', 'Remove Photo', 'Cancel']
+      : ['Camera', 'Gallery', 'Cancel'];
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
         {
-          text: 'Cancel',
-          style: 'cancel',
+          options,
+          cancelButtonIndex: selectedImage ? 3 : 2,
+          destructiveButtonIndex: selectedImage ? 2 : undefined,
+        },
+        buttonIndex => {
+          if (buttonIndex === 0) {
+            handleCameraCapture();
+          } else if (buttonIndex === 1) {
+            handleImagePicker();
+          } else if (buttonIndex === 2 && selectedImage) {
+            setSelectedImage('');
+          }
+        }
+      );
+    } else {
+      // For Android
+      const alertOptions = [
+        {
+          text: 'Camera',
+          onPress: handleCameraCapture,
         },
         {
           text: 'Gallery',
           onPress: handleImagePicker,
         },
-        {
-          text: 'Camera',
-          onPress: handleCameraCapture,
-        },
-        ...(selectedImage ? [{
-          text: 'Remove',
-          style: 'destructive' as const,
+      ];
+
+      if (selectedImage) {
+        alertOptions.push({
+          text: 'Remove Photo',
           onPress: () => setSelectedImage(''),
-        }] : []),
-      ]
-    );
+          style: 'destructive' as const,
+        });
+      }
+
+      alertOptions.push({
+        text: 'Cancel',
+        style: 'cancel' as const,
+      });
+
+      Alert.alert(
+        'Select Photo',
+        'Choose how you want to add a photo',
+        alertOptions,
+        { cancelable: true }
+      );
+    }
   };
 
   const handleCancel = () => {
