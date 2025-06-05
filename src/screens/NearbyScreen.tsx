@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -17,7 +16,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface NearbyUser {
@@ -88,7 +87,7 @@ export default function NearbyScreen({ navigation }: any) {
       const usersSnapshot = await getDocs(usersCollection);
 
       const users: NearbyUser[] = [];
-      
+
       usersSnapshot.forEach((doc) => {
         const userData = doc.data();
         // Exclude current user
@@ -113,16 +112,27 @@ export default function NearbyScreen({ navigation }: any) {
 
   const loadNearbyPosts = async () => {
     try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
       const firestore = getFirestore();
       const postsCollection = collection(firestore, 'posts');
-      const postsQuery = query(postsCollection, orderBy('createdAt', 'desc'), limit(20));
+      const postsQuery = query(
+        postsCollection,
+        where('authorId', '!=', currentUser.uid), // Exclude current user's posts
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      );
       const postsSnapshot = await getDocs(postsQuery);
 
       const posts: NearbyPost[] = [];
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
-        
+
         // Get author information
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
@@ -276,7 +286,12 @@ export default function NearbyScreen({ navigation }: any) {
           style={styles.postMedia}
           resizeMode="cover"
         />
-      ) : null}
+      ) : (
+        <View style={[styles.postMediaPlaceholder, { backgroundColor: currentTheme.surface }]}>
+          <Ionicons name="image-outline" size={60} color={currentTheme.textSecondary} />
+          <Text style={[styles.placeholderText, { color: currentTheme.textSecondary }]}>No Image</Text>
+        </View>
+      )}
 
       <View style={styles.postStats}>
         {item.allowLikes && (
@@ -539,8 +554,23 @@ const styles = StyleSheet.create({
   postMedia: {
     width: '100%',
     height: 200,
+    marginTop: SPACING.sm,
     borderRadius: 8,
-    marginBottom: SPACING.sm,
+  },
+  postMediaPlaceholder: {
+    width: '100%',
+    height: 200,
+    marginTop: SPACING.sm,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  placeholderText: {
+    marginTop: SPACING.xs,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
   },
   postStats: {
     flexDirection: 'row',
