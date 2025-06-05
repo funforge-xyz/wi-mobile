@@ -29,6 +29,28 @@ interface NearbyUser {
   isOnline?: boolean;
 }
 
+interface ConnectionRequest {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  photoURL: string;
+  bio: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: Date;
+}
+
+interface ChatMessage {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantPhotoURL: string;
+  lastMessage: string;
+  lastMessageTime: Date;
+  unreadCount: number;
+}
+
 interface NearbyPost {
   id: string;
   authorId: string;
@@ -45,9 +67,11 @@ interface NearbyPost {
 }
 
 export default function NearbyScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<'people' | 'posts'>('people');
+  const [activeTab, setActiveTab] = useState<'people' | 'posts' | 'messages' | 'connections'>('people');
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [nearbyPosts, setNearbyPosts] = useState<NearbyPost[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -63,8 +87,12 @@ export default function NearbyScreen({ navigation }: any) {
       setLoading(true);
       if (activeTab === 'people') {
         await loadNearbyUsers();
-      } else {
+      } else if (activeTab === 'posts') {
         await loadNearbyPosts();
+      } else if (activeTab === 'messages') {
+        await loadChatMessages();
+      } else if (activeTab === 'connections') {
+        await loadConnectionRequests();
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -183,6 +211,68 @@ export default function NearbyScreen({ navigation }: any) {
     }
   };
 
+  const loadChatMessages = async () => {
+    try {
+      // Mock data for now - replace with actual Firebase implementation
+      const mockMessages: ChatMessage[] = [
+        {
+          id: '1',
+          participantId: 'user1',
+          participantName: 'Alice Johnson',
+          participantPhotoURL: '',
+          lastMessage: 'Hey! How are you?',
+          lastMessageTime: new Date(),
+          unreadCount: 2,
+        },
+        {
+          id: '2',
+          participantId: 'user2',
+          participantName: 'Bob Smith',
+          participantPhotoURL: '',
+          lastMessage: 'Thanks for connecting!',
+          lastMessageTime: new Date(Date.now() - 3600000),
+          unreadCount: 0,
+        },
+      ];
+      setChatMessages(mockMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const loadConnectionRequests = async () => {
+    try {
+      // Mock data for now - replace with actual Firebase implementation
+      const mockRequests: ConnectionRequest[] = [
+        {
+          id: '1',
+          userId: 'user3',
+          firstName: 'Carol',
+          lastName: 'Davis',
+          email: 'carol@example.com',
+          photoURL: '',
+          bio: 'Love hiking and photography',
+          status: 'pending',
+          createdAt: new Date(),
+        },
+        {
+          id: '2',
+          userId: 'user4',
+          firstName: 'David',
+          lastName: 'Wilson',
+          email: 'david@example.com',
+          photoURL: '',
+          bio: 'Software developer',
+          status: 'pending',
+          createdAt: new Date(Date.now() - 86400000),
+        },
+      ];
+      setConnectionRequests(mockRequests);
+    } catch (error) {
+      console.error('Error loading connection requests:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
@@ -238,10 +328,13 @@ export default function NearbyScreen({ navigation }: any) {
     >
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
-          <Image
-            source={{ uri: item.photoURL || 'https://via.placeholder.com/50' }}
-            style={styles.avatar}
-          />
+          {item.photoURL ? (
+            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
           {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
         </View>
         <View style={styles.userDetails}>
@@ -257,12 +350,99 @@ export default function NearbyScreen({ navigation }: any) {
         </View>
       </View>
       <TouchableOpacity
-        style={styles.connectButton}
+        style={styles.connectIconButton}
         onPress={() => handleConnectUser(item)}
       >
         <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
-        <Text style={[styles.connectText, { color: COLORS.primary }]}>Connect</Text>
       </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  const renderMessageItem = ({ item }: { item: ChatMessage }) => (
+    <TouchableOpacity
+      style={[styles.messageItem, { backgroundColor: currentTheme.surface }]}
+      onPress={() => {
+        // Navigate to chat
+        Alert.alert('Open Chat', `Open conversation with ${item.participantName}`);
+      }}
+    >
+      <View style={styles.messageInfo}>
+        <View style={styles.avatarContainer}>
+          {item.participantPhotoURL ? (
+            <Image source={{ uri: item.participantPhotoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
+        </View>
+        <View style={styles.messageDetails}>
+          <Text style={[styles.participantName, { color: currentTheme.text }]}>
+            {item.participantName}
+          </Text>
+          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
+            {item.lastMessage}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.messageTime}>
+        <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
+          {formatTimeAgo(item.lastMessageTime)}
+        </Text>
+        {item.unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadText}>{item.unreadCount}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderConnectionItem = ({ item }: { item: ConnectionRequest }) => (
+    <TouchableOpacity
+      style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}
+      onPress={() => handleUserPress(item)}
+    >
+      <View style={styles.userInfo}>
+        <View style={styles.avatarContainer}>
+          {item.photoURL ? (
+            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
+        </View>
+        <View style={styles.userDetails}>
+          <Text style={[styles.userName, { color: currentTheme.text }]}>
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+          </Text>
+          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
+          {item.bio ? (
+            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
+              {item.bio}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+      <View style={styles.connectionActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.acceptButton]}
+          onPress={() => {
+            Alert.alert('Accept', `Accept connection request from ${item.firstName}?`);
+          }}
+        >
+          <Ionicons name="checkmark" size={18} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rejectButton]}
+          onPress={() => {
+            Alert.alert('Reject', `Reject connection request from ${item.firstName}?`);
+          }}
+        >
+          <Ionicons name="close" size={18} color="white" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -328,24 +508,60 @@ export default function NearbyScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons
-        name={activeTab === 'people' ? 'people-outline' : 'document-text-outline'}
-        size={64}
-        color={currentTheme.textSecondary}
-      />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-        {activeTab === 'people' ? 'No People Found' : 'No Posts Found'}
-      </Text>
-      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        {activeTab === 'people' 
-          ? 'There are no people to show right now.'
-          : 'There are no posts to show right now.'
-        }
-      </Text>
-    </View>
-  );
+  const renderEmptyState = () => {
+    const getEmptyStateConfig = () => {
+      switch (activeTab) {
+        case 'people':
+          return {
+            icon: 'people-outline',
+            title: 'No People Found',
+            subtitle: 'There are no people to show right now.'
+          };
+        case 'posts':
+          return {
+            icon: 'document-text-outline',
+            title: 'No Posts Found',
+            subtitle: 'There are no posts to show right now.'
+          };
+        case 'messages':
+          return {
+            icon: 'chatbubble-outline',
+            title: 'No Messages',
+            subtitle: 'Start a conversation with someone nearby.'
+          };
+        case 'connections':
+          return {
+            icon: 'person-add-outline',
+            title: 'No Requests',
+            subtitle: 'You have no pending connection requests.'
+          };
+        default:
+          return {
+            icon: 'people-outline',
+            title: 'No Data',
+            subtitle: 'Nothing to show right now.'
+          };
+      }
+    };
+
+    const config = getEmptyStateConfig();
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name={config.icon as any}
+          size={64}
+          color={currentTheme.textSecondary}
+        />
+        <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
+          {config.title}
+        </Text>
+        <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+          {config.subtitle}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -378,6 +594,30 @@ export default function NearbyScreen({ navigation }: any) {
             Posts
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'messages' && styles.activeTab]}
+          onPress={() => setActiveTab('messages')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'messages' && styles.activeTabText
+          ]}>
+            Messages
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
+          onPress={() => setActiveTab('connections')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'connections' && styles.activeTabText
+          ]}>
+            Requests
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -386,16 +626,29 @@ export default function NearbyScreen({ navigation }: any) {
         </View>
       ) : (
         <FlatList
-          data={activeTab === 'people' ? nearbyUsers : nearbyPosts}
+          data={
+            activeTab === 'people' ? nearbyUsers :
+            activeTab === 'posts' ? nearbyPosts :
+            activeTab === 'messages' ? chatMessages :
+            connectionRequests
+          }
           keyExtractor={(item) => item.id}
-          renderItem={activeTab === 'people' ? renderUserItem : renderPostItem}
+          renderItem={
+            activeTab === 'people' ? renderUserItem :
+            activeTab === 'posts' ? renderPostItem :
+            activeTab === 'messages' ? renderMessageItem :
+            renderConnectionItem
+          }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            (activeTab === 'people' ? nearbyUsers : nearbyPosts).length === 0
+            (activeTab === 'people' ? nearbyUsers : 
+             activeTab === 'posts' ? nearbyPosts :
+             activeTab === 'messages' ? chatMessages :
+             connectionRequests).length === 0
               ? styles.emptyContainer
               : styles.listContent
           }
@@ -516,19 +769,21 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     lineHeight: 16,
   },
-  connectButton: {
-    flexDirection: 'row',
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+  },
+  connectIconButton: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.primary,
-  },
-  connectText: {
-    fontSize: 14,
-    fontFamily: FONTS.medium,
-    marginLeft: SPACING.xs,
   },
   postItem: {
     padding: SPACING.md,
@@ -617,5 +872,76 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  messageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+  },
+  messageInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  messageDetails: {
+    flex: 1,
+  },
+  participantName: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: 2,
+  },
+  lastMessage: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+  },
+  messageTime: {
+    alignItems: 'flex-end',
+  },
+  timeText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+  },
+  unreadBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SPACING.xs,
+  },
+  unreadText: {
+    fontSize: 12,
+    fontFamily: FONTS.bold,
+    color: 'white',
+  },
+  connectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+  },
+  connectionActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  acceptButton: {
+    backgroundColor: COLORS.success,
+  },
+  rejectButton: {
+    backgroundColor: COLORS.error,
   },
 });
