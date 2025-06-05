@@ -29,27 +29,7 @@ interface NearbyUser {
   isOnline?: boolean;
 }
 
-interface ConnectionRequest {
-  id: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  photoURL: string;
-  bio: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: Date;
-}
 
-interface ChatMessage {
-  id: string;
-  participantId: string;
-  participantName: string;
-  participantPhotoURL: string;
-  lastMessage: string;
-  lastMessageTime: Date;
-  unreadCount: number;
-}
 
 interface NearbyPost {
   id: string;
@@ -67,11 +47,9 @@ interface NearbyPost {
 }
 
 export default function NearbyScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<'people' | 'posts' | 'messages' | 'connections'>('people');
+  const [activeTab, setActiveTab] = useState<'people' | 'posts'>('people');
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [nearbyPosts, setNearbyPosts] = useState<NearbyPost[]>([]);
-  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -89,10 +67,6 @@ export default function NearbyScreen({ navigation }: any) {
         await loadNearbyUsers();
       } else if (activeTab === 'posts') {
         await loadNearbyPosts();
-      } else if (activeTab === 'messages') {
-        await loadChatMessages();
-      } else if (activeTab === 'connections') {
-        await loadConnectionRequests();
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -183,7 +157,7 @@ export default function NearbyScreen({ navigation }: any) {
 
         // Get comments count
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-        const commentsSnapshot = await getDocs(commentsSnapshot);
+        const commentsSnapshot = await getDocs(commentsCollection);
 
         posts.push({
           id: postDoc.id,
@@ -211,67 +185,7 @@ export default function NearbyScreen({ navigation }: any) {
     }
   };
 
-  const loadChatMessages = async () => {
-    try {
-      // Mock data for now - replace with actual Firebase implementation
-      const mockMessages: ChatMessage[] = [
-        {
-          id: '1',
-          participantId: 'user1',
-          participantName: 'Alice Johnson',
-          participantPhotoURL: '',
-          lastMessage: 'Hey! How are you?',
-          lastMessageTime: new Date(),
-          unreadCount: 2,
-        },
-        {
-          id: '2',
-          participantId: 'user2',
-          participantName: 'Bob Smith',
-          participantPhotoURL: '',
-          lastMessage: 'Thanks for connecting!',
-          lastMessageTime: new Date(Date.now() - 3600000),
-          unreadCount: 0,
-        },
-      ];
-      setChatMessages(mockMessages);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
-
-  const loadConnectionRequests = async () => {
-    try {
-      // Mock data for now - replace with actual Firebase implementation
-      const mockRequests: ConnectionRequest[] = [
-        {
-          id: '1',
-          userId: 'user3',
-          firstName: 'Carol',
-          lastName: 'Davis',
-          email: 'carol@example.com',
-          photoURL: '',
-          bio: 'Love hiking and photography',
-          status: 'pending',
-          createdAt: new Date(),
-        },
-        {
-          id: '2',
-          userId: 'user4',
-          firstName: 'David',
-          lastName: 'Wilson',
-          email: 'david@example.com',
-          photoURL: '',
-          bio: 'Software developer',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 86400000),
-        },
-      ];
-      setConnectionRequests(mockRequests);
-    } catch (error) {
-      console.error('Error loading connection requests:', error);
-    }
-  };
+  
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -358,93 +272,7 @@ export default function NearbyScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
-  const renderMessageItem = ({ item }: { item: ChatMessage }) => (
-    <TouchableOpacity
-      style={[styles.messageItem, { backgroundColor: currentTheme.surface }]}
-      onPress={() => {
-        // Navigate to chat
-        Alert.alert('Open Chat', `Open conversation with ${item.participantName}`);
-      }}
-    >
-      <View style={styles.messageInfo}>
-        <View style={styles.avatarContainer}>
-          {item.participantPhotoURL ? (
-            <Image source={{ uri: item.participantPhotoURL }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
-            </View>
-          )}
-        </View>
-        <View style={styles.messageDetails}>
-          <Text style={[styles.participantName, { color: currentTheme.text }]}>
-            {item.participantName}
-          </Text>
-          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.messageTime}>
-        <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
-          {formatTimeAgo(item.lastMessageTime)}
-        </Text>
-        {item.unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadText}>{item.unreadCount}</Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderConnectionItem = ({ item }: { item: ConnectionRequest }) => (
-    <TouchableOpacity
-      style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}
-      onPress={() => handleUserPress(item)}
-    >
-      <View style={styles.userInfo}>
-        <View style={styles.avatarContainer}>
-          {item.photoURL ? (
-            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
-            </View>
-          )}
-        </View>
-        <View style={styles.userDetails}>
-          <Text style={[styles.userName, { color: currentTheme.text }]}>
-            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
-          </Text>
-          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
-          {item.bio ? (
-            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
-              {item.bio}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-      <View style={styles.connectionActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.acceptButton]}
-          onPress={() => {
-            Alert.alert('Accept', `Accept connection request from ${item.firstName}?`);
-          }}
-        >
-          <Ionicons name="checkmark" size={18} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.rejectButton]}
-          onPress={() => {
-            Alert.alert('Reject', `Reject connection request from ${item.firstName}?`);
-          }}
-        >
-          <Ionicons name="close" size={18} color="white" />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+  
 
   const renderPostItem = ({ item }: { item: NearbyPost }) => (
     <TouchableOpacity
@@ -523,18 +351,6 @@ export default function NearbyScreen({ navigation }: any) {
             title: 'No Posts Found',
             subtitle: 'There are no posts to show right now.'
           };
-        case 'messages':
-          return {
-            icon: 'chatbubble-outline',
-            title: 'No Messages',
-            subtitle: 'Start a conversation with someone nearby.'
-          };
-        case 'connections':
-          return {
-            icon: 'person-add-outline',
-            title: 'No Requests',
-            subtitle: 'You have no pending connection requests.'
-          };
         default:
           return {
             icon: 'people-outline',
@@ -594,30 +410,6 @@ export default function NearbyScreen({ navigation }: any) {
             Posts
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'messages' && styles.activeTab]}
-          onPress={() => setActiveTab('messages')}
-        >
-          <Text style={[
-            styles.tabText, 
-            { color: currentTheme.textSecondary }, 
-            activeTab === 'messages' && styles.activeTabText
-          ]}>
-            Messages
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
-          onPress={() => setActiveTab('connections')}
-        >
-          <Text style={[
-            styles.tabText, 
-            { color: currentTheme.textSecondary }, 
-            activeTab === 'connections' && styles.activeTabText
-          ]}>
-            Requests
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -626,29 +418,16 @@ export default function NearbyScreen({ navigation }: any) {
         </View>
       ) : (
         <FlatList
-          data={
-            activeTab === 'people' ? nearbyUsers :
-            activeTab === 'posts' ? nearbyPosts :
-            activeTab === 'messages' ? chatMessages :
-            connectionRequests
-          }
+          data={activeTab === 'people' ? nearbyUsers : nearbyPosts}
           keyExtractor={(item) => item.id}
-          renderItem={
-            activeTab === 'people' ? renderUserItem :
-            activeTab === 'posts' ? renderPostItem :
-            activeTab === 'messages' ? renderMessageItem :
-            renderConnectionItem
-          }
+          renderItem={activeTab === 'people' ? renderUserItem : renderPostItem}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            (activeTab === 'people' ? nearbyUsers : 
-             activeTab === 'posts' ? nearbyPosts :
-             activeTab === 'messages' ? chatMessages :
-             connectionRequests).length === 0
+            (activeTab === 'people' ? nearbyUsers : nearbyPosts).length === 0
               ? styles.emptyContainer
               : styles.listContent
           }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,253 +9,460 @@ import {
   Image,
   RefreshControl,
   Alert,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-import { Thread, Message } from '../types/models';
-import { Settings } from '../services/storage';
 import { useAppSelector } from '../hooks/redux';
 
-interface ChatItem extends Thread {
-  otherUserName: string;
-  otherUserAvatar?: string;
+interface ChatMessage {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantPhotoURL: string;
+  lastMessage: string;
+  lastMessageTime: Date;
   unreadCount: number;
-  isOnline: boolean;
 }
 
-export default function ChatsScreen() {
-  const [chats, setChats] = useState<ChatItem[]>([]);
+interface ConnectionRequest {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  photoURL: string;
+  bio: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: Date;
+}
+
+interface Connection {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  photoURL: string;
+  bio: string;
+  connectedAt: Date;
+  isOnline?: boolean;
+}
+
+export default function ChatsScreen({ navigation }: any) {
+  const [activeTab, setActiveTab] = useState<'chats' | 'requests' | 'connections'>('chats');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const settings = new Settings();
 
-  // Mock data
-  const mockChats: ChatItem[] = [
-    {
-      id: '1',
-      participants: ['user1', 'user2'],
-      otherUserName: 'Alice Johnson',
-      otherUserAvatar: 'https://via.placeholder.com/50',
-      unreadCount: 2,
-      isOnline: true,
-      lastMessage: {
-        id: 'msg1',
-        threadId: '1',
-        senderId: 'user2',
-        content: 'Hey! Are you free for coffee later?',
-        type: 'text',
-        createdAt: new Date(),
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      participants: ['user1', 'user3'],
-      otherUserName: 'Bob Smith',
-      otherUserAvatar: 'https://via.placeholder.com/50',
-      unreadCount: 0,
-      isOnline: false,
-      lastMessage: {
-        id: 'msg2',
-        threadId: '2',
-        senderId: 'user1',
-        content: 'Thanks for the recommendation!',
-        type: 'text',
-        createdAt: new Date(Date.now() - 3600000),
-      },
-      createdAt: new Date(Date.now() - 86400000),
-      updatedAt: new Date(Date.now() - 3600000),
-    },
-    {
-      id: '3',
-      participants: ['user1', 'user4'],
-      otherUserName: 'Carol Davis',
-      otherUserAvatar: 'https://via.placeholder.com/50',
-      unreadCount: 1,
-      isOnline: true,
-      lastMessage: {
-        id: 'msg3',
-        threadId: '3',
-        senderId: 'user4',
-        content: 'Photo',
-        type: 'image',
-        createdAt: new Date(Date.now() - 7200000),
-      },
-      createdAt: new Date(Date.now() - 172800000),
-      updatedAt: new Date(Date.now() - 7200000),
-    },
-  ];
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadChats();
-  }, []);
+    loadData();
+  }, [activeTab]);
 
-  const loadSettings = async () => {
-    // Settings are now handled by Redux store
-    // No need to manually set dark mode here
-  };
-
-  const loadChats = async () => {
-    setLoading(true);
+  const loadData = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setChats(mockChats);
+      setLoading(true);
+      if (activeTab === 'chats') {
+        await loadChatMessages();
+      } else if (activeTab === 'requests') {
+        await loadConnectionRequests();
+      } else if (activeTab === 'connections') {
+        await loadConnections();
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load chats');
+      console.error('Error loading data:', error);
+      Alert.alert('Error', 'Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadChats();
-    setRefreshing(false);
-  };
-
-  const handleChatPress = (chat: ChatItem) => {
-    Alert.alert('Open Chat', `Open conversation with ${chat.otherUserName}`);
-    // Mark as read
-    setChats(prev =>
-      prev.map(c =>
-        c.id === chat.id ? { ...c, unreadCount: 0 } : c
-      )
-    );
-  };
-
-  const handleNewChat = () => {
-    Alert.alert('New Chat', 'Start a new conversation');
-  };
-
-  const formatTime = (date: Date) => {
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-    if (diffInMinutes < 1) {
-      return 'now';
-    } else if (diffInMinutes < 60) {
-      return `${diffInMinutes}m`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h`;
-    } else if (diffInDays < 7) {
-      return `${diffInDays}d`;
-    } else {
-      return date.toLocaleDateString();
+  const loadChatMessages = async () => {
+    try {
+      // Mock data for now - replace with actual Firebase implementation
+      const mockMessages: ChatMessage[] = [
+        {
+          id: '1',
+          participantId: 'user1',
+          participantName: 'Alice Johnson',
+          participantPhotoURL: '',
+          lastMessage: 'Hey! How are you?',
+          lastMessageTime: new Date(),
+          unreadCount: 2,
+        },
+        {
+          id: '2',
+          participantId: 'user2',
+          participantName: 'Bob Smith',
+          participantPhotoURL: '',
+          lastMessage: 'Thanks for connecting!',
+          lastMessageTime: new Date(Date.now() - 3600000),
+          unreadCount: 0,
+        },
+      ];
+      setChatMessages(mockMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
     }
   };
 
-  const filteredChats = chats.filter(chat =>
-    chat.otherUserName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const loadConnectionRequests = async () => {
+    try {
+      // Mock data for now - replace with actual Firebase implementation
+      const mockRequests: ConnectionRequest[] = [
+        {
+          id: '1',
+          userId: 'user3',
+          firstName: 'Carol',
+          lastName: 'Davis',
+          email: 'carol@example.com',
+          photoURL: '',
+          bio: 'Love hiking and photography',
+          status: 'pending',
+          createdAt: new Date(),
+        },
+        {
+          id: '2',
+          userId: 'user4',
+          firstName: 'David',
+          lastName: 'Wilson',
+          email: 'david@example.com',
+          photoURL: '',
+          bio: 'Software developer',
+          status: 'pending',
+          createdAt: new Date(Date.now() - 86400000),
+        },
+      ];
+      setConnectionRequests(mockRequests);
+    } catch (error) {
+      console.error('Error loading connection requests:', error);
+    }
+  };
 
-  const renderChatItem = ({ item }: { item: ChatItem }) => (
+  const loadConnections = async () => {
+    try {
+      // Mock data for now - replace with actual Firebase implementation
+      const mockConnections: Connection[] = [
+        {
+          id: '1',
+          userId: 'user5',
+          firstName: 'Emma',
+          lastName: 'Wilson',
+          email: 'emma@example.com',
+          photoURL: '',
+          bio: 'Digital artist and designer',
+          connectedAt: new Date(Date.now() - 86400000),
+          isOnline: true,
+        },
+        {
+          id: '2',
+          userId: 'user6',
+          firstName: 'Michael',
+          lastName: 'Brown',
+          email: 'michael@example.com',
+          photoURL: '',
+          bio: 'Coffee enthusiast and writer',
+          connectedAt: new Date(Date.now() - 172800000),
+          isOnline: false,
+        },
+      ];
+      setConnections(mockConnections);
+    } catch (error) {
+      console.error('Error loading connections:', error);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays > 0) {
+      return `${diffInDays}d ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours}h ago`;
+    } else {
+      return 'Just now';
+    }
+  };
+
+  const handleChatPress = (chat: ChatMessage) => {
+    Alert.alert('Open Chat', `Open conversation with ${chat.participantName}`);
+  };
+
+  const handleUserPress = (user: ConnectionRequest | Connection) => {
+    // Navigate to user profile
+    navigation.navigate('Profile', { userId: user.userId });
+  };
+
+  const handleAcceptRequest = (request: ConnectionRequest) => {
+    Alert.alert('Accept', `Accept connection request from ${request.firstName}?`);
+  };
+
+  const handleRejectRequest = (request: ConnectionRequest) => {
+    Alert.alert('Reject', `Reject connection request from ${request.firstName}?`);
+  };
+
+  const handleStartChat = (connection: Connection) => {
+    Alert.alert('Start Chat', `Start conversation with ${connection.firstName}?`);
+  };
+
+  const renderChatItem = ({ item }: { item: ChatMessage }) => (
     <TouchableOpacity
-      style={[styles.chatItem, { borderBottomColor: currentTheme.border }]}
+      style={[styles.messageItem, { backgroundColor: currentTheme.surface }]}
       onPress={() => handleChatPress(item)}
     >
-      <View style={styles.avatarContainer}>
-        <Image
-          source={{ uri: item.otherUserAvatar || 'https://via.placeholder.com/50' }}
-          style={styles.avatar}
-        />
-        {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />}
-      </View>
-
-      <View style={styles.chatContent}>
-        <View style={styles.chatHeader}>
-          <Text style={[styles.chatName, { color: currentTheme.text }]}>{item.otherUserName}</Text>
-          <Text style={[styles.chatTime, { color: currentTheme.textSecondary }]}>
-            {item.lastMessage && formatTime(item.lastMessage.createdAt)}
-          </Text>
-        </View>
-
-        <View style={styles.chatFooter}>
-          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }, item.unreadCount > 0 && [styles.unreadMessage, { color: currentTheme.text }]]} numberOfLines={1}>
-            {item.lastMessage?.type === 'image' ? '📷 Photo' : item.lastMessage?.content || 'No messages yet'}
-          </Text>
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadCount}>{item.unreadCount}</Text>
+      <View style={styles.messageInfo}>
+        <View style={styles.avatarContainer}>
+          {item.participantPhotoURL ? (
+            <Image source={{ uri: item.participantPhotoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
             </View>
           )}
         </View>
+        <View style={styles.messageDetails}>
+          <Text style={[styles.participantName, { color: currentTheme.text }]}>
+            {item.participantName}
+          </Text>
+          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
+            {item.lastMessage}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.messageTime}>
+        <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
+          {formatTimeAgo(item.lastMessageTime)}
+        </Text>
+        {item.unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadText}>{item.unreadCount}</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Ionicons name="chatbubbles-outline" size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Conversations</Text>
-      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        Start a conversation with someone nearby
-      </Text>
-      <TouchableOpacity style={styles.startChatButton} onPress={handleNewChat}>
-        <Text style={styles.startChatButtonText}>Start a Chat</Text>
-      </TouchableOpacity>
-    </View>
+  const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
+    <TouchableOpacity
+      style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}
+      onPress={() => handleUserPress(item)}
+    >
+      <View style={styles.userInfo}>
+        <View style={styles.avatarContainer}>
+          {item.photoURL ? (
+            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
+        </View>
+        <View style={styles.userDetails}>
+          <Text style={[styles.userName, { color: currentTheme.text }]}>
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+          </Text>
+          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
+          {item.bio ? (
+            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
+              {item.bio}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+      <View style={styles.connectionActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.acceptButton]}
+          onPress={() => handleAcceptRequest(item)}
+        >
+          <Ionicons name="checkmark" size={18} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rejectButton]}
+          onPress={() => handleRejectRequest(item)}
+        >
+          <Ionicons name="close" size={18} color="white" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+  const renderConnectionItem = ({ item }: { item: Connection }) => (
+    <TouchableOpacity
+      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
+      onPress={() => handleUserPress(item)}
+    >
+      <View style={styles.userInfo}>
+        <View style={styles.avatarContainer}>
+          {item.photoURL ? (
+            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
+          {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
         </View>
-      </SafeAreaView>
+        <View style={styles.userDetails}>
+          <Text style={[styles.userName, { color: currentTheme.text }]}>
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+          </Text>
+          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
+          {item.bio ? (
+            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
+              {item.bio}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+      <TouchableOpacity
+        style={styles.chatIconButton}
+        onPress={() => handleStartChat(item)}
+      >
+        <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  const renderEmptyState = () => {
+    const getEmptyStateConfig = () => {
+      switch (activeTab) {
+        case 'chats':
+          return {
+            icon: 'chatbubble-outline',
+            title: 'No Chats',
+            subtitle: 'Start a conversation with someone nearby.'
+          };
+        case 'requests':
+          return {
+            icon: 'person-add-outline',
+            title: 'No Requests',
+            subtitle: 'You have no pending connection requests.'
+          };
+        case 'connections':
+          return {
+            icon: 'people-outline',
+            title: 'No Connections',
+            subtitle: 'Connect with people to start chatting.'
+          };
+        default:
+          return {
+            icon: 'chatbubble-outline',
+            title: 'No Data',
+            subtitle: 'Nothing to show right now.'
+          };
+      }
+    };
+
+    const config = getEmptyStateConfig();
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name={config.icon as any}
+          size={64}
+          color={currentTheme.textSecondary}
+        />
+        <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
+          {config.title}
+        </Text>
+        <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+          {config.subtitle}
+        </Text>
+      </View>
     );
-  }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Chats</Text>
-        <TouchableOpacity onPress={handleNewChat}>
-          <Ionicons name="create-outline" size={24} color={currentTheme.text} />
+      </View>
+
+      <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'chats' && styles.activeTab]}
+          onPress={() => setActiveTab('chats')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'chats' && styles.activeTabText
+          ]}>
+            Chats
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
+          onPress={() => setActiveTab('requests')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'requests' && styles.activeTabText
+          ]}>
+            Requests
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
+          onPress={() => setActiveTab('connections')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'connections' && styles.activeTabText
+          ]}>
+            Connections
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchInputContainer, { backgroundColor: currentTheme.surface }]}>
-          <Ionicons name="search" size={20} color={currentTheme.textSecondary} />
-          <TextInput
-            style={[styles.searchInput, { color: currentTheme.text }]}
-            placeholder="Search conversations"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor={currentTheme.textSecondary}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={currentTheme.textSecondary} />
-            </TouchableOpacity>
-          )}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-      </View>
-
-      <FlatList
-        data={filteredChats}
-        keyExtractor={(item) => item.id}
-        renderItem={renderChatItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={renderEmptyState}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={filteredChats.length === 0 ? styles.emptyContainer : undefined}
-      />
+      ) : (
+        <FlatList
+          data={
+            activeTab === 'chats' ? chatMessages :
+            activeTab === 'requests' ? connectionRequests :
+            connections
+          }
+          keyExtractor={(item) => item.id}
+          renderItem={
+            activeTab === 'chats' ? renderChatItem :
+            activeTab === 'requests' ? renderRequestItem :
+            renderConnectionItem
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={renderEmptyState}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            (activeTab === 'chats' ? chatMessages : 
+             activeTab === 'requests' ? connectionRequests :
+             connections).length === 0
+              ? styles.emptyContainer
+              : styles.listContent
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -291,29 +499,47 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: FONTS.bold,
   },
-  searchContainer: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-  },
-  searchInputContainer: {
+  tabContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
   },
-  searchInput: {
+  tab: {
     flex: 1,
-    marginLeft: SPACING.sm,
-    fontSize: 16,
-    fontFamily: FONTS.regular,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+    borderRadius: 8,
   },
-  chatItem: {
+  activeTab: {
+    backgroundColor: COLORS.primary + '20',
+  },
+  tabText: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+  },
+  activeTabText: {
+    color: COLORS.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  listContent: {
+    paddingHorizontal: SPACING.md,
+  },
+  userItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatarContainer: {
     position: 'relative',
@@ -331,38 +557,74 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.success,
     borderWidth: 2,
   },
-  chatContent: {
+  userDetails: {
     flex: 1,
   },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  chatName: {
+  userName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
+    marginBottom: 2,
   },
-  chatTime: {
+  userEmail: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginBottom: 4,
+  },
+  userBio: {
     fontSize: 12,
     fontFamily: FONTS.regular,
+    lineHeight: 16,
   },
-  chatFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  chatIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  messageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+  },
+  messageInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  messageDetails: {
+    flex: 1,
+  },
+  participantName: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: 2,
   },
   lastMessage: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    flex: 1,
   },
-  unreadMessage: {
-    fontFamily: FONTS.medium,
+  messageTime: {
+    alignItems: 'flex-end',
+  },
+  timeText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
   },
   unreadBadge: {
     backgroundColor: COLORS.primary,
@@ -371,21 +633,43 @@ const styles = StyleSheet.create({
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.sm,
+    marginTop: SPACING.xs,
   },
-  unreadCount: {
+  unreadText: {
     fontSize: 12,
     fontFamily: FONTS.bold,
     color: 'white',
   },
-  emptyContainer: {
-    flex: 1,
+  connectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
   },
-  emptyState: {
+  connectionActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  acceptButton: {
+    backgroundColor: COLORS.success,
+  },
+  rejectButton: {
+    backgroundColor: COLORS.error,
+  },
+  emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.lg,
   },
   emptyTitle: {
     fontSize: 20,
@@ -394,26 +678,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   emptySubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: FONTS.regular,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: SPACING.lg,
-  },
-  startChatButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderRadius: 12,
-  },
-  startChatButtonText: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-    color: 'white',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    lineHeight: 20,
   },
 });
