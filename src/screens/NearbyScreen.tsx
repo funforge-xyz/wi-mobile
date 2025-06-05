@@ -120,18 +120,30 @@ export default function NearbyScreen({ navigation }: any) {
 
       const firestore = getFirestore();
       const postsCollection = collection(firestore, 'posts');
+      
+      // First, get all posts ordered by creation date
       const postsQuery = query(
         postsCollection,
-        where('authorId', '!=', currentUser.uid), // Exclude current user's posts
         orderBy('createdAt', 'desc'),
-        limit(20)
+        limit(50) // Get more posts to filter out current user's posts
       );
       const postsSnapshot = await getDocs(postsQuery);
 
       const posts: NearbyPost[] = [];
+      let postCount = 0;
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
+
+        // Skip current user's posts
+        if (postData.authorId === currentUser.uid) {
+          continue;
+        }
+
+        // Stop if we have enough posts
+        if (postCount >= 20) {
+          break;
+        }
 
         // Get author information
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
@@ -143,7 +155,7 @@ export default function NearbyScreen({ navigation }: any) {
 
         // Get comments count
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-        const commentsSnapshot = await getDocs(commentsCollection);
+        const commentsSnapshot = await getDocs(commentsSnapshot);
 
         posts.push({
           id: postDoc.id,
@@ -161,6 +173,8 @@ export default function NearbyScreen({ navigation }: any) {
           allowLikes: postData.allowLikes !== false,
           allowComments: postData.allowComments !== false,
         });
+
+        postCount++;
       }
 
       setNearbyPosts(posts);
