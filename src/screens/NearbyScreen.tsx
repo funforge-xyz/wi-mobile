@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,126 +9,202 @@ import {
   Image,
   RefreshControl,
   Alert,
-  Switch,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-import { Settings } from '../services/storage';
 import { useAppSelector } from '../hooks/redux';
+import { Settings } from '../services/storage';
+import { authService } from '../services/auth';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit } from 'firebase/firestore';
+import { getFirestore } from '../services/firebase';
 
 interface NearbyUser {
   id: string;
-  displayName: string;
-  photoURL?: string;
-  distance: number;
-  lastSeen: Date;
-  isOnline: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  photoURL: string;
+  bio: string;
+  isOnline?: boolean;
 }
 
 interface NearbyPost {
   id: string;
-  userId: string;
-  userName: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL: string;
   content: string;
-  distance: number;
+  mediaURL?: string;
+  mediaType?: 'image' | 'video';
   createdAt: Date;
   likesCount: number;
   commentsCount: number;
+  allowLikes: boolean;
+  allowComments: boolean;
 }
 
-export default function NearbyScreen() {
+export default function NearbyScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'people' | 'posts'>('people');
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [nearbyPosts, setNearbyPosts] = useState<NearbyPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [locationEnabled, setLocationEnabled] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const settings = new Settings();
 
-  // Mock data
-  const mockUsers: NearbyUser[] = [
-    {
-      id: '1',
-      displayName: 'Alice Johnson',
-      photoURL: 'https://via.placeholder.com/50',
-      distance: 0.2,
-      lastSeen: new Date(),
-      isOnline: true,
-    },
-    {
-      id: '2',
-      displayName: 'Bob Smith',
-      photoURL: 'https://via.placeholder.com/50',
-      distance: 0.5,
-      lastSeen: new Date(Date.now() - 300000),
-      isOnline: false,
-    },
-    {
-      id: '3',
-      displayName: 'Carol Davis',
-      photoURL: 'https://via.placeholder.com/50',
-      distance: 0.8,
-      lastSeen: new Date(Date.now() - 600000),
-      isOnline: true,
-    },
-  ];
-
-  const mockPosts: NearbyPost[] = [
-    {
-      id: '1',
-      userId: '1',
-      userName: 'Alice Johnson',
-      content: 'Great coffee at the local cafe! Anyone want to join?',
-      distance: 0.2,
-      createdAt: new Date(),
-      likesCount: 5,
-      commentsCount: 2,
-    },
-    {
-      id: '2',
-      userId: '4',
-      userName: 'David Wilson',
-      content: 'Lost dog in the area - brown labrador, very friendly!',
-      distance: 0.3,
-      createdAt: new Date(Date.now() - 1800000),
-      likesCount: 12,
-      commentsCount: 8,
-    },
-  ];
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadNearbyData();
-  }, []);
+    loadData();
+  }, [activeTab]);
 
-  const loadNearbyData = async () => {
-    setLoading(true);
+  const loadData = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setNearbyUsers(mockUsers);
-      setNearbyPosts(mockPosts);
+      setLoading(true);
+      if (activeTab === 'people') {
+        await loadNearbyUsers();
+      } else {
+        await loadNearbyPosts();
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load nearby data');
+      console.error('Error loading data:', error);
+      Alert.alert('Error', 'Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
+  const loadNearbyUsers = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      const usersCollection = collection(firestore, 'users');
+      const usersSnapshot = await getDocs(usersCollection);
+
+      const users: NearbyUser[] = [];
+      
+      usersSnapshot.forEach((doc) => {
+        const userData = doc.data();
+        // Exclude current user
+        if (doc.id !== currentUser.uid) {
+          users.push({
+            id: doc.id,
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            photoURL: userData.photoURL || '',
+            bio: userData.bio || '',
+            isOnline: Math.random() > 0.5, // Mock online status
+          });
+        }
+      });
+
+      setNearbyUsers(users);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const loadNearbyPosts = async () => {
+    try {
+      const firestore = getFirestore();
+      const postsCollection = collection(firestore, 'posts');
+      const postsQuery = query(postsCollection, orderBy('createdAt', 'desc'), limit(20));
+      const postsSnapshot = await getDocs(postsQuery);
+
+      const posts: NearbyPost[] = [];
+
+      for (const postDoc of postsSnapshot.docs) {
+        const postData = postDoc.data();
+        
+        // Get author information
+        const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
+        const authorData = authorDoc.exists() ? authorDoc.data() : {};
+
+        // Get likes count
+        const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
+        const likesSnapshot = await getDocs(likesCollection);
+
+        // Get comments count
+        const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
+        const commentsSnapshot = await getDocs(commentsCollection);
+
+        posts.push({
+          id: postDoc.id,
+          authorId: postData.authorId,
+          authorName: authorData.firstName && authorData.lastName 
+            ? `${authorData.firstName} ${authorData.lastName}` 
+            : 'Anonymous User',
+          authorPhotoURL: authorData.photoURL || '',
+          content: postData.content || '',
+          mediaURL: postData.mediaURL || '',
+          mediaType: postData.mediaType || 'image',
+          createdAt: postData.createdAt?.toDate() || new Date(),
+          likesCount: likesSnapshot.size,
+          commentsCount: commentsSnapshot.size,
+          allowLikes: postData.allowLikes !== false,
+          allowComments: postData.allowComments !== false,
+        });
+      }
+
+      setNearbyPosts(posts);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadNearbyData();
+    await loadData();
     setRefreshing(false);
   };
 
   const handleUserPress = (user: NearbyUser) => {
-    Alert.alert('User Profile', `View ${user.displayName}'s profile`);
+    // Navigate to user profile
+    navigation.navigate('Profile', { userId: user.id });
   };
 
-  const handleMessageUser = (user: NearbyUser) => {
-    Alert.alert('Message', `Send message to ${user.displayName}`);
+  const handleConnectUser = (user: NearbyUser) => {
+    Alert.alert(
+      'Connect',
+      `Send a connection request to ${user.firstName} ${user.lastName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Connect', 
+          onPress: () => {
+            // TODO: Implement connection logic
+            Alert.alert('Success', 'Connection request sent!');
+          }
+        },
+      ]
+    );
+  };
+
+  const handlePostPress = (post: NearbyPost) => {
+    // Navigate to single post screen
+    navigation.navigate('SinglePost', { postId: post.id });
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays > 0) {
+      return `${diffInDays}d ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours}h ago`;
+    } else {
+      return 'Just now';
+    }
   };
 
   const renderUserItem = ({ item }: { item: NearbyUser }) => (
@@ -144,101 +221,107 @@ export default function NearbyScreen() {
           {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
         </View>
         <View style={styles.userDetails}>
-          <Text style={[styles.userName, { color: currentTheme.text }]}>{item.displayName}</Text>
-          <Text style={styles.userDistance}>{item.distance} km away</Text>
-          <Text style={[styles.userLastSeen, { color: currentTheme.textSecondary }]}>
-            {item.isOnline ? 'Online' : `Last seen ${item.lastSeen.toLocaleTimeString()}`}
+          <Text style={[styles.userName, { color: currentTheme.text }]}>
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
+          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
+          {item.bio ? (
+            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
+              {item.bio}
+            </Text>
+          ) : null}
         </View>
       </View>
       <TouchableOpacity
-        style={styles.messageButton}
-        onPress={() => handleMessageUser(item)}
+        style={styles.connectButton}
+        onPress={() => handleConnectUser(item)}
       >
-        <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+        <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
+        <Text style={[styles.connectText, { color: COLORS.primary }]}>Connect</Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderPostItem = ({ item }: { item: NearbyPost }) => (
-    <View style={[styles.postItem, { backgroundColor: currentTheme.surface }]}>
+    <TouchableOpacity
+      style={[styles.postItem, { backgroundColor: currentTheme.surface }]}
+      onPress={() => handlePostPress(item)}
+    >
       <View style={styles.postHeader}>
-        <Text style={[styles.postUserName, { color: currentTheme.text }]}>{item.userName}</Text>
-        <Text style={styles.postDistance}>{item.distance} km away</Text>
+        <View style={styles.postAuthorInfo}>
+          <Image
+            source={{ uri: item.authorPhotoURL || 'https://via.placeholder.com/40' }}
+            style={styles.postAuthorAvatar}
+          />
+          <View>
+            <Text style={[styles.postAuthorName, { color: currentTheme.text }]}>
+              {item.authorName}
+            </Text>
+            <Text style={[styles.postTime, { color: currentTheme.textSecondary }]}>
+              {formatTimeAgo(item.createdAt)}
+            </Text>
+          </View>
+        </View>
       </View>
-      <Text style={[styles.postContent, { color: currentTheme.text }]}>{item.content}</Text>
-      <View style={styles.postActions}>
-        <View style={styles.postAction}>
-          <Ionicons name="heart-outline" size={16} color={currentTheme.textSecondary} />
-          <Text style={[styles.postActionText, { color: currentTheme.textSecondary }]}>{item.likesCount}</Text>
-        </View>
-        <View style={styles.postAction}>
-          <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
-          <Text style={[styles.postActionText, { color: currentTheme.textSecondary }]}>{item.commentsCount}</Text>
-        </View>
-        <Text style={[styles.postTime, { color: currentTheme.textSecondary }]}>
-          {item.createdAt.toLocaleTimeString()}
+
+      {item.content ? (
+        <Text style={[styles.postContent, { color: currentTheme.text }]} numberOfLines={3}>
+          {item.content}
         </Text>
+      ) : null}
+
+      {item.mediaURL ? (
+        <Image
+          source={{ uri: item.mediaURL }}
+          style={styles.postMedia}
+          resizeMode="cover"
+        />
+      ) : null}
+
+      <View style={styles.postStats}>
+        {item.allowLikes && (
+          <View style={styles.statItem}>
+            <Ionicons name="heart-outline" size={16} color={currentTheme.textSecondary} />
+            <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
+              {item.likesCount}
+            </Text>
+          </View>
+        )}
+        {item.allowComments && (
+          <View style={styles.statItem}>
+            <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
+            <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
+              {item.commentsCount}
+            </Text>
+          </View>
+        )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
+    <View style={styles.emptyContainer}>
       <Ionicons
-        name={activeTab === 'people' ? 'people-outline' : 'location-outline'}
+        name={activeTab === 'people' ? 'people-outline' : 'document-text-outline'}
         size={64}
         color={currentTheme.textSecondary}
       />
       <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-        {activeTab === 'people' ? 'No People Nearby' : 'No Posts Nearby'}
+        {activeTab === 'people' ? 'No People Found' : 'No Posts Found'}
       </Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        {activeTab === 'people'
-          ? 'Check back later to see who\'s around you'
-          : 'Be the first to post something in your area!'
+        {activeTab === 'people' 
+          ? 'There are no people to show right now.'
+          : 'There are no posts to show right now.'
         }
       </Text>
     </View>
   );
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
-
-  if (loading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
-
-  if (!locationEnabled) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={styles.permissionContainer}>
-          <Ionicons name="location-outline" size={64} color={currentTheme.textSecondary} />
-          <Text style={[styles.permissionTitle, { color: currentTheme.text }]}>Location Permission Required</Text>
-          <Text style={[styles.permissionSubtitle, { color: currentTheme.textSecondary }]}>
-            Enable location services to discover people and posts around you
-          </Text>
-          <TouchableOpacity
-            style={styles.enableButton}
-            onPress={() => setLocationEnabled(true)}
-          >
-            <Text style={styles.enableButtonText}>Enable Location</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Nearby</Text>
-        <TouchableOpacity>
-          <Ionicons name="options-outline" size={24} color={currentTheme.text} />
-        </TouchableOpacity>
       </View>
 
       <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
@@ -246,7 +329,11 @@ export default function NearbyScreen() {
           style={[styles.tab, activeTab === 'people' && styles.activeTab]}
           onPress={() => setActiveTab('people')}
         >
-          <Text style={[styles.tabText, { color: currentTheme.textSecondary }, activeTab === 'people' && styles.activeTabText]}>
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'people' && styles.activeTabText
+          ]}>
             People
           </Text>
         </TouchableOpacity>
@@ -254,27 +341,37 @@ export default function NearbyScreen() {
           style={[styles.tab, activeTab === 'posts' && styles.activeTab]}
           onPress={() => setActiveTab('posts')}
         >
-          <Text style={[styles.tabText, { color: currentTheme.textSecondary }, activeTab === 'posts' && styles.activeTabText]}>
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'posts' && styles.activeTabText
+          ]}>
             Posts
           </Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={activeTab === 'people' ? nearbyUsers : nearbyPosts}
-        keyExtractor={(item) => item.id}
-        renderItem={activeTab === 'people' ? renderUserItem : renderPostItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={renderEmptyState}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          (activeTab === 'people' ? nearbyUsers : nearbyPosts).length === 0
-            ? styles.emptyContainer
-            : styles.listContent
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={activeTab === 'people' ? nearbyUsers : nearbyPosts}
+          keyExtractor={(item) => item.id}
+          renderItem={activeTab === 'people' ? renderUserItem : renderPostItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={renderEmptyState}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            (activeTab === 'people' ? nearbyUsers : nearbyPosts).length === 0
+              ? styles.emptyContainer
+              : styles.listContent
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -298,12 +395,6 @@ const darkTheme = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -319,15 +410,17 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   tab: {
     flex: 1,
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.sm,
     alignItems: 'center',
+    borderRadius: 8,
   },
   activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.primary,
+    backgroundColor: COLORS.primary + '20',
   },
   tabText: {
     fontSize: 16,
@@ -336,15 +429,19 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: COLORS.primary,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   listContent: {
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
   },
   userItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: SPACING.md,
-    marginHorizontal: SPACING.md,
     marginVertical: SPACING.xs,
     borderRadius: 12,
   },
@@ -369,7 +466,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.success,
     borderWidth: 2,
   },
   userDetails: {
@@ -380,73 +477,90 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginBottom: 2,
   },
-  userDistance: {
+  userEmail: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.primary,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  userLastSeen: {
+  userBio: {
     fontSize: 12,
     fontFamily: FONTS.regular,
+    lineHeight: 16,
   },
-  messageButton: {
-    padding: SPACING.sm,
+  connectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  connectText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
+    marginLeft: SPACING.xs,
   },
   postItem: {
-    marginHorizontal: SPACING.md,
-    marginVertical: SPACING.xs,
     padding: SPACING.md,
+    marginVertical: SPACING.xs,
     borderRadius: 12,
   },
   postHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: SPACING.sm,
   },
-  postUserName: {
+  postAuthorInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  postAuthorAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: SPACING.sm,
+  },
+  postAuthorName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-  },
-  postDistance: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    color: COLORS.primary,
-  },
-  postContent: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    lineHeight: 24,
-    marginBottom: SPACING.sm,
-  },
-  postActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  postAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: SPACING.md,
-  },
-  postActionText: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-    marginLeft: 4,
   },
   postTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    marginLeft: 'auto',
+  },
+  postContent: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    lineHeight: 20,
+    marginBottom: SPACING.sm,
+  },
+  postMedia: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: SPACING.sm,
+  },
+  postStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  statText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
   },
   emptyContainer: {
     flex: 1,
-  },
-  emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.lg,
   },
   emptyTitle: {
     fontSize: 20,
@@ -455,39 +569,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   emptySubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: FONTS.regular,
     textAlign: 'center',
-    lineHeight: 24,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-  },
-  permissionTitle: {
-    fontSize: 20,
-    fontFamily: FONTS.bold,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  permissionSubtitle: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: SPACING.lg,
-  },
-  enableButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderRadius: 12,
-  },
-  enableButtonText: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-    color: 'white',
+    lineHeight: 20,
   },
 });

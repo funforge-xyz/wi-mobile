@@ -14,6 +14,7 @@ import LoginScreen from './LoginScreen';
 import AddPostScreen from './AddPostScreen';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { setTheme } from '../store/themeSlice';
+import SinglePostScreen from './SinglePostScreen';
 
 // Redux imports
 
