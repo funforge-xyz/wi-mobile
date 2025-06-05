@@ -16,7 +16,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface NearbyUser {
@@ -198,21 +198,46 @@ export default function NearbyScreen({ navigation }: any) {
     navigation.navigate('Profile', { userId: user.id });
   };
 
-  const handleConnectUser = (user: NearbyUser) => {
-    Alert.alert(
-      'Connect',
-      `Send a connection request to ${user.firstName} ${user.lastName}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Connect', 
-          onPress: () => {
-            // TODO: Implement connection logic
-            Alert.alert('Success', 'Connection request sent!');
-          }
-        },
-      ]
-    );
+  const handleConnectUser = async (user: NearbyUser) => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        Alert.alert('Error', 'You must be logged in to send connection requests');
+        return;
+      }
+
+      const firestore = getFirestore();
+      
+      // Check if connection request already exists
+      const existingRequestQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', user.id),
+        where('status', '==', 'pending')
+      );
+      const existingRequestSnapshot = await getDocs(existingRequestQuery);
+
+      if (!existingRequestSnapshot.empty) {
+        Alert.alert('Info', 'Connection request already sent to this user');
+        return;
+      }
+
+      // Create connection request
+      await addDoc(collection(firestore, 'connectionRequests'), {
+        fromUserId: currentUser.uid,
+        toUserId: user.id,
+        status: 'pending',
+        createdAt: new Date(),
+      });
+
+      Alert.alert('Success', 'Connection request sent!');
+    } catch (error) {
+      console.error('Error sending connection request:', error);
+      Alert.alert('Error', 'Failed to send connection request');
+    }
   };
 
   const handlePostPress = (post: NearbyPost) => {

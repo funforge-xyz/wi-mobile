@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
+import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore } from '../services/firebase';
 
 interface ChatMessage {
   id: string;
@@ -114,32 +116,46 @@ export default function ChatsScreen({ navigation }: any) {
 
   const loadConnectionRequests = async () => {
     try {
-      // Mock data for now - replace with actual Firebase implementation
-      const mockRequests: ConnectionRequest[] = [
-        {
-          id: '1',
-          userId: 'user3',
-          firstName: 'Carol',
-          lastName: 'Davis',
-          email: 'carol@example.com',
-          photoURL: '',
-          bio: 'Love hiking and photography',
-          status: 'pending',
-          createdAt: new Date(),
-        },
-        {
-          id: '2',
-          userId: 'user4',
-          firstName: 'David',
-          lastName: 'Wilson',
-          email: 'david@example.com',
-          photoURL: '',
-          bio: 'Software developer',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 86400000),
-        },
-      ];
-      setConnectionRequests(mockRequests);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      
+      // Get connection requests sent to current user
+      const requestsQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('toUserId', '==', currentUser.uid),
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
+      );
+      const requestsSnapshot = await getDocs(requestsQuery);
+
+      const requests: ConnectionRequest[] = [];
+
+      for (const requestDoc of requestsSnapshot.docs) {
+        const requestData = requestDoc.data();
+        
+        // Get user data for the person who sent the request
+        const userDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+
+        requests.push({
+          id: requestDoc.id,
+          userId: requestData.fromUserId,
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          photoURL: userData.photoURL || '',
+          bio: userData.bio || '',
+          status: requestData.status,
+          createdAt: requestData.createdAt?.toDate() || new Date(),
+        });
+      }
+
+      setConnectionRequests(requests);
     } catch (error) {
       console.error('Error loading connection requests:', error);
     }
@@ -147,32 +163,50 @@ export default function ChatsScreen({ navigation }: any) {
 
   const loadConnections = async () => {
     try {
-      // Mock data for now - replace with actual Firebase implementation
-      const mockConnections: Connection[] = [
-        {
-          id: '1',
-          userId: 'user5',
-          firstName: 'Emma',
-          lastName: 'Wilson',
-          email: 'emma@example.com',
-          photoURL: '',
-          bio: 'Digital artist and designer',
-          connectedAt: new Date(Date.now() - 86400000),
-          isOnline: true,
-        },
-        {
-          id: '2',
-          userId: 'user6',
-          firstName: 'Michael',
-          lastName: 'Brown',
-          email: 'michael@example.com',
-          photoURL: '',
-          bio: 'Coffee enthusiast and writer',
-          connectedAt: new Date(Date.now() - 172800000),
-          isOnline: false,
-        },
-      ];
-      setConnections(mockConnections);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      
+      // Get connections where current user is involved
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid),
+        orderBy('connectedAt', 'desc')
+      );
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+
+      const connections: Connection[] = [];
+
+      for (const connectionDoc of connectionsSnapshot.docs) {
+        const connectionData = connectionDoc.data();
+        
+        // Get the other participant's ID
+        const otherUserId = connectionData.participants.find((id: string) => id !== currentUser.uid);
+        
+        if (otherUserId) {
+          // Get user data for the connected person
+          const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
+          const userData = userDoc.exists() ? userDoc.data() : {};
+
+          connections.push({
+            id: connectionDoc.id,
+            userId: otherUserId,
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            photoURL: userData.photoURL || '',
+            bio: userData.bio || '',
+            connectedAt: connectionData.connectedAt?.toDate() || new Date(),
+            isOnline: Math.random() > 0.5, // Mock online status for now
+          });
+        }
+      }
+
+      setConnections(connections);
     } catch (error) {
       console.error('Error loading connections:', error);
     }
@@ -208,12 +242,50 @@ export default function ChatsScreen({ navigation }: any) {
     navigation.navigate('Profile', { userId: user.userId });
   };
 
-  const handleAcceptRequest = (request: ConnectionRequest) => {
-    Alert.alert('Accept', `Accept connection request from ${request.firstName}?`);
+  const handleAcceptRequest = async (request: ConnectionRequest) => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      
+      // Create connection
+      await addDoc(collection(firestore, 'connections'), {
+        participants: [currentUser.uid, request.userId],
+        connectedAt: new Date(),
+        createdAt: new Date(),
+      });
+
+      // Update request status to accepted
+      await updateDoc(doc(firestore, 'connectionRequests', request.id), {
+        status: 'accepted',
+        updatedAt: new Date(),
+      });
+
+      // Reload data
+      await loadData();
+    } catch (error) {
+      console.error('Error accepting connection request:', error);
+      Alert.alert('Error', 'Failed to accept connection request');
+    }
   };
 
-  const handleRejectRequest = (request: ConnectionRequest) => {
-    Alert.alert('Reject', `Reject connection request from ${request.firstName}?`);
+  const handleRejectRequest = async (request: ConnectionRequest) => {
+    try {
+      const firestore = getFirestore();
+      
+      // Delete the request
+      await deleteDoc(doc(firestore, 'connectionRequests', request.id));
+
+      // Reload data
+      await loadData();
+    } catch (error) {
+      console.error('Error rejecting connection request:', error);
+      Alert.alert('Error', 'Failed to reject connection request');
+    }
   };
 
   const handleStartChat = (connection: Connection) => {
