@@ -357,6 +357,7 @@ export default function AddPostScreen() {
               name={allowComments ? "toggle" : "toggle-outline"} 
               size={24} 
               color={allowComments ? COLORS.primary : currentTheme.textSecondary} 
+              style={allowComments ? null: styles.rorateToggle}
             />
           </TouchableOpacity>
 
@@ -380,6 +381,7 @@ export default function AddPostScreen() {
               name={showLikeCount ? "toggle" : "toggle-outline"} 
               size={24} 
               color={showLikeCount ? COLORS.primary : currentTheme.textSecondary} 
+              style={showLikeCount ? null: styles.rorateToggle}
             />
           </TouchableOpacity>
         </View>
@@ -600,4 +602,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
   },
+  rorateToggle: {
+    transform: [{ rotate: '180deg' }]
+  }
 });
