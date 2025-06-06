@@ -285,7 +285,6 @@ export default function NearbyScreen({ navigation }: any) {
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
           {item.bio ? (
             <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
               {item.bio}
@@ -332,16 +331,13 @@ export default function NearbyScreen({ navigation }: any) {
         </Text>
       ) : null}
 
-      {item.mediaURL ? (
-        <Image
-          source={{ uri: item.mediaURL }}
-          style={styles.postMedia}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={[styles.postMediaPlaceholder, { backgroundColor: currentTheme.surface }]}>
-          <Ionicons name="image-outline" size={60} color={currentTheme.textSecondary} />
-          <Text style={[styles.placeholderText, { color: currentTheme.textSecondary }]}>No Image</Text>
+      {item.mediaURL && (
+        <View style={{ marginBottom: SPACING.sm }}>
+          <Image
+            source={{ uri: item.mediaURL }}
+            style={styles.postMedia}
+            resizeMode="cover"
+          />
         </View>
       )}
 

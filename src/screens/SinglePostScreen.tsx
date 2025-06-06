@@ -358,13 +358,15 @@ export default function SinglePostScreen({ route, navigation }: any) {
             </Text>
           ) : null}
 
-          {post.mediaURL ? (
-            <Image
-              source={{ uri: post.mediaURL }}
-              style={styles.postMedia}
-              resizeMode="cover"
-            />
-          ) : null}
+          {post.mediaURL && (
+            <View style={{ marginBottom: SPACING.sm }}>
+              <Image
+                source={{ uri: post.mediaURL }}
+                style={styles.postMedia}
+                resizeMode="cover"
+              />
+            </View>
+          )}
 
           <View style={styles.postActions}>
             {post.allowLikes && (

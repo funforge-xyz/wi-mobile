@@ -432,9 +432,7 @@ export default function ProfileScreen() {
               ? `${profile.firstName} ${profile.lastName}` 
               : 'Anonymous User'}
           </Text>
-          <Text style={[styles.email, { color: currentTheme.textSecondary }]}>
-            {profile.email}
-          </Text>
+          
           <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
             {profile.bio}
           </Text>

@@ -38,7 +38,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
             style={styles.avatar}
           />
           <View>
-            <Text style={[styles.username, { color: currentTheme.text }]}>User {post.userId.slice(0, 8)}</Text>
+            <Text style={[styles.username, { color: currentTheme.text }]}>Anonymous User</Text>
             <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
               {new Date(post.createdAt).toLocaleDateString()}
             </Text>
@@ -63,6 +63,8 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
           ))}
         </View>
       )}
+
+      <View style={{ marginBottom: SPACING.sm }} />
 
       <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
         <TouchableOpacity

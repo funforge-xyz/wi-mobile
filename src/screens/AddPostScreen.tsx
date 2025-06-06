@@ -94,22 +94,20 @@ export default function AddPostScreen() {
 
   const showImagePicker = () => {
     const options = selectedImage 
-      ? ['Camera', 'Gallery', 'Remove Photo', 'Cancel']
-      : ['Camera', 'Gallery', 'Cancel'];
+      ? ['Take Photo', 'Remove Photo', 'Cancel']
+      : ['Take Photo', 'Cancel'];
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options,
-          cancelButtonIndex: selectedImage ? 3 : 2,
-          destructiveButtonIndex: selectedImage ? 2 : undefined,
+          cancelButtonIndex: selectedImage ? 2 : 1,
+          destructiveButtonIndex: selectedImage ? 1 : undefined,
         },
         buttonIndex => {
           if (buttonIndex === 0) {
             handleCameraCapture();
-          } else if (buttonIndex === 1) {
-            handleImagePicker();
-          } else if (buttonIndex === 2 && selectedImage) {
+          } else if (buttonIndex === 1 && selectedImage) {
             setSelectedImage('');
           }
         }
@@ -118,12 +116,8 @@ export default function AddPostScreen() {
       // For Android
       const alertOptions = [
         {
-          text: 'Camera',
+          text: 'Take Photo',
           onPress: handleCameraCapture,
-        },
-        {
-          text: 'Gallery',
-          onPress: handleImagePicker,
         },
       ];
 
@@ -142,7 +136,7 @@ export default function AddPostScreen() {
 
       Alert.alert(
         'Select Photo',
-        'Choose how you want to add a photo',
+        'Use camera to add a photo',
         alertOptions,
         { cancelable: true }
       );
@@ -300,7 +294,7 @@ export default function AddPostScreen() {
               <View style={styles.imagePickerContent}>
                 <Ionicons name="camera-outline" size={20} color={currentTheme.textSecondary} />
                 <Text style={[styles.imagePickerText, { color: currentTheme.textSecondary }]}>
-                  {selectedImage ? 'Change Photo' : 'Add Photo (optional)'}
+                  {selectedImage ? 'Change Photo' : 'Take Photo (optional)'}
                 </Text>
               </View>
               {selectedImage && (
