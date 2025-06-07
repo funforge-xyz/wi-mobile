@@ -351,7 +351,6 @@ export default function ChatsScreen({ navigation }: any) {
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
           {item.bio ? (
             <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
               {item.bio}
@@ -396,7 +395,6 @@ export default function ChatsScreen({ navigation }: any) {
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>{item.email}</Text>
           {item.bio ? (
             <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
               {item.bio}
