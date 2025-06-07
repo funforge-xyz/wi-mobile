@@ -245,54 +245,118 @@ export default function ChatsScreen({ navigation }: any) {
     navigation.navigate('Profile', { userId: user.userId });
   };
 
-  const handleAcceptRequest = async (request: ConnectionRequest) => {
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) return;
-
-      const firestore = getFirestore();
-
-      // Create connection
-      await addDoc(collection(firestore, 'connections'), {
-        participants: [currentUser.uid, request.userId],
-        connectedAt: new Date(),
-        createdAt: new Date(),
-      });
-
-      // Update request status to accepted
-      await updateDoc(doc(firestore, 'connectionRequests', request.id), {
-        status: 'accepted',
-        updatedAt: new Date(),
-      });
-
-      // Reload data
-      await loadData();
-    } catch (error) {
-      console.error('Error accepting connection request:', error);
-      Alert.alert('Error', 'Failed to accept connection request');
-    }
+  const handleReplyToRequest = async (request: ConnectionRequest) => {
+    // Navigate to chat screen to reply
+    navigation.navigate('Chat', {
+      userId: request.userId,
+      userName: request.firstName && request.lastName ? `${request.firstName} ${request.lastName}` : 'Anonymous User',
+      userPhotoURL: request.photoURL
+    });
   };
 
-  const handleRejectRequest = async (request: ConnectionRequest) => {
-    try {
-      const firestore = getFirestore();
+  const handleDeclineRequest = async (request: ConnectionRequest) => {
+    Alert.alert(
+      'Decline Request',
+      'Are you sure you want to decline this message request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const firestore = getFirestore();
 
-      // Delete the request
-      await deleteDoc(doc(firestore, 'connectionRequests', request.id));
+              // Delete the request and any related chat
+              await deleteDoc(doc(firestore, 'connectionRequests', request.id));
 
-      // Reload data
-      await loadData();
-    } catch (error) {
-      console.error('Error rejecting connection request:', error);
-      Alert.alert('Error', 'Failed to reject connection request');
-    }
+              // Delete the chat room if it exists
+              const { getAuth } = await import('../services/firebase');
+              const auth = getAuth();
+              const currentUser = auth.currentUser;
+
+              if (currentUser) {
+                const chatRoomId = [currentUser.uid, request.userId].sort().join('_');
+                const chatRef = doc(firestore, 'chats', chatRoomId);
+                
+                try {
+                  await deleteDoc(chatRef);
+                } catch (error) {
+                  // Chat room might not exist, ignore error
+                }
+              }
+
+              // Reload data
+              await loadData();
+            } catch (error) {
+              console.error('Error declining request:', error);
+              Alert.alert('Error', 'Failed to decline request');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleStartChat = (connection: Connection) => {
-    Alert.alert('Start Chat', `Start conversation with ${connection.firstName}?`);
+    navigation.navigate('Chat', {
+      userId: connection.userId,
+      userName: connection.firstName && connection.lastName ? `${connection.firstName} ${connection.lastName}` : 'Anonymous User',
+      userPhotoURL: connection.photoURL
+    });
+  };
+
+  const handleBlockUser = async (connection: Connection) => {
+    Alert.alert(
+      'Block User',
+      `Are you sure you want to block ${connection.firstName || 'this user'}? They will be removed from your connections and you won't see them in nearby feeds.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { getAuth } = await import('../services/firebase');
+              const auth = getAuth();
+              const currentUser = auth.currentUser;
+
+              if (!currentUser) return;
+
+              const firestore = getFirestore();
+
+              // Add to blocked users
+              await addDoc(collection(firestore, 'blockedUsers'), {
+                blockerUserId: currentUser.uid,
+                blockedUserId: connection.userId,
+                createdAt: new Date(),
+              });
+
+              // Remove from connections
+              const connectionsQuery = query(
+                collection(firestore, 'connections'),
+                where('participants', 'array-contains', currentUser.uid)
+              );
+              const connectionsSnapshot = await getDocs(connectionsQuery);
+              
+              for (const connectionDoc of connectionsSnapshot.docs) {
+                const data = connectionDoc.data();
+                if (data.participants.includes(connection.userId)) {
+                  await connectionDoc.ref.delete();
+                }
+              }
+
+              // Reload data
+              await loadData();
+              Alert.alert('Success', 'User has been blocked');
+            } catch (error) {
+              console.error('Error blocking user:', error);
+              Alert.alert('Error', 'Failed to block user');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const renderChatItem = ({ item }: { item: ChatMessage }) => (
@@ -360,14 +424,14 @@ export default function ChatsScreen({ navigation }: any) {
       </View>
       <View style={styles.connectionActions}>
         <TouchableOpacity
-          style={[styles.actionButton, styles.acceptButton]}
-          onPress={() => handleAcceptRequest(item)}
+          style={[styles.actionButton, styles.replyButton]}
+          onPress={() => handleReplyToRequest(item)}
         >
-          <Ionicons name="checkmark" size={18} color="white" />
+          <Ionicons name="chatbubble" size={18} color="white" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionButton, styles.rejectButton]}
-          onPress={() => handleRejectRequest(item)}
+          style={[styles.actionButton, styles.declineButton]}
+          onPress={() => handleDeclineRequest(item)}
         >
           <Ionicons name="close" size={18} color="white" />
         </TouchableOpacity>
@@ -402,12 +466,20 @@ export default function ChatsScreen({ navigation }: any) {
           ) : null}
         </View>
       </View>
-      <TouchableOpacity
-        style={styles.chatIconButton}
-        onPress={() => handleStartChat(item)}
-      >
-        <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
-      </TouchableOpacity>
+      <View style={styles.connectionActions}>
+        <TouchableOpacity
+          style={styles.chatIconButton}
+          onPress={() => handleStartChat(item)}
+        >
+          <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.blockIconButton}
+          onPress={() => handleBlockUser(item)}
+        >
+          <Ionicons name="ban-outline" size={20} color={COLORS.error} />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -658,6 +730,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  connectionActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
   chatIconButton: {
     width: 40,
     height: 40,
@@ -666,6 +742,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.primary,
+  },
+  blockIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.error,
   },
   messageItem: {
     flexDirection: 'row',
@@ -732,10 +817,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  acceptButton: {
-    backgroundColor: COLORS.success,
+  replyButton: {
+    backgroundColor: COLORS.primary,
   },
-  rejectButton: {
+  declineButton: {
     backgroundColor: COLORS.error,
   },
   emptyContainer: {

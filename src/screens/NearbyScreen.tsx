@@ -85,6 +85,28 @@ export default function NearbyScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
+      
+      // Get blocked users
+      const blockedUsersQuery = query(
+        collection(firestore, 'blockedUsers'),
+        where('blockerUserId', '==', currentUser.uid)
+      );
+      const blockedUsersSnapshot = await getDocs(blockedUsersQuery);
+      const blockedUserIds = new Set();
+      blockedUsersSnapshot.forEach((doc) => {
+        blockedUserIds.add(doc.data().blockedUserId);
+      });
+
+      // Get users who blocked current user
+      const blockedByUsersQuery = query(
+        collection(firestore, 'blockedUsers'),
+        where('blockedUserId', '==', currentUser.uid)
+      );
+      const blockedByUsersSnapshot = await getDocs(blockedByUsersQuery);
+      blockedByUsersSnapshot.forEach((doc) => {
+        blockedUserIds.add(doc.data().blockerUserId);
+      });
+
       const usersCollection = collection(firestore, 'users');
       const usersSnapshot = await getDocs(usersCollection);
 
@@ -92,8 +114,8 @@ export default function NearbyScreen({ navigation }: any) {
 
       usersSnapshot.forEach((doc) => {
         const userData = doc.data();
-        // Exclude current user
-        if (doc.id !== currentUser.uid) {
+        // Exclude current user and blocked users
+        if (doc.id !== currentUser.uid && !blockedUserIds.has(doc.id)) {
           users.push({
             id: doc.id,
             firstName: userData.firstName || '',
@@ -121,6 +143,28 @@ export default function NearbyScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
+      
+      // Get blocked users
+      const blockedUsersQuery = query(
+        collection(firestore, 'blockedUsers'),
+        where('blockerUserId', '==', currentUser.uid)
+      );
+      const blockedUsersSnapshot = await getDocs(blockedUsersQuery);
+      const blockedUserIds = new Set();
+      blockedUsersSnapshot.forEach((doc) => {
+        blockedUserIds.add(doc.data().blockedUserId);
+      });
+
+      // Get users who blocked current user
+      const blockedByUsersQuery = query(
+        collection(firestore, 'blockedUsers'),
+        where('blockedUserId', '==', currentUser.uid)
+      );
+      const blockedByUsersSnapshot = await getDocs(blockedByUsersQuery);
+      blockedByUsersSnapshot.forEach((doc) => {
+        blockedUserIds.add(doc.data().blockerUserId);
+      });
+
       const postsCollection = collection(firestore, 'posts');
       
       // First, get all posts ordered by creation date
@@ -139,6 +183,11 @@ export default function NearbyScreen({ navigation }: any) {
 
         // Skip current user's posts
         if (postData.authorId === currentUser.uid) {
+          continue;
+        }
+
+        // Skip posts from blocked users
+        if (blockedUserIds.has(postData.authorId)) {
           continue;
         }
 
@@ -203,45 +252,26 @@ export default function NearbyScreen({ navigation }: any) {
     navigation.navigate('Profile', { userId: user.id });
   };
 
-  const handleConnectUser = async (user: NearbyUser) => {
+  const handleMessageUser = async (user: NearbyUser) => {
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
       if (!currentUser) {
-        Alert.alert('Error', 'You must be logged in to send connection requests');
+        Alert.alert('Error', 'You must be logged in to send messages');
         return;
       }
 
-      const firestore = getFirestore();
-      
-      // Check if connection request already exists
-      const existingRequestQuery = query(
-        collection(firestore, 'connectionRequests'),
-        where('fromUserId', '==', currentUser.uid),
-        where('toUserId', '==', user.id),
-        where('status', '==', 'pending')
-      );
-      const existingRequestSnapshot = await getDocs(existingRequestQuery);
-
-      if (!existingRequestSnapshot.empty) {
-        Alert.alert('Info', 'Connection request already sent to this user');
-        return;
-      }
-
-      // Create connection request
-      await addDoc(collection(firestore, 'connectionRequests'), {
-        fromUserId: currentUser.uid,
-        toUserId: user.id,
-        status: 'pending',
-        createdAt: new Date(),
+      // Navigate to chat screen with this user
+      navigation.navigate('Chat', { 
+        userId: user.id,
+        userName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'Anonymous User',
+        userPhotoURL: user.photoURL
       });
-
-      Alert.alert('Success', 'Connection request sent!');
     } catch (error) {
-      console.error('Error sending connection request:', error);
-      Alert.alert('Error', 'Failed to send connection request');
+      console.error('Error starting chat:', error);
+      Alert.alert('Error', 'Failed to start chat');
     }
   };
 
@@ -293,10 +323,10 @@ export default function NearbyScreen({ navigation }: any) {
         </View>
       </View>
       <TouchableOpacity
-        style={styles.connectIconButton}
-        onPress={() => handleConnectUser(item)}
+        style={styles.messageIconButton}
+        onPress={() => handleMessageUser(item)}
       >
-        <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
+        <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -581,7 +611,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  connectIconButton: {
+  messageIconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
