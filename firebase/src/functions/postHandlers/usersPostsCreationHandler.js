@@ -11,7 +11,7 @@ const createInitialUsersPostsHandler = async (snap, context) => {
   const postInsertBody = {
     externalPostId: context.params.postId,
     externalAuthorId: currentData.authorId,
-    imageUrl: currentData.thumbUrl || currentData.mediaUrl,
+    imageUrl: currentData.thumbURL || currentData.mediaURL,
   };
   const factory = new ServiceFactory('rdb', context);
   const postObj = await factory

@@ -240,7 +240,7 @@ class _PostItemState extends State<PostItem>
                                     sigmaY: 5,
                                   ),
                                   child: Image.network(
-                                    post.thumbUrl ?? '',
+                                    post.thumbURL ?? '',
                                     frameBuilder: FrameBuilder.fadeIn200ms,
                                   ),
                                 ),

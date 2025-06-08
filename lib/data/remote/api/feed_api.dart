@@ -14,16 +14,16 @@ extension FeedApi on Api {
   ApiCall<String> addPost({
     String authorId,
     String content,
-    String mediaUrl,
-    String thumbUrl,
+    String mediaURL,
+    String thumbURL,
     bool allowComments,
     bool allowLikes,
   }) {
     return ApiCall<String>.using(dio).post('/api/posts').body({
       'authorId': authorId,
       'content': content,
-      'mediaUrl': mediaUrl,
-      'thumbUrl': thumbUrl,
+      'mediaURL': mediaURL,
+      'thumbURL': thumbURL,
       'allowComments': allowComments,
       'allowLikes': allowLikes,
     }).parseWith((json) => json['id'] as String);

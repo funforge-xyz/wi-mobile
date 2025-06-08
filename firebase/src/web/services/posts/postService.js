@@ -148,8 +148,8 @@ class PostsService {
     const postFsObj = {
       authorId: postObj.authorId,
       content: postObj.content || null,
-      mediaUrl: postObj.mediaUrl || null,
-      thumbUrl: postObj.thumbUrl || null,
+      mediaURL: postObj.mediaURL || null,
+      thumbURL: postObj.thumbURL || null,
       allowComments: postObj.allowComments !== undefined ? postObj.allowComments : null,
       allowLikes: postObj.allowComments !== undefined ? postObj.allowLikes : null,
       createdAt: timestamp.now(),
@@ -161,7 +161,7 @@ class PostsService {
       await this.createPost({
         externalPostId,
         externalAuthorId: postObj.authorId,
-        imageUrl: postObj.thumbUrl || postObj.mediaUrl,
+        imageUrl: postObj.thumbURL || postObj.mediaURL,
       });
       return {
         ...postFsObj,

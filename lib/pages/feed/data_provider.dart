@@ -31,7 +31,7 @@ class FeedDataProvider {
   load(String postId) async {
     if (loaded(postId)) return;
     final post = await _repo.getPostById(postId);
-    final media = await _cache.getSingleFile(post.data.mediaUrl);
+    final media = await _cache.getSingleFile(post.data.mediaURL);
     _loadedMedia[postId] = media;
   }
 

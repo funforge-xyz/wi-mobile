@@ -15,20 +15,20 @@ class Post {
   final Timestamp createdAt;
   final String authorId;
   final String content;
-  final String mediaUrl;
-  final String thumbUrl;
+  final String mediaURL;
+  final String thumbURL;
   final String wifiId;
   final bool allowComments;
   final bool allowLikes;
 
-  bool get isImage => mediaUrl?.isImage == true;
+  bool get isImage => mediaURL?.isImage == true;
   bool get isVideo => !isImage;
 
   Post({
     this.authorId,
     this.content,
-    this.mediaUrl,
-    this.thumbUrl,
+    this.mediaURL,
+    this.thumbURL,
     this.createdAt,
     this.wifiId,
     this.allowComments,

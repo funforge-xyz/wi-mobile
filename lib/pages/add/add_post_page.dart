@@ -139,37 +139,37 @@ class _AddPostPageState extends State<AddPostPage>
       _thumbUploadTask =
           _storage.uploadThumb(pickedMediaThumb, _credentials.userId);
     }
-    String mediaUrl;
-    String thumbUrl;
+    String mediaURL;
+    String thumbURL;
     _uploadTask.snapshotEvents.listen((event) async {
       _uploadTaskState = event.state;
       if (event.state.isSuccess) {
-        mediaUrl = await event.ref.getDownloadURL();
-        _onUploadComplete(context, mediaUrl: mediaUrl, thumbUrl: thumbUrl);
+        mediaURL = await event.ref.getDownloadURL();
+        _onUploadComplete(context, mediaURL: mediaURL, thumbURL: thumbURL);
       }
     });
     _thumbUploadTask?.snapshotEvents?.listen((event) async {
       _thumbUploadTaskState = event.state;
       if (event.state.isSuccess) {
         final snapshot = await _thumbUploadTask.whenComplete(() {});
-        thumbUrl = await snapshot.ref.getDownloadURL();
-        _onUploadComplete(context, mediaUrl: mediaUrl, thumbUrl: thumbUrl);
+        thumbURL = await snapshot.ref.getDownloadURL();
+        _onUploadComplete(context, mediaURL: mediaURL, thumbURL: thumbURL);
       }
     });
   }
 
   _onUploadComplete(
     BuildContext context, {
-    String mediaUrl,
-    String thumbUrl,
+    String mediaURL,
+    String thumbURL,
   }) async {
     if (!_uploadTaskState.isSuccess) return;
     if (pickedMediaThumb != null && !_thumbUploadTaskState.isSuccess) return;
     final res = await _api
         .addPost(
           content: _textController.text,
-          mediaUrl: mediaUrl,
-          thumbUrl: thumbUrl,
+          mediaURL: mediaURL,
+          thumbURL: thumbURL,
           authorId: _credentials.userId,
           allowComments: commentsAllowed,
           allowLikes: likesAllowed,

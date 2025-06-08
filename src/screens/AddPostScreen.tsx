@@ -250,12 +250,12 @@ export default function AddPostScreen() {
         return;
       }
 
-      let mediaUrl = '';
+      let mediaURL = '';
       
       // Upload image if selected
       if (selectedImage) {
         try {
-          mediaUrl = await storageService.uploadPostImage(currentUser.uid, selectedImage);
+          mediaURL = await storageService.uploadPostImage(currentUser.uid, selectedImage);
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
           Alert.alert('Error', 'Failed to upload image');
@@ -271,8 +271,8 @@ export default function AddPostScreen() {
       await addDoc(postsCollection, {
         authorId: currentUser.uid,
         content: content.trim(),
-        mediaUrl: mediaUrl || null,
-        thumbUrl: mediaUrl || null,
+        mediaURL: mediaURL || null,
+        thumbURL: mediaURL || null,
         isPrivate: isPrivate,
         allowComments: allowComments,
         allowLikes: true,

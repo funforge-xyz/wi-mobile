@@ -28,8 +28,8 @@ const schema = {
   createAndSyncPost: Joi.object({
     authorId: Joi.string().required(),
     content: Joi.string().allow(null).allow(''),
-    mediaUrl: Joi.string().allow(null).allow(''),
-    thumbUrl: Joi.string().allow(null).allow(''),
+    mediaURL: Joi.string().allow(null).allow(''),
+    thumbURL: Joi.string().allow(null).allow(''),
     allowComments: Joi.boolean().allow(null),
     allowLikes: Joi.boolean().allow(null),
   }),

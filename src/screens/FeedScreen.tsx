@@ -191,8 +191,6 @@ export default function FeedScreen() {
         return;
       }
 
-      console.log('Current user ID:', currentUser.uid);
-
       const firestore = getFirestore();
 
       // Get user's connections
@@ -202,8 +200,6 @@ export default function FeedScreen() {
         where('status', '==', 'active')
       );
       const connectionsSnapshot = await getDocs(connectionsQuery);
-
-      console.log('Found connections:', connectionsSnapshot.size);
 
       // Extract connected user IDs
       const connectedUserIds = new Set<string>();
@@ -217,8 +213,6 @@ export default function FeedScreen() {
           connectedUserIds.add(otherParticipant);
         }
       });
-
-      console.log('Connected user IDs:', Array.from(connectedUserIds));
 
       if (connectedUserIds.size === 0) {
         console.log('No connections found, showing empty state');
@@ -236,14 +230,10 @@ export default function FeedScreen() {
       );
       const postsSnapshot = await getDocs(postsQuery);
 
-      console.log('Total posts found:', postsSnapshot.size);
-
       const connectionPosts: ConnectionPost[] = [];
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
-        console.log('Post author ID:', postData.authorId, 'Is connected:', connectedUserIds.has(postData.authorId));
-
         // Only include posts from connected users
         if (!connectedUserIds.has(postData.authorId)) {
           continue;

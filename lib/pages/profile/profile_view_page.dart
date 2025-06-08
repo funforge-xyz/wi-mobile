@@ -390,7 +390,7 @@ class _PostItem extends StatelessWidget {
                             child: ImageBackground(
                               child: CacheImage(
                                 image: _cache.getSingleFile(
-                                    isImage ? post.mediaUrl : post.thumbUrl),
+                                    isImage ? post.mediaURL : post.thumbURL),
                                 fit: BoxFit.cover,
                               ),
                             ),
