@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Settings, storageService } from '../services/storage';
 import { useAppSelector } from '../hooks/redux';
@@ -43,6 +44,55 @@ export default function AddPostScreen() {
     return () => clearTimeout(timer);
   }, []);
 
+  const compressImage = async (uri: string): Promise<string> => {
+    try {
+      // Get file info to check initial size
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      let initialSize = blob.size;
+      
+      console.log('Initial image size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+      
+      // Start with high quality and reduce if needed
+      let quality = 0.8;
+      let compressedUri = uri;
+      
+      // Keep compressing until under 5MB or quality gets too low
+      while (initialSize > 5242880 && quality > 0.1) { // 5MB = 5242880 bytes
+        const result = await ImageManipulator.manipulateAsync(
+          compressedUri,
+          [{ resize: { width: 1920 } }], // Resize to max width 1920px
+          {
+            compress: quality,
+            format: ImageManipulator.SaveFormat.JPEG,
+          }
+        );
+        
+        // Check new file size
+        const newResponse = await fetch(result.uri);
+        const newBlob = await newResponse.blob();
+        initialSize = newBlob.size;
+        compressedUri = result.uri;
+        
+        console.log('Compressed to quality', quality, 'Size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+        
+        // Reduce quality for next iteration
+        quality -= 0.1;
+      }
+      
+      // Final check
+      if (initialSize > 5242880) {
+        throw new Error('Unable to compress image below 5MB');
+      }
+      
+      console.log('Final compressed size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+      return compressedUri;
+    } catch (error) {
+      console.error('Image compression error:', error);
+      throw error;
+    }
+  };
+
   const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -60,11 +110,15 @@ export default function AddPostScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      if (asset.fileSize && asset.fileSize > 2621440) {
-        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
-        return;
+      
+      try {
+        // Compress the image
+        const compressedUri = await compressImage(asset.uri);
+        setSelectedImage(compressedUri);
+      } catch (error) {
+        console.error('Image processing error:', error);
+        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please select a smaller image.');
       }
-      setSelectedImage(asset.uri);
     }
   };
 
@@ -84,11 +138,15 @@ export default function AddPostScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      if (asset.fileSize && asset.fileSize > 2621440) {
-        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
-        return;
+      
+      try {
+        // Compress the image
+        const compressedUri = await compressImage(asset.uri);
+        setSelectedImage(compressedUri);
+      } catch (error) {
+        console.error('Image processing error:', error);
+        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please take a photo with better lighting or closer subject.');
       }
-      setSelectedImage(asset.uri);
     }
   };
 
