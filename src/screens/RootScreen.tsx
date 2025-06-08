@@ -122,11 +122,6 @@ export default function RootScreen() {
         tabBarStyle: {
           backgroundColor: isDarkMode ? '#1E1E1E' : COLORS.surface,
           borderTopColor: isDarkMode ? '#333333' : COLORS.border,
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          paddingTop: 0,
-          paddingBottom: 0,
         },
         tabBarLabelStyle: {
           fontFamily: FONTS.medium,
@@ -140,10 +135,6 @@ export default function RootScreen() {
       <Tab.Screen 
         name="Add" 
         component={AddPostScreen}
-        options={{
-          tabBarLabel: 'Add',
-          tabBarIconStyle: { marginTop: 5 },
-        }}
       />
       <Tab.Screen name="Chats" component={ChatsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
