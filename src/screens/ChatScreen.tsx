@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   otherMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E8E8E8',
+    backgroundColor: '#1E1E1E',
   },
   messageText: {
     fontSize: 16,
