@@ -114,20 +114,21 @@ export default function ChatsScreen({ navigation }: any) {
           const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
           const userData = userDoc.exists() ? userDoc.data() : {};
           
-          // Count unread messages (messages from other participant that are newer than last read)
-          const unreadQuery = query(
+          // Get all messages to count unread ones
+          const messagesQuery = query(
             collection(firestore, 'chats', chatDoc.id, 'messages'),
-            where('senderId', '==', otherParticipantId),
             orderBy('createdAt', 'desc')
           );
           
-          const unreadSnapshot = await getDocs(unreadQuery);
+          const messagesSnapshot = await getDocs(messagesQuery);
           let unreadCount = 0;
           
-          // For simplicity, count all messages from other participant as unread
-          // In a real app, you'd track read timestamps
-          unreadSnapshot.forEach(() => {
-            unreadCount++;
+          // Count messages from other participant as unread
+          messagesSnapshot.forEach((messageDoc) => {
+            const messageData = messageDoc.data();
+            if (messageData.senderId === otherParticipantId) {
+              unreadCount++;
+            }
           });
 
           messages.push({
