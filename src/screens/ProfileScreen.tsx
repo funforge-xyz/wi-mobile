@@ -23,7 +23,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
 interface UserProfile {
   id: string;
@@ -213,7 +213,13 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await authService.signOut();
-              // Navigation will be handled by the callback set in RootScreen
+              // Reset navigation stack to Login screen
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Root' }],
+                })
+              );
             } catch (error) {
               Alert.alert('Error', 'Failed to sign out');
             }
@@ -286,7 +292,13 @@ export default function ProfileScreen() {
             try {
               setLoading(true);
               await authService.deleteProfile();
-              // Navigation will be handled by the callback set in RootScreen
+              // Reset navigation stack to Login screen
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Root' }],
+                })
+              );
             } catch (error: any) {
               console.error('Delete profile error:', error);
               setLoading(false);
@@ -313,6 +325,55 @@ export default function ProfileScreen() {
     );
   };
 
+  const optimizeImage = async (uri: string): Promise<string> => {
+    try {
+      const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+      
+      // Get image info to check current size
+      const { Image } = await import('react-native');
+      
+      return new Promise((resolve, reject) => {
+        Image.getSize(uri, async (width, height) => {
+          try {
+            let manipulateOptions: any[] = [];
+            
+            // Resize if image is too large
+            const maxDimension = 1024;
+            if (width > maxDimension || height > maxDimension) {
+              const ratio = Math.min(maxDimension / width, maxDimension / height);
+              manipulateOptions.push({
+                resize: {
+                  width: Math.round(width * ratio),
+                  height: Math.round(height * ratio),
+                }
+              });
+            }
+
+            const result = await manipulateAsync(
+              uri,
+              manipulateOptions,
+              { 
+                compress: 0.8, 
+                format: SaveFormat.JPEG 
+              }
+            );
+
+            resolve(result.uri);
+          } catch (error) {
+            console.error('Error optimizing image:', error);
+            resolve(uri); // Return original if optimization fails
+          }
+        }, (error) => {
+          console.error('Error getting image size:', error);
+          resolve(uri); // Return original if size check fails
+        });
+      });
+    } catch (error) {
+      console.error('Error in image optimization:', error);
+      return uri; // Return original if anything fails
+    }
+  };
+
   const handleImagePicker = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -330,17 +391,21 @@ export default function ProfileScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-
-      // Check file size (2.5MB = 2,621,440 bytes)
-      if (asset.fileSize && asset.fileSize > 2621440) {
-        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
-        return;
+      
+      try {
+        setLoading(true);
+        const optimizedUri = await optimizeImage(asset.uri);
+        
+        setEditedProfile({
+          ...editedProfile,
+          photoURL: optimizedUri,
+        });
+      } catch (error) {
+        console.error('Error processing image:', error);
+        Alert.alert('Error', 'Failed to process image');
+      } finally {
+        setLoading(false);
       }
-
-      setEditedProfile({
-        ...editedProfile,
-        photoURL: asset.uri,
-      });
     }
   };
 
@@ -360,15 +425,21 @@ export default function ProfileScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      if (asset.fileSize && asset.fileSize > 2621440) {
-        Alert.alert('File Too Large', 'Please select an image smaller than 2.5MB');
-        return;
+      
+      try {
+        setLoading(true);
+        const optimizedUri = await optimizeImage(asset.uri);
+        
+        setEditedProfile({
+          ...editedProfile,
+          photoURL: optimizedUri,
+        });
+      } catch (error) {
+        console.error('Error processing image:', error);
+        Alert.alert('Error', 'Failed to process image');
+      } finally {
+        setLoading(false);
       }
-
-      setEditedProfile({
-        ...editedProfile,
-        photoURL: asset.uri,
-      });
     }
   };
 
