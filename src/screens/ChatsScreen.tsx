@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -14,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, getDocs, doc, getDoc, query, orderBy, where, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, where, limit, deleteDoc, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface ChatItem {
@@ -28,8 +29,31 @@ interface ChatItem {
   isOnline?: boolean;
 }
 
+interface ConnectionItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhotoURL: string;
+  connectedAt: Date;
+  isOnline?: boolean;
+}
+
+interface RequestItem {
+  id: string;
+  fromUserId: string;
+  fromUserName: string;
+  fromUserPhotoURL: string;
+  toUserId: string;
+  message: string;
+  createdAt: Date;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
 export default function ChatsScreen({ navigation }: any) {
+  const [activeTab, setActiveTab] = useState<'chats' | 'connections' | 'requests'>('chats');
   const [chatItems, setChatItems] = useState<ChatItem[]>([]);
+  const [connections, setConnections] = useState<ConnectionItem[]>([]);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -37,12 +61,29 @@ export default function ChatsScreen({ navigation }: any) {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadChatItems();
-  }, []);
+    loadData();
+  }, [activeTab]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      if (activeTab === 'chats') {
+        await loadChatItems();
+      } else if (activeTab === 'connections') {
+        await loadConnections();
+      } else if (activeTab === 'requests') {
+        await loadRequests();
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      Alert.alert('Error', 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadChatItems = async () => {
     try {
-      setLoading(true);
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
@@ -108,15 +149,106 @@ export default function ChatsScreen({ navigation }: any) {
       setChatItems(chatsList);
     } catch (error) {
       console.error('Error loading chat items:', error);
-      Alert.alert('Error', 'Failed to load chats');
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const loadConnections = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid),
+        orderBy('connectedAt', 'desc')
+      );
+
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+      const connectionsList: ConnectionItem[] = [];
+
+      for (const connectionDoc of connectionsSnapshot.docs) {
+        const connectionData = connectionDoc.data();
+        const otherUserId = connectionData.participants.find((id: string) => id !== currentUser.uid);
+
+        if (otherUserId) {
+          const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
+          const userData = userDoc.exists() ? userDoc.data() : {};
+
+          connectionsList.push({
+            id: connectionDoc.id,
+            userId: otherUserId,
+            userName: userData.firstName && userData.lastName 
+              ? `${userData.firstName} ${userData.lastName}` 
+              : 'Anonymous User',
+            userPhotoURL: userData.photoURL || '',
+            connectedAt: connectionData.connectedAt?.toDate() || new Date(),
+            isOnline: Math.random() > 0.5, // Mock online status
+          });
+        }
+      }
+
+      setConnections(connectionsList);
+    } catch (error) {
+      console.error('Error loading connections:', error);
+    }
+  };
+
+  const loadRequests = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      // Get incoming requests
+      const incomingRequestsQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('toUserId', '==', currentUser.uid),
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
+      );
+
+      const incomingRequestsSnapshot = await getDocs(incomingRequestsQuery);
+      const requestsList: RequestItem[] = [];
+
+      for (const requestDoc of incomingRequestsSnapshot.docs) {
+        const requestData = requestDoc.data();
+        
+        // Get sender's data
+        const senderDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
+        const senderData = senderDoc.exists() ? senderDoc.data() : {};
+
+        requestsList.push({
+          id: requestDoc.id,
+          fromUserId: requestData.fromUserId,
+          fromUserName: senderData.firstName && senderData.lastName 
+            ? `${senderData.firstName} ${senderData.lastName}` 
+            : 'Anonymous User',
+          fromUserPhotoURL: senderData.photoURL || '',
+          toUserId: requestData.toUserId,
+          message: requestData.message || '',
+          createdAt: requestData.createdAt?.toDate() || new Date(),
+          status: requestData.status,
+        });
+      }
+
+      setRequests(requestsList);
+    } catch (error) {
+      console.error('Error loading requests:', error);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadChatItems();
+    await loadData();
     setRefreshing(false);
   };
 
@@ -146,14 +278,106 @@ export default function ChatsScreen({ navigation }: any) {
     });
   };
 
-  const handleUserPress = (chatItem: ChatItem) => {
+  const handleViewUserDetails = (item: ConnectionItem | RequestItem) => {
+    const userId = 'userId' in item ? item.userId : item.fromUserId;
+    const userName = 'userName' in item ? item.userName : item.fromUserName;
+    const userPhotoURL = 'userPhotoURL' in item ? item.userPhotoURL : item.fromUserPhotoURL;
+    
     navigation.navigate('UserProfile', {
-      userId: chatItem.participantId,
-      firstName: chatItem.participantName.split(' ')[0] || '',
-      lastName: chatItem.participantName.split(' ').slice(1).join(' ') || '',
-      photoURL: chatItem.participantPhotoURL,
+      userId: userId,
+      firstName: userName.split(' ')[0] || '',
+      lastName: userName.split(' ').slice(1).join(' ') || '',
+      photoURL: userPhotoURL,
       bio: ''
     });
+  };
+
+  const handleMessageUser = (connection: ConnectionItem) => {
+    navigation.navigate('Chat', {
+      userId: connection.userId,
+      userName: connection.userName,
+      userPhotoURL: connection.userPhotoURL
+    });
+  };
+
+  const handleAcceptRequest = async (request: RequestItem) => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      // Create connection
+      await addDoc(collection(firestore, 'connections'), {
+        participants: [currentUser.uid, request.fromUserId],
+        connectedAt: new Date(),
+        createdBy: request.fromUserId,
+      });
+
+      // Update request status (or delete it)
+      await deleteDoc(doc(firestore, 'connectionRequests', request.id));
+
+      // Refresh the data
+      await loadData();
+
+      Alert.alert('Success', 'Connection request accepted!');
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      Alert.alert('Error', 'Failed to accept request');
+    }
+  };
+
+  const handleRejectRequest = async (request: RequestItem) => {
+    try {
+      await deleteDoc(doc(getFirestore(), 'connectionRequests', request.id));
+      await loadData();
+      Alert.alert('Success', 'Connection request rejected');
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      Alert.alert('Error', 'Failed to reject request');
+    }
+  };
+
+  const handleRemoveConnection = async (connection: ConnectionItem) => {
+    Alert.alert(
+      'Remove Connection',
+      `Are you sure you want to remove ${connection.userName} from your connections?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { getAuth } = await import('../services/firebase');
+              const auth = getAuth();
+              const currentUser = auth.currentUser;
+
+              if (currentUser) {
+                const chatRoomId = [currentUser.uid, connection.userId].sort().join('_');
+                const chatRef = doc(getFirestore(), 'chats', chatRoomId);
+
+                try {
+                  await deleteDoc(chatRef);
+                } catch (error) {
+                  console.log('Chat document does not exist or already deleted');
+                }
+
+                await deleteDoc(doc(getFirestore(), 'connections', connection.id));
+                await loadData();
+                Alert.alert('Success', 'Connection removed');
+              }
+            } catch (error) {
+              console.error('Error removing connection:', error);
+              Alert.alert('Error', 'Failed to remove connection');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const renderChatItem = ({ item }: { item: ChatItem }) => (
@@ -199,33 +423,230 @@ export default function ChatsScreen({ navigation }: any) {
 
       <TouchableOpacity
         style={styles.moreButton}
-        onPress={() => handleUserPress(item)}
+        onPress={() => handleViewUserDetails({ userId: item.participantId, userName: item.participantName, userPhotoURL: item.participantPhotoURL } as ConnectionItem)}
       >
         <Ionicons name="person-outline" size={20} color={currentTheme.textSecondary} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons
-        name="chatbubbles-outline"
-        size={64}
-        color={currentTheme.textSecondary}
-      />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-        No Conversations
-      </Text>
-      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        Connect with people nearby to start chatting with them.
-      </Text>
+  const renderConnectionItem = ({ item }: { item: ConnectionItem }) => (
+    <View style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}>
+      <View style={styles.userInfo}>
+        <View style={styles.avatarContainer}>
+          {item.userPhotoURL ? (
+            <Image source={{ uri: item.userPhotoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
+          {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+        </View>
+        <View style={styles.userDetails}>
+          <Text style={[styles.userName, { color: currentTheme.text }]}>
+            {item.userName}
+          </Text>
+          <Text style={[styles.userEmail, { color: currentTheme.textSecondary }]}>
+            Connected {formatTimeAgo(item.connectedAt)}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.connectionActions}>
+        <TouchableOpacity
+          style={styles.detailsButton}
+          onPress={() => handleViewUserDetails(item)}
+        >
+          <Ionicons name="person-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.messageIconButton}
+          onPress={() => handleMessageUser(item)}
+        >
+          <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.blockIconButton}
+          onPress={() => handleRemoveConnection(item)}
+        >
+          <Ionicons name="close-outline" size={20} color={COLORS.error} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
+
+  const renderRequestItem = ({ item }: { item: RequestItem }) => (
+    <View style={[styles.requestItem, { backgroundColor: currentTheme.surface }]}>
+      <View style={styles.userInfo}>
+        <View style={styles.avatarContainer}>
+          {item.fromUserPhotoURL ? (
+            <Image source={{ uri: item.fromUserPhotoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+            </View>
+          )}
+        </View>
+        <View style={styles.userDetails}>
+          <Text style={[styles.userName, { color: currentTheme.text }]}>
+            {item.fromUserName}
+          </Text>
+          {item.message ? (
+            <Text style={[styles.requestMessage, { color: currentTheme.textSecondary }]} numberOfLines={2}>
+              {item.message}
+            </Text>
+          ) : null}
+          <Text style={[styles.requestTime, { color: currentTheme.textSecondary }]}>
+            {formatTimeAgo(item.createdAt)}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.requestActions}>
+        <TouchableOpacity
+          style={styles.detailsButton}
+          onPress={() => handleViewUserDetails(item)}
+        >
+          <Ionicons name="person-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.acceptButton]}
+          onPress={() => handleAcceptRequest(item)}
+        >
+          <Ionicons name="checkmark" size={16} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rejectButton]}
+          onPress={() => handleRejectRequest(item)}
+        >
+          <Ionicons name="close" size={16} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderEmptyState = () => {
+    const getEmptyStateConfig = () => {
+      switch (activeTab) {
+        case 'chats':
+          return {
+            icon: 'chatbubbles-outline',
+            title: 'No Conversations',
+            subtitle: 'Connect with people nearby to start chatting with them.'
+          };
+        case 'connections':
+          return {
+            icon: 'people-outline',
+            title: 'No Connections',
+            subtitle: 'Accept connection requests to build your network.'
+          };
+        case 'requests':
+          return {
+            icon: 'mail-outline',
+            title: 'No Requests',
+            subtitle: 'Connection requests will appear here.'
+          };
+        default:
+          return {
+            icon: 'chatbubbles-outline',
+            title: 'No Data',
+            subtitle: 'Nothing to show right now.'
+          };
+      }
+    };
+
+    const config = getEmptyStateConfig();
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name={config.icon as any}
+          size={64}
+          color={currentTheme.textSecondary}
+        />
+        <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
+          {config.title}
+        </Text>
+        <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+          {config.subtitle}
+        </Text>
+      </View>
+    );
+  };
+
+  const getCurrentData = () => {
+    switch (activeTab) {
+      case 'chats':
+        return chatItems;
+      case 'connections':
+        return connections;
+      case 'requests':
+        return requests;
+      default:
+        return [];
+    }
+  };
+
+  const getCurrentRenderItem = () => {
+    switch (activeTab) {
+      case 'chats':
+        return renderChatItem;
+      case 'connections':
+        return renderConnectionItem;
+      case 'requests':
+        return renderRequestItem;
+      default:
+        return renderChatItem;
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Chats</Text>
+      </View>
+
+      <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'chats' && styles.activeTab]}
+          onPress={() => setActiveTab('chats')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'chats' && styles.activeTabText
+          ]}>
+            Chats
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
+          onPress={() => setActiveTab('connections')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'connections' && styles.activeTabText
+          ]}>
+            Connections
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
+          onPress={() => setActiveTab('requests')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'requests' && styles.activeTabText
+          ]}>
+            Requests
+          </Text>
+          {requests.length > 0 && (
+            <View style={styles.requestBadge}>
+              <Text style={styles.requestBadgeText}>{requests.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -234,15 +655,15 @@ export default function ChatsScreen({ navigation }: any) {
         </View>
       ) : (
         <FlatList
-          data={chatItems}
+          data={getCurrentData()}
           keyExtractor={(item) => item.id}
-          renderItem={renderChatItem}
+          renderItem={getCurrentRenderItem()}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={chatItems.length === 0 ? styles.emptyContainer : styles.listContent}
+          contentContainerStyle={getCurrentData().length === 0 ? styles.emptyContainer : styles.listContent}
         />
       )}
     </SafeAreaView>
@@ -281,6 +702,44 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontFamily: FONTS.bold,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+    borderRadius: 8,
+    position: 'relative',
+  },
+  activeTab: {
+    backgroundColor: COLORS.primary + '20',
+  },
+  tabText: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+  },
+  activeTabText: {
+    color: COLORS.primary,
+  },
+  requestBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 8,
+    backgroundColor: COLORS.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  requestBadgeText: {
+    fontSize: 12,
+    fontFamily: FONTS.bold,
+    color: 'white',
   },
   loadingContainer: {
     flex: 1,
@@ -372,6 +831,97 @@ const styles = StyleSheet.create({
   },
   moreButton: {
     padding: SPACING.sm,
+  },
+  connectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userDetails: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: 2,
+  },
+  userEmail: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginBottom: 4,
+  },
+  connectionActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  detailsButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  messageIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  blockIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.error,
+  },
+  requestItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+  },
+  requestMessage: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginBottom: 4,
+  },
+  requestTime: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+  },
+  requestActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  acceptButton: {
+    backgroundColor: COLORS.success,
+  },
+  rejectButton: {
+    backgroundColor: COLORS.error,
   },
   emptyContainer: {
     flex: 1,
