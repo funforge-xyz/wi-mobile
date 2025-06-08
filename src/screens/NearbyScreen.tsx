@@ -450,9 +450,8 @@ export default function NearbyScreen({ navigation }: any) {
   };
 
   const renderUserItem = ({ item }: { item: NearbyUser }) => (
-    <TouchableOpacity
+    <View
       style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
-      onPress={() => handleUserPress(item)}
     >
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
@@ -482,7 +481,7 @@ export default function NearbyScreen({ navigation }: any) {
       >
         <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
       </TouchableOpacity>
-    </TouchableOpacity>
+    </View>
   );
 
   
