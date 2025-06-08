@@ -340,10 +340,16 @@ export default function SinglePostScreen({ route, navigation }: any) {
         {/* Post */}
         <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
           <View style={styles.postHeader}>
-            <Image
-              source={{ uri: post.authorPhotoURL || 'https://via.placeholder.com/40' }}
-              style={styles.authorAvatar}
-            />
+            {post.authorPhotoURL ? (
+              <Image
+                source={{ uri: post.authorPhotoURL }}
+                style={styles.authorAvatar}
+              />
+            ) : (
+              <View style={[styles.authorAvatar, styles.authorAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+                <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
+              </View>
+            )}
             <View>
               <Text style={[styles.authorName, { color: currentTheme.text }]}>
                 {post.authorName}
@@ -518,6 +524,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: SPACING.sm,
+  },
+  authorAvatarPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   authorName: {
     fontSize: 16,

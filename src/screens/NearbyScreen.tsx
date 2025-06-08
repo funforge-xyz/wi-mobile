@@ -382,10 +382,16 @@ export default function NearbyScreen({ navigation }: any) {
     >
       <View style={styles.postHeader}>
         <View style={styles.postAuthorInfo}>
-          <Image
-            source={{ uri: item.authorPhotoURL || 'https://via.placeholder.com/40' }}
-            style={styles.postAuthorAvatar}
-          />
+          {item.authorPhotoURL ? (
+            <Image
+              source={{ uri: item.authorPhotoURL }}
+              style={styles.postAuthorAvatar}
+            />
+          ) : (
+            <View style={[styles.postAuthorAvatar, styles.postAuthorAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
+            </View>
+          )}
           <View>
             <Text style={[styles.postAuthorName, { color: currentTheme.text }]}>
               {item.authorName}
@@ -683,6 +689,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: SPACING.sm,
+  },
+  postAuthorAvatarPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   postAuthorName: {
     fontSize: 16,
