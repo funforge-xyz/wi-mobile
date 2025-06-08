@@ -166,10 +166,13 @@ export default function FeedScreen() {
       );
       const connectionsSnapshot = await getDocs(connectionsQuery);
 
+      console.log('Found connections:', connectionsSnapshot.size);
+
       // Extract connected user IDs
       const connectedUserIds = new Set<string>();
       connectionsSnapshot.forEach((doc) => {
         const connectionData = doc.data();
+        console.log('Connection data:', connectionData);
         const otherParticipant = connectionData.participants.find(
           (id: string) => id !== currentUser.uid
         );
@@ -178,7 +181,10 @@ export default function FeedScreen() {
         }
       });
 
+      console.log('Connected user IDs:', Array.from(connectedUserIds));
+
       if (connectedUserIds.size === 0) {
+        console.log('No connections found, showing empty state');
         setPosts([]);
         setLoading(false);
         return;
@@ -193,10 +199,13 @@ export default function FeedScreen() {
       );
       const postsSnapshot = await getDocs(postsQuery);
 
+      console.log('Total posts found:', postsSnapshot.size);
+
       const connectionPosts: ConnectionPost[] = [];
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
+        console.log('Post author ID:', postData.authorId, 'Is connected:', connectedUserIds.has(postData.authorId));
 
         // Only include posts from connected users
         if (!connectedUserIds.has(postData.authorId)) {
@@ -243,6 +252,7 @@ export default function FeedScreen() {
         }
       }
 
+      console.log('Final connection posts:', connectionPosts.length);
       setPosts(connectionPosts);
     } catch (error) {
       console.error('Error loading connection posts:', error);
