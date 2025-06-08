@@ -57,13 +57,13 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
     const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInDays > 0) {
-      return `${diffInDays}d ago`;
+      return `${diffInDays}d`;
     } else if (diffInHours > 0) {
-      return `${diffInHours}h ago`;
+      return `${diffInHours}h`;
     } else if (diffInMinutes > 0) {
-      return `${diffInMinutes}m ago`;
+      return `${diffInMinutes}m`;
     } else {
-      return 'Just now';
+      return 'now';
     }
   };
 
@@ -74,7 +74,11 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
   };
 
   return (
-    <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
+    <TouchableOpacity 
+      style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}
+      onPress={() => navigation.navigate('SinglePost', { postId: post.id })}
+      activeOpacity={0.95}
+    >
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           {post.authorPhotoURL ? (
@@ -128,7 +132,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

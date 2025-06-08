@@ -367,15 +367,18 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInDays > 0) {
-      return `${diffInDays}d ago`;
+      return `${diffInDays}d`;
     } else if (diffInHours > 0) {
-      return `${diffInHours}h ago`;
+      return `${diffInHours}h`;
+    } else if (diffInMinutes > 0) {
+      return `${diffInMinutes}m`;
     } else {
-      return 'Just now';
+      return 'now';
     }
   };
 
