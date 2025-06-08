@@ -182,14 +182,30 @@ export default function NearbyScreen({ navigation }: any) {
         }
       });
 
-      if (connectedUserIds.size === 0) {
-        setNearbyPosts([]);
-        return;
-      }
+      // Get blocked users
+      const blockedUsersQuery = query(
+        collection(firestore, 'blockedUsers'),
+        where('blockerUserId', '==', currentUser.uid)
+      );
+      const blockedUsersSnapshot = await getDocs(blockedUsersQuery);
+      const blockedUserIds = new Set();
+      blockedUsersSnapshot.forEach((doc) => {
+        blockedUserIds.add(doc.data().blockedUserId);
+      });
+
+      // Get users who blocked current user
+      const blockedByUsersQuery = query(
+        collection(firestore, 'blockedUsers'),
+        where('blockedUserId', '==', currentUser.uid)
+      );
+      const blockedByUsersSnapshot = await getDocs(blockedByUsersQuery);
+      blockedByUsersSnapshot.forEach((doc) => {
+        blockedUserIds.add(doc.data().blockerUserId);
+      });
 
       const postsCollection = collection(firestore, 'posts');
       
-      // Get posts from connected users
+      // Get all posts
       const postsQuery = query(
         postsCollection,
         orderBy('createdAt', 'desc'),
@@ -202,8 +218,18 @@ export default function NearbyScreen({ navigation }: any) {
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
 
-        // Only include posts from connected users
-        if (!connectedUserIds.has(postData.authorId)) {
+        // Exclude current user's posts
+        if (postData.authorId === currentUser.uid) {
+          continue;
+        }
+
+        // Exclude posts from connected users
+        if (connectedUserIds.has(postData.authorId)) {
+          continue;
+        }
+
+        // Exclude posts from blocked users
+        if (blockedUserIds.has(postData.authorId)) {
           continue;
         }
 
