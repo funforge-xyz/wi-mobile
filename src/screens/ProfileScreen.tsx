@@ -23,6 +23,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import { useNavigation } from '@react-navigation/native';
 
 interface UserProfile {
   id: string;
@@ -60,6 +61,7 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const settings = new Settings();
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadUserProfile();
@@ -456,7 +458,10 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Profile</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Settings</Text>
         <TouchableOpacity onPress={toggleDarkMode}>
           <Ionicons 
             name={isDarkMode ? 'sunny' : 'moon'} 
