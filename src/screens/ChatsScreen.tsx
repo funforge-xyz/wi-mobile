@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface ChatMessage {
@@ -114,22 +114,44 @@ export default function ChatsScreen({ navigation }: any) {
           const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
           const userData = userDoc.exists() ? userDoc.data() : {};
           
-          // Get all messages to count unread ones
+          // Get the last few messages to determine unread count and actual last message
           const messagesQuery = query(
             collection(firestore, 'chats', chatDoc.id, 'messages'),
-            orderBy('createdAt', 'desc')
+            orderBy('createdAt', 'desc'),
+            limit(20) // Get last 20 messages to check for unread
           );
           
           const messagesSnapshot = await getDocs(messagesQuery);
           let unreadCount = 0;
+          let actualLastMessage = 'No messages yet';
+          let lastMessageTime = chatData.lastMessageTime?.toDate() || new Date();
+          let lastMessageSenderId = null;
           
-          // Count messages from other participant as unread
-          messagesSnapshot.forEach((messageDoc) => {
-            const messageData = messageDoc.data();
-            if (messageData.senderId === otherParticipantId) {
-              unreadCount++;
-            }
-          });
+          // Process messages to get actual last message and unread count
+          if (!messagesSnapshot.empty) {
+            const lastMessageDoc = messagesSnapshot.docs[0];
+            const lastMessageData = lastMessageDoc.data();
+            
+            actualLastMessage = lastMessageData.text || lastMessageData.content || 'Message';
+            lastMessageTime = lastMessageData.createdAt?.toDate() || lastMessageTime;
+            lastMessageSenderId = lastMessageData.senderId;
+            
+            // For now, we'll use a simple unread logic - this could be improved with read receipts
+            // Count recent messages from other participant as potentially unread
+            const recentMessages = messagesSnapshot.docs.slice(0, 5); // Check last 5 messages
+            recentMessages.forEach((messageDoc) => {
+              const messageData = messageDoc.data();
+              if (messageData.senderId === otherParticipantId) {
+                unreadCount++;
+              }
+            });
+          }
+
+          // Format last message preview
+          let lastMessagePreview = actualLastMessage;
+          if (lastMessageSenderId === currentUser.uid) {
+            lastMessagePreview = `You: ${actualLastMessage}`;
+          }
 
           messages.push({
             id: chatDoc.id,
@@ -138,9 +160,9 @@ export default function ChatsScreen({ navigation }: any) {
               ? `${userData.firstName} ${userData.lastName}` 
               : 'Anonymous User',
             participantPhotoURL: userData.photoURL || '',
-            lastMessage: chatData.lastMessage || 'No messages yet',
-            lastMessageTime: chatData.lastMessageTime?.toDate() || new Date(),
-            unreadCount,
+            lastMessage: lastMessagePreview,
+            lastMessageTime: lastMessageTime,
+            unreadCount: Math.min(unreadCount, 5), // Cap at 5 for display
           });
         }
       }
@@ -416,37 +438,48 @@ export default function ChatsScreen({ navigation }: any) {
 
   const renderChatItem = ({ item }: { item: ChatMessage }) => (
     <TouchableOpacity
-      style={[styles.messageItem, { backgroundColor: currentTheme.surface }]}
+      style={[styles.chatItemContainer, { backgroundColor: currentTheme.surface }]}
       onPress={() => handleChatPress(item)}
     >
-      <View style={styles.messageInfo}>
-        <View style={styles.avatarContainer}>
-          {item.participantPhotoURL ? (
-            <Image source={{ uri: item.participantPhotoURL }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+      <View style={styles.chatAvatar}>
+        {item.participantPhotoURL ? (
+          <Image source={{ uri: item.participantPhotoURL }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+            <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+          </View>
+        )}
+      </View>
+      <View style={styles.chatContent}>
+        <View style={styles.chatHeader}>
+          <Text style={[styles.participantName, { color: currentTheme.text }]} numberOfLines={1}>
+            {item.participantName}
+          </Text>
+          <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
+            {formatTimeAgo(item.lastMessageTime)}
+          </Text>
+        </View>
+        <View style={styles.chatFooter}>
+          <Text 
+            style={[
+              styles.lastMessage, 
+              { 
+                color: currentTheme.textSecondary,
+                fontWeight: item.unreadCount > 0 ? '600' : 'normal'
+              }
+            ]} 
+            numberOfLines={2}
+          >
+            {item.lastMessage}
+          </Text>
+          {item.unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>
+                {item.unreadCount > 9 ? '9+' : item.unreadCount}
+              </Text>
             </View>
           )}
         </View>
-        <View style={styles.messageDetails}>
-          <Text style={[styles.participantName, { color: currentTheme.text }]}>
-            {item.participantName}
-          </Text>
-          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.messageTime}>
-        <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
-          {formatTimeAgo(item.lastMessageTime)}
-        </Text>
-        {item.unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadText}>{item.unreadCount}</Text>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
@@ -801,6 +834,61 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.error,
   },
+  chatItemContainer: {
+    flexDirection: 'row',
+    padding: SPACING.md,
+    marginVertical: SPACING.xs / 2,
+    borderRadius: 12,
+    alignItems: 'flex-start',
+  },
+  chatAvatar: {
+    marginRight: SPACING.md,
+  },
+  chatContent: {
+    flex: 1,
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs / 2,
+  },
+  chatFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  participantName: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    flex: 1,
+  },
+  lastMessage: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    flex: 1,
+    lineHeight: 18,
+  },
+  timeText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.sm,
+  },
+  unreadBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.sm,
+  },
+  unreadText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    color: 'white',
+  },
+  // Keep these for other components
   messageItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -817,35 +905,8 @@ const styles = StyleSheet.create({
   messageDetails: {
     flex: 1,
   },
-  participantName: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-    marginBottom: 2,
-  },
-  lastMessage: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-  },
   messageTime: {
     alignItems: 'flex-end',
-  },
-  timeText: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-  },
-  unreadBadge: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SPACING.xs,
-  },
-  unreadText: {
-    fontSize: 12,
-    fontFamily: FONTS.bold,
-    color: 'white',
   },
   connectionItem: {
     flexDirection: 'row',
