@@ -330,37 +330,49 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const renderProfileHeader = () => (
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
-      {profile?.photoURL ? (
-        <Image 
-          source={{ uri: profile.photoURL }} 
-          style={styles.avatar} 
-        />
-      ) : (
-        <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
-          <Ionicons name="person" size={30} color={currentTheme.textSecondary} />
-        </View>
-      )}
+      <View style={styles.profileRow}>
+        {profile?.photoURL ? (
+          <Image 
+            source={{ uri: profile.photoURL }} 
+            style={styles.largeAvatar} 
+          />
+        ) : (
+          <View style={[styles.largeAvatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
+            <Ionicons name="person" size={40} color={currentTheme.textSecondary} />
+          </View>
+        )}
 
-      <Text style={[styles.displayName, { color: currentTheme.text }]}>
-        {profile?.firstName && profile?.lastName 
-          ? `${profile.firstName} ${profile.lastName}` 
-          : 'Your Profile'}
-      </Text>
-
-      {profile?.bio ? (
-        <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
-          {profile.bio}
-        </Text>
-      ) : null}
-
-      <View style={styles.statsContainer}>
-        <View style={styles.stat}>
-          <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-            {posts.length}
+        <View style={styles.profileInfo}>
+          <Text style={[styles.displayName, { color: currentTheme.text }]}>
+            {profile?.firstName && profile?.lastName 
+              ? `${profile.firstName} ${profile.lastName}` 
+              : 'Your Profile'}
           </Text>
-          <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-            Posts
-          </Text>
+
+          {profile?.bio ? (
+            <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
+              {profile.bio}
+            </Text>
+          ) : null}
+
+          <View style={styles.statsContainer}>
+            <View style={styles.stat}>
+              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
+                {posts.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
+                Posts
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
+                0
+              </Text>
+              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
+                Connections
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </View>
@@ -440,16 +452,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   profileHeader: {
-    alignItems: 'center',
     padding: SPACING.lg,
     marginBottom: SPACING.md,
     borderRadius: 16,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: SPACING.md,
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  largeAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginRight: SPACING.lg,
   },
   placeholderAvatar: {
     justifyContent: 'center',
@@ -457,24 +472,28 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: 'dashed',
   },
+  profileInfo: {
+    flex: 1,
+    paddingTop: SPACING.sm,
+  },
   displayName: {
-    fontSize: 20,
+    fontSize: 24,
     fontFamily: FONTS.bold,
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   bio: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: FONTS.regular,
-    textAlign: 'center',
     marginBottom: SPACING.md,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   stat: {
     alignItems: 'center',
+    marginRight: SPACING.xl,
   },
   statNumber: {
     fontSize: 18,
