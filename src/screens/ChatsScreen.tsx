@@ -385,21 +385,21 @@ export default function ChatsScreen({ navigation }: any) {
       </View>
 
       <View style={styles.chatContent}>
-        <View style={styles.chatHeader}>
-          <Text style={[styles.participantName, { color: currentTheme.text }]}>
-            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
-          </Text>
-          {item.lastMessageTime && (
-            <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
-              {formatTimeAgo(item.lastMessageTime)}
-            </Text>
-          )}
-        </View>
+        <Text style={[styles.participantName, { color: currentTheme.text }]}>
+          {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+        </Text>
 
         {item.lastMessage && (
-          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
+          <View style={styles.messageRow}>
+            <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
+              {item.lastMessage}
+            </Text>
+            {item.lastMessageTime && (
+              <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
+                {formatTimeAgo(item.lastMessageTime)}
+              </Text>
+            )}
+          </View>
         )}
       </View>
 
@@ -657,6 +657,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.xs / 2,
   },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACING.xs / 2,
+  },
   participantName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
@@ -667,11 +673,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     flex: 1,
     lineHeight: 18,
+    marginRight: SPACING.sm,
   },
   timeText: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    marginLeft: SPACING.sm,
+    flexShrink: 0,
   },
   unreadBadge: {
     backgroundColor: COLORS.primary,
