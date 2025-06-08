@@ -144,8 +144,6 @@ export default function FeedScreen() {
 
   useEffect(() => {
     const initializeScreen = async () => {
-      // Wait a bit for auth to be ready
-      await new Promise(resolve => setTimeout(resolve, 100));
       loadConnectionPosts();
     };
     
