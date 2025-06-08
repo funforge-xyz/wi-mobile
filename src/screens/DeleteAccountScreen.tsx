@@ -31,13 +31,13 @@ export default function DeleteAccountScreen() {
           onPress: async () => {
             setIsLoading(true);
             try {
-              // Add delete account logic here
-              Alert.alert('Success', 'Account deleted successfully');
-              navigation.navigate('Login' as never);
+              const { authService } = await import('../services/auth');
+              await authService.deleteProfile();
+              // Navigation will be handled by the auth service callback
+              // No need to manually navigate since the auth state change will trigger it
             } catch (error: any) {
               Alert.alert('Error', error.message);
-            } finally {
-              setIsLoading(false);
+              setIsLoading(false); // Only reset loading on error
             }
           },
         },
