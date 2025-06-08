@@ -97,6 +97,11 @@ export default function App() {
           component={UserProfileScreen} 
           options={{ headerShown: false }} 
         />
+        <Stack.Screen 
+          name="ProfileSettings" 
+          component={ProfileScreen} 
+          options={{ headerShown: false }} 
+        />
       </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

@@ -10,6 +10,7 @@ export type RootStackParamList = {
   ChatImages: { chatId: string };
   SinglePost: { postId: string };
   Profile: { userId: string };
+  ProfileSettings: undefined;
   UserProfile: { 
     userId: string;
     firstName?: string;
@@ -24,5 +25,5 @@ export type BottomTabParamList = {
   Nearby: undefined;
   Add: undefined;
   Chats: undefined;
-  UserPosts: undefined;
+  Profile: undefined;
 };

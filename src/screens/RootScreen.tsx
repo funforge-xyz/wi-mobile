@@ -9,6 +9,7 @@ import FeedScreen from './FeedScreen';
 import NearbyScreen from './NearbyScreen';
 import ChatsScreen from './ChatsScreen';
 import ProfileScreen from './ProfileScreen';
+import UserPostsScreen from './UserPostsScreen';
 import OnboardingScreen from './OnboardingScreen';
 import LoginScreen from './LoginScreen';
 import AddPostScreen from './AddPostScreen';
@@ -137,7 +138,7 @@ export default function RootScreen() {
         component={AddPostScreen}
       />
       <Tab.Screen name="Chats" component={ChatsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={UserPostsScreen} />
     </Tab.Navigator>
   );
 }

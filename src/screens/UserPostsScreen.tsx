@@ -372,7 +372,7 @@ export default function UserPostsScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>My Posts</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings')}>
           <Ionicons name="settings-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
       </View>
