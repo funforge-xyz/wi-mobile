@@ -36,6 +36,9 @@ export default function RootScreen() {
     authService.setOnSignOutCallback(() => {
       setIsAuthenticated(false);
       setShowOnboarding(false);
+      // Force a complete re-render to reset navigation state
+      setIsLoading(true);
+      setTimeout(() => setIsLoading(false), 100);
     });
   }, []);
 

@@ -393,7 +393,7 @@ export default function AddPostScreen() {
         <View style={[styles.optionsContainer, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity style={styles.option} onPress={() => setAllowComments(!allowComments)}>
             <Ionicons 
-              name={allowComments ? "chatbubble-outline" : "chatbubble-ellipses-outline"} 
+              name="chatbubble-outline" 
               size={20} 
               color={currentTheme.textSecondary} 
             />
@@ -405,19 +405,19 @@ export default function AddPostScreen() {
                 {allowComments ? 'People can comment on this post' : 'Comments are disabled'}
               </Text>
             </View>
-            <Ionicons 
-              name={allowComments ? "toggle" : "toggle-outline"} 
-              size={24} 
-              color={allowComments ? COLORS.primary : currentTheme.textSecondary} 
-              style={allowComments ? null: styles.rorateToggle}
-            />
+            <View style={[styles.switchContainer, { backgroundColor: allowComments ? COLORS.primary : currentTheme.border }]}>
+              <View style={[styles.switchThumb, { 
+                backgroundColor: 'white',
+                transform: [{ translateX: allowComments ? 18 : 2 }] 
+              }]} />
+            </View>
           </TouchableOpacity>
 
           <View style={[styles.separator, { backgroundColor: currentTheme.border }]} />
 
           <TouchableOpacity style={styles.option} onPress={() => setShowLikeCount(!showLikeCount)}>
             <Ionicons 
-              name={showLikeCount ? "heart-outline" : "heart-dislike-outline"} 
+              name="heart-outline" 
               size={20} 
               color={currentTheme.textSecondary} 
             />
@@ -429,12 +429,12 @@ export default function AddPostScreen() {
                 {showLikeCount ? 'Like count is visible' : 'Like count is hidden'}
               </Text>
             </View>
-            <Ionicons 
-              name={showLikeCount ? "toggle" : "toggle-outline"} 
-              size={24} 
-              color={showLikeCount ? COLORS.primary : currentTheme.textSecondary} 
-              style={showLikeCount ? null: styles.rorateToggle}
-            />
+            <View style={[styles.switchContainer, { backgroundColor: showLikeCount ? COLORS.primary : currentTheme.border }]}>
+              <View style={[styles.switchThumb, { 
+                backgroundColor: 'white',
+                transform: [{ translateX: showLikeCount ? 18 : 2 }] 
+              }]} />
+            </View>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -656,5 +656,18 @@ const styles = StyleSheet.create({
   },
   rorateToggle: {
     transform: [{ rotate: '180deg' }]
-  }
+  },
+  switchContainer: {
+    width: 40,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  switchThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    position: 'absolute',
+  },
 });

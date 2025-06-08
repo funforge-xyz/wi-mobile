@@ -331,7 +331,7 @@ export default function UserPostsScreen({ navigation }: any) {
   const renderProfileHeader = () => (
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.profileRow}>
-        {profile?.photoURL ? (
+        {(profile?.photoURL && profile.photoURL.trim() !== '') ? (
           <Image 
             source={{ uri: profile.photoURL }} 
             style={styles.smallAvatar} 
