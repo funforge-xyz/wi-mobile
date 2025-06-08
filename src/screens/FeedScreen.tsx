@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,19 +10,34 @@ import {
   RefreshControl,
   Alert,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-import { Post } from '../types/models';
-import { Settings } from '../services/storage';
 import { useAppSelector } from '../hooks/redux';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
+import { getFirestore } from '../services/firebase';
 
 const { width } = Dimensions.get('window');
 
+interface ConnectionPost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL: string;
+  content: string;
+  mediaURL?: string;
+  mediaType?: 'image' | 'video';
+  createdAt: Date;
+  likesCount: number;
+  commentsCount: number;
+  allowLikes: boolean;
+  allowComments: boolean;
+}
+
 interface PostItemProps {
-  post: Post;
+  post: ConnectionPost;
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
   onShare: (postId: string) => void;
@@ -29,18 +45,39 @@ interface PostItemProps {
 }
 
 const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, currentTheme }) => {
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays > 0) {
+      return `${diffInDays}d ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours}h ago`;
+    } else if (diffInMinutes > 0) {
+      return `${diffInMinutes}m ago`;
+    } else {
+      return 'Just now';
+    }
+  };
+
   return (
     <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
-          <Image
-            source={{ uri: 'https://via.placeholder.com/40' }}
-            style={styles.avatar}
-          />
+          {post.authorPhotoURL ? (
+            <Image source={{ uri: post.authorPhotoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+              <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
+            </View>
+          )}
           <View>
-            <Text style={[styles.username, { color: currentTheme.text }]}>Anonymous User</Text>
+            <Text style={[styles.username, { color: currentTheme.text }]}>{post.authorName}</Text>
             <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
-              {new Date(post.createdAt).toLocaleDateString()}
+              {formatTimeAgo(post.createdAt)}
             </Text>
           </View>
         </View>
@@ -49,39 +86,40 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.postContent, { color: currentTheme.text }]}>{post.content}</Text>
+      {post.content ? (
+        <Text style={[styles.postContent, { color: currentTheme.text }]}>{post.content}</Text>
+      ) : null}
 
-      {post.attachments && post.attachments.length > 0 && (
+      {post.mediaURL && (
         <View style={styles.mediaContainer}>
-          {post.attachments.map((attachment, index) => (
-            <Image
-              key={index}
-              source={{ uri: attachment.url }}
-              style={styles.postImage}
-              resizeMode="cover"
-            />
-          ))}
+          <Image
+            source={{ uri: post.mediaURL }}
+            style={styles.postImage}
+            resizeMode="cover"
+          />
         </View>
       )}
 
-      <View style={{ marginBottom: SPACING.sm }} />
-
       <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => onLike(post.id)}
-        >
-          <Ionicons name="heart-outline" size={24} color={currentTheme.textSecondary} />
-          <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.likesCount}</Text>
-        </TouchableOpacity>
+        {post.allowLikes && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onLike(post.id)}
+          >
+            <Ionicons name="heart-outline" size={24} color={currentTheme.textSecondary} />
+            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.likesCount}</Text>
+          </TouchableOpacity>
+        )}
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => onComment(post.id)}
-        >
-          <Ionicons name="chatbubble-outline" size={24} color={currentTheme.textSecondary} />
-          <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.commentsCount}</Text>
-        </TouchableOpacity>
+        {post.allowComments && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onComment(post.id)}
+          >
+            <Ionicons name="chatbubble-outline" size={24} color={currentTheme.textSecondary} />
+            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.commentsCount}</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={styles.actionButton}
@@ -95,76 +133,119 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
 };
 
 export default function FeedScreen() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<ConnectionPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const settings = new Settings();
 
-  // Mock data - replace with actual API calls
-  const mockPosts: Post[] = [
-    {
-      id: '1',
-      userId: 'user1',
-      content: 'Just had an amazing coffee at the local cafe! ☕ The atmosphere here is perfect for working.',
-      attachments: [
-        {
-          id: 'att1',
-          url: 'https://via.placeholder.com/400x300',
-          type: 'image',
-          size: 12345,
-          name: 'coffee.jpg',
-        },
-      ],
-      location: { latitude: 37.7749, longitude: -122.4194 },
-      likesCount: 12,
-      commentsCount: 3,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      userId: 'user2',
-      content: 'Beautiful sunset today! Nature never ceases to amaze me. 🌅',
-      attachments: [
-        {
-          id: 'att2',
-          url: 'https://via.placeholder.com/400x600',
-          type: 'image',
-          size: 23456,
-          name: 'sunset.jpg',
-        },
-      ],
-      location: { latitude: 37.7849, longitude: -122.4094 },
-      likesCount: 28,
-      commentsCount: 7,
-      createdAt: new Date(Date.now() - 3600000),
-      updatedAt: new Date(Date.now() - 3600000),
-    },
-    {
-      id: '3',
-      userId: 'user3',
-      content: 'Just finished reading an incredible book! Can\'t wait to discuss it with someone. Anyone else read "The Design of Everyday Things"?',
-      attachments: [],
-      location: { latitude: 37.7649, longitude: -122.4294 },
-      likesCount: 5,
-      commentsCount: 1,
-      createdAt: new Date(Date.now() - 7200000),
-      updatedAt: new Date(Date.now() - 7200000),
-    },
-  ];
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadPosts();
+    loadConnectionPosts();
   }, []);
 
-  const loadPosts = async () => {
-    setLoading(true);
+  const loadConnectionPosts = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setPosts(mockPosts);
+      setLoading(true);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      const firestore = getFirestore();
+
+      // Get user's connections
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid),
+        where('status', '==', 'active')
+      );
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+
+      // Extract connected user IDs
+      const connectedUserIds = new Set<string>();
+      connectionsSnapshot.forEach((doc) => {
+        const connectionData = doc.data();
+        const otherParticipant = connectionData.participants.find(
+          (id: string) => id !== currentUser.uid
+        );
+        if (otherParticipant) {
+          connectedUserIds.add(otherParticipant);
+        }
+      });
+
+      if (connectedUserIds.size === 0) {
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get posts from connected users
+      const postsCollection = collection(firestore, 'posts');
+      const postsQuery = query(
+        postsCollection,
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+      const postsSnapshot = await getDocs(postsQuery);
+
+      const connectionPosts: ConnectionPost[] = [];
+
+      for (const postDoc of postsSnapshot.docs) {
+        const postData = postDoc.data();
+
+        // Only include posts from connected users
+        if (!connectedUserIds.has(postData.authorId)) {
+          continue;
+        }
+
+        // Skip private posts
+        if (postData.isPrivate === true) {
+          continue;
+        }
+
+        // Get author information
+        const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
+        const authorData = authorDoc.exists() ? authorDoc.data() : {};
+
+        // Get likes count
+        const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
+        const likesSnapshot = await getDocs(likesCollection);
+
+        // Get comments count
+        const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
+        const commentsSnapshot = await getDocs(commentsCollection);
+
+        connectionPosts.push({
+          id: postDoc.id,
+          authorId: postData.authorId,
+          authorName: authorData.firstName && authorData.lastName 
+            ? `${authorData.firstName} ${authorData.lastName}` 
+            : 'Anonymous User',
+          authorPhotoURL: authorData.photoURL || '',
+          content: postData.content || '',
+          mediaURL: postData.mediaURL || '',
+          mediaType: postData.mediaType || 'image',
+          createdAt: postData.createdAt?.toDate() || new Date(),
+          likesCount: likesSnapshot.size,
+          commentsCount: commentsSnapshot.size,
+          allowLikes: postData.allowLikes !== false,
+          allowComments: postData.allowComments !== false,
+        });
+
+        // Limit to 20 posts for performance
+        if (connectionPosts.length >= 20) {
+          break;
+        }
+      }
+
+      setPosts(connectionPosts);
     } catch (error) {
+      console.error('Error loading connection posts:', error);
       Alert.alert('Error', 'Failed to load posts');
     } finally {
       setLoading(false);
@@ -173,7 +254,7 @@ export default function FeedScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadPosts();
+    await loadConnectionPosts();
     setRefreshing(false);
   };
 
@@ -195,24 +276,25 @@ export default function FeedScreen() {
     Alert.alert('Share', 'Share functionality coming soon!');
   };
 
-  const renderEmptyState = () => {
-    const currentTheme = isDarkMode ? darkTheme : lightTheme;
-    return (
-      <View style={styles.emptyState}>
-        <Ionicons name="newspaper-outline" size={64} color={currentTheme.textSecondary} />
-        <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Posts Yet</Text>
-        <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-          Be the first to share something with your community!
-        </Text>
-      </View>
-    );
-  };
-
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Ionicons name="people-outline" size={64} color={currentTheme.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Posts from Connections</Text>
+      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+        Connect with people nearby to see their posts here!
+      </Text>
+    </View>
+  );
 
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+        <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
+          <TouchableOpacity>
+            <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
+          </TouchableOpacity>
+        </View>
         <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
@@ -223,7 +305,7 @@ export default function FeedScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Home</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
         <TouchableOpacity>
           <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
@@ -289,10 +371,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-  },
   postContainer: {
     marginBottom: SPACING.sm,
     paddingVertical: SPACING.md,
@@ -312,6 +390,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    marginRight: SPACING.sm,
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: SPACING.sm,
   },
   username: {
