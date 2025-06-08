@@ -10,6 +10,13 @@ export type RootStackParamList = {
   ChatImages: { chatId: string };
   SinglePost: { postId: string };
   Profile: { userId: string };
+  UserProfile: { 
+    userId: string;
+    firstName?: string;
+    lastName?: string;
+    photoURL?: string;
+    bio?: string;
+  };
 };
 
 export type BottomTabParamList = {

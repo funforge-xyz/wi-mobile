@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   otherMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.border,
+    backgroundColor: '#E8E8E8',
   },
   messageText: {
     fontSize: 16,

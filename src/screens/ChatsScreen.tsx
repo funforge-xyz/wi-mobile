@@ -52,7 +52,7 @@ interface Connection {
 }
 
 export default function ChatsScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<'chats' | 'requests' | 'connections'>('chats');
+  const [activeTab, setActiveTab] = useState<'chats' | 'connections' | 'requests'>('chats');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -298,6 +298,16 @@ export default function ChatsScreen({ navigation }: any) {
     );
   };
 
+  const handleViewUserDetails = (connection: Connection) => {
+    navigation.navigate('UserProfile', {
+      userId: connection.userId,
+      firstName: connection.firstName,
+      lastName: connection.lastName,
+      photoURL: connection.photoURL,
+      bio: connection.bio
+    });
+  };
+
   const handleStartChat = (connection: Connection) => {
     navigation.navigate('Chat', {
       userId: connection.userId,
@@ -442,7 +452,6 @@ export default function ChatsScreen({ navigation }: any) {
   const renderConnectionItem = ({ item }: { item: Connection }) => (
     <TouchableOpacity
       style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
-      onPress={() => handleUserPress(item)}
     >
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
@@ -468,10 +477,10 @@ export default function ChatsScreen({ navigation }: any) {
       </View>
       <View style={styles.connectionActions}>
         <TouchableOpacity
-          style={styles.chatIconButton}
-          onPress={() => handleStartChat(item)}
+          style={styles.detailsButton}
+          onPress={() => handleViewUserDetails(item)}
         >
-          <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+          <Text style={styles.detailsButtonText}>View Details</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.blockIconButton}
@@ -492,17 +501,17 @@ export default function ChatsScreen({ navigation }: any) {
             title: 'No Chats',
             subtitle: 'Start a conversation with someone nearby.'
           };
-        case 'requests':
-          return {
-            icon: 'person-add-outline',
-            title: 'No Requests',
-            subtitle: 'You have no pending connection requests.'
-          };
         case 'connections':
           return {
             icon: 'people-outline',
             title: 'No Connections',
             subtitle: 'Connect with people to start chatting.'
+          };
+        case 'requests':
+          return {
+            icon: 'person-add-outline',
+            title: 'No Requests',
+            subtitle: 'You have no pending connection requests.'
           };
         default:
           return {
@@ -552,18 +561,6 @@ export default function ChatsScreen({ navigation }: any) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
-          onPress={() => setActiveTab('requests')}
-        >
-          <Text style={[
-            styles.tabText, 
-            { color: currentTheme.textSecondary }, 
-            activeTab === 'requests' && styles.activeTabText
-          ]}>
-            Requests
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
           onPress={() => setActiveTab('connections')}
         >
@@ -573,6 +570,18 @@ export default function ChatsScreen({ navigation }: any) {
             activeTab === 'connections' && styles.activeTabText
           ]}>
             Connections
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
+          onPress={() => setActiveTab('requests')}
+        >
+          <Text style={[
+            styles.tabText, 
+            { color: currentTheme.textSecondary }, 
+            activeTab === 'requests' && styles.activeTabText
+          ]}>
+            Requests
           </Text>
         </TouchableOpacity>
       </View>
@@ -585,14 +594,14 @@ export default function ChatsScreen({ navigation }: any) {
         <FlatList
           data={
             activeTab === 'chats' ? chatMessages :
-            activeTab === 'requests' ? connectionRequests :
-            connections
+            activeTab === 'connections' ? connections :
+            connectionRequests
           }
           keyExtractor={(item) => item.id}
           renderItem={
             activeTab === 'chats' ? renderChatItem :
-            activeTab === 'requests' ? renderRequestItem :
-            renderConnectionItem
+            activeTab === 'connections' ? renderConnectionItem :
+            renderRequestItem
           }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -601,8 +610,8 @@ export default function ChatsScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
             (activeTab === 'chats' ? chatMessages : 
-             activeTab === 'requests' ? connectionRequests :
-             connections).length === 0
+             activeTab === 'connections' ? connections :
+             connectionRequests).length === 0
               ? styles.emptyContainer
               : styles.listContent
           }
@@ -733,6 +742,18 @@ const styles = StyleSheet.create({
   connectionActions: {
     flexDirection: 'row',
     gap: SPACING.sm,
+  },
+  detailsButton: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    marginRight: SPACING.sm,
+  },
+  detailsButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontFamily: FONTS.medium,
   },
   chatIconButton: {
     width: 40,
