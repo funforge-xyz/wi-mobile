@@ -196,9 +196,8 @@ export default function ChatsScreen({ navigation }: any) {
           });
 
           setConnections(connections);
+          setLoading(false);
         });
-
-        setLoading(false);
       } catch (error) {
         console.error('Error setting up real-time listeners:', error);
         setLoading(false);
