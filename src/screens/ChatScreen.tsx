@@ -45,8 +45,6 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectionRequestSent, setConnectionRequestSent] = useState(false);
   const [chatRoomId, setChatRoomId] = useState('');
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
@@ -67,9 +65,6 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       // Create chat room ID (consistent ordering)
       const roomId = [currentUser.uid, userId].sort().join('_');
       setChatRoomId(roomId);
-
-      // Check connection status
-      await checkConnectionStatus(currentUser.uid);
 
       // Set up real-time message listener
       setupMessageListener(roomId);
@@ -109,44 +104,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     return () => unsubscribe();
   };
 
-  const checkConnectionStatus = async (currentUserId: string) => {
-    try {
-      const firestore = getFirestore();
-
-      // Check if already connected
-      const connectionsQuery = query(
-        collection(firestore, 'connections'),
-        where('participants', 'array-contains', currentUserId),
-        where('status', '==', 'active')
-      );
-      const connectionsSnapshot = await getDocs(connectionsQuery);
-
-      let connected = false;
-      connectionsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.participants.includes(userId)) {
-          connected = true;
-        }
-      });
-
-      setIsConnected(connected);
-
-      // Check if connection request was sent
-      if (!connected) {
-        const requestsQuery = query(
-          collection(firestore, 'connectionRequests'),
-          where('fromUserId', '==', currentUserId),
-          where('toUserId', '==', userId),
-          where('status', '==', 'pending')
-        );
-        const requestsSnapshot = await getDocs(requestsQuery);
-        setConnectionRequestSent(!requestsSnapshot.empty);
-      }
-
-    } catch (error) {
-      console.error('Error checking connection status:', error);
-    }
-  };
+  
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -160,27 +118,22 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      const isFirstMessage = messages.length === 0 && !connectionRequestSent && !isConnected;
 
-      // Check if this is a reply to a pending request
-      const isReplyToRequest = messages.length === 0 && !isConnected;
-      let shouldCreateConnection = false;
-      let existingRequestId = null;
-
-      if (isReplyToRequest) {
-        // Check if there's a pending request from the other user to current user
-        const requestQuery = query(
-          collection(firestore, 'connectionRequests'),
-          where('fromUserId', '==', userId),
-          where('toUserId', '==', currentUser.uid),
-          where('status', '==', 'pending')
-        );
-        const requestSnapshot = await getDocs(requestQuery);
-        
-        if (!requestSnapshot.empty) {
-          shouldCreateConnection = true;
-          existingRequestId = requestSnapshot.docs[0].id;
-        }
+      // Check if there's a pending request from the other user to current user (reply to request)
+      const requestQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('fromUserId', '==', userId),
+        where('toUserId', '==', currentUser.uid),
+        where('status', '==', 'pending')
+      );
+      const requestSnapshot = await getDocs(requestQuery);
+      
+      let isReplyToRequest = false;
+      let requestId = null;
+      
+      if (!requestSnapshot.empty) {
+        isReplyToRequest = true;
+        requestId = requestSnapshot.docs[0].id;
       }
 
       // Add message to chat
@@ -189,7 +142,6 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         receiverId: userId,
         text: newMessage.trim(),
         createdAt: new Date(),
-        isFirstMessage,
       });
 
       // Update chat document with last message info
@@ -198,11 +150,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         lastMessageTime: new Date(),
         lastMessage: newMessage.trim(),
         lastMessageSender: currentUser.uid,
-        isConnected: shouldCreateConnection || isConnected
       }, { merge: true });
 
-      // If replying to a request, create connection and update request
-      if (shouldCreateConnection && existingRequestId) {
+      // If this is a reply to a request, create connection and update request
+      if (isReplyToRequest && requestId) {
         // Create connection
         await addDoc(collection(firestore, 'connections'), {
           participants: [currentUser.uid, userId],
@@ -212,23 +163,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         });
 
         // Update the request status to 'accepted'
-        await updateDoc(doc(firestore, 'connectionRequests', existingRequestId), {
+        await updateDoc(doc(firestore, 'connectionRequests', requestId), {
           status: 'accepted',
           acceptedAt: new Date(),
         });
-
-        setIsConnected(true);
-      } else if (isFirstMessage) {
-        // If this is the first message from current user, create connection request
-        await addDoc(collection(firestore, 'connectionRequests'), {
-          fromUserId: currentUser.uid,
-          toUserId: userId,
-          status: 'pending',
-          createdAt: new Date(),
-          firstMessageSent: true,
-          chatRoomId: chatRoomId
-        });
-        setConnectionRequestSent(true);
       }
 
       setNewMessage('');
@@ -268,26 +206,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     );
   };
 
-  const renderConnectionStatus = () => {
-    if (isConnected) {
-      return (
-        <View style={[styles.statusContainer, { backgroundColor: COLORS.success + '20' }]}>
-          <Text style={[styles.statusText, { color: COLORS.success }]}>
-            ✓ You are connected with {userName}
-          </Text>
-        </View>
-      );
-    } else if (connectionRequestSent || messages.length > 0) {
-      return (
-        <View style={[styles.statusContainer, { backgroundColor: COLORS.warning + '20' }]}>
-          <Text style={[styles.statusText, { color: COLORS.warning }]}>
-            ⏳ Waiting for {userName} to reply to connect
-          </Text>
-        </View>
-      );
-    }
-    return null;
-  };
+  
 
   if (loading) {
     return (
@@ -318,7 +237,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         <View style={{ width: 24 }} />
       </View>
 
-      {renderConnectionStatus()}
+      
 
       <FlatList
         data={messages}

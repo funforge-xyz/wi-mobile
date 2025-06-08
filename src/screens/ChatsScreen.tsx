@@ -259,10 +259,7 @@ export default function ChatsScreen({ navigation }: any) {
           onPress: async () => {
             try {
               const firestore = getFirestore();
-              await updateDoc(doc(firestore, 'connectionRequests', request.id), {
-                status: 'rejected',
-                rejectedAt: new Date()
-              });
+              await deleteDoc(doc(firestore, 'connectionRequests', request.id));
             } catch (error) {
               console.error('Error declining request:', error);
               Alert.alert('Error', 'Failed to decline request');
