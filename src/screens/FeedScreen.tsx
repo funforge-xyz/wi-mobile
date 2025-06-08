@@ -142,21 +142,40 @@ export default function FeedScreen() {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    const { getAuth } = import('../services/firebase');
-    getAuth().then(auth => {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        if (user) {
-          console.log('Auth state changed - user found:', user.uid);
-          loadConnectionPosts();
-        } else {
-          console.log('Auth state changed - no user');
-          setLoading(false);
-          setPosts([]);
-        }
-      });
+    const setupAuthListener = async () => {
+      try {
+        const { getAuth } = await import('../services/firebase');
+        const auth = getAuth();
+        
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          if (user) {
+            console.log('Auth state changed - user found:', user.uid);
+            loadConnectionPosts();
+          } else {
+            console.log('Auth state changed - no user');
+            setLoading(false);
+            setPosts([]);
+          }
+        });
 
-      return () => unsubscribe();
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error setting up auth listener:', error);
+        setLoading(false);
+      }
+    };
+
+    let unsubscribe: (() => void) | undefined;
+    
+    setupAuthListener().then((unsub) => {
+      unsubscribe = unsub;
     });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const loadConnectionPosts = async () => {
