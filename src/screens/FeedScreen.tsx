@@ -89,7 +89,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
         <Text style={[styles.postContent, { color: currentTheme.text }]}>{post.content}</Text>
       ) : null}
 
-      {post.mediaURL && (
+      {post.mediaURL && post.mediaURL.trim() !== '' && (
         <View style={styles.mediaContainer}>
           <Image
             source={{ uri: post.mediaURL }}
