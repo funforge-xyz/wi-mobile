@@ -97,8 +97,7 @@ export default function ChatsScreen({ navigation }: any) {
       // Get all chats where current user is a participant
       const chatsQuery = query(
         collection(firestore, 'chats'),
-        where('participants', 'array-contains', currentUser.uid),
-        orderBy('lastMessageTime', 'desc')
+        where('participants', 'array-contains', currentUser.uid)
       );
 
       const chatsSnapshot = await getDocs(chatsQuery);
@@ -144,6 +143,9 @@ export default function ChatsScreen({ navigation }: any) {
           });
         }
       }
+
+      // Sort messages by lastMessageTime in memory
+      messages.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
 
       setChatMessages(messages);
     } catch (error) {
