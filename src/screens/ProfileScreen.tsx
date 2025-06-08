@@ -375,6 +375,12 @@ export default function ProfileScreen() {
       ...editedProfile,
       photoURL: '',
     });
+
+    // Update the current profile state immediately to reflect the change
+    setProfile({
+      ...profile,
+      photoURL: '',
+    });
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;

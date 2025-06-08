@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -75,10 +74,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
   useEffect(() => {
     loadPost();
     loadCurrentUser();
-    
+
     // Set up real-time listeners
     const firestore = getFirestore();
-    
+
     // Listen to comments
     const commentsQuery = query(
       collection(firestore, 'posts', postId, 'comments'),
@@ -113,10 +112,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
     try {
       const firestore = getFirestore();
       const postDoc = await getDoc(doc(firestore, 'posts', postId));
-      
+
       if (postDoc.exists()) {
         const postData = postDoc.data();
-        
+
         // Get author information
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
@@ -161,10 +160,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
       const commentsSnapshot = await getDocs(commentsQuery);
 
       const commentsList: Comment[] = [];
-      
+
       for (const commentDoc of commentsSnapshot.docs) {
         const commentData = commentDoc.data();
-        
+
         // Get author information
         const authorDoc = await getDoc(doc(firestore, 'users', commentData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
@@ -193,10 +192,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
       const likesSnapshot = await getDocs(collection(firestore, 'posts', postId, 'likes'));
 
       const likesList: Like[] = [];
-      
+
       for (const likeDoc of likesSnapshot.docs) {
         const likeData = likeDoc.data();
-        
+
         // Get author information
         const authorDoc = await getDoc(doc(firestore, 'users', likeData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
@@ -222,10 +221,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
     try {
       const firestore = getFirestore();
       const likesCollection = collection(firestore, 'posts', postId, 'likes');
-      
+
       // Check if user already liked
       const userLike = likes.find(like => like.authorId === currentUser.uid);
-      
+
       if (userLike) {
         // Unlike
         await deleteDoc(doc(firestore, 'posts', postId, 'likes', userLike.id));
@@ -249,7 +248,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       setSubmittingComment(true);
       const firestore = getFirestore();
       const commentsCollection = collection(firestore, 'posts', postId, 'comments');
-      
+
       await addDoc(commentsCollection, {
         authorId: currentUser.uid,
         content: commentText.trim(),
@@ -282,10 +281,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   const renderComment = ({ item }: { item: Comment }) => (
     <View style={styles.commentItem}>
-      <Image
-        source={{ uri: item.authorPhotoURL || 'https://via.placeholder.com/30' }}
-        style={styles.commentAvatar}
-      />
+      {item.authorPhotoURL ? (
+        <Image source={{ uri: item.authorPhotoURL }} style={styles.commentAvatar} />
+      ) : (
+        <View style={[styles.commentAvatar, styles.commentAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+          <Ionicons name="person" size={16} color={currentTheme.textSecondary} />
+        </View>
+      )}
       <View style={styles.commentContent}>
         <View style={styles.commentHeader}>
           <Text style={[styles.commentAuthor, { color: currentTheme.text }]}>
@@ -398,13 +400,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
             <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
               Comments ({comments.length})
             </Text>
-            
+
             {comments.map((comment) => (
               <View key={comment.id}>
                 {renderComment({ item: comment })}
               </View>
             ))}
-            
+
             {comments.length === 0 && (
               <Text style={[styles.noCommentsText, { color: currentTheme.textSecondary }]}>
                 No comments yet. Be the first to comment!
@@ -574,6 +576,10 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     marginRight: SPACING.sm,
+  },
+  commentAvatarPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   commentContent: {
     flex: 1,
