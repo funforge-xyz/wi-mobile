@@ -162,6 +162,27 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       const firestore = getFirestore();
       const isFirstMessage = messages.length === 0 && !connectionRequestSent && !isConnected;
 
+      // Check if this is a reply to a pending request
+      const isReplyToRequest = messages.length === 0 && !isConnected;
+      let shouldCreateConnection = false;
+      let existingRequestId = null;
+
+      if (isReplyToRequest) {
+        // Check if there's a pending request from the other user to current user
+        const requestQuery = query(
+          collection(firestore, 'connectionRequests'),
+          where('fromUserId', '==', userId),
+          where('toUserId', '==', currentUser.uid),
+          where('status', '==', 'pending')
+        );
+        const requestSnapshot = await getDocs(requestQuery);
+        
+        if (!requestSnapshot.empty) {
+          shouldCreateConnection = true;
+          existingRequestId = requestSnapshot.docs[0].id;
+        }
+      }
+
       // Add message to chat
       await addDoc(collection(firestore, 'chats', chatRoomId, 'messages'), {
         senderId: currentUser.uid,
@@ -177,11 +198,28 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         lastMessageTime: new Date(),
         lastMessage: newMessage.trim(),
         lastMessageSender: currentUser.uid,
-        isConnected: isConnected
+        isConnected: shouldCreateConnection || isConnected
       }, { merge: true });
 
-      // If this is the first message, create connection request
-      if (isFirstMessage) {
+      // If replying to a request, create connection and update request
+      if (shouldCreateConnection && existingRequestId) {
+        // Create connection
+        await addDoc(collection(firestore, 'connections'), {
+          participants: [currentUser.uid, userId],
+          connectedAt: new Date(),
+          status: 'active',
+          chatId: chatRoomId,
+        });
+
+        // Update the request status to 'accepted'
+        await updateDoc(doc(firestore, 'connectionRequests', existingRequestId), {
+          status: 'accepted',
+          acceptedAt: new Date(),
+        });
+
+        setIsConnected(true);
+      } else if (isFirstMessage) {
+        // If this is the first message from current user, create connection request
         await addDoc(collection(firestore, 'connectionRequests'), {
           fromUserId: currentUser.uid,
           toUserId: userId,

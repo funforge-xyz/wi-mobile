@@ -130,23 +130,36 @@ export default function ChatsScreen({ navigation }: any) {
               const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
               const userData = userDoc.exists() ? userDoc.data() : {};
 
-              // Get last message from chat
+              // Get last message from chat - try chat document first, then messages collection
               let lastMessage = '';
               let lastMessageTime: Date | undefined;
 
               if (connectionData.chatId) {
                 try {
-                  const messagesQuery = query(
-                    collection(firestore, 'chats', connectionData.chatId, 'messages'),
-                    orderBy('createdAt', 'desc'),
-                    limit(1)
-                  );
-                  const messagesSnapshot = await getDocs(messagesQuery);
+                  // First try to get last message from chat document
+                  const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
+                  if (chatDoc.exists()) {
+                    const chatData = chatDoc.data();
+                    if (chatData.lastMessage) {
+                      lastMessage = chatData.lastMessage;
+                      lastMessageTime = chatData.lastMessageTime?.toDate();
+                    }
+                  }
 
-                  if (!messagesSnapshot.empty) {
-                    const lastMessageData = messagesSnapshot.docs[0].data();
-                    lastMessage = lastMessageData.text || '';
-                    lastMessageTime = lastMessageData.createdAt?.toDate();
+                  // If no last message in chat document, query messages collection
+                  if (!lastMessage) {
+                    const messagesQuery = query(
+                      collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                      orderBy('createdAt', 'desc'),
+                      limit(1)
+                    );
+                    const messagesSnapshot = await getDocs(messagesQuery);
+
+                    if (!messagesSnapshot.empty) {
+                      const lastMessageData = messagesSnapshot.docs[0].data();
+                      lastMessage = lastMessageData.text || '';
+                      lastMessageTime = lastMessageData.createdAt?.toDate();
+                    }
                   }
                 } catch (error) {
                   console.log('Error fetching last message:', error);
@@ -312,46 +325,14 @@ export default function ChatsScreen({ navigation }: any) {
     );
   };
 
-  const handleAcceptRequest = async (request: ConnectionRequest) => {
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) return;
-
-      const firestore = getFirestore();
-
-      // Create a new connection document
-      const chatId = `${currentUser.uid}-${request.userId}-${Date.now()}`; // Generate a unique chat ID
-      await addDoc(collection(firestore, 'connections'), {
-        participants: [currentUser.uid, request.userId],
-        connectedAt: new Date(),
-        status: 'active',
-        chatId: chatId,
-      });
-
-      // Update the request status to 'accepted'
-      await updateDoc(doc(firestore, 'connectionRequests', request.id), {
-        status: 'accepted',
-        acceptedAt: new Date(),
-      });
-
-      Alert.alert('Success', 'Connection accepted');
-    } catch (error) {
-      console.error('Error accepting connection:', error);
-      Alert.alert('Error', 'Failed to accept connection');
-    }
-  };
-
-  const handleRejectRequest = async (request: ConnectionRequest) => {
+  const handleDeclineRequest = async (request: ConnectionRequest) => {
     Alert.alert(
-      'Reject Request',
-      `Are you sure you want to reject the request from ${request.firstName || 'this user'}?`,
+      'Decline Request',
+      `Are you sure you want to decline the request from ${request.firstName || 'this user'}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Reject',
+          text: 'Decline',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -361,8 +342,8 @@ export default function ChatsScreen({ navigation }: any) {
                 rejectedAt: new Date()
               });
             } catch (error) {
-              console.error('Error rejecting request:', error);
-              Alert.alert('Error', 'Failed to reject request');
+              console.error('Error declining request:', error);
+              Alert.alert('Error', 'Failed to decline request');
             }
           }
         }
@@ -401,22 +382,16 @@ export default function ChatsScreen({ navigation }: any) {
       </TouchableOpacity>
       <View style={styles.connectionActions}>
         <TouchableOpacity
-          style={[styles.actionButton, styles.acceptButton]}
-          onPress={() => handleAcceptRequest(item)}
-        >
-          <Ionicons name="checkmark" size={20} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.rejectButton]}
-          onPress={() => handleRejectRequest(item)}
-        >
-          <Ionicons name="close" size={20} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity
           style={styles.messageIconButton}
           onPress={() => handleReplyToRequest(item)}
         >
           <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rejectButton]}
+          onPress={() => handleDeclineRequest(item)}
+        >
+          <Ionicons name="close" size={20} color="white" />
         </TouchableOpacity>
       </View>
     </View>
