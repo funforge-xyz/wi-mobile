@@ -85,7 +85,3 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
-```
-
-```text
-The provided code is for the HomeScreen component and doesn't include any tab navigation or ProfileScreen. The instructions ask to replace ProfileScreen with UserPostsScreen in tab navigation, but there's no tab navigation in this code. Therefore, I cannot apply the changes directly to this file. Assuming this HomeScreen is one of the tabs, the change would need to happen in the file where the Tab Navigation is defined, most likely App.js or similar.
