@@ -278,7 +278,7 @@ export default function ChatsScreen({ navigation }: any) {
               if (currentUser) {
                 const chatRoomId = [currentUser.uid, request.userId].sort().join('_');
                 const chatRef = doc(firestore, 'chats', chatRoomId);
-                
+
                 try {
                   await deleteDoc(chatRef);
                 } catch (error) {
@@ -348,7 +348,7 @@ export default function ChatsScreen({ navigation }: any) {
                 where('participants', 'array-contains', currentUser.uid)
               );
               const connectionsSnapshot = await getDocs(connectionsQuery);
-              
+
               for (const connectionDoc of connectionsSnapshot.docs) {
                 const data = connectionDoc.data();
                 if (data.participants.includes(connection.userId)) {
@@ -480,7 +480,7 @@ export default function ChatsScreen({ navigation }: any) {
           style={styles.detailsButton}
           onPress={() => handleViewUserDetails(item)}
         >
-          <Text style={styles.detailsButtonText}>View Details</Text>
+          <Ionicons name="person-outline" size={20} color={COLORS.primary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.blockIconButton}

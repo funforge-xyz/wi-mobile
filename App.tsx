@@ -15,6 +15,7 @@ import RootScreen from './src/screens/RootScreen';
 import ChatImagesScreen from './src/screens/ChatImagesScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import UserProfileScreen from './src/screens/UserProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import DeleteAccountScreen from './src/screens/DeleteAccountScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
@@ -88,6 +89,11 @@ export default function App() {
         <Stack.Screen 
           name="Chat" 
           component={ChatScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="UserProfile" 
+          component={UserProfileScreen} 
           options={{ headerShown: false }} 
         />
       </Stack.Navigator>
