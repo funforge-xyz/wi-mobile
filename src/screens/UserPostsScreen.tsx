@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -87,13 +86,12 @@ export default function UserPostsScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      
+
       // Get user's posts
       const postsCollection = collection(firestore, 'posts');
       const userPostsQuery = query(
         postsCollection,
-        where('authorId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        where('authorId', '==', currentUser.uid)
       );
       const postsSnapshot = await getDocs(userPostsQuery);
 
@@ -105,7 +103,7 @@ export default function UserPostsScreen({ navigation }: any) {
         // Get likes count and check if user liked
         const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
         const likesSnapshot = await getDocs(likesCollection);
-        
+
         let isLikedByUser = false;
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === currentUser.uid) {
@@ -137,7 +135,7 @@ export default function UserPostsScreen({ navigation }: any) {
         });
       }
 
-      setPosts(userPosts);
+      setPosts(userPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
     } catch (error) {
       console.error('Error loading user posts:', error);
       Alert.alert('Error', 'Failed to load posts');
@@ -174,7 +172,7 @@ export default function UserPostsScreen({ navigation }: any) {
         // Unlike: Find and delete the user's like
         const likesSnapshot = await getDocs(likesCollection);
         let userLikeDoc = null;
-        
+
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === currentUser.uid) {
             userLikeDoc = likeDoc;
@@ -348,7 +346,7 @@ export default function UserPostsScreen({ navigation }: any) {
           ? `${profile.firstName} ${profile.lastName}` 
           : 'Your Profile'}
       </Text>
-      
+
       {profile?.bio ? (
         <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
           {profile.bio}
