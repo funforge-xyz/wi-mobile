@@ -313,7 +313,7 @@ export default function UserPostsScreen({ navigation }: any) {
   );
 
   const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
+    <View style={[styles.emptyContainer, { minHeight: 300 }]}>
       <Ionicons
         name="document-text-outline"
         size={64}
@@ -396,9 +396,7 @@ export default function UserPostsScreen({ navigation }: any) {
           ListHeaderComponent={renderProfileHeader}
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={
-            posts.length === 0 ? [styles.emptyContainer, { paddingTop: SPACING.sm }] : styles.listContent
-          }
+          contentContainerStyle={styles.listContent}
         />
       )}
     </SafeAreaView>
@@ -563,10 +561,10 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.xs,
   },
   emptyContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xl,
   },
   emptyTitle: {
     fontSize: 20,
