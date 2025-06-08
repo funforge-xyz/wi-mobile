@@ -86,28 +86,66 @@ export default function ChatsScreen({ navigation }: any) {
 
   const loadChatMessages = async () => {
     try {
-      // Mock data for now - replace with actual Firebase implementation
-      const mockMessages: ChatMessage[] = [
-        {
-          id: '1',
-          participantId: 'user1',
-          participantName: 'Alice Johnson',
-          participantPhotoURL: '',
-          lastMessage: 'Hey! How are you?',
-          lastMessageTime: new Date(),
-          unreadCount: 2,
-        },
-        {
-          id: '2',
-          participantId: 'user2',
-          participantName: 'Bob Smith',
-          participantPhotoURL: '',
-          lastMessage: 'Thanks for connecting!',
-          lastMessageTime: new Date(Date.now() - 3600000),
-          unreadCount: 0,
-        },
-      ];
-      setChatMessages(mockMessages);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      // Get all chats where current user is a participant
+      const chatsQuery = query(
+        collection(firestore, 'chats'),
+        where('participants', 'array-contains', currentUser.uid),
+        orderBy('lastMessageTime', 'desc')
+      );
+
+      const chatsSnapshot = await getDocs(chatsQuery);
+      const messages: ChatMessage[] = [];
+
+      for (const chatDoc of chatsSnapshot.docs) {
+        const chatData = chatDoc.data();
+        
+        // Get the other participant's ID
+        const otherParticipantId = chatData.participants.find((id: string) => id !== currentUser.uid);
+        
+        if (otherParticipantId) {
+          // Get other participant's info
+          const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
+          const userData = userDoc.exists() ? userDoc.data() : {};
+          
+          // Count unread messages (messages from other participant that are newer than last read)
+          const unreadQuery = query(
+            collection(firestore, 'chats', chatDoc.id, 'messages'),
+            where('senderId', '==', otherParticipantId),
+            orderBy('createdAt', 'desc')
+          );
+          
+          const unreadSnapshot = await getDocs(unreadQuery);
+          let unreadCount = 0;
+          
+          // For simplicity, count all messages from other participant as unread
+          // In a real app, you'd track read timestamps
+          unreadSnapshot.forEach(() => {
+            unreadCount++;
+          });
+
+          messages.push({
+            id: chatDoc.id,
+            participantId: otherParticipantId,
+            participantName: userData.firstName && userData.lastName 
+              ? `${userData.firstName} ${userData.lastName}` 
+              : 'Anonymous User',
+            participantPhotoURL: userData.photoURL || '',
+            lastMessage: chatData.lastMessage || 'No messages yet',
+            lastMessageTime: chatData.lastMessageTime?.toDate() || new Date(),
+            unreadCount,
+          });
+        }
+      }
+
+      setChatMessages(messages);
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -123,7 +161,7 @@ export default function ChatsScreen({ navigation }: any) {
 
       const firestore = getFirestore();
 
-      // Get pending requests for current user (simplified query)
+      // Get only pending requests for current user (exclude accepted ones)
       const requestsQuery = query(
         collection(firestore, 'connectionRequests'),
         where('toUserId', '==', currentUser.uid),
@@ -237,7 +275,11 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const handleChatPress = (chat: ChatMessage) => {
-    Alert.alert('Open Chat', `Open conversation with ${chat.participantName}`);
+    navigation.navigate('Chat', {
+      userId: chat.participantId,
+      userName: chat.participantName,
+      userPhotoURL: chat.participantPhotoURL
+    });
   };
 
   const handleUserPress = (user: ConnectionRequest | Connection) => {

@@ -23,7 +23,7 @@ exports.onReplyToFirstMessage = onDocumentWritten(
       const receiverId = messageData.receiverId;
 
       // Check if there's a pending connection request between these users
-      // The original request would be from receiverId to senderId
+      // The original request would be from the person who sent the first message
       const requestsRef = firestore.collection('connectionRequests');
       const requestQuery = await requestsRef
         .where('fromUserId', '==', receiverId)
@@ -31,9 +31,17 @@ exports.onReplyToFirstMessage = onDocumentWritten(
         .where('status', '==', 'pending')
         .get();
 
-      if (!requestQuery.empty) {
-        const requestDoc = requestQuery.docs[0];
+      // Also check the reverse direction in case the reply is from the original requester
+      const reverseRequestQuery = await requestsRef
+        .where('fromUserId', '==', senderId)
+        .where('toUserId', '==', receiverId)
+        .where('status', '==', 'pending')
+        .get();
 
+      const pendingRequest = !requestQuery.empty ? requestQuery.docs[0] : 
+                            !reverseRequestQuery.empty ? reverseRequestQuery.docs[0] : null;
+
+      if (pendingRequest) {
         // Create connection
         await firestore.collection('connections').add({
           participants: [senderId, receiverId],
@@ -42,7 +50,7 @@ exports.onReplyToFirstMessage = onDocumentWritten(
         });
 
         // Update request status to accepted instead of deleting
-        await requestDoc.ref.update({
+        await pendingRequest.ref.update({
           status: 'accepted',
           acceptedAt: new Date()
         });
