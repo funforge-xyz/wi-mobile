@@ -77,7 +77,7 @@ export default function ChatsScreen({ navigation }: any) {
 
         const firestore = getFirestore();
 
-        // Real-time listener for connection requests
+        // Real-time listener for connection requests (only pending ones)
         const requestsQuery = query(
           collection(firestore, 'connectionRequests'),
           where('toUserId', '==', currentUser.uid),
@@ -312,12 +312,70 @@ export default function ChatsScreen({ navigation }: any) {
     );
   };
 
+  const handleAcceptRequest = async (request: ConnectionRequest) => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      // Create a new connection document
+      const chatId = `${currentUser.uid}-${request.userId}-${Date.now()}`; // Generate a unique chat ID
+      await addDoc(collection(firestore, 'connections'), {
+        participants: [currentUser.uid, request.userId],
+        connectedAt: new Date(),
+        status: 'active',
+        chatId: chatId,
+      });
+
+      // Update the request status to 'accepted'
+      await updateDoc(doc(firestore, 'connectionRequests', request.id), {
+        status: 'accepted',
+        acceptedAt: new Date(),
+      });
+
+      Alert.alert('Success', 'Connection accepted');
+    } catch (error) {
+      console.error('Error accepting connection:', error);
+      Alert.alert('Error', 'Failed to accept connection');
+    }
+  };
+
+  const handleRejectRequest = async (request: ConnectionRequest) => {
+    Alert.alert(
+      'Reject Request',
+      `Are you sure you want to reject the request from ${request.firstName || 'this user'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const firestore = getFirestore();
+              await updateDoc(doc(firestore, 'connectionRequests', request.id), {
+                status: 'rejected',
+                rejectedAt: new Date()
+              });
+            } catch (error) {
+              console.error('Error rejecting request:', error);
+              Alert.alert('Error', 'Failed to reject request');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
-    <TouchableOpacity
-      style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}
-      onPress={() => handleUserPress(item)}
-    >
-      <View style={styles.userInfo}>
+    <View style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}>
+      <TouchableOpacity
+        style={styles.userInfo}
+        onPress={() => handleUserPress(item)}
+      >
         <View style={styles.avatarContainer}>
           {item.photoURL ? (
             <Image source={{ uri: item.photoURL }} style={styles.avatar} />
@@ -336,23 +394,32 @@ export default function ChatsScreen({ navigation }: any) {
               {item.bio}
             </Text>
           ) : null}
+          <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
+            {formatTimeAgo(item.createdAt)}
+          </Text>
         </View>
-      </View>
+      </TouchableOpacity>
       <View style={styles.connectionActions}>
         <TouchableOpacity
-          style={[styles.actionButton, styles.replyButton]}
-          onPress={() => handleReplyToRequest(item)}
+          style={[styles.actionButton, styles.acceptButton]}
+          onPress={() => handleAcceptRequest(item)}
         >
-          <Ionicons name="chatbubble" size={18} color="white" />
+          <Ionicons name="checkmark" size={20} color="white" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionButton, styles.declineButton]}
-          onPress={() => handleDeclineRequest(item)}
+          style={[styles.actionButton, styles.rejectButton]}
+          onPress={() => handleRejectRequest(item)}
         >
-          <Ionicons name="close" size={18} color="white" />
+          <Ionicons name="close" size={20} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.messageIconButton}
+          onPress={() => handleReplyToRequest(item)}
+        >
+          <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   const renderConnectionItem = ({ item }: { item: Connection }) => (
@@ -712,5 +779,19 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     textAlign: 'center',
     lineHeight: 20,
+  },
+    acceptButton: {
+    backgroundColor: COLORS.success,
+  },
+  rejectButton: {
+    backgroundColor: COLORS.error,
+  },
+  messageIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
   },
 });

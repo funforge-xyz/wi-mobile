@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -68,13 +67,13 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       // Create chat room ID (consistent ordering)
       const roomId = [currentUser.uid, userId].sort().join('_');
       setChatRoomId(roomId);
-      
+
       // Check connection status
       await checkConnectionStatus(currentUser.uid);
-      
+
       // Set up real-time message listener
       setupMessageListener(roomId);
-      
+
     } catch (error) {
       console.error('Error initializing chat:', error);
       setLoading(false);
@@ -83,7 +82,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
   const setupMessageListener = (roomId: string) => {
     const firestore = getFirestore();
-    
+
     // Listen to messages
     const messagesQuery = query(
       collection(firestore, 'chats', roomId, 'messages'),
@@ -121,7 +120,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         where('status', '==', 'active')
       );
       const connectionsSnapshot = await getDocs(connectionsQuery);
-      
+
       let connected = false;
       connectionsSnapshot.forEach((doc) => {
         const data = doc.data();
@@ -207,7 +206,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     const { getAuth } = require('../services/firebase');
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    
+
     const isMyMessage = item.senderId === currentUser?.uid;
 
     return (

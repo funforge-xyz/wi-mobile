@@ -263,6 +263,48 @@ export default function NearbyScreen({ navigation }: any) {
         return;
       }
 
+      const firestore = getFirestore();
+
+      // Check if there's already a connection or request between users
+      const existingConnectionQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid)
+      );
+      const connectionsSnapshot = await getDocs(existingConnectionQuery);
+      
+      let hasConnection = false;
+      connectionsSnapshot.forEach((doc) => {
+        const connectionData = doc.data();
+        if (connectionData.participants.includes(user.id) && connectionData.status === 'active') {
+          hasConnection = true;
+        }
+      });
+
+      // Check for existing requests
+      const existingRequestQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', user.id),
+        where('status', '==', 'pending')
+      );
+      const requestSnapshot = await getDocs(existingRequestQuery);
+      
+      let hasRequest = false;
+      if (!requestSnapshot.empty) {
+        hasRequest = true;
+      }
+
+      // If no connection and no pending request, create a request
+      if (!hasConnection && !hasRequest) {
+        await addDoc(collection(firestore, 'connectionRequests'), {
+          fromUserId: currentUser.uid,
+          toUserId: user.id,
+          status: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+
       // Navigate to chat screen with this user
       navigation.navigate('Chat', { 
         userId: user.id,
