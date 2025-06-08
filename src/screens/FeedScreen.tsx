@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -143,11 +142,21 @@ export default function FeedScreen() {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    const initializeScreen = async () => {
-      loadConnectionPosts();
-    };
-    
-    initializeScreen();
+    const { getAuth } = import('../services/firebase');
+    getAuth().then(auth => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (user) {
+          console.log('Auth state changed - user found:', user.uid);
+          loadConnectionPosts();
+        } else {
+          console.log('Auth state changed - no user');
+          setLoading(false);
+          setPosts([]);
+        }
+      });
+
+      return () => unsubscribe();
+    });
   }, []);
 
   const loadConnectionPosts = async () => {
@@ -254,7 +263,7 @@ export default function FeedScreen() {
           allowLikes: postData.allowLikes !== false,
           allowComments: postData.allowComments !== false,
         };
-        
+
         console.log('Adding post to feed:', {
           id: postInfo.id,
           authorName: postInfo.authorName,
@@ -262,7 +271,7 @@ export default function FeedScreen() {
           hasMediaURL: !!postInfo.mediaURL,
           mediaURL: postInfo.mediaURL
         });
-        
+
         connectionPosts.push(postInfo);
 
         // Limit to 20 posts for performance
