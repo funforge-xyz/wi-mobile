@@ -74,6 +74,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [editedPrivacy, setEditedPrivacy] = useState(false);
+  const [editedAllowComments, setEditedAllowComments] = useState(true);
+  const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -276,6 +278,12 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleEditPost = () => {
+    if (post) {
+      setEditedContent(post.content || '');
+      setEditedPrivacy(post.isPrivate || false);
+      setEditedAllowComments(post.allowComments);
+      setEditedShowLikeCount(post.allowLikes);
+    }
     setIsEditing(true);
   };
 
@@ -289,6 +297,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
       await updateDoc(postRef, {
         content: editedContent.trim(),
         isPrivate: editedPrivacy,
+        allowComments: editedAllowComments,
+        allowLikes: editedShowLikeCount,
         updatedAt: serverTimestamp(),
       });
 
@@ -297,6 +307,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
         ...post,
         content: editedContent.trim(),
         isPrivate: editedPrivacy,
+        allowComments: editedAllowComments,
+        allowLikes: editedShowLikeCount,
       });
 
       setIsEditing(false);
@@ -622,8 +634,32 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 />
               </View>
               <Text style={[styles.switchDescription, { color: currentTheme.textSecondary }]}>
-                Private posts are only visible to you
+                Private posts are only visible to your connections
               </Text>
+            </View>
+
+            <View style={styles.modalSection}>
+              <View style={styles.switchContainer}>
+                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Allow Comments</Text>
+                <Switch
+                  value={editedAllowComments}
+                  onValueChange={setEditedAllowComments}
+                  trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+                  thumbColor="white"
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
+              <View style={styles.switchContainer}>
+                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Show Like Count</Text>
+                <Switch
+                  value={editedShowLikeCount}
+                  onValueChange={setEditedShowLikeCount}
+                  trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+                  thumbColor="white"
+                />
+              </View>
             </View>
 
             <View style={styles.modalSection}>

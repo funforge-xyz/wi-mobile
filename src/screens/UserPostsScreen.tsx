@@ -334,11 +334,11 @@ export default function UserPostsScreen({ navigation }: any) {
         {profile?.photoURL ? (
           <Image 
             source={{ uri: profile.photoURL }} 
-            style={styles.largeAvatar} 
+            style={styles.smallAvatar} 
           />
         ) : (
-          <View style={[styles.largeAvatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
-            <Ionicons name="person" size={40} color={currentTheme.textSecondary} />
+          <View style={[styles.smallAvatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
+            <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
           </View>
         )}
 
@@ -348,12 +348,6 @@ export default function UserPostsScreen({ navigation }: any) {
               ? `${profile.firstName} ${profile.lastName}` 
               : 'Your Profile'}
           </Text>
-
-          {profile?.bio ? (
-            <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
-              {profile.bio}
-            </Text>
-          ) : null}
 
           <View style={styles.statsContainer}>
             <View style={styles.stat}>
@@ -452,19 +446,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   profileHeader: {
-    padding: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderRadius: 16,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderRadius: 12,
   },
   profileRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
-  largeAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginRight: SPACING.lg,
+  smallAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: SPACING.md,
   },
   placeholderAvatar: {
     justifyContent: 'center',
@@ -474,18 +468,11 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     flex: 1,
-    paddingTop: SPACING.sm,
   },
   displayName: {
-    fontSize: 24,
+    fontSize: 18,
     fontFamily: FONTS.bold,
-    marginBottom: SPACING.sm,
-  },
-  bio: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    marginBottom: SPACING.md,
-    lineHeight: 22,
+    marginBottom: SPACING.xs,
   },
   statsContainer: {
     flexDirection: 'row',
