@@ -468,11 +468,6 @@ export default function ChatsScreen({ navigation }: any) {
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          {item.bio ? (
-            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
-              {item.bio}
-            </Text>
-          ) : null}
         </View>
       </View>
       <View style={styles.connectionActions}>
@@ -744,18 +739,6 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   detailsButton: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    marginRight: SPACING.sm,
-  },
-  detailsButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: FONTS.medium,
-  },
-  chatIconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
