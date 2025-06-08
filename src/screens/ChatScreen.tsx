@@ -117,6 +117,9 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
 
+    const messageToSend = newMessage.trim();
+    setNewMessage(''); // Clear input immediately
+
     try {
       setSending(true);
       const { getAuth } = await import('../services/firebase');
@@ -148,7 +151,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       await addDoc(collection(firestore, 'chats', chatRoomId, 'messages'), {
         senderId: currentUser.uid,
         receiverId: userId,
-        text: newMessage.trim(),
+        text: messageToSend,
         createdAt: new Date(),
       });
 
@@ -156,7 +159,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       const chatDocData = {
         participants: [currentUser.uid, userId],
         lastMessageTime: new Date(),
-        lastMessage: newMessage.trim(),
+        lastMessage: messageToSend,
         lastMessageSender: currentUser.uid,
         updatedAt: new Date() // Add this to ensure real-time updates
       };
@@ -179,11 +182,11 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           acceptedAt: new Date(),
         });
       }
-
-      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
       Alert.alert('Error', 'Failed to send message');
+      // Restore the message if sending failed
+      setNewMessage(messageToSend);
     } finally {
       setSending(false);
     }
