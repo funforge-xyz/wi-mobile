@@ -224,7 +224,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <View style={styles.headerInfo}>
+        <TouchableOpacity 
+          style={styles.headerInfo}
+          onPress={() => navigation.navigate('UserProfile', { userId })}
+        >
           {userPhotoURL ? (
             <Image source={{ uri: userPhotoURL }} style={styles.headerAvatar} />
           ) : (
@@ -233,7 +236,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
             </View>
           )}
           <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
-        </View>
+        </TouchableOpacity>
         <View style={{ width: 24 }} />
       </View>
 
