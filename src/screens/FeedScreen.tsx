@@ -39,11 +39,11 @@ interface PostItemProps {
   post: ConnectionPost;
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
-  onShare: (postId: string) => void;
   currentTheme: any;
+  navigation: any;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, currentTheme }) => {
+const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentTheme, navigation }) => {
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
@@ -80,9 +80,6 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
             </Text>
           </View>
         </View>
-        <TouchableOpacity>
-          <Ionicons name="ellipsis-horizontal" size={20} color={currentTheme.textSecondary} />
-        </TouchableOpacity>
       </View>
 
       {post.content ? (
@@ -113,25 +110,18 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
         {post.allowComments && (
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => onComment(post.id)}
+            onPress={() => navigation.navigate('SinglePost', { postId: post.id })}
           >
             <Ionicons name="chatbubble-outline" size={24} color={currentTheme.textSecondary} />
             <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.commentsCount}</Text>
           </TouchableOpacity>
         )}
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => onShare(post.id)}
-        >
-          <Ionicons name="share-outline" size={24} color={currentTheme.textSecondary} />
-        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-export default function FeedScreen() {
+export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -309,13 +299,7 @@ export default function FeedScreen() {
     );
   };
 
-  const handleComment = (postId: string) => {
-    Alert.alert('Comments', 'Comments functionality coming soon!');
-  };
-
-  const handleShare = (postId: string) => {
-    Alert.alert('Share', 'Share functionality coming soon!');
-  };
+  
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -359,9 +343,9 @@ export default function FeedScreen() {
           <PostItem
             post={item}
             onLike={handleLike}
-            onComment={handleComment}
-            onShare={handleShare}
+            onComment={() => {}}
             currentTheme={currentTheme}
+            navigation={navigation}
           />
         )}
         refreshControl={

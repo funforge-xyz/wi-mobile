@@ -107,6 +107,24 @@ export default function NearbyScreen({ navigation }: any) {
         blockedUserIds.add(doc.data().blockerUserId);
       });
 
+      // Get connected users
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid),
+        where('status', '==', 'active')
+      );
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+      const connectedUserIds = new Set<string>();
+      connectionsSnapshot.forEach((doc) => {
+        const connectionData = doc.data();
+        const otherParticipant = connectionData.participants.find(
+          (id: string) => id !== currentUser.uid
+        );
+        if (otherParticipant) {
+          connectedUserIds.add(otherParticipant);
+        }
+      });
+
       const usersCollection = collection(firestore, 'users');
       const usersSnapshot = await getDocs(usersCollection);
 
@@ -114,8 +132,10 @@ export default function NearbyScreen({ navigation }: any) {
 
       usersSnapshot.forEach((doc) => {
         const userData = doc.data();
-        // Exclude current user and blocked users
-        if (doc.id !== currentUser.uid && !blockedUserIds.has(doc.id)) {
+        // Exclude current user, blocked users, and connected users
+        if (doc.id !== currentUser.uid && 
+            !blockedUserIds.has(doc.id) && 
+            !connectedUserIds.has(doc.id)) {
           users.push({
             id: doc.id,
             firstName: userData.firstName || '',
@@ -144,61 +164,52 @@ export default function NearbyScreen({ navigation }: any) {
 
       const firestore = getFirestore();
       
-      // Get blocked users
-      const blockedUsersQuery = query(
-        collection(firestore, 'blockedUsers'),
-        where('blockerUserId', '==', currentUser.uid)
+      // Get connected users
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid),
+        where('status', '==', 'active')
       );
-      const blockedUsersSnapshot = await getDocs(blockedUsersQuery);
-      const blockedUserIds = new Set();
-      blockedUsersSnapshot.forEach((doc) => {
-        blockedUserIds.add(doc.data().blockedUserId);
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+      const connectedUserIds = new Set<string>();
+      connectionsSnapshot.forEach((doc) => {
+        const connectionData = doc.data();
+        const otherParticipant = connectionData.participants.find(
+          (id: string) => id !== currentUser.uid
+        );
+        if (otherParticipant) {
+          connectedUserIds.add(otherParticipant);
+        }
       });
 
-      // Get users who blocked current user
-      const blockedByUsersQuery = query(
-        collection(firestore, 'blockedUsers'),
-        where('blockedUserId', '==', currentUser.uid)
-      );
-      const blockedByUsersSnapshot = await getDocs(blockedByUsersQuery);
-      blockedByUsersSnapshot.forEach((doc) => {
-        blockedUserIds.add(doc.data().blockerUserId);
-      });
+      if (connectedUserIds.size === 0) {
+        setNearbyPosts([]);
+        return;
+      }
 
       const postsCollection = collection(firestore, 'posts');
       
-      // First, get all posts ordered by creation date
+      // Get posts from connected users
       const postsQuery = query(
         postsCollection,
         orderBy('createdAt', 'desc'),
-        limit(50) // Get more posts to filter out current user's posts
+        limit(50)
       );
       const postsSnapshot = await getDocs(postsQuery);
 
       const posts: NearbyPost[] = [];
-      let postCount = 0;
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
 
-        // Skip current user's posts
-        if (postData.authorId === currentUser.uid) {
+        // Only include posts from connected users
+        if (!connectedUserIds.has(postData.authorId)) {
           continue;
         }
 
-        // Skip posts from blocked users
-        if (blockedUserIds.has(postData.authorId)) {
-          continue;
-        }
-
-        // Skip private posts - only show public posts
+        // Skip private posts
         if (postData.isPrivate === true) {
           continue;
-        }
-
-        // Stop if we have enough posts
-        if (postCount >= 20) {
-          break;
         }
 
         // Get author information
@@ -230,7 +241,10 @@ export default function NearbyScreen({ navigation }: any) {
           allowComments: postData.allowComments !== false,
         });
 
-        postCount++;
+        // Limit to 20 posts for performance
+        if (posts.length >= 20) {
+          break;
+        }
       }
 
       setNearbyPosts(posts);
