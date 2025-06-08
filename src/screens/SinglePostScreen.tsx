@@ -461,11 +461,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
             <Ionicons name="create-outline" size={24} color={currentTheme.text} />
           </TouchableOpacity>
         )}
-        {!isOwnPost && (
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <Ionicons name="settings-outline" size={24} color={currentTheme.text} />
-          </TouchableOpacity>
-        )}
         {!isOwnPost && !post?.authorId && <View style={{ width: 24 }} />}
       </View>
 

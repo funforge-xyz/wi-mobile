@@ -38,7 +38,6 @@ export default function RootScreen() {
       setShowOnboarding(false);
       // Force a complete re-render to reset navigation state
       setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 100);
     });
   }, []);
 
