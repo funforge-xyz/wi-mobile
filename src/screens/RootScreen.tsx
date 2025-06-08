@@ -34,10 +34,15 @@ export default function RootScreen() {
 
     // Set up sign out callback to reset navigation
     authService.setOnSignOutCallback(() => {
+      // Reset all navigation state completely
       setIsAuthenticated(false);
       setShowOnboarding(false);
-      // Force a complete re-render to reset navigation state
+      // Force a complete reset of the component
       setIsLoading(true);
+      // Clear any cached state
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 50);
     });
   }, []);
 

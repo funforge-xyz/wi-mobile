@@ -331,7 +331,7 @@ export default function UserPostsScreen({ navigation }: any) {
   const renderProfileHeader = () => (
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.profileRow}>
-        {(profile?.photoURL && profile.photoURL.trim() !== '') ? (
+        {profile?.photoURL && profile.photoURL.trim() !== '' ? (
           <Image 
             source={{ uri: profile.photoURL }} 
             style={styles.smallAvatar} 
@@ -352,7 +352,7 @@ export default function UserPostsScreen({ navigation }: any) {
           <View style={styles.statsContainer}>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {posts.length}
+                {posts?.length || 0}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
                 Posts
@@ -397,7 +397,7 @@ export default function UserPostsScreen({ navigation }: any) {
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            posts.length === 0 ? styles.emptyContainer : styles.listContent
+            posts.length === 0 ? [styles.emptyContainer, { paddingTop: SPACING.sm }] : styles.listContent
           }
         />
       )}
@@ -444,6 +444,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
   },
   profileHeader: {
     padding: SPACING.md,
