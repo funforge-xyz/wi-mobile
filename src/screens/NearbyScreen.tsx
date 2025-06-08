@@ -16,7 +16,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface NearbyUser {
@@ -44,6 +44,7 @@ interface NearbyPost {
   commentsCount: number;
   allowLikes: boolean;
   allowComments: boolean;
+  isLikedByUser?: boolean;
 }
 
 export default function NearbyScreen({ navigation }: any) {
@@ -242,9 +243,16 @@ export default function NearbyScreen({ navigation }: any) {
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
 
-        // Get likes count
+        // Get likes count and check if user liked
         const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
         const likesSnapshot = await getDocs(likesCollection);
+        
+        let isLikedByUser = false;
+        likesSnapshot.forEach((likeDoc) => {
+          if (likeDoc.data().authorId === currentUser.uid) {
+            isLikedByUser = true;
+          }
+        });
 
         // Get comments count
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
@@ -265,6 +273,7 @@ export default function NearbyScreen({ navigation }: any) {
           commentsCount: commentsSnapshot.size,
           allowLikes: postData.allowLikes !== false,
           allowComments: postData.allowComments !== false,
+          isLikedByUser: isLikedByUser,
         });
 
         // Limit to 20 posts for performance
@@ -360,6 +369,69 @@ export default function NearbyScreen({ navigation }: any) {
   const handlePostPress = (post: NearbyPost) => {
     // Navigate to single post screen
     navigation.navigate('SinglePost', { postId: post.id });
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        Alert.alert('Error', 'You must be logged in to like posts');
+        return;
+      }
+
+      const firestore = getFirestore();
+      const likesCollection = collection(firestore, 'posts', postId, 'likes');
+
+      // Check if user already liked this post
+      const post = nearbyPosts.find(p => p.id === postId);
+      if (!post) return;
+
+      if (post.isLikedByUser) {
+        // Unlike: Find and delete the user's like
+        const likesSnapshot = await getDocs(likesCollection);
+        let userLikeDoc = null;
+        
+        likesSnapshot.forEach((likeDoc) => {
+          if (likeDoc.data().authorId === currentUser.uid) {
+            userLikeDoc = likeDoc;
+          }
+        });
+
+        if (userLikeDoc) {
+          await deleteDoc(doc(firestore, 'posts', postId, 'likes', userLikeDoc.id));
+        }
+
+        // Update UI
+        setNearbyPosts(prevPosts =>
+          prevPosts.map(p =>
+            p.id === postId
+              ? { ...p, likesCount: Math.max(0, p.likesCount - 1), isLikedByUser: false }
+              : p
+          )
+        );
+      } else {
+        // Like: Add new like
+        await addDoc(likesCollection, {
+          authorId: currentUser.uid,
+          createdAt: new Date(),
+        });
+
+        // Update UI
+        setNearbyPosts(prevPosts =>
+          prevPosts.map(p =>
+            p.id === postId
+              ? { ...p, likesCount: p.likesCount + 1, isLikedByUser: true }
+              : p
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error handling like:', error);
+      Alert.alert('Error', 'Failed to update like');
+    }
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -461,20 +533,27 @@ export default function NearbyScreen({ navigation }: any) {
 
       <View style={styles.postStats}>
         {item.allowLikes && (
-          <View style={styles.statItem}>
-            <Ionicons name="heart-outline" size={16} color={currentTheme.textSecondary} />
+          <TouchableOpacity 
+            style={styles.statItem}
+            onPress={() => handleLike(item.id)}
+          >
+            <Ionicons 
+              name={item.isLikedByUser ? "heart" : "heart-outline"} 
+              size={16} 
+              color={item.isLikedByUser ? COLORS.error : currentTheme.textSecondary} 
+            />
             <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
               {item.likesCount}
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
         {item.allowComments && (
-          <View style={styles.statItem}>
+          <TouchableOpacity style={styles.statItem}>
             <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
             <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
               {item.commentsCount}
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>

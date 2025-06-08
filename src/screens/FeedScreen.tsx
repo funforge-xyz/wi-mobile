@@ -15,8 +15,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import { getAuth } from '../services/firebase';
 
 const { width } = Dimensions.get('window');
 
@@ -33,17 +34,21 @@ interface ConnectionPost {
   commentsCount: number;
   allowLikes: boolean;
   allowComments: boolean;
+  isLikedByUser: boolean;
 }
 
 interface PostItemProps {
   post: ConnectionPost;
-  onLike: (postId: string) => void;
+  onLike: (postId: string, liked: boolean) => void;
   onComment: (postId: string) => void;
   currentTheme: any;
   navigation: any;
 }
 
 const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentTheme, navigation }) => {
+  const [liked, setLiked] = useState(post.isLikedByUser);
+  const [likesCount, setLikesCount] = useState(post.likesCount);
+
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
@@ -60,6 +65,12 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
     } else {
       return 'Just now';
     }
+  };
+
+  const handleLikePress = () => {
+    onLike(post.id, liked);
+    setLiked(!liked);
+    setLikesCount(liked ? likesCount - 1 : likesCount + 1);
   };
 
   return (
@@ -100,10 +111,10 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
         {post.allowLikes && (
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => onLike(post.id)}
+            onPress={handleLikePress}
           >
-            <Ionicons name="heart-outline" size={24} color={currentTheme.textSecondary} />
-            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.likesCount}</Text>
+            <Ionicons name={liked ? "heart" : "heart-outline"} size={24} color={liked ? "red" : currentTheme.textSecondary} />
+            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{likesCount}</Text>
           </TouchableOpacity>
         )}
 
@@ -134,7 +145,7 @@ export default function FeedScreen({ navigation }: any) {
       try {
         const { getAuth } = await import('../services/firebase');
         const auth = getAuth();
-        
+
         const unsubscribe = auth.onAuthStateChanged((user) => {
           if (user) {
             loadConnectionPosts();
@@ -152,7 +163,7 @@ export default function FeedScreen({ navigation }: any) {
     };
 
     let unsubscribe: (() => void) | undefined;
-    
+
     setupAuthListener().then((unsub) => {
       unsubscribe = unsub;
     });
@@ -167,7 +178,6 @@ export default function FeedScreen({ navigation }: any) {
   const loadConnectionPosts = async () => {
     try {
       setLoading(true);
-      const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
@@ -233,9 +243,16 @@ export default function FeedScreen({ navigation }: any) {
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
 
-        // Get likes count
+        // Get likes count and check if user liked
         const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
         const likesSnapshot = await getDocs(likesCollection);
+
+        let isLikedByUser = false;
+        likesSnapshot.forEach((likeDoc) => {
+          if (likeDoc.data().authorId === currentUser.uid) {
+            isLikedByUser = true;
+          }
+        });
 
         // Get comments count
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
@@ -256,6 +273,7 @@ export default function FeedScreen({ navigation }: any) {
           commentsCount: commentsSnapshot.size,
           allowLikes: postData.allowLikes !== false,
           allowComments: postData.allowComments !== false,
+          isLikedByUser: isLikedByUser,
         };
 
         console.log('Adding post to feed:', {
@@ -289,17 +307,48 @@ export default function FeedScreen({ navigation }: any) {
     setRefreshing(false);
   };
 
-  const handleLike = (postId: string) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? { ...post, likesCount: post.likesCount + 1 }
-          : post
-      )
-    );
+  const handleLike = async (postId: string, liked: boolean) => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      console.log('No current user found');
+      return;
+    }
+
+    const firestore = getFirestore();
+    const likeRef = doc(firestore, 'posts', postId, 'likes', currentUser.uid);
+
+    try {
+      if (liked) {
+        await deleteDoc(likeRef);
+        console.log("Post unliked");
+      } else {
+        await setDoc(likeRef, {
+          authorId: currentUser.uid,
+          createdAt: new Date(),
+        });
+        console.log("Post liked");
+      }
+
+      // Optimistically update the UI
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                likesCount: liked ? post.likesCount - 1 : post.likesCount + 1,
+                isLikedByUser: !liked,
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error("Error liking/unliking post:", error);
+      Alert.alert("Error", "Failed to like/unlike post");
+    }
   };
 
-  
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
