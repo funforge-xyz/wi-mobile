@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
@@ -62,6 +63,18 @@ export default function ChatsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
+  // Force refresh when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (activeTab === 'connections') {
+        // Force a small delay to ensure any recent message updates are reflected
+        setTimeout(() => {
+          setConnections(prevConnections => [...prevConnections]);
+        }, 100);
+      }
+    }, [activeTab])
+  );
 
   useEffect(() => {
     let unsubscribeRequests: (() => void) | null = null;
