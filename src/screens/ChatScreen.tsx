@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface Message {
@@ -185,7 +185,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
       // Update chat document with last message info
       const chatRef = doc(firestore, 'chats', chatRoomId);
-      await chatRef.set({
+      await setDoc(chatRef, {
         participants: [currentUser.uid, userId],
         lastMessageTime: new Date(),
         lastMessage: newMessage.trim(),

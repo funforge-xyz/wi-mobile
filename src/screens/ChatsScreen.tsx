@@ -52,7 +52,7 @@ interface Connection {
 }
 
 export default function ChatsScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<'chats' | 'connections' | 'requests'>('chats');
+  const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -69,9 +69,7 @@ export default function ChatsScreen({ navigation }: any) {
   const loadData = async () => {
     try {
       setLoading(true);
-      if (activeTab === 'chats') {
-        await loadChatMessages();
-      } else if (activeTab === 'requests') {
+      if (activeTab === 'requests') {
         await loadConnectionRequests();
       } else if (activeTab === 'connections') {
         await loadConnections();
@@ -568,12 +566,6 @@ export default function ChatsScreen({ navigation }: any) {
   const renderEmptyState = () => {
     const getEmptyStateConfig = () => {
       switch (activeTab) {
-        case 'chats':
-          return {
-            icon: 'chatbubble-outline',
-            title: 'No Chats',
-            subtitle: 'Start a conversation with someone nearby.'
-          };
         case 'connections':
           return {
             icon: 'people-outline',
@@ -588,7 +580,7 @@ export default function ChatsScreen({ navigation }: any) {
           };
         default:
           return {
-            icon: 'chatbubble-outline',
+            icon: 'people-outline',
             title: 'No Data',
             subtitle: 'Nothing to show right now.'
           };
@@ -622,18 +614,6 @@ export default function ChatsScreen({ navigation }: any) {
 
       <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'chats' && styles.activeTab]}
-          onPress={() => setActiveTab('chats')}
-        >
-          <Text style={[
-            styles.tabText, 
-            { color: currentTheme.textSecondary }, 
-            activeTab === 'chats' && styles.activeTabText
-          ]}>
-            Chats
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
           onPress={() => setActiveTab('connections')}
         >
@@ -666,13 +646,11 @@ export default function ChatsScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={
-            activeTab === 'chats' ? chatMessages :
             activeTab === 'connections' ? connections :
             connectionRequests
           }
           keyExtractor={(item) => item.id}
           renderItem={
-            activeTab === 'chats' ? renderChatItem :
             activeTab === 'connections' ? renderConnectionItem :
             renderRequestItem
           }
@@ -682,8 +660,7 @@ export default function ChatsScreen({ navigation }: any) {
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            (activeTab === 'chats' ? chatMessages : 
-             activeTab === 'connections' ? connections :
+            (activeTab === 'connections' ? connections :
              connectionRequests).length === 0
               ? styles.emptyContainer
               : styles.listContent
