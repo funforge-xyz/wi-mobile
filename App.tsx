@@ -27,6 +27,7 @@ import { initializeNotifications } from './src/services/notifications';
 
 // Types
 import { RootStackParamList } from './src/types/navigation';
+import SinglePostScreen from './src/screens/SinglePostScreen';
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
