@@ -95,8 +95,6 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
             source={{ uri: post.mediaURL }}
             style={styles.postImage}
             resizeMode="cover"
-            onError={(error) => console.log('Image load error:', error.nativeEvent.error)}
-            onLoad={() => console.log('Image loaded successfully:', post.mediaURL)}
           />
         </View>
       )}
@@ -149,10 +147,8 @@ export default function FeedScreen() {
         
         const unsubscribe = auth.onAuthStateChanged((user) => {
           if (user) {
-            console.log('Auth state changed - user found:', user.uid);
             loadConnectionPosts();
           } else {
-            console.log('Auth state changed - no user');
             setLoading(false);
             setPosts([]);
           }
@@ -205,7 +201,6 @@ export default function FeedScreen() {
       const connectedUserIds = new Set<string>();
       connectionsSnapshot.forEach((doc) => {
         const connectionData = doc.data();
-        console.log('Connection data:', connectionData);
         const otherParticipant = connectionData.participants.find(
           (id: string) => id !== currentUser.uid
         );
@@ -289,7 +284,6 @@ export default function FeedScreen() {
         }
       }
 
-      console.log('Final connection posts:', connectionPosts.length);
       setPosts(connectionPosts);
     } catch (error) {
       console.error('Error loading connection posts:', error);
