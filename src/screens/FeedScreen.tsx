@@ -96,8 +96,15 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
             source={{ uri: post.mediaURL }}
             style={styles.postImage}
             resizeMode="cover"
+            onError={(error) => console.log('Image load error:', error.nativeEvent.error)}
+            onLoad={() => console.log('Image loaded successfully:', post.mediaURL)}
           />
         </View>
+      )}
+      {!post.mediaURL && post.content && (
+        <Text style={{ fontSize: 12, color: currentTheme.textSecondary, paddingHorizontal: SPACING.md }}>
+          No image URL for this post
+        </Text>
       )}
 
       <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
@@ -229,7 +236,7 @@ export default function FeedScreen() {
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
         const commentsSnapshot = await getDocs(commentsCollection);
 
-        connectionPosts.push({
+        const postInfo = {
           id: postDoc.id,
           authorId: postData.authorId,
           authorName: authorData.firstName && authorData.lastName 
@@ -244,7 +251,17 @@ export default function FeedScreen() {
           commentsCount: commentsSnapshot.size,
           allowLikes: postData.allowLikes !== false,
           allowComments: postData.allowComments !== false,
+        };
+        
+        console.log('Adding post to feed:', {
+          id: postInfo.id,
+          authorName: postInfo.authorName,
+          hasContent: !!postInfo.content,
+          hasMediaURL: !!postInfo.mediaURL,
+          mediaURL: postInfo.mediaURL
         });
+        
+        connectionPosts.push(postInfo);
 
         // Limit to 20 posts for performance
         if (connectionPosts.length >= 20) {
