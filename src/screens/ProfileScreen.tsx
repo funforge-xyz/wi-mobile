@@ -50,6 +50,12 @@ export default function ProfileScreen() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
@@ -203,6 +209,53 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleChangePassword = () => {
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setIsChangingPassword(true);
+  };
+
+  const handleSavePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await authService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      setIsChangingPassword(false);
+      Alert.alert('Success', 'Password changed successfully');
+    } catch (error: any) {
+      console.error('Change password error:', error);
+      Alert.alert('Error', error.message || 'Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelPasswordChange = () => {
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setIsChangingPassword(false);
   };
 
   const handleDeleteProfile = async () => {
@@ -477,6 +530,12 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
+          <TouchableOpacity style={styles.menuItem} onPress={handleChangePassword}>
+            <Ionicons name="key-outline" size={20} color={currentTheme.text} />
+            <Text style={[styles.menuText, { color: currentTheme.text }]}>Change Password</Text>
+            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem}>
             <Ionicons name="help-circle-outline" size={20} color={currentTheme.text} />
             <Text style={[styles.menuText, { color: currentTheme.text }]}>Help & Support</Text>
@@ -556,6 +615,18 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Email</Text>
+              <View style={[styles.input, styles.emailDisplayContainer, { 
+                backgroundColor: currentTheme.surface, 
+                borderColor: currentTheme.border 
+              }]}>
+                <Text style={[styles.emailDisplayText, { color: currentTheme.textSecondary }]}>
+                  {profile.email}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
               <TextInput
                 style={[styles.textArea, { 
@@ -569,6 +640,75 @@ export default function ProfileScreen() {
                 placeholderTextColor={currentTheme.textSecondary}
                 multiline
                 numberOfLines={4}
+              />
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal visible={isChangingPassword} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={handleCancelPasswordChange}>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Change Password</Text>
+            <TouchableOpacity onPress={handleSavePassword} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.modalSave}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.modalSection}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Current Password</Text>
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: currentTheme.surface, 
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border 
+                }]}
+                value={passwordForm.currentPassword}
+                onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
+                placeholder="Enter your current password"
+                placeholderTextColor={currentTheme.textSecondary}
+                secureTextEntry
+              />
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>New Password</Text>
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: currentTheme.surface, 
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border 
+                }]}
+                value={passwordForm.newPassword}
+                onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
+                placeholder="Enter your new password"
+                placeholderTextColor={currentTheme.textSecondary}
+                secureTextEntry
+              />
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Confirm New Password</Text>
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: currentTheme.surface, 
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border 
+                }]}
+                value={passwordForm.confirmPassword}
+                onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
+                placeholder="Confirm your new password"
+                placeholderTextColor={currentTheme.textSecondary}
+                secureTextEntry
               />
             </View>
           </ScrollView>
@@ -788,6 +928,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     textAlignVertical: 'top',
     minHeight: 100,
+  },
+  emailDisplayContainer: {
+    justifyContent: 'center',
+  },
+  emailDisplayText: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
   },
     avatarContainer: {
     position: 'relative',

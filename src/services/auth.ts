@@ -5,6 +5,9 @@ import {
   User as FirebaseUser,
   // GoogleAuthProvider,
   // signInWithCredential,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from 'firebase/auth';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth } from './firebase';
@@ -54,7 +57,7 @@ export class AuthService {
     try {
       const auth = getAuth();
       const user = auth.currentUser;
-      
+
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -75,10 +78,10 @@ export class AuthService {
       // Update Firestore profile document
       const { getFirestore } = await import('./firebase');
       const { doc, setDoc } = await import('firebase/firestore');
-      
+
       const firestore = getFirestore();
       const userDocRef = doc(firestore, 'users', user.uid);
-      
+
       await setDoc(userDocRef, {
         email: user.email,
         firstName: userData.firstName || '',
@@ -117,10 +120,10 @@ export class AuthService {
         // Create user document in Firestore
         const { getFirestore } = await import('./firebase');
         const { doc, setDoc } = await import('firebase/firestore');
-        
+
         const firestore = getFirestore();
         const userDocRef = doc(firestore, 'users', user.uid);
-        
+
         await setDoc(userDocRef, {
           email: user.email,
           firstName: profileData?.firstName || '',
@@ -199,7 +202,7 @@ export class AuthService {
       // TODO: Google Sign In calls disabled for Expo Go compatibility
       // await GoogleSignin.revokeAccess();
       // await GoogleSignin.signOut();
-      
+
       // Trigger navigation reset
       if (this.onSignOutCallback) {
         this.onSignOutCallback();
@@ -219,11 +222,44 @@ export class AuthService {
     return !!token;
   }
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        throw new Error('No user found');
+      }
+
+      // Re-authenticate user with current password
+      const { EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Update password
+      const { updatePassword } = await import('firebase/auth');
+      await updatePassword(user, newPassword);
+
+      console.log('Password changed successfully');
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+
+      if (error.code === 'auth/wrong-password') {
+        throw new Error('Current password is incorrect');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('New password is too weak');
+      } else if (error.code === 'auth/requires-recent-login') {
+        throw new Error('For security reasons, please sign out and sign back in before changing your password');
+      }
+
+      throw new Error('Failed to change password. Please try again.');
+    }
+  }
+
   async deleteProfile(): Promise<void> {
     try {
       const auth = getAuth();
       const user = auth.currentUser;
-      
+
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -233,7 +269,7 @@ export class AuthService {
         // Get user data to find profile picture URL
         const { getFirestore } = await import('./firebase');
         const { doc, getDoc, deleteDoc } = await import('firebase/firestore');
-        
+
         const firestore = getFirestore();
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
