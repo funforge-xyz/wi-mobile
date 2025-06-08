@@ -38,8 +38,7 @@ interface UserProfile {
   photoURL: string;
   bio: string;
   postsCount: number;
-  followersCount: number;
-  followingCount: number;
+  connectionsCount: number;
 }
 
 export default function UserProfileScreen({ route, navigation }: UserProfileProps) {
@@ -52,8 +51,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     photoURL,
     bio,
     postsCount: 0,
-    followersCount: 0,
-    followingCount: 0,
+    connectionsCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -88,8 +86,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
           photoURL: userData.photoURL || photoURL,
           bio: userData.bio || bio,
           postsCount: postsCount,
-          followersCount: 0,
-          followingCount: 0,
+          connectionsCount: 0,
         });
       }
     } catch (error) {
@@ -206,18 +203,10 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
             </View>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile.followersCount}
+                0
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Followers
-              </Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile.followingCount}
-              </Text>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Following
+                Connections
               </Text>
             </View>
           </View>
