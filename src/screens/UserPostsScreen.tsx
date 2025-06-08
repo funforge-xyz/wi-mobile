@@ -60,6 +60,15 @@ export default function UserPostsScreen({ navigation }: any) {
         const userDocRef = doc(firestore, 'users', currentUser.uid);
         const userDoc = await getDoc(userDocRef);
 
+        // Get user's connections count
+        const connectionsQuery = query(
+          collection(firestore, 'connections'),
+          where('participants', 'array-contains', currentUser.uid),
+          where('status', '==', 'active')
+        );
+        const connectionsSnapshot = await getDocs(connectionsQuery);
+        setConnectionsCount(connectionsSnapshot.size);
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setProfile({
@@ -580,4 +589,3 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
-```
