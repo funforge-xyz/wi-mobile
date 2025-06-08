@@ -105,37 +105,37 @@ export default function ChatsScreen({ navigation }: any) {
 
       for (const chatDoc of chatsSnapshot.docs) {
         const chatData = chatDoc.data();
-        
+
         // Get the other participant's ID
         const otherParticipantId = chatData.participants.find((id: string) => id !== currentUser.uid);
-        
+
         if (otherParticipantId) {
           // Get other participant's info
           const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
           const userData = userDoc.exists() ? userDoc.data() : {};
-          
+
           // Get the last few messages to determine unread count and actual last message
           const messagesQuery = query(
             collection(firestore, 'chats', chatDoc.id, 'messages'),
             orderBy('createdAt', 'desc'),
             limit(20) // Get last 20 messages to check for unread
           );
-          
+
           const messagesSnapshot = await getDocs(messagesQuery);
           let unreadCount = 0;
           let actualLastMessage = 'No messages yet';
           let lastMessageTime = chatData.lastMessageTime?.toDate() || new Date();
           let lastMessageSenderId = null;
-          
+
           // Process messages to get actual last message and unread count
           if (!messagesSnapshot.empty) {
             const lastMessageDoc = messagesSnapshot.docs[0];
             const lastMessageData = lastMessageDoc.data();
-            
+
             actualLastMessage = lastMessageData.text || lastMessageData.content || 'Message';
             lastMessageTime = lastMessageData.createdAt?.toDate() || lastMessageTime;
             lastMessageSenderId = lastMessageData.senderId;
-            
+
             // For now, we'll use a simple unread logic - this could be improved with read receipts
             // Count recent messages from other participant as potentially unread
             const recentMessages = messagesSnapshot.docs.slice(0, 5); // Check last 5 messages
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
   },
   connectionActions: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    gap: SPACING.xs,
   },
   detailsButton: {
     width: 40,
@@ -918,7 +918,7 @@ const styles = StyleSheet.create({
   },
   connectionActions: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    gap: SPACING.xs,
   },
   actionButton: {
     width: 36,

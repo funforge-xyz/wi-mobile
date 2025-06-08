@@ -183,6 +183,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         });
       });
 
+      // Update chat document with last message info
+      const chatRef = doc(firestore, 'chats', chatRoomId);
+      await chatRef.set({
+        participants: [currentUser.uid, userId],
+        lastMessageTime: new Date(),
+        lastMessage: newMessage.trim(),
+        lastMessageSender: currentUser.uid
+      }, { merge: true });
+
       // If this is the first message, create connection request
       if (isFirstMessage) {
         await addDoc(collection(firestore, 'connectionRequests'), {
@@ -191,6 +200,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           status: 'pending',
           createdAt: new Date(),
           firstMessageSent: true,
+          chatRoomId: chatRoomId
         });
         setConnectionRequestSent(true);
       } else {
