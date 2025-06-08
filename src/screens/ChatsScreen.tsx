@@ -385,9 +385,11 @@ export default function ChatsScreen({ navigation }: any) {
       </View>
 
       <View style={styles.chatContent}>
-        <Text style={[styles.participantName, { color: currentTheme.text }]}>
-          {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
-        </Text>
+        <View>
+          <Text style={[styles.participantName, { color: currentTheme.text }]}>
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+          </Text>
+        </View>
 
         {item.lastMessage && (
           <View style={styles.messageRow}>
@@ -467,8 +469,8 @@ export default function ChatsScreen({ navigation }: any) {
           onPress={() => setActiveTab('connections')}
         >
           <Text style={[
-            styles.tabText, 
-            { color: currentTheme.textSecondary }, 
+            styles.tabText,
+            { color: currentTheme.textSecondary },
             activeTab === 'connections' && styles.activeTabText
           ]}>
             Connections
@@ -479,8 +481,8 @@ export default function ChatsScreen({ navigation }: any) {
           onPress={() => setActiveTab('requests')}
         >
           <Text style={[
-            styles.tabText, 
-            { color: currentTheme.textSecondary }, 
+            styles.tabText,
+            { color: currentTheme.textSecondary },
             activeTab === 'requests' && styles.activeTabText
           ]}>
             Requests
@@ -580,6 +582,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs
   },
   userInfo: {
     flexDirection: 'row',
@@ -637,6 +640,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.error,
+    marginLeft: SPACING.md
   },
   chatItemContainer: {
     flexDirection: 'row',
@@ -650,17 +654,15 @@ const styles = StyleSheet.create({
   },
   chatContent: {
     flex: 1,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.xs / 2,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    height: '100%',
+    gap: SPACING.xs / 2,
   },
   messageRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: SPACING.xs / 2,
     marginTop: SPACING.xs / 2,
   },
   participantName: {
@@ -671,9 +673,9 @@ const styles = StyleSheet.create({
   lastMessage: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    flex: 1,
     lineHeight: 18,
     marginRight: SPACING.sm,
+    flexShrink: 1
   },
   timeText: {
     fontSize: 12,
@@ -733,7 +735,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-    acceptButton: {
+  acceptButton: {
     backgroundColor: COLORS.success,
   },
   rejectButton: {
