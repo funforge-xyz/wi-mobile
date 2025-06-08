@@ -40,6 +40,7 @@ export default function UserPostsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const [connectionsCount, setConnectionsCount] = useState(0);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -360,7 +361,7 @@ export default function UserPostsScreen({ navigation }: any) {
             </View>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                0
+                {connectionsCount}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
                 Connections
@@ -579,3 +580,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+```
