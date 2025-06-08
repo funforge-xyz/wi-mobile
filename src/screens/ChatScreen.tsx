@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -46,6 +46,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [chatRoomId, setChatRoomId] = useState('');
+  const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -99,6 +100,13 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       });
       setMessages(messagesList);
       setLoading(false);
+      
+      // Auto-scroll to latest message
+      setTimeout(() => {
+        if (messagesList.length > 0 && flatListRef.current) {
+          flatListRef.current.scrollToEnd({ animated: true });
+        }
+      }, 100);
     });
 
     return () => unsubscribe();
@@ -145,12 +153,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       });
 
       // Update chat document with last message info
-      await setDoc(doc(firestore, 'chats', chatRoomId), {
+      const chatDocData = {
         participants: [currentUser.uid, userId],
         lastMessageTime: new Date(),
         lastMessage: newMessage.trim(),
         lastMessageSender: currentUser.uid,
-      }, { merge: true });
+        updatedAt: new Date() // Add this to ensure real-time updates
+      };
+      
+      await setDoc(doc(firestore, 'chats', chatRoomId), chatDocData, { merge: true });
 
       // If this is a reply to a request, create connection and update request
       if (isReplyToRequest && requestId) {
@@ -243,11 +254,17 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       
 
       <FlatList
+        ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         style={styles.messagesList}
         contentContainerStyle={styles.messagesContent}
+        onContentSizeChange={() => {
+          if (messages.length > 0) {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          }
+        }}
       />
 
       <KeyboardAvoidingView
