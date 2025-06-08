@@ -325,32 +325,6 @@ export default function ChatsScreen({ navigation }: any) {
     );
   };
 
-  const handleDeclineRequest = async (request: ConnectionRequest) => {
-    Alert.alert(
-      'Decline Request',
-      `Are you sure you want to decline the request from ${request.firstName || 'this user'}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Decline',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const firestore = getFirestore();
-              await updateDoc(doc(firestore, 'connectionRequests', request.id), {
-                status: 'rejected',
-                rejectedAt: new Date()
-              });
-            } catch (error) {
-              console.error('Error declining request:', error);
-              Alert.alert('Error', 'Failed to decline request');
-            }
-          }
-        }
-      ]
-    );
-  };
-
   const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
     <View style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}>
       <TouchableOpacity
