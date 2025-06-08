@@ -335,11 +335,10 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
-    <View style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}>
-      <TouchableOpacity
-        style={styles.userInfo}
-        onPress={() => handleUserPress(item)}
-      >
+    <View
+      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
+    >
+      <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
           {item.photoURL ? (
             <Image source={{ uri: item.photoURL }} style={styles.avatar} />
@@ -362,7 +361,7 @@ export default function ChatsScreen({ navigation }: any) {
             {formatTimeAgo(item.createdAt)}
           </Text>
         </View>
-      </TouchableOpacity>
+      </View>
       <View style={styles.connectionActions}>
         <TouchableOpacity
           style={styles.messageIconButton}
@@ -382,7 +381,7 @@ export default function ChatsScreen({ navigation }: any) {
 
   const renderConnectionItem = ({ item }: { item: Connection }) => (
     <TouchableOpacity
-      style={[styles.chatItemContainer, { backgroundColor: currentTheme.surface }]}
+      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
       onPress={() => handleStartChat(item)}
     >
       <View style={styles.chatAvatar}>
@@ -708,7 +707,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: 'white',
   },
-  connectionItem: {
+  userItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
