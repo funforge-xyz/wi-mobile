@@ -199,7 +199,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     return (
       <View style={[
         styles.messageContainer,
-        isMyMessage ? styles.myMessage : styles.otherMessage
+        isMyMessage ? styles.myMessage : [styles.otherMessage, { backgroundColor: currentTheme.surface }]
       ]}>
         <Text style={[
           styles.messageText,
@@ -389,7 +389,6 @@ const styles = StyleSheet.create({
   },
   otherMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1E1E1E',
   },
   messageText: {
     fontSize: 16,
