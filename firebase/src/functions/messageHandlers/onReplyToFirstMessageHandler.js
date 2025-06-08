@@ -29,64 +29,63 @@ exports.onReplyToFirstMessage = onDocumentWritten(
       const messagesRef = firestore.collection('chats').doc(chatId).collection('messages');
       const messagesQuery = await messagesRef.orderBy('createdAt', 'asc').get();
       
-      let firstMessageSender = null;
-      let isSecondMessage = false;
-      
+      // Check if this is exactly the second message and it's a reply
       if (messagesQuery.size === 2) {
-        // This is the second message
         const firstMessage = messagesQuery.docs[0].data();
         const secondMessage = messagesQuery.docs[1].data();
         
+        // Verify this is a reply (different senders)
         if (firstMessage.senderId !== secondMessage.senderId) {
-          // This is a reply to the first message
-          firstMessageSender = firstMessage.senderId;
-          isSecondMessage = true;
-          console.log(`This is a reply to first message. Original sender: ${firstMessageSender}, Replier: ${senderId}`);
-        }
-      }
-
-      if (isSecondMessage) {
-        // Check if there's a pending connection request between these users
-        const requestsRef = firestore.collection('connectionRequests');
-        
-        // Look for pending request from first message sender to replier
-        const requestQuery = await requestsRef
-          .where('fromUserId', '==', firstMessageSender)
-          .where('toUserId', '==', senderId)
-          .where('status', '==', 'pending')
-          .get();
-
-        if (!requestQuery.empty) {
-          const requestDoc = requestQuery.docs[0];
+          const firstMessageSender = firstMessage.senderId;
+          const replySender = secondMessage.senderId;
           
-          // Create connection
-          const connectionData = {
-            participants: [senderId, receiverId],
-            connectedAt: new Date(),
-            createdBy: 'reply_to_first_message',
-            chatId: chatId
-          };
-          
-          await firestore.collection('connections').add(connectionData);
-          
-          // Update request status to accepted instead of deleting
-          await requestDoc.ref.update({
-            status: 'accepted',
-            acceptedAt: new Date(),
-            repliedToFirstMessage: true
-          });
+          console.log(`Reply detected: Original sender: ${firstMessageSender}, Replier: ${replySender}`);
 
-          // Update chat document to mark as connected
-          await firestore.collection('chats').doc(chatId).set({
-            participants: [senderId, receiverId],
-            lastMessageTime: messageData.createdAt,
-            isConnected: true,
-            connectedAt: new Date()
-          }, { merge: true });
+          // Look for pending request from first message sender to replier
+          const requestsRef = firestore.collection('connectionRequests');
+          const requestQuery = await requestsRef
+            .where('fromUserId', '==', firstMessageSender)
+            .where('toUserId', '==', replySender)
+            .where('status', '==', 'pending')
+            .get();
 
-          console.log(`Connection created between ${senderId} and ${receiverId}`);
-        } else {
-          console.log('No pending request found for this reply');
+          if (!requestQuery.empty) {
+            const requestDoc = requestQuery.docs[0];
+            const batch = firestore.batch();
+            
+            // Create connection
+            const connectionRef = firestore.collection('connections').doc();
+            batch.set(connectionRef, {
+              participants: [firstMessageSender, replySender],
+              connectedAt: new Date(),
+              createdBy: 'reply_to_first_message',
+              chatId: chatId,
+              status: 'active'
+            });
+            
+            // Update request status to accepted
+            batch.update(requestDoc.ref, {
+              status: 'accepted',
+              acceptedAt: new Date(),
+              repliedToFirstMessage: true,
+              connectionId: connectionRef.id
+            });
+
+            // Update chat document to mark as connected
+            const chatRef = firestore.collection('chats').doc(chatId);
+            batch.update(chatRef, {
+              isConnected: true,
+              connectedAt: new Date(),
+              connectionId: connectionRef.id
+            });
+
+            // Execute all updates atomically
+            await batch.commit();
+
+            console.log(`Connection created between ${firstMessageSender} and ${replySender} with ID: ${connectionRef.id}`);
+          } else {
+            console.log('No pending request found for this reply');
+          }
         }
       }
     } catch (error) {

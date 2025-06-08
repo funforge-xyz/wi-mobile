@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit, onSnapshot } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface ChatMessage {
@@ -48,12 +48,13 @@ interface Connection {
   photoURL: string;
   bio: string;
   connectedAt: Date;
+  lastMessage?: string;
+  lastMessageTime?: Date;
   isOnline?: boolean;
 }
 
 export default function ChatsScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,223 +64,147 @@ export default function ChatsScreen({ navigation }: any) {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadData();
-  }, [activeTab]);
+    let unsubscribeRequests: (() => void) | null = null;
+    let unsubscribeConnections: (() => void) | null = null;
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      if (activeTab === 'requests') {
-        await loadConnectionRequests();
-      } else if (activeTab === 'connections') {
-        await loadConnections();
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-      Alert.alert('Error', 'Failed to load data');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const setupRealtimeListeners = async () => {
+      try {
+        const { getAuth } = await import('../services/firebase');
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
 
-  const loadChatMessages = async () => {
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
+        if (!currentUser) return;
 
-      if (!currentUser) return;
+        const firestore = getFirestore();
 
-      const firestore = getFirestore();
+        // Real-time listener for connection requests
+        const requestsQuery = query(
+          collection(firestore, 'connectionRequests'),
+          where('toUserId', '==', currentUser.uid),
+          where('status', '==', 'pending')
+        );
 
-      // Get all chats where current user is a participant
-      const chatsQuery = query(
-        collection(firestore, 'chats'),
-        where('participants', 'array-contains', currentUser.uid)
-      );
+        unsubscribeRequests = onSnapshot(requestsQuery, async (snapshot) => {
+          const requests: ConnectionRequest[] = [];
 
-      const chatsSnapshot = await getDocs(chatsQuery);
-      const messages: ChatMessage[] = [];
+          for (const requestDoc of snapshot.docs) {
+            const requestData = requestDoc.data();
 
-      for (const chatDoc of chatsSnapshot.docs) {
-        const chatData = chatDoc.data();
+            // Get sender information
+            const senderDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
+            const senderData = senderDoc.exists() ? senderDoc.data() : {};
 
-        // Get the other participant's ID
-        const otherParticipantId = chatData.participants.find((id: string) => id !== currentUser.uid);
-
-        if (otherParticipantId) {
-          // Get other participant's info
-          const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
-          const userData = userDoc.exists() ? userDoc.data() : {};
-
-          // Get the last few messages to determine unread count and actual last message
-          const messagesQuery = query(
-            collection(firestore, 'chats', chatDoc.id, 'messages'),
-            orderBy('createdAt', 'desc'),
-            limit(20) // Get last 20 messages to check for unread
-          );
-
-          const messagesSnapshot = await getDocs(messagesQuery);
-          let unreadCount = 0;
-          let actualLastMessage = 'No messages yet';
-          let lastMessageTime = chatData.lastMessageTime?.toDate() || new Date();
-          let lastMessageSenderId = null;
-
-          // Process messages to get actual last message and unread count
-          if (!messagesSnapshot.empty) {
-            const lastMessageDoc = messagesSnapshot.docs[0];
-            const lastMessageData = lastMessageDoc.data();
-
-            actualLastMessage = lastMessageData.text || lastMessageData.content || 'Message';
-            lastMessageTime = lastMessageData.createdAt?.toDate() || lastMessageTime;
-            lastMessageSenderId = lastMessageData.senderId;
-
-            // For now, we'll use a simple unread logic - this could be improved with read receipts
-            // Count recent messages from other participant as potentially unread
-            const recentMessages = messagesSnapshot.docs.slice(0, 5); // Check last 5 messages
-            recentMessages.forEach((messageDoc) => {
-              const messageData = messageDoc.data();
-              if (messageData.senderId === otherParticipantId) {
-                unreadCount++;
-              }
+            requests.push({
+              id: requestDoc.id,
+              userId: requestData.fromUserId,
+              firstName: senderData.firstName || '',
+              lastName: senderData.lastName || '',
+              email: senderData.email || '',
+              photoURL: senderData.photoURL || '',
+              bio: senderData.bio || '',
+              status: requestData.status,
+              createdAt: requestData.createdAt?.toDate() || new Date(),
             });
           }
 
-          // Format last message preview
-          let lastMessagePreview = actualLastMessage;
-          if (lastMessageSenderId === currentUser.uid) {
-            lastMessagePreview = `You: ${actualLastMessage}`;
+          requests.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          setConnectionRequests(requests);
+        });
+
+        // Real-time listener for connections
+        const connectionsQuery = query(
+          collection(firestore, 'connections'),
+          where('participants', 'array-contains', currentUser.uid),
+          where('status', '==', 'active')
+        );
+
+        unsubscribeConnections = onSnapshot(connectionsQuery, async (snapshot) => {
+          const connections: Connection[] = [];
+
+          for (const connectionDoc of snapshot.docs) {
+            const connectionData = connectionDoc.data();
+            const otherParticipantId = connectionData.participants.find((id: string) => id !== currentUser.uid);
+
+            if (otherParticipantId) {
+              // Get other participant information
+              const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
+              const userData = userDoc.exists() ? userDoc.data() : {};
+
+              // Get last message from chat
+              let lastMessage = '';
+              let lastMessageTime: Date | undefined;
+
+              if (connectionData.chatId) {
+                try {
+                  const messagesQuery = query(
+                    collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                    orderBy('createdAt', 'desc'),
+                    limit(1)
+                  );
+                  const messagesSnapshot = await getDocs(messagesQuery);
+
+                  if (!messagesSnapshot.empty) {
+                    const lastMessageData = messagesSnapshot.docs[0].data();
+                    lastMessage = lastMessageData.text || '';
+                    lastMessageTime = lastMessageData.createdAt?.toDate();
+                  }
+                } catch (error) {
+                  console.log('Error fetching last message:', error);
+                }
+              }
+
+              connections.push({
+                id: connectionDoc.id,
+                userId: otherParticipantId,
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                photoURL: userData.photoURL || '',
+                bio: userData.bio || '',
+                connectedAt: connectionData.connectedAt?.toDate() || new Date(),
+                lastMessage,
+                lastMessageTime,
+                isOnline: Math.random() > 0.5, // Mock online status
+              });
+            }
           }
 
-          messages.push({
-            id: chatDoc.id,
-            participantId: otherParticipantId,
-            participantName: userData.firstName && userData.lastName 
-              ? `${userData.firstName} ${userData.lastName}` 
-              : 'Anonymous User',
-            participantPhotoURL: userData.photoURL || '',
-            lastMessage: lastMessagePreview,
-            lastMessageTime: lastMessageTime,
-            unreadCount: Math.min(unreadCount, 5), // Cap at 5 for display
+          // Sort by last message time, then by connection time
+          connections.sort((a, b) => {
+            if (a.lastMessageTime && b.lastMessageTime) {
+              return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
+            } else if (a.lastMessageTime) {
+              return -1;
+            } else if (b.lastMessageTime) {
+              return 1;
+            } else {
+              return b.connectedAt.getTime() - a.connectedAt.getTime();
+            }
           });
-        }
-      }
 
-      // Sort messages by lastMessageTime in memory
-      messages.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
-
-      setChatMessages(messages);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
-
-  const loadConnectionRequests = async () => {
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) return;
-
-      const firestore = getFirestore();
-
-      // Get only pending requests for current user (exclude accepted ones)
-      const requestsQuery = query(
-        collection(firestore, 'connectionRequests'),
-        where('toUserId', '==', currentUser.uid),
-        where('status', '==', 'pending')
-      );
-
-      const requestsSnapshot = await getDocs(requestsQuery);
-      const requests: ConnectionRequest[] = [];
-
-      for (const requestDoc of requestsSnapshot.docs) {
-        const requestData = requestDoc.data();
-
-        // Get sender information
-        const senderDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
-        const senderData = senderDoc.exists() ? senderDoc.data() : {};
-
-        requests.push({
-          id: requestDoc.id,
-          userId: requestData.fromUserId,
-          firstName: senderData.firstName || '',
-          lastName: senderData.lastName || '',
-          email: senderData.email || '',
-          photoURL: senderData.photoURL || '',
-          bio: senderData.bio || '',
-          status: requestData.status,
-          createdAt: requestData.createdAt?.toDate() || new Date(),
+          setConnections(connections);
         });
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error setting up real-time listeners:', error);
+        setLoading(false);
       }
+    };
 
-      // Sort by creation date in memory
-      requests.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    setupRealtimeListeners();
 
-      setConnectionRequests(requests);
-    } catch (error) {
-      console.error('Error loading connection requests:', error);
-    }
-  };
-
-  const loadConnections = async () => {
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) return;
-
-      const firestore = getFirestore();
-
-      // Get connections for current user (simplified query)
-      const connectionsQuery = query(
-        collection(firestore, 'connections'),
-        where('participants', 'array-contains', currentUser.uid)
-      );
-
-      const connectionsSnapshot = await getDocs(connectionsQuery);
-      const connections: Connection[] = [];
-
-      for (const connectionDoc of connectionsSnapshot.docs) {
-        const connectionData = connectionDoc.data();
-
-        // Get the other participant's ID
-        const otherUserId = connectionData.participants.find((id: string) => id !== currentUser.uid);
-
-        if (otherUserId) {
-          // Get user data for the connected person
-          const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
-          const userData = userDoc.exists() ? userDoc.data() : {};
-
-          connections.push({
-            id: connectionDoc.id,
-            userId: otherUserId,
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: userData.email || '',
-            photoURL: userData.photoURL || '',
-            bio: userData.bio || '',
-            connectedAt: connectionData.connectedAt?.toDate() || new Date(),
-            isOnline: Math.random() > 0.5, // Mock online status for now
-          });
-        }
-      }
-
-      // Sort by connection date in memory
-      connections.sort((a, b) => b.connectedAt.getTime() - a.connectedAt.getTime());
-
-      setConnections(connections);
-    } catch (error) {
-      console.error('Error loading connections:', error);
-    }
-  };
+    // Cleanup listeners on unmount
+    return () => {
+      if (unsubscribeRequests) unsubscribeRequests();
+      if (unsubscribeConnections) unsubscribeConnections();
+    };
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
+    // Real-time listeners will automatically update data
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -297,21 +222,11 @@ export default function ChatsScreen({ navigation }: any) {
     }
   };
 
-  const handleChatPress = (chat: ChatMessage) => {
-    navigation.navigate('Chat', {
-      userId: chat.participantId,
-      userName: chat.participantName,
-      userPhotoURL: chat.participantPhotoURL
-    });
-  };
-
   const handleUserPress = (user: ConnectionRequest | Connection) => {
-    // Navigate to user profile
     navigation.navigate('Profile', { userId: user.userId });
   };
 
   const handleReplyToRequest = async (request: ConnectionRequest) => {
-    // Navigate to chat screen to reply
     navigation.navigate('Chat', {
       userId: request.userId,
       userName: request.firstName && request.lastName ? `${request.firstName} ${request.lastName}` : 'Anonymous User',
@@ -322,7 +237,7 @@ export default function ChatsScreen({ navigation }: any) {
   const handleDeclineRequest = async (request: ConnectionRequest) => {
     Alert.alert(
       'Decline Request',
-      'Are you sure you want to decline this message request?',
+      `Are you sure you want to decline the request from ${request.firstName || 'this user'}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -331,28 +246,10 @@ export default function ChatsScreen({ navigation }: any) {
           onPress: async () => {
             try {
               const firestore = getFirestore();
-
-              // Delete the request and any related chat
-              await deleteDoc(doc(firestore, 'connectionRequests', request.id));
-
-              // Delete the chat room if it exists
-              const { getAuth } = await import('../services/firebase');
-              const auth = getAuth();
-              const currentUser = auth.currentUser;
-
-              if (currentUser) {
-                const chatRoomId = [currentUser.uid, request.userId].sort().join('_');
-                const chatRef = doc(firestore, 'chats', chatRoomId);
-
-                try {
-                  await deleteDoc(chatRef);
-                } catch (error) {
-                  // Chat room might not exist, ignore error
-                }
-              }
-
-              // Reload data
-              await loadData();
+              await updateDoc(doc(firestore, 'connectionRequests', request.id), {
+                status: 'rejected',
+                rejectedAt: new Date()
+              });
             } catch (error) {
               console.error('Error declining request:', error);
               Alert.alert('Error', 'Failed to decline request');
@@ -361,16 +258,6 @@ export default function ChatsScreen({ navigation }: any) {
         }
       ]
     );
-  };
-
-  const handleViewUserDetails = (connection: Connection) => {
-    navigation.navigate('UserProfile', {
-      userId: connection.userId,
-      firstName: connection.firstName,
-      lastName: connection.lastName,
-      photoURL: connection.photoURL,
-      bio: connection.bio
-    });
   };
 
   const handleStartChat = (connection: Connection) => {
@@ -384,7 +271,7 @@ export default function ChatsScreen({ navigation }: any) {
   const handleBlockUser = async (connection: Connection) => {
     Alert.alert(
       'Block User',
-      `Are you sure you want to block ${connection.firstName || 'this user'}? They will be removed from your connections and you won't see them in nearby feeds.`,
+      `Are you sure you want to block ${connection.firstName || 'this user'}? They will be removed from your connections.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -404,25 +291,16 @@ export default function ChatsScreen({ navigation }: any) {
               await addDoc(collection(firestore, 'blockedUsers'), {
                 blockerUserId: currentUser.uid,
                 blockedUserId: connection.userId,
-                createdAt: new Date(),
+                blockedAt: new Date()
               });
 
-              // Remove from connections
-              const connectionsQuery = query(
-                collection(firestore, 'connections'),
-                where('participants', 'array-contains', currentUser.uid)
-              );
-              const connectionsSnapshot = await getDocs(connectionsQuery);
+              // Update connection status
+              await updateDoc(doc(firestore, 'connections', connection.id), {
+                status: 'blocked',
+                blockedAt: new Date(),
+                blockedBy: currentUser.uid
+              });
 
-              for (const connectionDoc of connectionsSnapshot.docs) {
-                const data = connectionDoc.data();
-                if (data.participants.includes(connection.userId)) {
-                  await connectionDoc.ref.delete();
-                }
-              }
-
-              // Reload data
-              await loadData();
               Alert.alert('Success', 'User has been blocked');
             } catch (error) {
               console.error('Error blocking user:', error);
@@ -433,54 +311,6 @@ export default function ChatsScreen({ navigation }: any) {
       ]
     );
   };
-
-  const renderChatItem = ({ item }: { item: ChatMessage }) => (
-    <TouchableOpacity
-      style={[styles.chatItemContainer, { backgroundColor: currentTheme.surface }]}
-      onPress={() => handleChatPress(item)}
-    >
-      <View style={styles.chatAvatar}>
-        {item.participantPhotoURL ? (
-          <Image source={{ uri: item.participantPhotoURL }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-            <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
-          </View>
-        )}
-      </View>
-      <View style={styles.chatContent}>
-        <View style={styles.chatHeader}>
-          <Text style={[styles.participantName, { color: currentTheme.text }]} numberOfLines={1}>
-            {item.participantName}
-          </Text>
-          <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
-            {formatTimeAgo(item.lastMessageTime)}
-          </Text>
-        </View>
-        <View style={styles.chatFooter}>
-          <Text 
-            style={[
-              styles.lastMessage, 
-              { 
-                color: currentTheme.textSecondary,
-                fontWeight: item.unreadCount > 0 ? '600' : 'normal'
-              }
-            ]} 
-            numberOfLines={2}
-          >
-            {item.lastMessage}
-          </Text>
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>
-                {item.unreadCount > 9 ? '9+' : item.unreadCount}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
 
   const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
     <TouchableOpacity
@@ -527,60 +357,66 @@ export default function ChatsScreen({ navigation }: any) {
 
   const renderConnectionItem = ({ item }: { item: Connection }) => (
     <TouchableOpacity
-      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
+      style={[styles.chatItemContainer, { backgroundColor: currentTheme.surface }]}
+      onPress={() => handleStartChat(item)}
     >
-      <View style={styles.userInfo}>
-        <View style={styles.avatarContainer}>
-          {item.photoURL ? (
-            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
-            </View>
-          )}
-          {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
-        </View>
-        <View style={styles.userDetails}>
-          <Text style={[styles.userName, { color: currentTheme.text }]}>
+      <View style={styles.chatAvatar}>
+        {item.photoURL ? (
+          <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+            <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
+          </View>
+        )}
+        {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+      </View>
+
+      <View style={styles.chatContent}>
+        <View style={styles.chatHeader}>
+          <Text style={[styles.participantName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
+          {item.lastMessageTime && (
+            <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
+              {formatTimeAgo(item.lastMessageTime)}
+            </Text>
+          )}
         </View>
+
+        {item.lastMessage && (
+          <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
+            {item.lastMessage}
+          </Text>
+        )}
       </View>
-      <View style={styles.connectionActions}>
-        <TouchableOpacity
-          style={styles.detailsButton}
-          onPress={() => handleViewUserDetails(item)}
-        >
-          <Ionicons name="person-outline" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.blockIconButton}
-          onPress={() => handleBlockUser(item)}
-        >
-          <Ionicons name="ban-outline" size={20} color={COLORS.error} />
-        </TouchableOpacity>
-      </View>
+
+      <TouchableOpacity
+        style={styles.blockIconButton}
+        onPress={() => handleBlockUser(item)}
+      >
+        <Ionicons name="ban-outline" size={20} color={COLORS.error} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderEmptyState = () => {
     const getEmptyStateConfig = () => {
       switch (activeTab) {
+        case 'requests':
+          return {
+            icon: 'mail-outline',
+            title: 'No Requests',
+            subtitle: 'No connection requests at the moment.'
+          };
         case 'connections':
           return {
             icon: 'people-outline',
             title: 'No Connections',
-            subtitle: 'Connect with people to start chatting.'
-          };
-        case 'requests':
-          return {
-            icon: 'person-add-outline',
-            title: 'No Requests',
-            subtitle: 'You have no pending connection requests.'
+            subtitle: 'Start messaging people from Nearby to build connections.'
           };
         default:
           return {
-            icon: 'people-outline',
+            icon: 'chatbubbles-outline',
             title: 'No Data',
             subtitle: 'Nothing to show right now.'
           };
@@ -609,7 +445,7 @@ export default function ChatsScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Chats</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Messages</Text>
       </View>
 
       <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
@@ -636,6 +472,11 @@ export default function ChatsScreen({ navigation }: any) {
           ]}>
             Requests
           </Text>
+          {connectionRequests.length > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>{connectionRequests.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -645,23 +486,16 @@ export default function ChatsScreen({ navigation }: any) {
         </View>
       ) : (
         <FlatList
-          data={
-            activeTab === 'connections' ? connections :
-            connectionRequests
-          }
+          data={activeTab === 'requests' ? connectionRequests : connections}
           keyExtractor={(item) => item.id}
-          renderItem={
-            activeTab === 'connections' ? renderConnectionItem :
-            renderRequestItem
-          }
+          renderItem={activeTab === 'requests' ? renderRequestItem : renderConnectionItem}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            (activeTab === 'connections' ? connections :
-             connectionRequests).length === 0
+            (activeTab === 'requests' ? connectionRequests : connections).length === 0
               ? styles.emptyContainer
               : styles.listContent
           }
@@ -713,6 +547,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     alignItems: 'center',
     borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   activeTab: {
     backgroundColor: COLORS.primary + '20',
@@ -731,14 +567,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: SPACING.md,
-  },
-  userItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    marginVertical: SPACING.xs,
-    borderRadius: 12,
   },
   userInfo: {
     flexDirection: 'row',
@@ -772,11 +600,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginBottom: 2,
   },
-  userEmail: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    marginBottom: 4,
-  },
   userBio: {
     fontSize: 12,
     fontFamily: FONTS.regular,
@@ -792,15 +615,6 @@ const styles = StyleSheet.create({
   connectionActions: {
     flexDirection: 'row',
     gap: SPACING.xs,
-  },
-  detailsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
   },
   blockIconButton: {
     width: 40,
@@ -829,11 +643,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: SPACING.xs / 2,
-  },
-  chatFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
   participantName: {
     fontSize: 16,
@@ -865,26 +674,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: 'white',
   },
-  // Keep these for other components
-  messageItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    marginVertical: SPACING.xs,
-    borderRadius: 12,
-  },
-  messageInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  messageDetails: {
-    flex: 1,
-  },
-  messageTime: {
-    alignItems: 'flex-end',
-  },
   connectionItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -892,10 +681,6 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     marginVertical: SPACING.xs,
     borderRadius: 12,
-  },
-  connectionActions: {
-    flexDirection: 'row',
-    gap: SPACING.xs,
   },
   actionButton: {
     width: 36,
