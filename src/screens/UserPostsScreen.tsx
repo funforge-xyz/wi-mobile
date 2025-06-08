@@ -464,8 +464,6 @@ const styles = StyleSheet.create({
   placeholderAvatar: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderStyle: 'dashed',
   },
   profileInfo: {
     flex: 1,

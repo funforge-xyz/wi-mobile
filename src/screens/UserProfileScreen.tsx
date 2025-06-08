@@ -268,6 +268,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     margin: SPACING.md,
     borderRadius: 16,
+    width: '100%'
   },
   avatar: {
     width: 120,
@@ -278,9 +279,6 @@ const styles = StyleSheet.create({
   placeholderAvatar: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderStyle: 'dashed',
   },
   displayName: {
     fontSize: 24,

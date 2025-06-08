@@ -789,9 +789,6 @@ const styles = StyleSheet.create({
   placeholderAvatar: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderStyle: 'dashed',
   },
   editImageOverlay: {
     position: 'absolute',
