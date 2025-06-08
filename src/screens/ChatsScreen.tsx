@@ -86,28 +86,52 @@ export default function ChatsScreen({ navigation }: any) {
 
   const loadChatMessages = async () => {
     try {
-      // Mock data for now - replace with actual Firebase implementation
-      const mockMessages: ChatMessage[] = [
-        {
-          id: '1',
-          participantId: 'user1',
-          participantName: 'Alice Johnson',
-          participantPhotoURL: '',
-          lastMessage: 'Hey! How are you?',
-          lastMessageTime: new Date(),
-          unreadCount: 2,
-        },
-        {
-          id: '2',
-          participantId: 'user2',
-          participantName: 'Bob Smith',
-          participantPhotoURL: '',
-          lastMessage: 'Thanks for connecting!',
-          lastMessageTime: new Date(Date.now() - 3600000),
-          unreadCount: 0,
-        },
-      ];
-      setChatMessages(mockMessages);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      // Get all chats where current user is a participant
+      const chatsQuery = query(
+        collection(firestore, 'chats'),
+        where('participants', 'array-contains', currentUser.uid)
+      );
+
+      const chatsSnapshot = await getDocs(chatsQuery);
+      const chatsList: ChatMessage[] = [];
+
+      for (const chatDoc of chatsSnapshot.docs) {
+        const chatData = chatDoc.data();
+        
+        // Get the other participant's ID
+        const otherUserId = chatData.participants.find((id: string) => id !== currentUser.uid);
+        
+        if (otherUserId && chatData.lastMessage) {
+          // Get user data for the other participant
+          const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
+          const userData = userDoc.exists() ? userDoc.data() : {};
+
+          chatsList.push({
+            id: chatDoc.id,
+            participantId: otherUserId,
+            participantName: userData.firstName && userData.lastName 
+              ? `${userData.firstName} ${userData.lastName}` 
+              : 'Anonymous User',
+            participantPhotoURL: userData.photoURL || '',
+            lastMessage: chatData.lastMessage || '',
+            lastMessageTime: chatData.lastMessageTime?.toDate() || new Date(),
+            unreadCount: 0, // We can implement this later
+          });
+        }
+      }
+
+      // Sort by last message time
+      chatsList.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
+
+      setChatMessages(chatsList);
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -127,7 +151,8 @@ export default function ChatsScreen({ navigation }: any) {
       const requestsQuery = query(
         collection(firestore, 'connectionRequests'),
         where('toUserId', '==', currentUser.uid),
-        where('status', '==', 'pending')
+        where('status', '==', 'pending'),
+        where('firstMessageSent', '==', true)
       );
 
       const requestsSnapshot = await getDocs(requestsQuery);
@@ -237,7 +262,11 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const handleChatPress = (chat: ChatMessage) => {
-    Alert.alert('Open Chat', `Open conversation with ${chat.participantName}`);
+    navigation.navigate('Chat', {
+      userId: chat.participantId,
+      userName: chat.participantName,
+      userPhotoURL: chat.participantPhotoURL
+    });
   };
 
   const handleUserPress = (user: ConnectionRequest | Connection) => {

@@ -193,6 +193,22 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           firstMessageSent: true,
         });
         setConnectionRequestSent(true);
+      } else {
+        // Check if this is a reply to a first message (should create connection)
+        const existingRequestQuery = query(
+          collection(firestore, 'connectionRequests'),
+          where('fromUserId', '==', userId),
+          where('toUserId', '==', currentUser.uid),
+          where('status', '==', 'pending')
+        );
+        const existingRequestSnapshot = await getDocs(existingRequestQuery);
+        
+        if (!existingRequestSnapshot.empty && !isConnected) {
+          // This is a reply to a first message - connection will be created by Firebase function
+          // Update local state
+          setIsConnected(true);
+          setConnectionRequestSent(false);
+        }
       }
 
       setNewMessage('');
