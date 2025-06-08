@@ -118,7 +118,9 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
             onPress={handleLikePress}
           >
             <Ionicons name={liked ? "heart" : "heart-outline"} size={24} color={liked ? "red" : currentTheme.textSecondary} />
-            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{likesCount}</Text>
+            {post.allowLikes && (
+              <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{likesCount}</Text>
+            )}
           </TouchableOpacity>
         )}
 

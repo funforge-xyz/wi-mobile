@@ -542,9 +542,11 @@ export default function NearbyScreen({ navigation }: any) {
               size={16} 
               color={item.isLikedByUser ? COLORS.error : currentTheme.textSecondary} 
             />
-            <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
-              {item.likesCount}
-            </Text>
+            {item.allowLikes && (
+              <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
+                {item.likesCount}
+              </Text>
+            )}
           </TouchableOpacity>
         )}
         {item.allowComments && (

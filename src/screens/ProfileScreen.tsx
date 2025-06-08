@@ -49,6 +49,7 @@ export default function ProfileScreen() {
     followersCount: 0,
     followingCount: 0,
   });
+  const [connectionsCount, setConnectionsCount] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -91,6 +92,15 @@ export default function ProfileScreen() {
         const userPostsQuery = query(postsCollection, where('authorId', '==', currentUser.uid));
         const userPostsSnapshot = await getDocs(userPostsQuery);
         const postsCount = userPostsSnapshot.size;
+
+        // Get user's connections count
+        const connectionsQuery = query(
+          collection(firestore, 'connections'),
+          where('participants', 'array-contains', currentUser.uid),
+          where('status', '==', 'active')
+        );
+        const connectionsSnapshot = await getDocs(connectionsQuery);
+        setConnectionsCount(connectionsSnapshot.size);
 
         if (userDoc.exists()) {
           const firestoreData = userDoc.data();
@@ -512,18 +522,10 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile.followersCount}
+                {connectionsCount}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Followers
-              </Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile.followingCount}
-              </Text>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Following
+                Connections
               </Text>
             </View>
           </View>
