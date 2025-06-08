@@ -367,11 +367,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
           ) : null}
 
           {post.mediaURL && (
-            <View style={{ marginBottom: SPACING.sm }}>
+            <View style={styles.mediaContainer}>
               <Image
                 source={{ uri: post.mediaURL }}
                 style={styles.postMedia}
                 resizeMode="cover"
+                onError={(error) => console.log('SinglePost image load error:', error.nativeEvent.error)}
+                onLoad={() => console.log('SinglePost image loaded successfully:', post.mediaURL)}
               />
             </View>
           )}
@@ -542,6 +544,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     lineHeight: 24,
     marginBottom: SPACING.md,
+  },
+  mediaContainer: {
+    marginBottom: SPACING.sm,
   },
   postMedia: {
     width: '100%',

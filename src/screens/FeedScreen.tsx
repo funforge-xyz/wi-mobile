@@ -101,11 +101,6 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, onShare, c
           />
         </View>
       )}
-      {!post.mediaURL && post.content && (
-        <Text style={{ fontSize: 12, color: currentTheme.textSecondary, paddingHorizontal: SPACING.md }}>
-          No image URL for this post
-        </Text>
-      )}
 
       <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
         {post.allowLikes && (
@@ -148,7 +143,13 @@ export default function FeedScreen() {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadConnectionPosts();
+    const initializeScreen = async () => {
+      // Wait a bit for auth to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      loadConnectionPosts();
+    };
+    
+    initializeScreen();
   }, []);
 
   const loadConnectionPosts = async () => {
@@ -159,9 +160,12 @@ export default function FeedScreen() {
       const currentUser = auth.currentUser;
 
       if (!currentUser) {
+        console.log('No current user found');
         setLoading(false);
         return;
       }
+
+      console.log('Current user ID:', currentUser.uid);
 
       const firestore = getFirestore();
 
