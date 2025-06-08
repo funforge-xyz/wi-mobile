@@ -122,6 +122,11 @@ export default function RootScreen() {
         tabBarStyle: {
           backgroundColor: isDarkMode ? '#1E1E1E' : COLORS.surface,
           borderTopColor: isDarkMode ? '#333333' : COLORS.border,
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
         },
         tabBarLabelStyle: {
           fontFamily: FONTS.medium,
