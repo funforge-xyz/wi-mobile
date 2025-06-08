@@ -24,5 +24,5 @@ export type BottomTabParamList = {
   Nearby: undefined;
   Add: undefined;
   Chats: undefined;
-  Profile: undefined;
+  UserPosts: undefined;
 };

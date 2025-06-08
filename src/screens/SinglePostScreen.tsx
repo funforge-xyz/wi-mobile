@@ -10,6 +10,8 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
+  Modal,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +24,7 @@ import {
   getDocs, 
   addDoc, 
   deleteDoc, 
+  updateDoc,
   query, 
   orderBy, 
   onSnapshot,
@@ -41,6 +44,7 @@ interface Post {
   createdAt: Date;
   allowLikes: boolean;
   allowComments: boolean;
+  isPrivate?: boolean;
 }
 
 interface Comment {
@@ -59,7 +63,7 @@ interface Like {
 }
 
 export default function SinglePostScreen({ route, navigation }: any) {
-  const { postId } = route.params;
+  const { postId, isOwnPost = false } = route.params;
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [likes, setLikes] = useState<Like[]>([]);
@@ -67,6 +71,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
+  const [editedPrivacy, setEditedPrivacy] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -133,7 +140,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
           createdAt: postData.createdAt?.toDate() || new Date(),
           allowLikes: postData.allowLikes !== false,
           allowComments: postData.allowComments !== false,
+          isPrivate: postData.isPrivate || false,
         };
+
+        setEditedContent(postInfo.content);
+        setEditedPrivacy(postInfo.isPrivate || false);
 
         setPost(postInfo);
         await loadComments();
@@ -264,6 +275,95 @@ export default function SinglePostScreen({ route, navigation }: any) {
     }
   };
 
+  const handleEditPost = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!currentUser || !post) return;
+
+    try {
+      const firestore = getFirestore();
+      const postRef = doc(firestore, 'posts', postId);
+
+      await updateDoc(postRef, {
+        content: editedContent.trim(),
+        isPrivate: editedPrivacy,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Update local state
+      setPost({
+        ...post,
+        content: editedContent.trim(),
+        isPrivate: editedPrivacy,
+      });
+
+      setIsEditing(false);
+      Alert.alert('Success', 'Post updated successfully');
+    } catch (error) {
+      console.error('Error updating post:', error);
+      Alert.alert('Error', 'Failed to update post');
+    }
+  };
+
+  const handleDeletePost = () => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const firestore = getFirestore();
+              const postRef = doc(firestore, 'posts', postId);
+              await deleteDoc(postRef);
+              
+              Alert.alert('Success', 'Post deleted successfully');
+              navigation.goBack();
+            } catch (error) {
+              console.error('Error deleting post:', error);
+              Alert.alert('Error', 'Failed to delete post');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteComment = (commentId: string, commentAuthorId: string) => {
+    // Only allow deletion if it's the user's own comment or their own post
+    if (commentAuthorId !== currentUser?.uid && post?.authorId !== currentUser?.uid) {
+      Alert.alert('Error', 'You can only delete your own comments');
+      return;
+    }
+
+    Alert.alert(
+      'Delete Comment',
+      'Are you sure you want to delete this comment?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const firestore = getFirestore();
+              const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
+              await deleteDoc(commentRef);
+            } catch (error) {
+              console.error('Error deleting comment:', error);
+              Alert.alert('Error', 'Failed to delete comment');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
@@ -296,6 +396,14 @@ export default function SinglePostScreen({ route, navigation }: any) {
           <Text style={[styles.commentTime, { color: currentTheme.textSecondary }]}>
             {formatTimeAgo(item.createdAt)}
           </Text>
+          {(item.authorId === currentUser?.uid || post?.authorId === currentUser?.uid) && (
+            <TouchableOpacity 
+              onPress={() => handleDeleteComment(item.id, item.authorId)}
+              style={styles.deleteCommentButton}
+            >
+              <Ionicons name="trash-outline" size={14} color={COLORS.error} />
+            </TouchableOpacity>
+          )}
         </View>
         <Text style={[styles.commentText, { color: currentTheme.text }]}>
           {item.content}
@@ -333,7 +441,17 @@ export default function SinglePostScreen({ route, navigation }: any) {
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Post</Text>
-        <View style={{ width: 24 }} />
+        {isOwnPost && post?.authorId === currentUser?.uid && (
+          <TouchableOpacity onPress={handleEditPost}>
+            <Ionicons name="create-outline" size={24} color={currentTheme.text} />
+          </TouchableOpacity>
+        )}
+        {!isOwnPost && (
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Ionicons name="settings-outline" size={24} color={currentTheme.text} />
+          </TouchableOpacity>
+        )}
+        {!isOwnPost && !post?.authorId && <View style={{ width: 24 }} />}
       </View>
 
       <ScrollView style={styles.content}>
@@ -458,6 +576,65 @@ export default function SinglePostScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Edit Post Modal */}
+      <Modal visible={isEditing} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={() => setIsEditing(false)}>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Edit Post</Text>
+            <TouchableOpacity onPress={handleSaveEdit}>
+              <Text style={styles.modalSave}>Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.modalSection}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Content</Text>
+              <TextInput
+                style={[styles.textArea, { 
+                  backgroundColor: currentTheme.surface, 
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border 
+                }]}
+                value={editedContent}
+                onChangeText={setEditedContent}
+                placeholder="What's on your mind?"
+                placeholderTextColor={currentTheme.textSecondary}
+                multiline
+                numberOfLines={6}
+              />
+            </View>
+
+            <View style={styles.modalSection}>
+              <View style={styles.switchContainer}>
+                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Private Post</Text>
+                <Switch
+                  value={editedPrivacy}
+                  onValueChange={setEditedPrivacy}
+                  trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+                  thumbColor="white"
+                />
+              </View>
+              <Text style={[styles.switchDescription, { color: currentTheme.textSecondary }]}>
+                Private posts are only visible to you
+              </Text>
+            </View>
+
+            <View style={styles.modalSection}>
+              <TouchableOpacity 
+                style={[styles.deleteButton, { borderColor: COLORS.error }]}
+                onPress={handleDeletePost}
+              >
+                <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+                <Text style={[styles.deleteButtonText, { color: COLORS.error }]}>Delete Post</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -648,5 +825,80 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  deleteCommentButton: {
+    marginLeft: SPACING.sm,
+    padding: SPACING.xs,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+  },
+  modalCancel: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+  },
+  modalSave: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    color: COLORS.primary,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+  },
+  modalSection: {
+    marginVertical: SPACING.md,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: SPACING.sm,
+  },
+  textArea: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+    textAlignVertical: 'top',
+    minHeight: 120,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  switchDescription: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    fontStyle: 'italic',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginLeft: SPACING.sm,
   },
 });
