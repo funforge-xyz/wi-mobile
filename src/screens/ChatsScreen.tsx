@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: SPACING.sm,
-    marginVertical: SPACING.xs / 2,
+    marginVertical: 2,
     borderRadius: 12,
   },
   actionButton: {
