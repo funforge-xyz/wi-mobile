@@ -71,14 +71,26 @@ export default function UserPostsScreen({ navigation }: any) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
+          // Force reload from server by clearing any cached values
           setProfile({
             id: currentUser.uid,
             firstName: userData.firstName || '',
             lastName: userData.lastName || '',
             email: currentUser.email || '',
-            photoURL: userData.photoURL || currentUser.photoURL || '',
+            photoURL: userData.photoURL || '',
             thumbnailURL: userData.thumbnailURL || '',
             bio: userData.bio || '',
+          });
+        } else {
+          // If no document exists, clear the profile
+          setProfile({
+            id: currentUser.uid,
+            firstName: '',
+            lastName: '',
+            email: currentUser.email || '',
+            photoURL: '',
+            thumbnailURL: '',
+            bio: '',
           });
         }
       }
@@ -166,6 +178,7 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    await loadUserProfile(); // Also reload profile data
     await loadUserPosts();
     setRefreshing(false);
   };
@@ -358,7 +371,7 @@ export default function UserPostsScreen({ navigation }: any) {
               cache: 'reload'
             }} 
             style={styles.smallAvatar}
-            key={profile.thumbnailURL || profile.photoURL}
+            key={`${profile.thumbnailURL || profile.photoURL}-${Date.now()}`}
           />
         ) : (
           <View style={[styles.smallAvatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
