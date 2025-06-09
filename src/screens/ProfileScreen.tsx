@@ -493,6 +493,13 @@ export default function ProfileScreen() {
         thumbnailURL: '',
       });
 
+      // Also clear from main profile state to force immediate UI update
+      setProfile({
+        ...profile,
+        photoURL: '',
+        thumbnailURL: '',
+      });
+
       Alert.alert('Image Removed', 'Press save to update');
 
     } catch (error) {
