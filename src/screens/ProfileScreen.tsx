@@ -165,10 +165,24 @@ export default function ProfileScreen() {
       let photoURL = editedProfile.photoURL;
       let thumbnailURL = editedProfile.thumbnailURL;
 
+      // Delete old images from storage if removing image
+      if (!photoURL && (profile.photoURL || profile.thumbnailURL)) {
+        try {
+          await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
+        } catch (error) {
+          console.error('Error deleting old images:', error);
+        }
+      }
+
       // Check if the photo is a local file that needs to be uploaded
       if (photoURL && photoURL.startsWith('file://')) {
         try {
-          // Upload the image to Firebase Storage and get both full and thumbnail URLs
+          // Delete old images first if they exist
+          if (profile.photoURL || profile.thumbnailURL) {
+            await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
+          }
+          
+          // Upload the new image to Firebase Storage and get both full and thumbnail URLs
           const uploadResult = await storageService.uploadProfilePicture(profile.id, photoURL);
           photoURL = uploadResult.fullUrl;
           thumbnailURL = uploadResult.thumbnailUrl;
@@ -189,7 +203,20 @@ export default function ProfileScreen() {
         thumbnailURL: thumbnailURL,
       });
 
-      // Reload profile to get updated data
+      // Force update the profile state immediately to clear any cached images
+      const updatedProfile = {
+        ...profile,
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        bio: editedProfile.bio,
+        photoURL: photoURL,
+        thumbnailURL: thumbnailURL,
+      };
+      
+      setProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
+
+      // Also reload from server to ensure consistency
       await loadUserProfile();
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
@@ -593,8 +620,12 @@ export default function ProfileScreen() {
           <TouchableOpacity onPress={isEditing ? showImagePickerOptions : undefined}>
             {(profile.thumbnailURL || profile.photoURL) ? (
               <Image 
-                source={{ uri: profile.thumbnailURL || profile.photoURL }} 
-                style={styles.avatar} 
+                source={{ 
+                  uri: profile.thumbnailURL || profile.photoURL,
+                  cache: 'reload' // Force reload to avoid caching issues
+                }} 
+                style={styles.avatar}
+                key={profile.thumbnailURL || profile.photoURL} // Force re-render when URL changes
               />
             ) : (
               <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
@@ -695,7 +726,14 @@ export default function ProfileScreen() {
           <View style={[styles.modalSection, styles.modalImageContainer]}>
             <TouchableOpacity onPress={showImagePickerOptions}>
               {editedProfile.photoURL ? (
-                <Image source={{ uri: editedProfile.photoURL }} style={styles.modalAvatar} />
+                <Image 
+                  source={{ 
+                    uri: editedProfile.photoURL,
+                    cache: 'reload'
+                  }} 
+                  style={styles.modalAvatar}
+                  key={editedProfile.photoURL}
+                />
               ) : (
                 <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
                   <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
