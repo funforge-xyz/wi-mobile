@@ -181,7 +181,7 @@ export default function ProfileScreen() {
           if (profile.photoURL || profile.thumbnailURL) {
             await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
           }
-          
+
           // Upload the new image to Firebase Storage and get both full and thumbnail URLs
           const uploadResult = await storageService.uploadProfilePicture(profile.id, photoURL);
           photoURL = uploadResult.fullUrl;
@@ -212,7 +212,7 @@ export default function ProfileScreen() {
         photoURL: photoURL,
         thumbnailURL: thumbnailURL,
       };
-      
+
       setProfile(updatedProfile);
       setEditedProfile(updatedProfile);
 
@@ -342,7 +342,7 @@ export default function ProfileScreen() {
               // Handle specific re-authentication error
               if (error.message && error.message.includes('sign out and sign back in')) {
                 Alert.alert(
-                  'Re-authentication Required', 
+                  'Re-authentication Required',
                   'For security reasons, please sign out and sign back in before deleting your account.',
                   [
                     {
@@ -522,8 +522,8 @@ export default function ProfileScreen() {
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
-    const showImagePickerOptions = () => {
-    const options = editedProfile.photoURL 
+  const showImagePickerOptions = () => {
+    const options = editedProfile.photoURL
       ? ['Take Photo', 'Choose from Library', 'Remove Photo', 'Cancel']
       : ['Take Photo', 'Choose from Library', 'Cancel'];
 
@@ -598,41 +598,33 @@ export default function ProfileScreen() {
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Settings</Text>
         <TouchableOpacity onPress={toggleDarkMode}>
-          <Ionicons 
-            name={isDarkMode ? 'sunny' : 'moon'} 
-            size={24} 
-            color={currentTheme.text} 
+          <Ionicons
+            name={isDarkMode ? 'sunny' : 'moon'}
+            size={24}
+            color={currentTheme.text}
           />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
-          <TouchableOpacity onPress={isEditing ? showImagePickerOptions : undefined}>
-            {(isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)) && (isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)).trim() !== '' ? (
-              <Image 
-                source={{ 
-                  uri: isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL),
-                  cache: 'reload' // Force reload to avoid caching issues
-                }} 
-                style={styles.avatar}
-                key={`avatar-${Date.now()}-${Math.random()}`} // Force re-render with timestamp and random
-              />
-            ) : (
-              <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
-                <Ionicons name="person-add" size={40} color={currentTheme.textSecondary} />
-              </View>
-            )}
-            {isEditing && (
-              <View style={styles.editImageOverlay}>
-                <Ionicons name="camera" size={20} color="white" />
-              </View>
-            )}
-          </TouchableOpacity>
+          {(isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)) && (isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)).trim() !== '' ? (
+            <Image
+              source={{
+                uri: editedProfile.thumbnailURL || editedProfile.photoURL,
+                cache: 'reload' // Force reload to avoid caching issues
+              }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
+              <Ionicons name="person-add" size={40} color={currentTheme.textSecondary} />
+            </View>
+          )}
 
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
-            {profile.firstName && profile.lastName 
-              ? `${profile.firstName} ${profile.lastName}` 
+            {profile.firstName && profile.lastName
+              ? `${profile.firstName} ${profile.lastName}`
               : 'Anonymous User'}
           </Text>
 
@@ -714,32 +706,32 @@ export default function ProfileScreen() {
           </View>
 
           <ScrollView style={styles.modalContent}>
-          <View style={[styles.modalSection, styles.modalImageContainer]}>
-            <TouchableOpacity onPress={showImagePickerOptions}>
-              {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
-                <Image 
-                  source={{ 
-                    uri: editedProfile.photoURL,
-                    cache: 'reload'
-                  }} 
-                  style={styles.modalAvatar}
-                  key={`modal-avatar-${Date.now()}-${Math.random()}`}
-                />
-              ) : (
-                <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
-                  <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
+            <View style={[styles.modalSection, styles.modalImageContainer]}>
+              <TouchableOpacity onPress={showImagePickerOptions}>
+                {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
+                  <Image
+                    source={{
+                      uri: editedProfile.thumbnailURL || editedProfile.photoURL,
+                      cache: 'reload'
+                    }}
+                    style={styles.modalAvatar}
+                    key={`modal-avatar-${Date.now()}-${Math.random()}`}
+                  />
+                ) : (
+                  <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                    <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: currentTheme.surface, 
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
-                  borderColor: currentTheme.border 
+                  borderColor: currentTheme.border
                 }]}
                 value={editedProfile.firstName}
                 onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
@@ -751,10 +743,10 @@ export default function ProfileScreen() {
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: currentTheme.surface, 
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
-                  borderColor: currentTheme.border 
+                  borderColor: currentTheme.border
                 }]}
                 value={editedProfile.lastName}
                 onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
@@ -765,9 +757,9 @@ export default function ProfileScreen() {
 
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Email</Text>
-              <View style={[styles.input, styles.emailDisplayContainer, { 
-                backgroundColor: currentTheme.surface, 
-                borderColor: currentTheme.border 
+              <View style={[styles.input, styles.emailDisplayContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
               }]}>
                 <Text style={[styles.emailDisplayText, { color: currentTheme.textSecondary }]}>
                   {profile.email}
@@ -778,10 +770,10 @@ export default function ProfileScreen() {
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
               <TextInput
-                style={[styles.textArea, { 
-                  backgroundColor: currentTheme.surface, 
+                style={[styles.textArea, {
+                  backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
-                  borderColor: currentTheme.border 
+                  borderColor: currentTheme.border
                 }]}
                 value={editedProfile.bio}
                 onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
@@ -816,10 +808,10 @@ export default function ProfileScreen() {
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Current Password</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: currentTheme.surface, 
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
-                  borderColor: currentTheme.border 
+                  borderColor: currentTheme.border
                 }]}
                 value={passwordForm.currentPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, currentPassword: text })}
@@ -832,10 +824,10 @@ export default function ProfileScreen() {
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>New Password</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: currentTheme.surface, 
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
-                  borderColor: currentTheme.border 
+                  borderColor: currentTheme.border
                 }]}
                 value={passwordForm.newPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, newPassword: text })}
@@ -848,10 +840,10 @@ export default function ProfileScreen() {
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Confirm New Password</Text>
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: currentTheme.surface, 
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
-                  borderColor: currentTheme.border 
+                  borderColor: currentTheme.border
                 }]}
                 value={passwordForm.confirmPassword}
                 onChangeText={(text) => setPasswordForm({ ...passwordForm, confirmPassword: text })}
@@ -1013,7 +1005,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingVertical:SPACING.sm,
+    paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
   },
   modalCancel: {
@@ -1084,7 +1076,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.regular,
   },
-    avatarContainer: {
+  avatarContainer: {
     position: 'relative',
     marginBottom: SPACING.md,
   },

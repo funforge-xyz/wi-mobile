@@ -155,7 +155,7 @@ export class StorageService {
       // Create thumbnail with max width/height of 200px and higher quality
       const result = await manipulateAsync(
         imageUri,
-        [{ resize: { width: 200, height: 200 } }],
+        [{ resize: { width: 300 } }],
         {
           compress: 0.8,
           format: SaveFormat.JPEG,

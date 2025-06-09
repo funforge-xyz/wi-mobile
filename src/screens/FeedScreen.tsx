@@ -282,14 +282,6 @@ export default function FeedScreen({ navigation }: any) {
           isLikedByUser: isLikedByUser,
         };
 
-        console.log('Adding post to feed:', {
-          id: postInfo.id,
-          authorName: postInfo.authorName,
-          hasContent: !!postInfo.content,
-          hasMediaURL: !!postInfo.mediaURL,
-          mediaURL: postInfo.mediaURL
-        });
-
         connectionPosts.push(postInfo);
 
         // Limit to 20 posts for performance
