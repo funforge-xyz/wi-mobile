@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, AppState } from 'expo-status-bar';
+import { StatusBar } from 'expo-status-bar';
+import { AppState } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as SplashScreen from 'expo-splash-screen';
