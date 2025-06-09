@@ -238,13 +238,16 @@ export default function ChatsScreen({ navigation }: any) {
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInDays > 0) {
       return `${diffInDays}d ago`;
     } else if (diffInHours > 0) {
       return `${diffInHours}h ago`;
+    } else if (diffInMinutes > 0) {
+      return `${diffInMinutes}m ago`;
     } else {
       return 'Just now';
     }
@@ -355,11 +358,6 @@ export default function ChatsScreen({ navigation }: any) {
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          {item.bio ? (
-            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
-              {item.bio}
-            </Text>
-          ) : null}
           <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
             {formatTimeAgo(item.createdAt)}
           </Text>
@@ -399,11 +397,9 @@ export default function ChatsScreen({ navigation }: any) {
       </View>
 
       <View style={styles.chatContent}>
-        <View>
-          <Text style={[styles.participantName, { color: currentTheme.text }]}>
-            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
-          </Text>
-        </View>
+        <Text style={[styles.participantName, { color: currentTheme.text }]}>
+          {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+        </Text>
 
         {item.lastMessage && (
           <View style={styles.messageRow}>
@@ -475,8 +471,8 @@ export default function ChatsScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Messages</Text>
-        <NotificationBell 
-          onPress={() => navigation.navigate('Notifications')} 
+        <NotificationBell
+          onPress={() => navigation.navigate('Notifications')}
           color={currentTheme.text}
         />
       </View>
@@ -600,6 +596,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: SPACING.md,
+    flexDirection: 'column',
+    gap: SPACING.md
   },
   userInfo: {
     flexDirection: 'row',
@@ -685,7 +683,6 @@ const styles = StyleSheet.create({
   participantName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    flex: 1,
   },
   lastMessage: {
     fontSize: 14,
@@ -717,9 +714,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: SPACING.sm,
-    marginVertical: 2,
+    padding: SPACING.md,
     borderRadius: 12,
+    flex: 1
   },
   actionButton: {
     width: 36,
