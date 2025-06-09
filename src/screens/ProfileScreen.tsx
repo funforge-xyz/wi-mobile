@@ -599,7 +599,7 @@ export default function ProfileScreen() {
                   cache: 'reload' // Force reload to avoid caching issues
                 }} 
                 style={styles.avatar}
-                key={isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)} // Force re-render when URL changes
+                key={`${isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)}-${Date.now()}`} // Force re-render when URL changes with timestamp
               />
             ) : (
               <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
