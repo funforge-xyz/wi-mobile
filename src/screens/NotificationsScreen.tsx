@@ -88,11 +88,10 @@ export default function NotificationsScreen({ navigation }: any) {
 
       const firestore = getFirestore();
       
-      // Use the exact same pattern as FeedScreen - simple query with getDocs
+      // Simple query without orderBy to avoid index issues
       const notificationsQuery = query(
         collection(firestore, 'notifications'),
-        where('targetUserId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        where('targetUserId', '==', currentUser.uid)
       );
 
       const notificationsSnapshot = await getDocs(notificationsQuery);
@@ -113,6 +112,9 @@ export default function NotificationsScreen({ navigation }: any) {
           read: data.read || false,
         });
       });
+
+      // Sort client-side by createdAt descending
+      notificationsData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       setNotifications(notificationsData);
     } catch (error) {
