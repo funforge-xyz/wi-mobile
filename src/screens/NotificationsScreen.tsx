@@ -87,6 +87,8 @@ export default function NotificationsScreen({ navigation }: any) {
       }
 
       const firestore = getFirestore();
+      
+      // Use the exact same pattern as FeedScreen - simple query with getDocs
       const notificationsQuery = query(
         collection(firestore, 'notifications'),
         where('targetUserId', '==', currentUser.uid),
