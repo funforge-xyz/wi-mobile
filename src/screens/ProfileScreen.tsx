@@ -111,7 +111,7 @@ export default function ProfileScreen() {
             firstName: firestoreData.firstName || '',
             lastName: firestoreData.lastName || '',
             email: currentUser.email || '',
-            photoURL: firestoreData.photoURL || currentUser.photoURL || '',
+            photoURL: firestoreData.photoURL || '',
             thumbnailURL: firestoreData.thumbnailURL || '',
             bio: firestoreData.bio || '',
             postsCount: postsCount,
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
             firstName: '',
             lastName: '',
             email: currentUser.email || '',
-            photoURL: currentUser.photoURL || '',
+            photoURL: '',
             thumbnailURL: '',
             bio: '',
             postsCount: postsCount,
@@ -216,10 +216,11 @@ export default function ProfileScreen() {
       setProfile(updatedProfile);
       setEditedProfile(updatedProfile);
 
-      // Also reload from server to ensure consistency
-      await loadUserProfile();
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
+
+      // Reload from server to ensure consistency
+      await loadUserProfile();
     } catch (error) {
       console.error('Profile save error:', error);
       Alert.alert('Error', 'Failed to update profile');
@@ -486,7 +487,16 @@ export default function ProfileScreen() {
     try {
       setLoading(true);
 
-      // Simply clear the image from edited profile
+      // Delete from Firebase Storage first if there are existing images
+      if (profile.photoURL || profile.thumbnailURL) {
+        try {
+          await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
+        } catch (error) {
+          console.error('Error deleting from storage:', error);
+        }
+      }
+
+      // Clear the image from edited profile
       setEditedProfile({
         ...editedProfile,
         photoURL: '',
@@ -599,14 +609,14 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity onPress={isEditing ? showImagePickerOptions : undefined}>
-            {(isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)) ? (
+            {(isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)) && (isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)).trim() !== '' ? (
               <Image 
                 source={{ 
                   uri: isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL),
                   cache: 'reload' // Force reload to avoid caching issues
                 }} 
                 style={styles.avatar}
-                key={`${isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)}-${Date.now()}`} // Force re-render when URL changes with timestamp
+                key={`avatar-${Date.now()}-${Math.random()}`} // Force re-render with timestamp and random
               />
             ) : (
               <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
@@ -706,14 +716,14 @@ export default function ProfileScreen() {
           <ScrollView style={styles.modalContent}>
           <View style={[styles.modalSection, styles.modalImageContainer]}>
             <TouchableOpacity onPress={showImagePickerOptions}>
-              {editedProfile.photoURL ? (
+              {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
                 <Image 
                   source={{ 
                     uri: editedProfile.photoURL,
                     cache: 'reload'
                   }} 
                   style={styles.modalAvatar}
-                  key={editedProfile.photoURL}
+                  key={`modal-avatar-${Date.now()}-${Math.random()}`}
                 />
               ) : (
                 <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
