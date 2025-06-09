@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
 
@@ -335,6 +335,31 @@ export default function FeedScreen({ navigation }: any) {
           createdAt: new Date(),
         });
         console.log("Post liked");
+
+        // Create notification for the post author
+        const post = posts.find(p => p.id === postId);
+        if (post && post.authorId !== currentUser.uid) {
+          // Get current user info
+          const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+          const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+          const currentUserName = currentUserData.firstName && currentUserData.lastName 
+            ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+            : 'Someone';
+
+          // Create notification
+          await addDoc(collection(firestore, 'notifications'), {
+            type: 'like',
+            title: 'New Like',
+            body: `${currentUserName} liked your post`,
+            postId: postId,
+            targetUserId: post.authorId,
+            fromUserId: currentUser.uid,
+            fromUserName: currentUserName,
+            fromUserPhotoURL: currentUserData.photoURL || '',
+            createdAt: new Date(),
+            read: false,
+          });
+        }
       }
 
       // Optimistically update the UI
@@ -386,7 +411,7 @@ export default function FeedScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
           <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
       </View>

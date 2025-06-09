@@ -419,6 +419,30 @@ export default function NearbyScreen({ navigation }: any) {
           createdAt: new Date(),
         });
 
+        // Create notification for the post author if it's not the current user
+        if (post.authorId !== currentUser.uid) {
+          // Get current user info
+          const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+          const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+          const currentUserName = currentUserData.firstName && currentUserData.lastName 
+            ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+            : 'Someone';
+
+          // Create notification
+          await addDoc(collection(firestore, 'notifications'), {
+            type: 'like',
+            title: 'New Like',
+            body: `${currentUserName} liked your post`,
+            postId: postId,
+            targetUserId: post.authorId,
+            fromUserId: currentUser.uid,
+            fromUserName: currentUserName,
+            fromUserPhotoURL: currentUserData.photoURL || '',
+            createdAt: new Date(),
+            read: false,
+          });
+        }
+
         // Update UI
         setNearbyPosts(prevPosts =>
           prevPosts.map(p =>

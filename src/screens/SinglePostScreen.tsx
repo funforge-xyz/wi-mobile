@@ -268,6 +268,30 @@ export default function SinglePostScreen({ route, navigation }: any) {
         createdAt: serverTimestamp(),
       });
 
+      // Create notification for the post author if it's not the current user
+      if (post && post.authorId !== currentUser.uid) {
+        // Get current user info
+        const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+        const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+        const currentUserName = currentUserData.firstName && currentUserData.lastName 
+          ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+          : 'Someone';
+
+        // Create notification
+        await addDoc(collection(firestore, 'notifications'), {
+          type: 'comment',
+          title: 'New Comment',
+          body: `${currentUserName} commented on your post`,
+          postId: postId,
+          targetUserId: post.authorId,
+          fromUserId: currentUser.uid,
+          fromUserName: currentUserName,
+          fromUserPhotoURL: currentUserData.photoURL || '',
+          createdAt: serverTimestamp(),
+          read: false,
+        });
+      }
+
       setCommentText('');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -333,7 +357,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
               const firestore = getFirestore();
               const postRef = doc(firestore, 'posts', postId);
               await deleteDoc(postRef);
-              
+
               Alert.alert('Success', 'Post deleted successfully');
               navigation.goBack();
             } catch (error) {
