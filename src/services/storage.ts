@@ -119,20 +119,53 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'fire
 import { getStorage as getStorageInstance } from './firebase';
 
 export class StorageService {
-  async uploadProfilePicture(userId: string, imageUri: string): Promise<string> {
+  async uploadProfilePicture(userId: string, imageUri: string): Promise<{ fullUrl: string; thumbnailUrl: string }> {
     try {
       const response = await fetch(imageUri);
       const blob = await response.blob();
 
       const storage = getStorage();
-      const imageRef = ref(storage, `profile-pictures/${userId}/${Date.now()}.jpg`);
-
+      const timestamp = Date.now();
+      
+      // Upload full size image
+      const imageRef = ref(storage, `profile-pictures/${userId}/${timestamp}.jpg`);
       await uploadBytes(imageRef, blob);
-      const downloadURL = await getDownloadURL(imageRef);
+      const fullDownloadURL = await getDownloadURL(imageRef);
 
-      return downloadURL;
+      // Create and upload thumbnail
+      const thumbnailBlob = await this.createThumbnail(imageUri);
+      const thumbnailRef = ref(storage, `profile-pictures/${userId}/${timestamp}_thumb.jpg`);
+      await uploadBytes(thumbnailRef, thumbnailBlob);
+      const thumbnailDownloadURL = await getDownloadURL(thumbnailRef);
+
+      return {
+        fullUrl: fullDownloadURL,
+        thumbnailUrl: thumbnailDownloadURL
+      };
     } catch (error) {
       console.error('Error uploading profile picture:', error);
+      throw error;
+    }
+  }
+
+  private async createThumbnail(imageUri: string): Promise<Blob> {
+    try {
+      const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+      
+      // Create thumbnail with max width/height of 150px and lower quality
+      const result = await manipulateAsync(
+        imageUri,
+        [{ resize: { width: 150, height: 150 } }],
+        {
+          compress: 0.5,
+          format: SaveFormat.JPEG,
+        }
+      );
+
+      const response = await fetch(result.uri);
+      return await response.blob();
+    } catch (error) {
+      console.error('Error creating thumbnail:', error);
       throw error;
     }
   }
@@ -155,7 +188,7 @@ export class StorageService {
     }
   }
 
-  async deleteProfilePicture(photoURL: string): Promise<void> {
+  async deleteProfilePicture(photoURL: string, thumbnailURL?: string): Promise<void> {
     try {
       if (!photoURL || !photoURL.includes('firebase')) {
         return; // Not a Firebase Storage URL, nothing to delete
@@ -163,7 +196,7 @@ export class StorageService {
 
       const storage = getStorageInstance();
       
-      // Extract the path from the download URL
+      // Delete full size image
       const url = new URL(photoURL);
       const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
       
@@ -172,6 +205,19 @@ export class StorageService {
         const imageRef = ref(storage, decodedPath);
         await deleteObject(imageRef);
         console.log('Profile picture deleted from storage:', decodedPath);
+      }
+
+      // Delete thumbnail if provided
+      if (thumbnailURL && thumbnailURL.includes('firebase')) {
+        const thumbUrl = new URL(thumbnailURL);
+        const thumbPathMatch = thumbUrl.pathname.match(/\/o\/(.+)\?/);
+        
+        if (thumbPathMatch) {
+          const decodedThumbPath = decodeURIComponent(thumbPathMatch[1]);
+          const thumbRef = ref(storage, decodedThumbPath);
+          await deleteObject(thumbRef);
+          console.log('Profile picture thumbnail deleted from storage:', decodedThumbPath);
+        }
       }
     } catch (error) {
       console.error('Error deleting profile picture:', error);

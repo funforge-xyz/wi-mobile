@@ -142,7 +142,7 @@ export default function NearbyScreen({ navigation }: any) {
             firstName: userData.firstName || '',
             lastName: userData.lastName || '',
             email: userData.email || '',
-            photoURL: userData.photoURL || '',
+            photoURL: userData.thumbnailURL || userData.photoURL || '',
             bio: userData.bio || '',
             isOnline: Math.random() > 0.5, // Mock online status
           });
@@ -264,7 +264,7 @@ export default function NearbyScreen({ navigation }: any) {
           authorName: authorData.firstName && authorData.lastName 
             ? `${authorData.firstName} ${authorData.lastName}` 
             : 'Anonymous User',
-          authorPhotoURL: authorData.photoURL || '',
+          authorPhotoURL: authorData.thumbnailURL || authorData.photoURL || '',
           content: postData.content || '',
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',

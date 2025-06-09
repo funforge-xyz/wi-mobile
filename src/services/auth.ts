@@ -48,11 +48,12 @@ export class AuthService {
     }
   }
 
-  async updateProfile(userData: {
+  async updateProfile(profileData: {
     firstName?: string;
     lastName?: string;
     bio?: string;
     photoURL?: string;
+    thumbnailURL?: string;
   }): Promise<void> {
     try {
       const auth = getAuth();
@@ -63,15 +64,15 @@ export class AuthService {
       }
 
       // Update Firebase Auth profile if displayName or photoURL changed
-      const displayName = userData.firstName && userData.lastName 
-        ? `${userData.firstName} ${userData.lastName}` 
+      const displayName = profileData.firstName && profileData.lastName 
+        ? `${profileData.firstName} ${profileData.lastName}` 
         : user.displayName;
 
-      if (displayName !== user.displayName || userData.photoURL !== user.photoURL) {
+      if (displayName !== user.displayName || profileData.photoURL !== user.photoURL) {
         const { updateProfile } = await import('firebase/auth');
         await updateProfile(user, {
           displayName: displayName || undefined,
-          photoURL: userData.photoURL || undefined,
+          photoURL: profileData.photoURL || undefined,
         });
       }
 
@@ -84,10 +85,11 @@ export class AuthService {
 
       await setDoc(userDocRef, {
         email: user.email,
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        bio: userData.bio || '',
-        photoURL: userData.photoURL || '',
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        bio: profileData.bio || '',
+        photoURL: profileData.photoURL || '',
+        thumbnailURL: profileData.thumbnailURL || '', // Store thumbnail URL
         updatedAt: new Date().toISOString(),
       }, { merge: true });
 
@@ -96,7 +98,7 @@ export class AuthService {
         uid: user.uid,
         email: user.email,
         displayName: displayName,
-        photoURL: userData.photoURL || user.photoURL,
+        photoURL: profileData.photoURL || user.photoURL,
       });
 
     } catch (error) {
@@ -110,6 +112,7 @@ export class AuthService {
     lastName?: string;
     bio?: string;
     photoURL?: string;
+    thumbnailURL?: string;
   }): Promise<FirebaseUser | null> {
     try {
       const auth = getAuth();
@@ -130,6 +133,7 @@ export class AuthService {
           lastName: profileData?.lastName || '',
           bio: profileData?.bio || '',
           photoURL: profileData?.photoURL || user.photoURL || '',
+          thumbnailURL: profileData?.thumbnailURL || '',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
@@ -297,7 +301,7 @@ export class AuthService {
           where('authorId', '==', user.uid)
         );
         const postsSnapshot = await getDocs(postsQuery);
-        
+
         for (const postDoc of postsSnapshot.docs) {
           // Delete all comments for this post
           const commentsQuery = query(
@@ -324,7 +328,7 @@ export class AuthService {
         // 2. Delete all comments made by this user on other posts
         const allPostsQuery = query(collection(firestore, 'posts'));
         const allPostsSnapshot = await getDocs(allPostsQuery);
-        
+
         for (const postDoc of allPostsSnapshot.docs) {
           const userCommentsQuery = query(
             collection(firestore, 'posts', postDoc.id, 'comments'),

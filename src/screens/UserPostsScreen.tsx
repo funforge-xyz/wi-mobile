@@ -77,6 +77,7 @@ export default function UserPostsScreen({ navigation }: any) {
             lastName: userData.lastName || '',
             email: currentUser.email || '',
             photoURL: userData.photoURL || currentUser.photoURL || '',
+            thumbnailURL: userData.thumbnailURL || '',
             bio: userData.bio || '',
           });
         }
@@ -140,7 +141,7 @@ export default function UserPostsScreen({ navigation }: any) {
           authorName: currentUserData.firstName && currentUserData.lastName 
             ? `${currentUserData.firstName} ${currentUserData.lastName}` 
             : 'You',
-          authorPhotoURL: currentUserData.photoURL || '',
+          authorPhotoURL: currentUserData.thumbnailURL || currentUserData.photoURL || '',
           content: postData.content || '',
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',
@@ -350,9 +351,9 @@ export default function UserPostsScreen({ navigation }: any) {
   const renderProfileHeader = () => (
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.profileRow}>
-        {profile?.photoURL && profile.photoURL.trim() !== '' ? (
+        {(profile?.thumbnailURL || profile?.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
           <Image 
-            source={{ uri: profile.photoURL }} 
+            source={{ uri: profile.thumbnailURL || profile.photoURL }} 
             style={styles.smallAvatar} 
           />
         ) : (

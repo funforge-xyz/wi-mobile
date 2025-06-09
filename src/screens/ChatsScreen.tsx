@@ -185,7 +185,7 @@ export default function ChatsScreen({ navigation }: any) {
                 firstName: userData.firstName || '',
                 lastName: userData.lastName || '',
                 email: userData.email || '',
-                photoURL: userData.photoURL || '',
+                photoURL: userData.thumbnailURL || userData.photoURL || '',
                 bio: userData.bio || '',
                 connectedAt: connectionData.connectedAt?.toDate() || new Date(),
                 lastMessage,

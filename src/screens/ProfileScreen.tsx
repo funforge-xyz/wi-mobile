@@ -31,6 +31,7 @@ interface UserProfile {
   lastName: string;
   email: string;
   photoURL: string;
+  thumbnailURL: string;
   bio: string;
   postsCount: number;
   followersCount: number;
@@ -44,6 +45,7 @@ export default function ProfileScreen() {
     lastName: '',
     email: 'loading@example.com',
     photoURL: 'https://via.placeholder.com/120',
+    thumbnailURL: '',
     bio: '',
     postsCount: 0,
     followersCount: 0,
@@ -110,6 +112,7 @@ export default function ProfileScreen() {
             lastName: firestoreData.lastName || '',
             email: currentUser.email || '',
             photoURL: firestoreData.photoURL || currentUser.photoURL || '',
+            thumbnailURL: firestoreData.thumbnailURL || '',
             bio: firestoreData.bio || '',
             postsCount: postsCount,
             followersCount: 0,
@@ -123,6 +126,7 @@ export default function ProfileScreen() {
             lastName: '',
             email: currentUser.email || '',
             photoURL: currentUser.photoURL || '',
+            thumbnailURL: '',
             bio: '',
             postsCount: postsCount,
             followersCount: 0,
@@ -159,12 +163,15 @@ export default function ProfileScreen() {
       setLoading(true);
 
       let photoURL = editedProfile.photoURL;
+      let thumbnailURL = '';
 
       // Check if the photo is a local file that needs to be uploaded
       if (photoURL && photoURL.startsWith('file://')) {
         try {
-          // Upload the image to Firebase Storage
-          photoURL = await storageService.uploadProfilePicture(profile.id, photoURL);
+          // Upload the image to Firebase Storage and get both full and thumbnail URLs
+          const uploadResult = await storageService.uploadProfilePicture(profile.id, photoURL);
+          photoURL = uploadResult.fullUrl;
+          thumbnailURL = uploadResult.thumbnailUrl;
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
           Alert.alert('Error', 'Failed to upload profile picture');
@@ -173,12 +180,13 @@ export default function ProfileScreen() {
         }
       }
 
-      // Update profile using authService with the Firebase Storage URL
+      // Update profile using authService with the Firebase Storage URLs
       await authService.updateProfile({
         firstName: editedProfile.firstName,
         lastName: editedProfile.lastName,
         bio: editedProfile.bio,
         photoURL: photoURL,
+        thumbnailURL: thumbnailURL,
       });
 
       // Reload profile to get updated data
@@ -452,7 +460,7 @@ export default function ProfileScreen() {
       // Delete the image from Firebase Storage if it's a Firebase URL
       if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
         try {
-          await storageService.deleteProfilePicture(editedProfile.photoURL);
+          await storageService.deleteProfilePicture(editedProfile.photoURL, profile.thumbnailURL);
         } catch (error) {
           console.error('Error deleting image from storage:', error);
           // Continue with removal even if storage deletion fails
@@ -465,6 +473,7 @@ export default function ProfileScreen() {
         lastName: editedProfile.lastName,
         bio: editedProfile.bio,
         photoURL: '',
+        thumbnailURL: '',
       });
 
       // Update both edited and current profile states
@@ -578,9 +587,9 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity onPress={isEditing ? showImagePickerOptions : undefined}>
-            {profile.photoURL ? (
+            {(profile.thumbnailURL || profile.photoURL) ? (
               <Image 
-                source={{ uri: profile.photoURL }} 
+                source={{ uri: profile.thumbnailURL || profile.photoURL }} 
                 style={styles.avatar} 
               />
             ) : (
