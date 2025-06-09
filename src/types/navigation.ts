@@ -18,6 +18,7 @@ export type RootStackParamList = {
     photoURL?: string;
     bio?: string;
   };
+  Notifications: undefined;
 };
 
 export type BottomTabParamList = {
