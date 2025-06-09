@@ -134,9 +134,37 @@ export default function NotificationsScreen({ navigation }: any) {
     }
   };
 
+  const markAllAsRead = async () => {
+    try {
+      const firestore = getFirestore();
+      const unreadNotifications = notifications.filter(n => !n.read);
+      
+      // Update all unread notifications
+      const updatePromises = unreadNotifications.map(notification => {
+        const notificationRef = doc(firestore, 'notifications', notification.id);
+        return updateDoc(notificationRef, { read: true });
+      });
+      
+      await Promise.all(updatePromises);
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, read: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
+
   const handleNotificationPress = async (notification: Notification) => {
     if (!notification.read) {
       await markAsRead(notification.id);
+      // Update local state immediately
+      setNotifications(prev => 
+        prev.map(n => 
+          n.id === notification.id ? { ...n, read: true } : n
+        )
+      );
     }
     
     // Navigate to the post
@@ -247,7 +275,9 @@ export default function NotificationsScreen({ navigation }: any) {
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Notifications</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={markAllAsRead}>
+          <Text style={[styles.markAllText, { color: COLORS.primary }]}>Mark all read</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -298,6 +328,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
+  },
+  markAllText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
   },
   loadingContainer: {
     flex: 1,

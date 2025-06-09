@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar, AppState } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as SplashScreen from 'expo-splash-screen';
@@ -46,12 +46,12 @@ export default function App() {
 
         // Initialize notifications
         await initializeNotifications();
-        
+
         // Handle notification taps
         const notificationResponse = Notifications.addNotificationResponseReceivedListener(response => {
           const data = response.notification.request.content.data;
           console.log('Notification tapped:', data);
-          
+
           // Handle navigation based on notification type
           if (data.type === 'like' || data.type === 'comment') {
             // Navigate to post screen
@@ -75,6 +75,24 @@ export default function App() {
     }
 
     prepare();
+  }, []);
+
+  useEffect(() => {
+    initializeNotifications();
+
+    // Handle app state changes to refresh notifications when app comes to foreground
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        // App came to foreground - this will trigger notification bell to refresh
+        console.log('App active - notifications can refresh');
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   if (isLoading) {

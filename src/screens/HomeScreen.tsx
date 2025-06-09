@@ -4,11 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
+import NotificationBell from '../components/NotificationBell';
 
 export default function HomeScreen() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -18,9 +19,10 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Home</Text>
-        <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
-        </TouchableOpacity>
+        <NotificationBell 
+          onPress={() => navigation.navigate('Notifications')}
+          color={currentTheme.text}
+        />
       </View>
 
       <View style={styles.content}>

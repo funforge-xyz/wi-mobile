@@ -78,6 +78,33 @@ export const sendLocalNotification = async (title: string, body: string, data?: 
   });
 };
 
+export const getUnreadNotificationsCount = async (): Promise<number> => {
+  try {
+    const { getAuth } = await import('./firebase');
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      return 0;
+    }
+
+    const { getFirestore, collection, query, where, getDocs } = await import('firebase/firestore');
+    const firestore = getFirestore();
+    
+    const unreadQuery = query(
+      collection(firestore, 'notifications'),
+      where('targetUserId', '==', currentUser.uid),
+      where('read', '==', false)
+    );
+
+    const unreadSnapshot = await getDocs(unreadQuery);
+    return unreadSnapshot.size;
+  } catch (error) {
+    console.error('Error getting unread count:', error);
+    return 0;
+  }
+};
+
 export const handleBackgroundMessage = (message: any) => {
   console.log('Background message received:', message);
   // Handle background message
