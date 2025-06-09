@@ -592,8 +592,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs
+    padding: SPACING.md,
   },
   userInfo: {
     flexDirection: 'row',
@@ -712,7 +711,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: SPACING.md,
-    marginVertical: SPACING.xs,
     borderRadius: 12,
   },
   actionButton: {

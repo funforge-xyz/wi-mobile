@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Wi Chat",
-    "slug": "wi-chat",
+    "slug": "wi-chat-app",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/app_icon.png",
@@ -51,6 +51,12 @@
       "@react-native-firebase/auth",
       "@react-native-firebase/messaging",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "262d6739-ab83-497f-a5f4-b8852d594e76"
+      }
+    },
+    "owner": "wichatapp"
   }
 }
