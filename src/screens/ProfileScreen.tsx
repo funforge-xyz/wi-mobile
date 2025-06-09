@@ -446,26 +446,47 @@ export default function ProfileScreen() {
   };
 
   const handleRemoveImage = async () => {
-    // Delete the image from Firebase Storage if it's a Firebase URL
-    if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
-      try {
-        await storageService.deleteProfilePicture(editedProfile.photoURL);
-      } catch (error) {
-        console.error('Error deleting image from storage:', error);
-        // Continue with removal even if storage deletion fails
+    try {
+      setLoading(true);
+
+      // Delete the image from Firebase Storage if it's a Firebase URL
+      if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
+        try {
+          await storageService.deleteProfilePicture(editedProfile.photoURL);
+        } catch (error) {
+          console.error('Error deleting image from storage:', error);
+          // Continue with removal even if storage deletion fails
+        }
       }
+
+      // Update profile in Firebase
+      await authService.updateProfile({
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        bio: editedProfile.bio,
+        photoURL: '',
+      });
+
+      // Update both edited and current profile states
+      const updatedProfile = {
+        ...profile,
+        photoURL: '',
+      };
+
+      setEditedProfile({
+        ...editedProfile,
+        photoURL: '',
+      });
+
+      setProfile(updatedProfile);
+
+      Alert.alert('Success', 'Profile picture removed successfully');
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      Alert.alert('Error', 'Failed to remove profile picture');
+    } finally {
+      setLoading(false);
     }
-
-    setEditedProfile({
-      ...editedProfile,
-      photoURL: '',
-    });
-
-    // Update the current profile state immediately to reflect the change
-    setProfile({
-      ...profile,
-      photoURL: '',
-    });
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;

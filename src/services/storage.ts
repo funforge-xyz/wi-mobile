@@ -157,12 +157,25 @@ export class StorageService {
 
   async deleteProfilePicture(photoURL: string): Promise<void> {
     try {
+      if (!photoURL || !photoURL.includes('firebase')) {
+        return; // Not a Firebase Storage URL, nothing to delete
+      }
+
       const storage = getStorageInstance();
-      const imageRef = ref(storage, photoURL);
-      await deleteObject(imageRef);
+      
+      // Extract the path from the download URL
+      const url = new URL(photoURL);
+      const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
+      
+      if (pathMatch) {
+        const decodedPath = decodeURIComponent(pathMatch[1]);
+        const imageRef = ref(storage, decodedPath);
+        await deleteObject(imageRef);
+        console.log('Profile picture deleted from storage:', decodedPath);
+      }
     } catch (error) {
       console.error('Error deleting profile picture:', error);
-      // Don't throw error for delete failures
+      // Don't throw error for delete failures to avoid blocking the UI update
     }
   }
 }
