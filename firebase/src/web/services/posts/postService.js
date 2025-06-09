@@ -151,7 +151,7 @@ class PostsService {
       mediaURL: postObj.mediaURL || null,
       thumbURL: postObj.thumbURL || null,
       allowComments: postObj.allowComments !== undefined ? postObj.allowComments : null,
-      allowLikes: postObj.allowComments !== undefined ? postObj.allowLikes : null,
+      showLikeCount: postObj.showLikeCount !== undefined ? postObj.showLikeCount : null,
       createdAt: timestamp.now(),
     };
 

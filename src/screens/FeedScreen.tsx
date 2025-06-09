@@ -33,7 +33,7 @@ interface ConnectionPost {
   createdAt: Date;
   likesCount: number;
   commentsCount: number;
-  allowLikes: boolean;
+  showLikeCount: boolean;
   allowComments: boolean;
   isLikedByUser: boolean;
 }
@@ -113,14 +113,15 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
       )}
 
       <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
-        {post.allowLikes && (
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleLikePress}
-          >
-            <Ionicons name={liked ? "heart" : "heart-outline"} size={24} color={liked ? "red" : currentTheme.textSecondary} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={handleLikePress}
+        >
+          <Ionicons name={liked ? "heart" : "heart-outline"} size={24} color={liked ? "red" : currentTheme.textSecondary} />
+          {post.showLikeCount && (
+            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{likesCount}</Text>
+          )}
+        </TouchableOpacity>
 
         {post.allowComments && (
           <TouchableOpacity
@@ -282,7 +283,7 @@ export default function FeedScreen({ navigation }: any) {
           createdAt: postData.createdAt?.toDate() || new Date(),
           likesCount: likesSnapshot.size,
           commentsCount: commentsSnapshot.size,
-          allowLikes: postData.allowLikes !== false,
+          showLikeCount: postData.showLikeCount !== false,
           allowComments: postData.allowComments !== false,
           isLikedByUser: isLikedByUser,
         };
