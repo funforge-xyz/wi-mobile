@@ -252,21 +252,12 @@ export default function NotificationsScreen({ navigation }: any) {
       onPress={() => handleNotificationPress(item)}
     >
       <View style={styles.notificationContent}>
-        <View style={styles.avatarContainer}>
-          {item.fromUserPhotoURL ? (
-            <Image source={{ uri: item.fromUserPhotoURL }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
-            </View>
-          )}
-          <View style={[styles.typeIcon, { backgroundColor: currentTheme.background }]}>
-            <Ionicons 
-              name={getNotificationIcon(item.type)} 
-              size={12} 
-              color={getNotificationIconColor(item.type)} 
-            />
-          </View>
+        <View style={[styles.iconContainer, { backgroundColor: getNotificationIconColor(item.type) }]}>
+          <Ionicons 
+            name={getNotificationIcon(item.type)} 
+            size={18} 
+            color="white" 
+          />
         </View>
 
         <View style={styles.notificationDetails}>
@@ -410,33 +401,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.md,
   },
-  avatarContainer: {
-    position: 'relative',
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: SPACING.md,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  typeIcon: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
   },
   notificationDetails: {
     flex: 1,
