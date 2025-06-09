@@ -523,52 +523,38 @@ export default function ProfileScreen() {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   const showImagePickerOptions = () => {
-    const options = editedProfile.photoURL
-      ? ['Take Photo', 'Choose from Library', 'Remove Photo', 'Cancel']
-      : ['Take Photo', 'Choose from Library', 'Cancel'];
+    const options = ['Take Photo', 'Choose from Library', 'Cancel'];
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options,
-          cancelButtonIndex: editedProfile.photoURL ? 3 : 2,
-          destructiveButtonIndex: editedProfile.photoURL ? 2 : undefined,
+          cancelButtonIndex: 2,
         },
         buttonIndex => {
           if (buttonIndex === 0) {
             handleCameraCapture();
           } else if (buttonIndex === 1) {
             handleImagePicker();
-          } else if (buttonIndex === 2 && editedProfile.photoURL) {
-            handleRemoveImage();
           }
         }
       );
     } else {
-      // For Android
+      // For Android - reversed order (bottom to top)
       const alertOptions = [
         {
-          text: 'Take Photo',
-          onPress: handleCameraCapture,
+          text: 'Cancel',
+          style: 'cancel' as const,
         },
         {
           text: 'Choose from Library',
           onPress: handleImagePicker,
         },
+        {
+          text: 'Take Photo',
+          onPress: handleCameraCapture,
+        },
       ];
-
-      if (editedProfile.photoURL) {
-        alertOptions.push({
-          text: 'Remove Photo',
-          onPress: handleRemoveImage,
-          style: 'destructive' as const,
-        });
-      }
-
-      alertOptions.push({
-        text: 'Cancel',
-        style: 'cancel' as const,
-      });
 
       Alert.alert(
         'Choose an option',
@@ -707,22 +693,32 @@ export default function ProfileScreen() {
 
           <ScrollView style={styles.modalContent}>
             <View style={[styles.modalSection, styles.modalImageContainer]}>
-              <TouchableOpacity onPress={showImagePickerOptions}>
-                {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
-                  <Image
-                    source={{
-                      uri: editedProfile.thumbnailURL || editedProfile.photoURL,
-                      cache: 'reload'
-                    }}
-                    style={styles.modalAvatar}
-                    key={`modal-avatar-${Date.now()}-${Math.random()}`}
-                  />
-                ) : (
-                  <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
-                    <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
-                  </View>
+              <View style={styles.avatarContainer}>
+                <TouchableOpacity onPress={showImagePickerOptions}>
+                  {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
+                    <Image
+                      source={{
+                        uri: editedProfile.thumbnailURL || editedProfile.photoURL,
+                        cache: 'reload'
+                      }}
+                      style={styles.modalAvatar}
+                      key={`modal-avatar-${Date.now()}-${Math.random()}`}
+                    />
+                  ) : (
+                    <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                      <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' && (
+                  <TouchableOpacity
+                    style={styles.deleteImageButton}
+                    onPress={handleRemoveImage}
+                  >
+                    <Ionicons name="trash" size={16} color="white" />
+                  </TouchableOpacity>
                 )}
-              </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.modalSection}>
@@ -1032,6 +1028,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: SPACING.lg,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: SPACING.md,
   },
   modalAvatar: {
     width: 100,
