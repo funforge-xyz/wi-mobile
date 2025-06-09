@@ -353,8 +353,12 @@ export default function UserPostsScreen({ navigation }: any) {
       <View style={styles.profileRow}>
         {(profile?.thumbnailURL || profile?.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
           <Image 
-            source={{ uri: profile.thumbnailURL || profile.photoURL }} 
-            style={styles.smallAvatar} 
+            source={{ 
+              uri: profile.thumbnailURL || profile.photoURL,
+              cache: 'reload'
+            }} 
+            style={styles.smallAvatar}
+            key={profile.thumbnailURL || profile.photoURL}
           />
         ) : (
           <View style={[styles.smallAvatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
