@@ -163,7 +163,7 @@ export default function ProfileScreen() {
       setLoading(true);
 
       let photoURL = editedProfile.photoURL;
-      let thumbnailURL = '';
+      let thumbnailURL = editedProfile.thumbnailURL;
 
       // Check if the photo is a local file that needs to be uploaded
       if (photoURL && photoURL.startsWith('file://')) {
@@ -336,18 +336,18 @@ export default function ProfileScreen() {
   const compressImage = async (uri: string): Promise<string> => {
     try {
       const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
-      
+
       // Get file info to check initial size
       const response = await fetch(uri);
       const blob = await response.blob();
       let initialSize = blob.size;
-      
+
       console.log('Initial image size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
-      
+
       // Start with high quality and reduce if needed
       let quality = 0.8;
       let compressedUri = uri;
-      
+
       // Keep compressing until under 5MB or quality gets too low
       while (initialSize > 5242880 && quality > 0.1) { // 5MB = 5242880 bytes
         const result = await manipulateAsync(
@@ -358,24 +358,24 @@ export default function ProfileScreen() {
             format: SaveFormat.JPEG,
           }
         );
-        
+
         // Check new file size
         const newResponse = await fetch(result.uri);
         const newBlob = await newResponse.blob();
         initialSize = newBlob.size;
         compressedUri = result.uri;
-        
+
         console.log('Compressed to quality', quality, 'Size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
-        
+
         // Reduce quality for next iteration
         quality -= 0.1;
       }
-      
+
       // Final check
       if (initialSize > 5242880) {
         throw new Error('Unable to compress image below 5MB');
       }
-      
+
       console.log('Final compressed size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
       return compressedUri;
     } catch (error) {
@@ -401,14 +401,15 @@ export default function ProfileScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      
+
       try {
         setLoading(true);
         const compressedUri = await compressImage(asset.uri);
-        
+
         setEditedProfile({
           ...editedProfile,
           photoURL: compressedUri,
+          thumbnailURL: '', // Will be generated on save
         });
       } catch (error) {
         console.error('Error processing image:', error);
@@ -435,14 +436,15 @@ export default function ProfileScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      
+
       try {
         setLoading(true);
         const compressedUri = await compressImage(asset.uri);
-        
+
         setEditedProfile({
           ...editedProfile,
           photoURL: compressedUri,
+          thumbnailURL: '', // Will be generated on save
         });
       } catch (error) {
         console.error('Error processing image:', error);
@@ -460,7 +462,7 @@ export default function ProfileScreen() {
       // Delete the image from Firebase Storage if it's a Firebase URL
       if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
         try {
-          await storageService.deleteProfilePicture(editedProfile.photoURL, profile.thumbnailURL);
+          // await storageService.deleteProfilePicture(editedProfile.photoURL, profile.thumbnailURL);
         } catch (error) {
           console.error('Error deleting image from storage:', error);
           // Continue with removal even if storage deletion fails
@@ -468,28 +470,30 @@ export default function ProfileScreen() {
       }
 
       // Update profile in Firebase
-      await authService.updateProfile({
-        firstName: editedProfile.firstName,
-        lastName: editedProfile.lastName,
-        bio: editedProfile.bio,
-        photoURL: '',
-        thumbnailURL: '',
-      });
+      // await authService.updateProfile({
+      //   firstName: editedProfile.firstName,
+      //   lastName: editedProfile.lastName,
+      //   bio: editedProfile.bio,
+      //   photoURL: '',
+      //   thumbnailURL: '',
+      // });
 
       // Update both edited and current profile states
       const updatedProfile = {
         ...profile,
         photoURL: '',
+        thumbnailURL: '',
       };
 
       setEditedProfile({
         ...editedProfile,
         photoURL: '',
+        thumbnailURL: '',
       });
 
-      setProfile(updatedProfile);
+      // setProfile(updatedProfile);
+      Alert.alert('Image Removed', 'Press save to update');
 
-      Alert.alert('Success', 'Profile picture removed successfully');
     } catch (error) {
       console.error('Error removing profile picture:', error);
       Alert.alert('Error', 'Failed to remove profile picture');
@@ -609,7 +613,7 @@ export default function ProfileScreen() {
               ? `${profile.firstName} ${profile.lastName}` 
               : 'Anonymous User'}
           </Text>
-          
+
           <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
             {profile.bio}
           </Text>
@@ -979,7 +983,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingVertical:SPACING.sm,
     borderBottomWidth: 1,
   },
   modalCancel: {

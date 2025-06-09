@@ -152,12 +152,12 @@ export class StorageService {
     try {
       const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
       
-      // Create thumbnail with max width/height of 150px and lower quality
+      // Create thumbnail with max width/height of 200px and higher quality
       const result = await manipulateAsync(
         imageUri,
-        [{ resize: { width: 150, height: 150 } }],
+        [{ resize: { width: 200, height: 200 } }],
         {
-          compress: 0.5,
+          compress: 0.8,
           format: SaveFormat.JPEG,
         }
       );
