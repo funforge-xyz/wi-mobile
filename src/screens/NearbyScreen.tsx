@@ -18,6 +18,7 @@ import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import NotificationBell from '../components/NotificationBell';
 
 interface NearbyUser {
   id: string;
@@ -352,6 +353,26 @@ export default function NearbyScreen({ navigation }: any) {
           createdAt: new Date(),
           updatedAt: new Date()
         });
+
+        // Get current user info for notification
+        const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+        const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+        const currentUserName = currentUserData.firstName && currentUserData.lastName 
+          ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+          : 'Someone';
+
+        // Create notification for the target user
+        await addDoc(collection(firestore, 'notifications'), {
+          type: 'nearby_request',
+          title: 'New Connection Request',
+          body: `${currentUserName} wants to connect with you`,
+          targetUserId: user.id,
+          fromUserId: currentUser.uid,
+          fromUserName: currentUserName,
+          fromUserPhotoURL: currentUserData.photoURL || '',
+          createdAt: new Date(),
+          read: false,
+        });
       }
 
       // Navigate to chat screen with this user
@@ -642,6 +663,10 @@ export default function NearbyScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Nearby</Text>
+        <NotificationBell 
+          onPress={() => navigation.navigate('Notifications')} 
+          color={currentTheme.text}
+        />
       </View>
 
       <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>

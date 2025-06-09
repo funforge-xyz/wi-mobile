@@ -138,6 +138,13 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
   );
 };
 
+// NotificationBell component (replace with your actual component)
+const NotificationBell = ({ onPress, color }: any) => (
+  <TouchableOpacity onPress={onPress}>
+    <Ionicons name="notifications-outline" size={24} color={color} />
+  </TouchableOpacity>
+);
+
 export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -403,9 +410,10 @@ export default function FeedScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-          <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
-        </TouchableOpacity>
+        <NotificationBell 
+          onPress={() => navigation.navigate('Notifications')} 
+          color={currentTheme.text}
+        />
       </View>
 
       <FlatList

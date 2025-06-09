@@ -54,6 +54,19 @@ interface Connection {
   isOnline?: boolean;
 }
 
+interface NotificationBellProps {
+  onPress: () => void;
+  color: string;
+}
+
+const NotificationBell: React.FC<NotificationBellProps> = ({ onPress, color }) => {
+  return (
+    <TouchableOpacity onPress={onPress} style={{ padding: 8 }}>
+      <Ionicons name="notifications-outline" size={24} color={color} />
+    </TouchableOpacity>
+  );
+};
+
 export default function ChatsScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
@@ -472,6 +485,10 @@ export default function ChatsScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Messages</Text>
+        <NotificationBell 
+          onPress={() => navigation.navigate('Notifications')} 
+          color={currentTheme.text}
+        />
       </View>
 
       <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>

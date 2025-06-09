@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -87,7 +86,7 @@ export default function NotificationsScreen({ navigation }: any) {
       }
 
       const firestore = getFirestore();
-      
+
       // Simple query without orderBy to avoid index issues
       const notificationsQuery = query(
         collection(firestore, 'notifications'),
@@ -138,15 +137,15 @@ export default function NotificationsScreen({ navigation }: any) {
     try {
       const firestore = getFirestore();
       const unreadNotifications = notifications.filter(n => !n.read);
-      
+
       // Update all unread notifications
       const updatePromises = unreadNotifications.map(notification => {
         const notificationRef = doc(firestore, 'notifications', notification.id);
         return updateDoc(notificationRef, { read: true });
       });
-      
+
       await Promise.all(updatePromises);
-      
+
       // Update local state
       setNotifications(prev => 
         prev.map(n => ({ ...n, read: true }))
@@ -157,18 +156,20 @@ export default function NotificationsScreen({ navigation }: any) {
   };
 
   const handleNotificationPress = async (notification: Notification) => {
-    if (!notification.read) {
+    try {
+      // Mark as read
       await markAsRead(notification.id);
-      // Update local state immediately
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notification.id ? { ...n, read: true } : n
-        )
-      );
+
+      // Navigate based on type
+      if (notification.type === 'like' || notification.type === 'comment') {
+        navigation.navigate('SinglePost', { postId: notification.postId });
+      } else if (notification.type === 'nearby_request') {
+        // Navigate to the user's profile or chats
+        navigation.navigate('Profile', { userId: notification.fromUserId });
+      }
+    } catch (error) {
+      console.error('Error handling notification press:', error);
     }
-    
-    // Navigate to the post
-    navigation.navigate('SinglePost', { postId: notification.postId });
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -221,7 +222,7 @@ export default function NotificationsScreen({ navigation }: any) {
             />
           </View>
         </View>
-        
+
         <View style={styles.notificationDetails}>
           <Text style={[styles.notificationTitle, { color: currentTheme.text }]}>
             {item.title}
