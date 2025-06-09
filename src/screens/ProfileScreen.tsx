@@ -486,39 +486,13 @@ export default function ProfileScreen() {
     try {
       setLoading(true);
 
-      // Delete the image from Firebase Storage if it's a Firebase URL
-      if (editedProfile.photoURL && editedProfile.photoURL.includes('firebase')) {
-        try {
-          // await storageService.deleteProfilePicture(editedProfile.photoURL, profile.thumbnailURL);
-        } catch (error) {
-          console.error('Error deleting image from storage:', error);
-          // Continue with removal even if storage deletion fails
-        }
-      }
-
-      // Update profile in Firebase
-      // await authService.updateProfile({
-      //   firstName: editedProfile.firstName,
-      //   lastName: editedProfile.lastName,
-      //   bio: editedProfile.bio,
-      //   photoURL: '',
-      //   thumbnailURL: '',
-      // });
-
-      // Update both edited and current profile states
-      const updatedProfile = {
-        ...profile,
-        photoURL: '',
-        thumbnailURL: '',
-      };
-
+      // Simply clear the image from edited profile
       setEditedProfile({
         ...editedProfile,
         photoURL: '',
         thumbnailURL: '',
       });
 
-      // setProfile(updatedProfile);
       Alert.alert('Image Removed', 'Press save to update');
 
     } catch (error) {
@@ -618,14 +592,14 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity onPress={isEditing ? showImagePickerOptions : undefined}>
-            {(profile.thumbnailURL || profile.photoURL) ? (
+            {(isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)) ? (
               <Image 
                 source={{ 
-                  uri: profile.thumbnailURL || profile.photoURL,
+                  uri: isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL),
                   cache: 'reload' // Force reload to avoid caching issues
                 }} 
                 style={styles.avatar}
-                key={profile.thumbnailURL || profile.photoURL} // Force re-render when URL changes
+                key={isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)} // Force re-render when URL changes
               />
             ) : (
               <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
