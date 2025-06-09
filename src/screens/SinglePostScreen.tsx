@@ -42,7 +42,7 @@ interface Post {
   mediaURL?: string;
   mediaType?: 'image' | 'video';
   createdAt: Date;
-  allowLikes: boolean;
+  showLikeCount: boolean;
   allowComments: boolean;
   isPrivate?: boolean;
 }
@@ -140,7 +140,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',
           createdAt: postData.createdAt?.toDate() || new Date(),
-          allowLikes: postData.allowLikes !== false,
+          showLikeCount: postData.showLikeCount !== false,
           allowComments: postData.allowComments !== false,
           isPrivate: postData.isPrivate || false,
         };
@@ -229,7 +229,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleLike = async () => {
-    if (!currentUser || !post?.allowLikes) return;
+    if (!currentUser) return;
 
     try {
       const firestore = getFirestore();
@@ -306,7 +306,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       setEditedContent(post.content || '');
       setEditedPrivacy(post.isPrivate || false);
       setEditedAllowComments(post.allowComments);
-      setEditedShowLikeCount(post.allowLikes);
+      setEditedShowLikeCount(post.showLikeCount);
     }
     setIsEditing(true);
   };
@@ -322,7 +322,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         content: editedContent.trim(),
         isPrivate: editedPrivacy,
         allowComments: editedAllowComments,
-        allowLikes: editedShowLikeCount,
+        showLikeCount: editedShowLikeCount,
         updatedAt: serverTimestamp(),
       });
 
@@ -332,7 +332,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         content: editedContent.trim(),
         isPrivate: editedPrivacy,
         allowComments: editedAllowComments,
-        allowLikes: editedShowLikeCount,
+        showLikeCount: editedShowLikeCount,
       });
 
       setIsEditing(false);
@@ -532,18 +532,18 @@ export default function SinglePostScreen({ route, navigation }: any) {
           )}
 
           <View style={styles.postActions}>
-            {post.allowLikes && (
-              <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-                <Ionicons
-                  name={userLiked ? 'heart' : 'heart-outline'}
-                  size={24}
-                  color={userLiked ? COLORS.error : currentTheme.textSecondary}
-                />
+            <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
+              <Ionicons
+                name={userLiked ? 'heart' : 'heart-outline'}
+                size={24}
+                color={userLiked ? COLORS.error : currentTheme.textSecondary}
+              />
+              {post.showLikeCount && (
                 <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>
                   {likes.length}
                 </Text>
-              </TouchableOpacity>
-            )}
+              )}
+            </TouchableOpacity>
             {post.allowComments && (
               <View style={styles.actionButton}>
                 <Ionicons name="chatbubble-outline" size={24} color={currentTheme.textSecondary} />

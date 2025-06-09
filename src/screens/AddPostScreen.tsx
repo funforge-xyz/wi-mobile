@@ -275,7 +275,6 @@ export default function AddPostScreen() {
         thumbURL: mediaURL || null,
         isPrivate: isPrivate,
         allowComments: allowComments,
-        allowLikes: true,
         showLikeCount: showLikeCount,
         createdAt: serverTimestamp(),
       });

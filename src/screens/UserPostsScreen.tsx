@@ -28,7 +28,7 @@ interface UserPost {
   createdAt: Date;
   likesCount: number;
   commentsCount: number;
-  allowLikes: boolean;
+  showLikeCount: boolean;
   allowComments: boolean;
   isPrivate: boolean;
   isLikedByUser?: boolean;
@@ -160,7 +160,7 @@ export default function UserPostsScreen({ navigation }: any) {
           createdAt: postData.createdAt?.toDate() || new Date(),
           likesCount: likesSnapshot.size,
           commentsCount: commentsSnapshot.size,
-          allowLikes: postData.allowLikes !== false,
+          showLikeCount: postData.showLikeCount !== false,
           allowComments: postData.allowComments !== false,
           isPrivate: postData.isPrivate || false,
           isLikedByUser: isLikedByUser,
@@ -318,21 +318,21 @@ export default function UserPostsScreen({ navigation }: any) {
       )}
 
       <View style={styles.postStats}>
-        {item.allowLikes && (
-          <TouchableOpacity 
-            style={styles.statItem}
-            onPress={() => handleLike(item.id)}
-          >
-            <Ionicons 
-              name={item.isLikedByUser ? "heart" : "heart-outline"} 
-              size={16} 
-              color={item.isLikedByUser ? COLORS.error : currentTheme.textSecondary} 
-            />
+        <TouchableOpacity 
+          style={styles.statItem}
+          onPress={() => handleLike(item.id)}
+        >
+          <Ionicons 
+            name={item.isLikedByUser ? "heart" : "heart-outline"} 
+            size={16} 
+            color={item.isLikedByUser ? COLORS.error : currentTheme.textSecondary} 
+          />
+          {item.showLikeCount && (
             <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
               {item.likesCount}
             </Text>
-          </TouchableOpacity>
-        )}
+          )}
+        </TouchableOpacity>
         {item.allowComments && (
           <TouchableOpacity style={styles.statItem}>
             <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
