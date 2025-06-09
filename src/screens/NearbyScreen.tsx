@@ -480,7 +480,14 @@ export default function NearbyScreen({ navigation }: any) {
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
           {item.photoURL ? (
-            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+            <Image 
+              source={{ 
+                uri: item.photoURL,
+                cache: 'reload'
+              }} 
+              style={styles.avatar}
+              key={item.photoURL}
+            />
           ) : (
             <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
               <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
@@ -519,8 +526,12 @@ export default function NearbyScreen({ navigation }: any) {
         <View style={styles.postAuthorInfo}>
           {item.authorPhotoURL ? (
             <Image
-              source={{ uri: item.authorPhotoURL }}
+              source={{ 
+                uri: item.authorPhotoURL,
+                cache: 'reload'
+              }}
               style={styles.postAuthorAvatar}
+              key={item.authorPhotoURL}
             />
           ) : (
             <View style={[styles.postAuthorAvatar, styles.postAuthorAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
