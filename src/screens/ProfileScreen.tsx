@@ -923,6 +923,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     marginBottom: SPACING.md,
+    resizeMode: 'cover',
   },
   placeholderAvatar: {
     justifyContent: 'center',
@@ -1044,6 +1045,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
+    resizeMode: 'cover',
   },
   placeholderModalAvatar: {
     justifyContent: 'center',
