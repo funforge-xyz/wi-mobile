@@ -17,6 +17,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit, onSnapshot } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import NotificationBell from '../components/NotificationBell';
 
 interface ChatMessage {
   id: string;
@@ -54,18 +55,7 @@ interface Connection {
   isOnline?: boolean;
 }
 
-interface NotificationBellProps {
-  onPress: () => void;
-  color: string;
-}
 
-const NotificationBell: React.FC<NotificationBellProps> = ({ onPress, color }) => {
-  return (
-    <TouchableOpacity onPress={onPress} style={{ padding: 8 }}>
-      <Ionicons name="notifications-outline" size={24} color={color} />
-    </TouchableOpacity>
-  );
-};
 
 export default function ChatsScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
@@ -727,7 +717,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: SPACING.md,
+    padding: SPACING.sm,
+    marginVertical: SPACING.xs / 2,
     borderRadius: 12,
   },
   actionButton: {
