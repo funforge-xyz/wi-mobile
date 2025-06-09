@@ -18,10 +18,10 @@ import { getFirestore } from '../services/firebase';
 
 interface Notification {
   id: string;
-  type: 'like' | 'comment';
+  type: 'like' | 'comment' | 'nearby_request';
   title: string;
   body: string;
-  postId: string;
+  postId?: string;
   fromUserId: string;
   fromUserName: string;
   fromUserPhotoURL: string;
@@ -196,12 +196,49 @@ export default function NotificationsScreen({ navigation }: any) {
     setRefreshing(false);
   };
 
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'like':
+        return 'heart';
+      case 'comment':
+        return 'chatbubble';
+      case 'nearby_request':
+        return 'people';
+      default:
+        return 'notifications';
+    }
+  };
+
+  const getNotificationIconColor = (type: string) => {
+    switch (type) {
+      case 'like':
+        return COLORS.error;
+      case 'comment':
+        return COLORS.primary;
+      case 'nearby_request':
+        return '#9b59b6';
+      default:
+        return COLORS.primary;
+    }
+  };
+
   const renderNotificationItem = ({ item }: { item: Notification }) => (
     <TouchableOpacity
       style={[
         styles.notificationItem,
-        { backgroundColor: currentTheme.surface },
-        !item.read && { backgroundColor: currentTheme.unreadBackground }
+        { 
+          backgroundColor: currentTheme.surface,
+          borderLeftWidth: !item.read ? 4 : 0,
+          borderLeftColor: !item.read ? COLORS.primary : 'transparent',
+        },
+        !item.read && { 
+          backgroundColor: currentTheme.unreadBackground,
+          shadowColor: COLORS.primary,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }
       ]}
       onPress={() => handleNotificationPress(item)}
     >
@@ -216,18 +253,30 @@ export default function NotificationsScreen({ navigation }: any) {
           )}
           <View style={[styles.typeIcon, { backgroundColor: currentTheme.background }]}>
             <Ionicons 
-              name={item.type === 'like' ? 'heart' : 'chatbubble'} 
+              name={getNotificationIcon(item.type)} 
               size={12} 
-              color={item.type === 'like' ? COLORS.error : COLORS.primary} 
+              color={getNotificationIconColor(item.type)} 
             />
           </View>
         </View>
 
         <View style={styles.notificationDetails}>
-          <Text style={[styles.notificationTitle, { color: currentTheme.text }]}>
+          <Text style={[
+            styles.notificationTitle, 
+            { 
+              color: currentTheme.text,
+              fontWeight: !item.read ? 'bold' : 'normal'
+            }
+          ]}>
             {item.title}
           </Text>
-          <Text style={[styles.notificationBody, { color: currentTheme.textSecondary }]}>
+          <Text style={[
+            styles.notificationBody, 
+            { 
+              color: currentTheme.textSecondary,
+              fontWeight: !item.read ? '500' : 'normal'
+            }
+          ]}>
             {item.body}
           </Text>
           <Text style={[styles.notificationTime, { color: currentTheme.textSecondary }]}>
@@ -302,7 +351,7 @@ const lightTheme = {
   text: COLORS.text,
   textSecondary: COLORS.textSecondary,
   border: COLORS.border,
-  unreadBackground: '#F0F8FF',
+  unreadBackground: '#E3F2FD',
 };
 
 const darkTheme = {
@@ -311,7 +360,7 @@ const darkTheme = {
   text: '#FFFFFF',
   textSecondary: '#B0B0B0',
   border: '#333333',
-  unreadBackground: '#1A1A2E',
+  unreadBackground: '#263238',
 };
 
 const styles = StyleSheet.create({

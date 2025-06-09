@@ -1,8 +1,7 @@
-
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { getAuth } from './firebase';
 
 Notifications.setNotificationHandler({
@@ -41,7 +40,7 @@ export const initializeNotifications = async () => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    
+
     if (currentUser) {
       const firestore = getFirestore();
       const userRef = doc(firestore, 'users', currentUser.uid);
@@ -88,20 +87,46 @@ export const getUnreadNotificationsCount = async (): Promise<number> => {
       return 0;
     }
 
-    const { getFirestore, collection, query, where, getDocs } = await import('firebase/firestore');
     const firestore = getFirestore();
-    
-    const unreadQuery = query(
+    const notificationsQuery = query(
       collection(firestore, 'notifications'),
       where('targetUserId', '==', currentUser.uid),
       where('read', '==', false)
     );
 
-    const unreadSnapshot = await getDocs(unreadQuery);
-    return unreadSnapshot.size;
+    const snapshot = await getDocs(notificationsQuery);
+    return snapshot.size;
   } catch (error) {
-    console.error('Error getting unread count:', error);
+    console.error('Error getting unread notifications count:', error);
     return 0;
+  }
+};
+
+export const createNearbyRequestNotification = async (targetUserId: string, fromUserName: string, fromUserPhotoURL?: string): Promise<void> => {
+  try {
+    const { getAuth } = await import('./firebase');
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser || currentUser.uid === targetUserId) {
+      return;
+    }
+
+    const firestore = getFirestore();
+
+    await addDoc(collection(firestore, 'notifications'), {
+      type: 'nearby_request',
+      title: 'New Chat Request',
+      body: `${fromUserName} wants to start a conversation with you`,
+      targetUserId: targetUserId,
+      fromUserId: currentUser.uid,
+      fromUserName: fromUserName,
+      fromUserPhotoURL: fromUserPhotoURL || '',
+      read: false,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error creating nearby request notification:', error);
   }
 };
 
