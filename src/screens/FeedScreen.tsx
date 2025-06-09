@@ -18,6 +18,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
+import NotificationBell from '../components/NotificationBell';
 
 const { width } = Dimensions.get('window');
 
@@ -139,11 +140,11 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
 };
 
 // NotificationBell component (replace with your actual component)
-const NotificationBell = ({ onPress, color }: any) => (
-  <TouchableOpacity onPress={onPress}>
-    <Ionicons name="notifications-outline" size={24} color={color} />
-  </TouchableOpacity>
-);
+// const NotificationBell = ({ onPress, color }: any) => (
+//   <TouchableOpacity onPress={onPress}>
+//     <Ionicons name="notifications-outline" size={24} color={color} />
+//   </TouchableOpacity>
+// );
 
 export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
