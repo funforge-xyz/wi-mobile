@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
   TouchableOpacity,
   TextInput,
@@ -32,6 +31,7 @@ import {
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { authService } from '../services/auth';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface Post {
   id: string;
@@ -489,7 +489,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         )}
       </View>
 
-      <ScrollView style={styles.content}>
+      <KeyboardAwareScrollView style={styles.content}>
         {/* Post */}
         <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
           <View style={styles.postHeader}>
@@ -575,7 +575,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
             )}
           </View>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Comment Input */}
       {post.allowComments && currentUser && (
@@ -625,7 +625,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalContent}>
+          <KeyboardAwareScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Content</Text>
               <TextInput
@@ -691,7 +691,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 <Text style={[styles.deleteButtonText, { color: COLORS.error }]}>Delete Post</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
