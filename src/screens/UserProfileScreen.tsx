@@ -245,7 +245,6 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     margin: SPACING.md,
     borderRadius: 16,
-    width: '100%'
   },
   avatar: {
     width: 120,
@@ -269,6 +268,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
     lineHeight: 20,
     paddingHorizontal: SPACING.md,
+    maxWidth: '90%',
+    flexWrap: 'wrap',
   },
   menuSection: {
     margin: SPACING.md,

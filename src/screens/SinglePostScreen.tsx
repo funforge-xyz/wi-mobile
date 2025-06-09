@@ -480,12 +480,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Post</Text>
-        {isOwnPost && post?.authorId === currentUser?.uid && (
+        {isOwnPost && post?.authorId === currentUser?.uid ? (
           <TouchableOpacity onPress={handleEditPost}>
             <Ionicons name="create-outline" size={24} color={currentTheme.text} />
           </TouchableOpacity>
+        ) : (
+          <View style={{ width: 24 }} />
         )}
-        {!isOwnPost && !post?.authorId && <View style={{ width: 24 }} />}
       </View>
 
       <ScrollView style={styles.content}>
