@@ -46,4 +46,30 @@ const createNotificationHandler = async (snap, context) => {
   }
 };
 
-export default createNotificationHandler;
+import { sendPushNotification } from '../helpers/pushNotifications';
+
+export default async function notificationOnCreateHandler(snap, context) {
+  const notificationData = snap.data();
+  const { notificationId } = context.params;
+
+  console.log('New notification created:', notificationId, notificationData);
+
+  try {
+    // Send push notification to the target user
+    await sendPushNotification(
+      notificationData.targetUserId,
+      notificationData.title,
+      notificationData.body,
+      {
+        type: notificationData.type,
+        postId: notificationData.postId,
+        fromUserId: notificationData.fromUserId,
+        notificationId: notificationId,
+      }
+    );
+
+    console.log('Push notification sent for notification:', notificationId);
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
+}

@@ -46,6 +46,20 @@ export default function App() {
 
         // Initialize notifications
         await initializeNotifications();
+        
+        // Handle notification taps
+        const notificationResponse = Notifications.addNotificationResponseReceivedListener(response => {
+          const data = response.notification.request.content.data;
+          console.log('Notification tapped:', data);
+          
+          // Handle navigation based on notification type
+          if (data.type === 'like' || data.type === 'comment') {
+            // Navigate to post screen
+            // You'll need to implement navigation here based on your navigation setup
+          } else if (data.type === 'nearby_request') {
+            // Navigate to nearby screen
+          }
+        });
 
         // Load fonts
         await Font.loadAsync({
