@@ -72,12 +72,6 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       if (userDoc.exists()) {
         const userData = userDoc.data();
         
-        // Get user's post count
-        const postsCollection = collection(firestore, 'posts');
-        const userPostsQuery = query(postsCollection, where('authorId', '==', userId));
-        const userPostsSnapshot = await getDocs(userPostsQuery);
-        const postsCount = userPostsSnapshot.size;
-
         setProfile({
           id: userId,
           firstName: userData.firstName || firstName,
@@ -85,7 +79,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
           email: userData.email || '',
           photoURL: userData.photoURL || photoURL,
           bio: userData.bio || bio,
-          postsCount: postsCount,
+          postsCount: 0,
           connectionsCount: 0,
         });
       }
@@ -188,28 +182,11 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
               : 'Anonymous User'}
           </Text>
           
-          <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
-            {profile.bio}
-          </Text>
-
-          <View style={styles.statsContainer}>
-            <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile.postsCount}
-              </Text>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Posts
-              </Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                0
-              </Text>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Connections
-              </Text>
-            </View>
-          </View>
+          {profile.bio ? (
+            <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
+              {profile.bio}
+            </Text>
+          ) : null}
         </View>
 
         <View style={[styles.menuSection, { backgroundColor: currentTheme.surface }]}>
@@ -289,25 +266,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.regular,
     textAlign: 'center',
-    marginBottom: SPACING.md,
-    lineHeight: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
     marginBottom: SPACING.lg,
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 20,
-    fontFamily: FONTS.bold,
-  },
-  statLabel: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
+    lineHeight: 20,
+    paddingHorizontal: SPACING.md,
   },
   menuSection: {
     margin: SPACING.md,
