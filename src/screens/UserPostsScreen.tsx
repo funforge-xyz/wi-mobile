@@ -97,6 +97,15 @@ export default function UserPostsScreen({ navigation }: any) {
 
       const firestore = getFirestore();
 
+      // Get current user's profile data
+      const userDocRef = doc(firestore, 'users', currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      let currentUserData = {};
+      
+      if (userDoc.exists()) {
+        currentUserData = userDoc.data();
+      }
+
       // Get user's posts
       const postsCollection = collection(firestore, 'posts');
       const userPostsQuery = query(
@@ -128,10 +137,10 @@ export default function UserPostsScreen({ navigation }: any) {
         userPosts.push({
           id: postDoc.id,
           authorId: postData.authorId,
-          authorName: profile?.firstName && profile?.lastName 
-            ? `${profile.firstName} ${profile.lastName}` 
+          authorName: currentUserData.firstName && currentUserData.lastName 
+            ? `${currentUserData.firstName} ${currentUserData.lastName}` 
             : 'You',
-          authorPhotoURL: profile?.photoURL || '',
+          authorPhotoURL: currentUserData.photoURL || '',
           content: postData.content || '',
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',
