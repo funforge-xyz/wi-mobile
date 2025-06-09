@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 interface Notification {
@@ -39,57 +39,30 @@ export default function NotificationsScreen({ navigation }: any) {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    const setupNotificationListener = async () => {
+    const setupAuthListener = async () => {
       try {
         const { getAuth } = await import('../services/firebase');
         const auth = getAuth();
-        const currentUser = auth.currentUser;
 
-        if (!currentUser) {
-          setLoading(false);
-          return;
-        }
-
-        const firestore = getFirestore();
-        const notificationsQuery = query(
-          collection(firestore, 'notifications'),
-          where('targetUserId', '==', currentUser.uid),
-          orderBy('createdAt', 'desc')
-        );
-
-        const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
-          const notificationsData: Notification[] = [];
-          
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            notificationsData.push({
-              id: doc.id,
-              type: data.type,
-              title: data.title,
-              body: data.body,
-              postId: data.postId,
-              fromUserId: data.fromUserId,
-              fromUserName: data.fromUserName,
-              fromUserPhotoURL: data.fromUserPhotoURL || '',
-              createdAt: data.createdAt?.toDate() || new Date(),
-              read: data.read || false,
-            });
-          });
-
-          setNotifications(notificationsData);
-          setLoading(false);
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          if (user) {
+            loadNotifications();
+          } else {
+            setLoading(false);
+            setNotifications([]);
+          }
         });
 
         return unsubscribe;
       } catch (error) {
-        console.error('Error setting up notification listener:', error);
+        console.error('Error setting up auth listener:', error);
         setLoading(false);
       }
     };
 
     let unsubscribe: (() => void) | undefined;
 
-    setupNotificationListener().then((unsub) => {
+    setupAuthListener().then((unsub) => {
       unsubscribe = unsub;
     });
 
@@ -99,6 +72,53 @@ export default function NotificationsScreen({ navigation }: any) {
       }
     };
   }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        console.log('No current user found');
+        setLoading(false);
+        return;
+      }
+
+      const firestore = getFirestore();
+      const notificationsQuery = query(
+        collection(firestore, 'notifications'),
+        where('targetUserId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      );
+
+      const notificationsSnapshot = await getDocs(notificationsQuery);
+      const notificationsData: Notification[] = [];
+
+      notificationsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        notificationsData.push({
+          id: doc.id,
+          type: data.type,
+          title: data.title,
+          body: data.body,
+          postId: data.postId,
+          fromUserId: data.fromUserId,
+          fromUserName: data.fromUserName,
+          fromUserPhotoURL: data.fromUserPhotoURL || '',
+          createdAt: data.createdAt?.toDate() || new Date(),
+          read: data.read || false,
+        });
+      });
+
+      setNotifications(notificationsData);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -139,8 +159,8 @@ export default function NotificationsScreen({ navigation }: any) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // The real-time listener will automatically update the data
-    setTimeout(() => setRefreshing(false), 1000);
+    await loadNotifications();
+    setRefreshing(false);
   };
 
   const renderNotificationItem = ({ item }: { item: Notification }) => (
