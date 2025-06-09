@@ -159,13 +159,22 @@ export default function NotificationsScreen({ navigation }: any) {
     try {
       // Mark as read
       await markAsRead(notification.id);
+      
+      // Update local state immediately
+      setNotifications(prev => 
+        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+      );
 
       // Navigate based on type
       if (notification.type === 'like' || notification.type === 'comment') {
         navigation.navigate('SinglePost', { postId: notification.postId });
       } else if (notification.type === 'nearby_request') {
-        // Navigate to the user's profile or chats
-        navigation.navigate('Profile', { userId: notification.fromUserId });
+        // Navigate directly to chat with the requesting user
+        navigation.navigate('Chat', {
+          userId: notification.fromUserId,
+          userName: notification.fromUserName,
+          userPhotoURL: notification.fromUserPhotoURL
+        });
       }
     } catch (error) {
       console.error('Error handling notification press:', error);

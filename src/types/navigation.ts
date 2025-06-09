@@ -19,6 +19,11 @@ export type RootStackParamList = {
     bio?: string;
   };
   Notifications: undefined;
+  Chat: {
+    userId: string;
+    userName: string;
+    userPhotoURL?: string;
+  };
 };
 
 export type BottomTabParamList = {

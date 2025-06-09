@@ -54,13 +54,23 @@ export default function App() {
           const data = response.notification.request.content.data;
           console.log('Notification tapped:', data);
 
-          // Handle navigation based on notification type
-          if (data.type === 'like' || data.type === 'comment') {
-            // Navigate to post screen
-            // You'll need to implement navigation here based on your navigation setup
-          } else if (data.type === 'nearby_request') {
-            // Navigate to nearby screen
-          }
+          // Use a timeout to ensure navigation is ready
+          setTimeout(() => {
+            // Handle navigation based on notification type
+            if (data.type === 'like' || data.type === 'comment') {
+              // Navigate to post screen
+              if (data.postId) {
+                // You'll need to get navigation reference to navigate
+                // For now, this will be handled by the notification screen navigation
+              }
+            } else if (data.type === 'nearby_request') {
+              // Navigate to chat with the requesting user
+              if (data.fromUserId && data.fromUserName) {
+                // Navigate to chat screen directly
+                // This will be handled by the notification press in NotificationsScreen
+              }
+            }
+          }, 1000);
         });
 
         // Load fonts

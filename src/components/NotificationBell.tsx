@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
 import { getUnreadNotificationsCount } from '../services/notifications';
 import { useAppSelector } from '../hooks/redux';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getFirestore } from '../services/firebase';
 
 interface NotificationBellProps {
   onPress: () => void;
@@ -19,12 +21,46 @@ export default function NotificationBell({ onPress, size = 24, color }: Notifica
   const bellColor = color || (isDarkMode ? '#FFFFFF' : '#000000');
 
   useEffect(() => {
-    loadUnreadCount();
-    
-    // Refresh count every 30 seconds
-    const interval = setInterval(loadUnreadCount, 30000);
-    
-    return () => clearInterval(interval);
+    let unsubscribe: (() => void) | undefined;
+
+    const setupRealtimeListener = async () => {
+      try {
+        const { getAuth } = await import('../services/firebase');
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+
+        if (!currentUser) {
+          setUnreadCount(0);
+          return;
+        }
+
+        const firestore = getFirestore();
+
+        // Set up real-time listener for unread notifications
+        const notificationsQuery = query(
+          collection(firestore, 'notifications'),
+          where('targetUserId', '==', currentUser.uid),
+          where('read', '==', false)
+        );
+
+        unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
+          setUnreadCount(snapshot.size);
+        });
+
+      } catch (error) {
+        console.error('Error setting up notification listener:', error);
+        // Fallback to periodic updates
+        loadUnreadCount();
+      }
+    };
+
+    setupRealtimeListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const loadUnreadCount = async () => {
