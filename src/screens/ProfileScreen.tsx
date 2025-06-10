@@ -869,6 +869,9 @@ const darkTheme = {
 const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
+  
+  // Get proper width value for shimmer effect
+  const imageWidth = style?.width || 120;
 
   React.useEffect(() => {
     setLoading(true);
@@ -879,7 +882,7 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
     <View style={style}>
       {loading && !error && (
         <SkeletonLoader
-          width={style?.width || 120}
+          width={typeof imageWidth === 'number' ? imageWidth : 120}
           height={style?.height || 120}
           borderRadius={style?.borderRadius || 60}
           style={{ position: 'absolute' }}
@@ -887,7 +890,7 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
       )}
       <Image
         source={{ uri, cache: 'reload' }}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
