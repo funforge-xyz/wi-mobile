@@ -18,6 +18,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit, onSnapshot } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 interface ChatMessage {
   id: string;
@@ -54,6 +55,42 @@ interface Connection {
   lastMessageTime?: Date;
   isOnline?: boolean;
 }
+
+const AvatarImage = ({ source, style }: { source: any; style: any }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [source?.uri]);
+
+  return (
+    <View style={style}>
+      {loading && !error && (
+        <SkeletonLoader
+          width={style?.width || 50}
+          height={style?.height || 50}
+          borderRadius={style?.borderRadius || 25}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={source}
+        style={[style, { opacity: loading ? 0 : 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
+      />
+    </View>
+  );
+};
 
 
 
@@ -347,7 +384,7 @@ export default function ChatsScreen({ navigation }: any) {
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
           {item.photoURL ? (
-            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+            <AvatarImage source={{ uri: item.photoURL }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
               <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
@@ -387,7 +424,7 @@ export default function ChatsScreen({ navigation }: any) {
     >
       <View style={styles.chatAvatar}>
         {item.photoURL ? (
-          <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+          <AvatarImage source={{ uri: item.photoURL }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
             <Ionicons name="person" size={24} color={currentTheme.textSecondary} />

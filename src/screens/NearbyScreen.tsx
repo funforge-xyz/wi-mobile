@@ -59,18 +59,18 @@ const AvatarImage = ({ source, style }: { source: any, style: any }) => {
   }, [source?.uri]);
 
   return (
-    <View style={style}>
+    <View style={[style, { overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 50}
           height={style?.height || 50}
           borderRadius={style?.borderRadius || 25}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', zIndex: 1 }}
         />
       )}
       <Image
         source={source}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -95,18 +95,18 @@ const PostImage = ({ source, style }: { source: any, style: any }) => {
   }, [source?.uri]);
 
   return (
-    <View style={[style, { position: 'relative' }]}>
+    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
-          width={style?.width || '100%'}
+          width={style?.width || 300}
           height={style?.height || 200}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', zIndex: 1 }}
         />
       )}
       <Image
         source={source}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -574,13 +574,12 @@ export default function NearbyScreen({ navigation }: any) {
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
           {item.photoURL ? (
-            <Image 
+            <AvatarImage 
               source={{ 
                 uri: item.photoURL,
                 cache: 'reload'
               }} 
               style={styles.avatar}
-              key={item.photoURL}
             />
           ) : (
             <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
