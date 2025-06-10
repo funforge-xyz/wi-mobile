@@ -879,18 +879,18 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
   }, [uri]);
 
   return (
-    <View style={style}>
+    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={typeof imageWidth === 'number' ? imageWidth : 120}
           height={style?.height || 120}
           borderRadius={style?.borderRadius || 60}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', zIndex: 1 }}
         />
       )}
       <Image
         source={{ uri, cache: 'reload' }}
-        style={[style, { opacity: loading || error ? 0 : 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
