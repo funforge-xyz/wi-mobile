@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -74,6 +75,10 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
 const PostImage = ({ source, style }: { source: any; style: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  
+  // Get the actual width from Dimensions since style width might be '100%'
+  const { width } = Dimensions.get('window');
+  const imageWidth = width - (SPACING.md * 4); // Account for padding
 
   useEffect(() => {
     setLoading(true);
@@ -84,7 +89,7 @@ const PostImage = ({ source, style }: { source: any; style: any }) => {
     <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
-          width={style?.width || 300}
+          width={imageWidth}
           height={style?.height || 200}
           borderRadius={style?.borderRadius || 8}
           style={{ position: 'absolute', zIndex: 1 }}
