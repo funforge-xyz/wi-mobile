@@ -538,7 +538,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 size={24}
                 color={userLiked ? COLORS.error : currentTheme.textSecondary}
               />
-              {post.showLikeCount && (
+              {(post.showLikeCount || post.authorId === currentUser?.uid) && (
                 <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>
                   {likes.length}
                 </Text>
