@@ -441,7 +441,7 @@ export default function UserPostsScreen({ navigation }: any) {
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.profileRow}>
         {(profile?.thumbnailURL || profile?.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
-          <Image 
+          <AvatarImage
             source={{ 
               uri: profile.thumbnailURL || profile.photoURL,
               cache: 'reload'
