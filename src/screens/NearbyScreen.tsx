@@ -517,7 +517,7 @@ export default function NearbyScreen({ navigation }: any) {
         if (post.authorId !== currentUser.uid) {
           // Get current user info
           const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-          const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+          const currentUserData = currentUserDoc.exists() ? currentUserData.data() : {};
           const currentUserName = currentUserData.firstName && currentUserData.lastName 
             ? `${currentUserData.firstName} ${currentUserData.lastName}` 
             : 'Someone';
@@ -618,7 +618,10 @@ export default function NearbyScreen({ navigation }: any) {
       <View style={styles.postHeader}>
         <View style={styles.postAuthorInfo}>
           {post.authorPhotoURL ? (
-            <AvatarImage source={{ uri: post.authorPhotoURL }} style={styles.postAuthorAvatar} />
+            <AvatarImage
+              source={{ uri: post.authorPhotoURL }} 
+              style={styles.postAuthorAvatar}
+            />
           ) : (
             <View style={[styles.postAuthorAvatar, styles.postAuthorAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
               <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
@@ -642,13 +645,12 @@ export default function NearbyScreen({ navigation }: any) {
       ) : null}
 
       {post.mediaURL && post.mediaURL.trim() !== '' && (
-        <View style={{ marginBottom: SPACING.sm }}>
+        <TouchableOpacity onPress={() => handlePostPress(post)}>
           <PostImage
             source={{ uri: post.mediaURL }}
             style={styles.postMedia}
-            resizeMode="cover"
           />
-        </View>
+        </TouchableOpacity>
       )}
 
       <View style={styles.postStats}>
@@ -1026,6 +1028,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   lastMessage: {
+```text
     fontSize: 14,
     fontFamily: FONTS.regular,
   },

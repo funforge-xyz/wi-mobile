@@ -871,7 +871,8 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
   const [error, setError] = React.useState(false);
   
   // Get proper width value for shimmer effect
-  const imageWidth = style?.width || 120;
+  const imageWidth = typeof style?.width === 'number' ? style.width : 120;
+  const imageHeight = typeof style?.height === 'number' ? style.height : 120;
 
   React.useEffect(() => {
     setLoading(true);
@@ -879,13 +880,13 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
   }, [uri]);
 
   return (
-    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
+    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
       {loading && !error && (
         <SkeletonLoader
-          width={typeof imageWidth === 'number' ? imageWidth : 120}
-          height={style?.height || 120}
+          width={imageWidth}
+          height={imageHeight}
           borderRadius={style?.borderRadius || 60}
-          style={{ position: 'absolute', zIndex: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
       <Image

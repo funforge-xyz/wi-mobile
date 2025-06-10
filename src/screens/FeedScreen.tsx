@@ -465,7 +465,7 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
   }, [source?.uri]);
 
   return (
-    <View style={style}>
+    <View style={[style, { position: 'relative' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 40}
@@ -476,7 +476,7 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
       )}
       <Image
         source={source}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading || error ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -513,7 +513,7 @@ const PostImage = ({ source, style, ...props }: { source: any; style: any; [key:
       )}
       <Image
         source={source}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading || error ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);

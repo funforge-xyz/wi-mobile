@@ -40,24 +40,28 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // Get proper width value for shimmer effect
+  const imageWidth = typeof style?.width === 'number' ? style.width : 40;
+  const imageHeight = typeof style?.height === 'number' ? style.height : 40;
+
   useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);
 
   return (
-    <View style={style}>
+    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
       {loading && !error && (
         <SkeletonLoader
-          width={style?.width || 40}
-          height={style?.height || 40}
+          width={imageWidth}
+          height={imageHeight}
           borderRadius={style?.borderRadius || 20}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
       <Image
         source={source}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -79,6 +83,7 @@ const PostImage = ({ source, style }: { source: any; style: any }) => {
   // Get the actual width from Dimensions since style width might be '100%'
   const { width } = Dimensions.get('window');
   const imageWidth = width - (SPACING.md * 4); // Account for padding
+  const imageHeight = typeof style?.height === 'number' ? style.height : 200;
 
   useEffect(() => {
     setLoading(true);
@@ -86,13 +91,13 @@ const PostImage = ({ source, style }: { source: any; style: any }) => {
   }, [source?.uri]);
 
   return (
-    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
+    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
       {loading && !error && (
         <SkeletonLoader
           width={imageWidth}
-          height={style?.height || 200}
+          height={imageHeight}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute', zIndex: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
       <Image

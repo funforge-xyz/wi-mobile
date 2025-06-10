@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { useAppSelector } from '../hooks/redux';
