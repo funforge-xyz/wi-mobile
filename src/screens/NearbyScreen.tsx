@@ -1028,7 +1028,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   lastMessage: {
-```text
     fontSize: 14,
     fontFamily: FONTS.regular,
   },
