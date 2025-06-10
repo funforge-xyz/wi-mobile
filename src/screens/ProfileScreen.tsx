@@ -890,7 +890,7 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
       )}
       <Image
         source={{ uri, cache: 'reload' }}
-        style={[style, { opacity: loading ? 0 : 1 }]}
+        style={[style, { opacity: loading || error ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
