@@ -24,6 +24,7 @@ import { toggleTheme } from '../store/themeSlice';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { useNavigation, CommonActions } from '@react-navigation/native';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 interface UserProfile {
   id: string;
@@ -595,11 +596,8 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           {(isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)) && (isEditing ? (editedProfile.thumbnailURL || editedProfile.photoURL) : (profile.thumbnailURL || profile.photoURL)).trim() !== '' ? (
-            <Image
-              source={{
-                uri: editedProfile.thumbnailURL || editedProfile.photoURL,
-                cache: 'reload' // Force reload to avoid caching issues
-              }}
+            <ProfileImage
+              uri={editedProfile.thumbnailURL || editedProfile.photoURL}
               style={styles.avatar}
             />
           ) : (
@@ -696,11 +694,8 @@ export default function ProfileScreen() {
               <View style={styles.avatarContainer}>
                 <TouchableOpacity onPress={showImagePickerOptions}>
                   {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
-                    <Image
-                      source={{
-                        uri: editedProfile.thumbnailURL || editedProfile.photoURL,
-                        cache: 'reload'
-                      }}
+                    <ProfileImage
+                      uri={editedProfile.thumbnailURL || editedProfile.photoURL}
                       style={styles.modalAvatar}
                       key={`modal-avatar-${Date.now()}-${Math.random()}`}
                     />
@@ -869,6 +864,31 @@ const darkTheme = {
   text: '#FFFFFF',
   textSecondary: '#B0B0B0',
   border: '#333333',
+};
+
+const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+
+  return (
+    <View style={style}>
+      {loading && (
+        <SkeletonLoader
+          width={style?.width || 120}
+          height={style?.height || 120}
+          borderRadius={style?.borderRadius || 60}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={{ uri, cache: 'reload' }}
+        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        {...props}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

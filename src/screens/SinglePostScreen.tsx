@@ -32,6 +32,7 @@ import {
 import { getFirestore } from '../services/firebase';
 import { authService } from '../services/auth';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 interface Post {
   id: string;
@@ -421,7 +422,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const renderComment = ({ item }: { item: Comment }) => (
     <View style={styles.commentItem}>
       {item.authorPhotoURL ? (
-        <Image source={{ uri: item.authorPhotoURL }} style={styles.commentAvatar} />
+        <AvatarImage
+          uri={item.authorPhotoURL}
+          style={styles.commentAvatar}
+        />
       ) : (
         <View style={[styles.commentAvatar, styles.commentAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
           <Ionicons name="person" size={16} color={currentTheme.textSecondary} />
@@ -494,8 +498,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
         <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
           <View style={styles.postHeader}>
             {post.authorPhotoURL ? (
-              <Image
-                source={{ uri: post.authorPhotoURL }}
+              <AvatarImage
+                uri={post.authorPhotoURL}
                 style={styles.authorAvatar}
               />
             ) : (
@@ -521,8 +525,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
           {post.mediaURL && (
             <View style={styles.mediaContainer}>
-              <Image
-                source={{ uri: post.mediaURL }}
+              <PostImage
+                uri={post.mediaURL}
                 style={styles.postMedia}
                 resizeMode="cover"
                 onError={(error) => console.log('SinglePost image load error:', error.nativeEvent.error)}
@@ -718,6 +722,56 @@ const darkTheme = {
   text: '#FFFFFF',
   textSecondary: '#B0B0B0',
   border: '#333333',
+};
+
+const AvatarImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+
+  return (
+    <View style={style}>
+      {loading && (
+        <SkeletonLoader
+          width={style?.width || 40}
+          height={style?.height || 40}
+          borderRadius={style?.borderRadius || 20}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={{ uri }}
+        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        {...props}
+      />
+    </View>
+  );
+};
+
+const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+
+  return (
+    <View style={[style, { position: 'relative' }]}>
+      {loading && (
+        <SkeletonLoader
+          width={style?.width || '100%'}
+          height={style?.height || 300}
+          borderRadius={style?.borderRadius || 8}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={{ uri }}
+        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        {...props}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

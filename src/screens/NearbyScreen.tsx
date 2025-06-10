@@ -19,6 +19,7 @@ import { authService } from '../services/auth';
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 interface NearbyUser {
   id: string;
@@ -47,6 +48,40 @@ interface NearbyPost {
   allowComments: boolean;
   isLikedByUser?: boolean;
 }
+
+const AvatarImage = ({ source, style }: { source: any, style: any }) => {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <View>
+      {loading && (
+        <SkeletonLoader style={style} />
+      )}
+      <Image
+        source={source}
+        style={[style, { display: loading ? 'none' : 'flex' }]}
+        onLoad={() => setLoading(false)}
+      />
+    </View>
+  );
+};
+
+const PostImage = ({ source, style }: { source: any, style: any }) => {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <View>
+      {loading && (
+        <SkeletonLoader style={style} />
+      )}
+      <Image
+        source={source}
+        style={[style, { display: loading ? 'none' : 'flex' }]}
+        onLoad={() => setLoading(false)}
+      />
+    </View>
+  );
+};
 
 export default function NearbyScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'people' | 'posts'>('people');
@@ -87,7 +122,7 @@ export default function NearbyScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      
+
       // Get blocked users
       const blockedUsersQuery = query(
         collection(firestore, 'blockedUsers'),
@@ -165,7 +200,7 @@ export default function NearbyScreen({ navigation }: any) {
       if (!currentUser) return;
 
       const firestore = getFirestore();
-      
+
       // Get connected users
       const connectionsQuery = query(
         collection(firestore, 'connections'),
@@ -206,7 +241,7 @@ export default function NearbyScreen({ navigation }: any) {
       });
 
       const postsCollection = collection(firestore, 'posts');
-      
+
       // Get all posts
       const postsQuery = query(
         postsCollection,
@@ -247,7 +282,7 @@ export default function NearbyScreen({ navigation }: any) {
         // Get likes count and check if user liked
         const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
         const likesSnapshot = await getDocs(likesCollection);
-        
+
         let isLikedByUser = false;
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === currentUser.uid) {
@@ -289,7 +324,7 @@ export default function NearbyScreen({ navigation }: any) {
     }
   };
 
-  
+
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -321,7 +356,7 @@ export default function NearbyScreen({ navigation }: any) {
         where('participants', 'array-contains', currentUser.uid)
       );
       const connectionsSnapshot = await getDocs(existingConnectionQuery);
-      
+
       let hasConnection = false;
       connectionsSnapshot.forEach((doc) => {
         const connectionData = doc.data();
@@ -338,7 +373,7 @@ export default function NearbyScreen({ navigation }: any) {
         where('status', '==', 'pending')
       );
       const requestSnapshot = await getDocs(existingRequestQuery);
-      
+
       let hasRequest = false;
       if (!requestSnapshot.empty) {
         hasRequest = true;
@@ -414,7 +449,7 @@ export default function NearbyScreen({ navigation }: any) {
         // Unlike: Find and delete the user's like
         const likesSnapshot = await getDocs(likesCollection);
         let userLikeDoc = null;
-        
+
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === currentUser.uid) {
             userLikeDoc = likeDoc;
@@ -536,24 +571,17 @@ export default function NearbyScreen({ navigation }: any) {
     </View>
   );
 
-  
 
-  const renderPostItem = ({ item }: { item: NearbyPost }) => (
+
+  const renderPostItem = ({ item: post }: { item: NearbyPost }) => (
     <TouchableOpacity
       style={[styles.postItem, { backgroundColor: currentTheme.surface }]}
-      onPress={() => handlePostPress(item)}
+      onPress={() => handlePostPress(post)}
     >
       <View style={styles.postHeader}>
         <View style={styles.postAuthorInfo}>
-          {item.authorPhotoURL ? (
-            <Image
-              source={{ 
-                uri: item.authorPhotoURL,
-                cache: 'reload'
-              }}
-              style={styles.postAuthorAvatar}
-              key={item.authorPhotoURL}
-            />
+          {post.authorPhotoURL ? (
+            <AvatarImage source={{ uri: post.authorPhotoURL }} style={styles.postAuthorAvatar} />
           ) : (
             <View style={[styles.postAuthorAvatar, styles.postAuthorAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
               <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
@@ -561,25 +589,25 @@ export default function NearbyScreen({ navigation }: any) {
           )}
           <View>
             <Text style={[styles.postAuthorName, { color: currentTheme.text }]}>
-              {item.authorName}
+              {post.authorName}
             </Text>
             <Text style={[styles.postTime, { color: currentTheme.textSecondary }]}>
-              {formatTimeAgo(item.createdAt)}
+              {formatTimeAgo(post.createdAt)}
             </Text>
           </View>
         </View>
       </View>
 
-      {item.content ? (
+      {post.content ? (
         <Text style={[styles.postContent, { color: currentTheme.text }]} numberOfLines={3}>
-          {item.content}
+          {post.content}
         </Text>
       ) : null}
 
-      {item.mediaURL && (
+      {post.mediaURL && post.mediaURL.trim() !== '' && (
         <View style={{ marginBottom: SPACING.sm }}>
-          <Image
-            source={{ uri: item.mediaURL }}
+          <PostImage
+            source={{ uri: post.mediaURL }}
             style={styles.postMedia}
             resizeMode="cover"
           />
@@ -589,24 +617,24 @@ export default function NearbyScreen({ navigation }: any) {
       <View style={styles.postStats}>
         <TouchableOpacity 
           style={styles.statItem}
-          onPress={() => handleLike(item.id)}
+          onPress={() => handleLike(post.id)}
         >
           <Ionicons 
-            name={item.isLikedByUser ? "heart" : "heart-outline"} 
+            name={post.isLikedByUser ? "heart" : "heart-outline"} 
             size={16} 
-            color={item.isLikedByUser ? COLORS.error : currentTheme.textSecondary} 
+            color={post.isLikedByUser ? COLORS.error : currentTheme.textSecondary} 
           />
-          {item.showLikeCount && (
+          {post.showLikeCount && (
             <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
-              {item.likesCount}
+              {post.likesCount}
             </Text>
           )}
         </TouchableOpacity>
-        {item.allowComments && (
+        {post.allowComments && (
           <TouchableOpacity style={styles.statItem}>
             <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
             <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
-              {item.commentsCount}
+              {post.commentsCount}
             </Text>
           </TouchableOpacity>
         )}

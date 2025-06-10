@@ -16,6 +16,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 interface UserPost {
   id: string;
@@ -33,6 +34,36 @@ interface UserPost {
   isPrivate: boolean;
   isLikedByUser?: boolean;
 }
+
+const AvatarImage = ({ source, style }: { source: any; style: any }) => {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <View>
+      {loading && <SkeletonLoader style={style} />}
+      <Image
+        source={source}
+        style={[style, { display: loading ? 'none' : 'flex' }]}
+        onLoad={() => setLoading(false)}
+      />
+    </View>
+  );
+};
+
+const PostImage = ({ source, style }: { source: any; style: any }) => {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <View>
+      {loading && <SkeletonLoader style={style} />}
+      <Image
+        source={source}
+        style={[style, { display: loading ? 'none' : 'flex' }]}
+        onLoad={() => setLoading(false)}
+      />
+    </View>
+  );
+};
 
 export default function UserPostsScreen({ navigation }: any) {
   const [posts, setPosts] = useState<UserPost[]>([]);
@@ -114,7 +145,7 @@ export default function UserPostsScreen({ navigation }: any) {
       const userDocRef = doc(firestore, 'users', currentUser.uid);
       const userDoc = await getDoc(userDocRef);
       let currentUserData = {};
-      
+
       if (userDoc.exists()) {
         currentUserData = userDoc.data();
       }
@@ -273,7 +304,7 @@ export default function UserPostsScreen({ navigation }: any) {
       <View style={styles.postHeader}>
         <View style={styles.postAuthorInfo}>
           {item.authorPhotoURL ? (
-            <Image
+            <AvatarImage
               source={{ uri: item.authorPhotoURL }}
               style={styles.postAuthorAvatar}
             />
@@ -309,7 +340,7 @@ export default function UserPostsScreen({ navigation }: any) {
 
       {item.mediaURL && (
         <View style={{ marginBottom: SPACING.sm }}>
-          <Image
+          <PostImage
             source={{ uri: item.mediaURL }}
             style={styles.postMedia}
             resizeMode="cover"

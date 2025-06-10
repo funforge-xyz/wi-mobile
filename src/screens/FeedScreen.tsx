@@ -19,6 +19,7 @@ import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc,
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -83,7 +84,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           {post.authorPhotoURL ? (
-            <Image source={{ uri: post.authorPhotoURL }} style={styles.avatar} />
+            <AvatarImage source={{ uri: post.authorPhotoURL }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
               <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
@@ -104,7 +105,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
 
       {post.mediaURL && post.mediaURL.trim() !== '' && (
         <View style={styles.mediaContainer}>
-          <Image
+          <PostImage
             source={{ uri: post.mediaURL }}
             style={styles.postImage}
             resizeMode="cover"
@@ -452,6 +453,56 @@ const darkTheme = {
   text: '#FFFFFF',
   textSecondary: '#B0B0B0',
   border: '#333333',
+};
+
+const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+
+  return (
+    <View style={style}>
+      {loading && (
+        <SkeletonLoader
+          width={style?.width || 40}
+          height={style?.height || 40}
+          borderRadius={style?.borderRadius || 20}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={source}
+        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        {...props}
+      />
+    </View>
+  );
+};
+
+const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+
+  return (
+    <View style={[style, { position: 'relative' }]}>
+      {loading && (
+        <SkeletonLoader
+          width={style?.width || width}
+          height={style?.height || 300}
+          borderRadius={style?.borderRadius || 0}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={source}
+        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        {...props}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

@@ -16,6 +16,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 interface UserProfileProps {
   route: {
@@ -166,8 +167,8 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           {profile.photoURL ? (
-            <Image 
-              source={{ uri: profile.photoURL }} 
+            <ProfileImage 
+              uri={profile.photoURL} 
               style={styles.avatar} 
             />
           ) : (
@@ -214,6 +215,31 @@ const darkTheme = {
   text: '#FFFFFF',
   textSecondary: '#B0B0B0',
   border: '#333333',
+};
+
+const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+
+  return (
+    <View style={style}>
+      {loading && (
+        <SkeletonLoader
+          width={style?.width || 120}
+          height={style?.height || 120}
+          borderRadius={style?.borderRadius || 60}
+          style={{ position: 'absolute' }}
+        />
+      )}
+      <Image
+        source={{ uri }}
+        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        {...props}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
