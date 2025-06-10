@@ -556,7 +556,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         </View>
 
         {/* Comments Section */}
-        {post.allowComments && (
+        {post.allowComments ? (
           <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
             <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
               Comments ({comments.length})
@@ -573,6 +573,12 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 No comments yet. Be the first to comment!
               </Text>
             )}
+          </View>
+        ) : (
+          <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
+            <Text style={[styles.commentsDisabledText, { color: currentTheme.textSecondary }]}>
+              Comments are disabled for this post
+            </Text>
           </View>
         )}
       </KeyboardAwareScrollView>
@@ -855,6 +861,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   noCommentsText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginVertical: SPACING.lg,
+  },
+  commentsDisabledText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     textAlign: 'center',
