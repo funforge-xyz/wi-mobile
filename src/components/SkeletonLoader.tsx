@@ -19,20 +19,12 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style 
 
   React.useEffect(() => {
     const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(animatedValue, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ])
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 1500,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: false,
+      })
     );
 
     animation.start();
@@ -40,31 +32,44 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style 
     return () => animation.stop();
   }, [animatedValue]);
 
-  const opacity = animatedValue.interpolate({
+  const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
+    outputRange: [-width, width],
   });
 
   return (
-    <Animated.View
+    <View
       style={[
         {
           width,
           height,
           borderRadius,
           backgroundColor: currentTheme.skeleton,
-          opacity,
+          overflow: 'hidden',
         },
         style,
       ]}
-    />
+    >
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            backgroundColor: currentTheme.shimmer,
+            transform: [{ translateX }],
+            width: width * 0.3,
+          },
+        ]}
+      />
+    </View>
   );
 }
 
 const lightTheme = {
   skeleton: '#E1E9EE',
+  shimmer: '#F5F5F5',
 };
 
 const darkTheme = {
   skeleton: '#2A2A2A',
+  shimmer: '#3A3A3A',
 };
