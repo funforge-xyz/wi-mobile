@@ -219,10 +219,16 @@ const darkTheme = {
 
 const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [uri]);
 
   return (
     <View style={style}>
-      {loading && (
+      {loading && !error && (
         <SkeletonLoader
           width={style?.width || 120}
           height={style?.height || 120}
@@ -232,10 +238,16 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
       )}
       <Image
         source={{ uri }}
-        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
-        onError={() => setLoading(false)}
+        style={[style, { opacity: 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
         {...props}
       />
     </View>

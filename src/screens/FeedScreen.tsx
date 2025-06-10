@@ -457,10 +457,16 @@ const darkTheme = {
 
 const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [source?.uri]);
 
   return (
     <View style={style}>
-      {loading && (
+      {loading && !error && (
         <SkeletonLoader
           width={style?.width || 40}
           height={style?.height || 40}
@@ -470,10 +476,16 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
       )}
       <Image
         source={source}
-        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
-        onError={() => setLoading(false)}
+        style={[style, { opacity: 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
         {...props}
       />
     </View>
@@ -482,10 +494,16 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
 
 const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [source?.uri]);
 
   return (
     <View style={[style, { position: 'relative' }]}>
-      {loading && (
+      {loading && !error && (
         <SkeletonLoader
           width={style?.width || width}
           height={style?.height || 300}
@@ -495,10 +513,16 @@ const PostImage = ({ source, style, ...props }: { source: any; style: any; [key:
       )}
       <Image
         source={source}
-        style={[style, loading ? { opacity: 0 } : { opacity: 1 }]}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
-        onError={() => setLoading(false)}
+        style={[style, { opacity: 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
         {...props}
       />
     </View>

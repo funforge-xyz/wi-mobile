@@ -37,14 +37,35 @@ interface UserPost {
 
 const AvatarImage = ({ source, style }: { source: any; style: any }) => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [source?.uri]);
 
   return (
-    <View>
-      {loading && <SkeletonLoader style={style} />}
+    <View style={style}>
+      {loading && !error && (
+        <SkeletonLoader
+          width={style?.width || 40}
+          height={style?.height || 40}
+          borderRadius={style?.borderRadius || 20}
+          style={{ position: 'absolute' }}
+        />
+      )}
       <Image
         source={source}
-        style={[style, { display: loading ? 'none' : 'flex' }]}
+        style={[style, { opacity: 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
         onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
       />
     </View>
   );
@@ -52,14 +73,35 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
 
 const PostImage = ({ source, style }: { source: any; style: any }) => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [source?.uri]);
 
   return (
-    <View>
-      {loading && <SkeletonLoader style={style} />}
+    <View style={[style, { position: 'relative' }]}>
+      {loading && !error && (
+        <SkeletonLoader
+          width={style?.width || '100%'}
+          height={style?.height || 200}
+          borderRadius={style?.borderRadius || 8}
+          style={{ position: 'absolute' }}
+        />
+      )}
       <Image
         source={source}
-        style={[style, { display: loading ? 'none' : 'flex' }]}
+        style={[style, { opacity: 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
         onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
       />
     </View>
   );
