@@ -135,6 +135,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   };
 
   return (
+   <>
     <ScrollView style={[styles.container, { backgroundColor: currentTheme.background }]} showsVerticalScrollIndicator={false}>
       <SafeAreaView>
         <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
@@ -295,7 +296,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
           </View>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+   </>
   );
 }
 
