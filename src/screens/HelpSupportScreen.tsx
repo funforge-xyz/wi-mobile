@@ -64,7 +64,7 @@ const faqData: FAQItem[] = [
   {
     id: '8',
     question: 'How do I connect with other users?',
-    answer: 'You can connect with users by visiting their profiles and tapping "Connect". You can also find users through the Nearby feature or by searching.',
+    answer: 'You can connect with users by going to the Nearby tab, tapping on people you want to connect with, and sending them the first message. This will send a connection request. You can also visit their profiles and tap "Connect", or find users by searching.',
   },
 ];
 
