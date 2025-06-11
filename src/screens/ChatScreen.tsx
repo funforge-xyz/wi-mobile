@@ -464,7 +464,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.inputContainer, { backgroundColor: currentTheme.surface }]}
+        style={[styles.inputContainer, { 
+          backgroundColor: currentTheme.surface,
+          borderTopColor: currentTheme.border
+        }]}
       >
         <TextInput
           style={[styles.textInput, { 
@@ -620,6 +623,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
+    paddingBottom: SPACING.lg,
     borderTopWidth: 1,
   },
   textInput: {
