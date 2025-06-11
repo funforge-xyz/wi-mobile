@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -33,17 +33,8 @@ export default function AddPostScreen() {
   const [showLikeCount, setShowLikeCount] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
-  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const compressImage = async (uri: string): Promise<string> => {
     try {
@@ -298,14 +289,6 @@ export default function AddPostScreen() {
   };
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
-
-  if (loading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
