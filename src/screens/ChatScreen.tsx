@@ -378,6 +378,28 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     );
   };
 
+  const renderEmptyState = () => {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={[styles.emptyIconContainer, { backgroundColor: currentTheme.surface }]}>
+          <Ionicons name="chatbubbles-outline" size={48} color={currentTheme.textSecondary} />
+        </View>
+        <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
+          Start the Conversation
+        </Text>
+        <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+          Send your first message to connect with {userName}
+        </Text>
+        <View style={[styles.emptyHint, { backgroundColor: currentTheme.surface }]}>
+          <Ionicons name="information-circle-outline" size={16} color={COLORS.primary} />
+          <Text style={[styles.emptyHintText, { color: currentTheme.textSecondary }]}>
+            Your first message will send a connection request
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
 
 
   if (loading) {
@@ -422,19 +444,23 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
 
 
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        style={styles.messagesList}
-        contentContainerStyle={styles.messagesContent}
-        onContentSizeChange={() => {
-          if (messages.length > 0) {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          }
-        }}
-      />
+      {messages.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          style={styles.messagesList}
+          contentContainerStyle={styles.messagesContent}
+          onContentSizeChange={() => {
+            if (messages.length > 0) {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
+        />
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -613,5 +639,46 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xl,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: SPACING.lg,
+  },
+  emptyHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
+    maxWidth: '90%',
+  },
+  emptyHintText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
+    textAlign: 'center',
   },
 });
