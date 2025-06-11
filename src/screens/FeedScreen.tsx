@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,6 +38,7 @@ interface ConnectionPost {
   showLikeCount: boolean;
   allowComments: boolean;
   isLikedByUser: boolean;
+  isAuthorOnline: boolean;
 }
 
 interface PostItemProps {
@@ -83,15 +85,27 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
     >
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
-          {post.authorPhotoURL ? (
-            <AvatarImage source={{ uri: post.authorPhotoURL }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
-            </View>
-          )}
+          <View style={styles.avatarContainer}>
+            {post.authorPhotoURL ? (
+              <AvatarImage source={{ uri: post.authorPhotoURL }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+                <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
+              </View>
+            )}
+            {post.isAuthorOnline && (
+              <View style={styles.onlineIndicator} />
+            )}
+          </View>
           <View>
-            <Text style={[styles.username, { color: currentTheme.text }]}>{post.authorName}</Text>
+            <View style={styles.usernameRow}>
+              <Text style={[styles.username, { color: currentTheme.text }]}>{post.authorName}</Text>
+              {post.isAuthorOnline && (
+                <View style={styles.onlineTextContainer}>
+                  <Text style={styles.onlineText}>Online</Text>
+                </View>
+              )}
+            </View>
             <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
               {formatTimeAgo(post.createdAt)}
             </Text>
@@ -181,12 +195,39 @@ export default function FeedScreen({ navigation }: any) {
       unsubscribe = unsub;
     });
 
+    // Handle app state changes to update lastSeen
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        updateUserLastSeen();
+      }
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
     return () => {
       if (unsubscribe) {
         unsubscribe();
       }
+      appStateSubscription?.remove();
     };
   }, []);
+
+  const updateUserLastSeen = async () => {
+    try {
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        lastSeen: new Date(),
+      }, { merge: true });
+    } catch (error) {
+      console.error('Error updating last seen:', error);
+    }
+  };
 
   const loadConnectionPosts = async () => {
     try {
@@ -199,6 +240,9 @@ export default function FeedScreen({ navigation }: any) {
         setLoading(false);
         return;
       }
+
+      // Update user's lastSeen timestamp
+      updateUserLastSeen();
 
       const firestore = getFirestore();
 
@@ -271,13 +315,18 @@ export default function FeedScreen({ navigation }: any) {
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
         const commentsSnapshot = await getDocs(commentsCollection);
 
+        // Check if user is online (last seen within 5 minutes)
+        const isOnline = authorData.lastSeen && 
+          authorData.lastSeen.toDate && 
+          (new Date().getTime() - authorData.lastSeen.toDate().getTime()) < 5 * 60 * 1000;
+
         const postInfo = {
           id: postDoc.id,
           authorId: postData.authorId,
           authorName: authorData.firstName && authorData.lastName 
             ? `${authorData.firstName} ${authorData.lastName}` 
             : 'Anonymous User',
-          authorPhotoURL: authorData.photoURL || '',
+          authorPhotoURL: authorData.thumbnailURL || authorData.photoURL || '',
           content: postData.content || '',
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',
@@ -287,6 +336,7 @@ export default function FeedScreen({ navigation }: any) {
           showLikeCount: postData.showLikeCount !== false,
           allowComments: postData.allowComments !== false,
           isLikedByUser: isLikedByUser,
+          isAuthorOnline: isOnline || false,
         };
 
         connectionPosts.push(postInfo);
@@ -565,11 +615,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: SPACING.sm,
+  },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: SPACING.sm,
   },
   avatarPlaceholder: {
     width: 40,
@@ -577,7 +630,33 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.sm,
+  },
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#4CAF50',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  onlineTextContainer: {
+    marginLeft: SPACING.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    backgroundColor: '#4CAF50',
+    borderRadius: 10,
+  },
+  onlineText: {
+    fontSize: 10,
+    fontFamily: FONTS.medium,
+    color: 'white',
   },
   username: {
     fontSize: 16,
