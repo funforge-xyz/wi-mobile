@@ -12,6 +12,8 @@ import {
   ActionSheetIOS,
   Platform,
   AlertButton,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -293,9 +295,7 @@ export default function AddPostScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-          <Text style={[styles.cancelText, { color: currentTheme.textSecondary }]}>Cancel</Text>
-        </TouchableOpacity>
+        <View style={{ width: 60 }} />
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>New Post</Text>
         <TouchableOpacity
           style={[styles.postButton, (!content.trim() && !selectedImage) && styles.postButtonDisabled]}
@@ -310,7 +310,8 @@ export default function AddPostScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <TextInput
           style={[styles.textInput, { color: currentTheme.text }]}
           placeholder="What's on your mind?"
@@ -420,7 +421,8 @@ export default function AddPostScreen() {
             </View>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -453,13 +455,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
   },
-  cancelButton: {
-    paddingVertical: SPACING.xs,
-  },
-  cancelText: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-  },
+  
   headerTitle: {
     fontSize: 18,
     fontFamily: FONTS.bold,
