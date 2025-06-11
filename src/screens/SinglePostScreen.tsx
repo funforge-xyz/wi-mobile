@@ -728,10 +728,10 @@ const darkTheme = {
 };
 
 const AvatarImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
   }, [uri]);

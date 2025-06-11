@@ -540,31 +540,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 12,
   },
-  optionsContainer: {
-    marginBottom: SPACING.lg,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-  },
-  optionText: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    marginLeft: SPACING.md,
-    flex: 1,
-  },
-  locationToggle: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: 16,
-  },
-  locationStatus: {
-    fontSize: 12,
-    fontFamily: FONTS.medium,
-    color: COLORS.primary,
-  },
   privacyContainer: {
     borderRadius: 12,
     padding: SPACING.md,
@@ -653,9 +628,6 @@ const styles = StyleSheet.create({
     right: '25%',
     backgroundColor: 'white',
     borderRadius: 12,
-  },
-  rorateToggle: {
-    transform: [{ rotate: '180deg' }]
   },
   switchContainer: {
     width: 40,

@@ -502,10 +502,10 @@ const darkTheme = {
 };
 
 const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);
@@ -539,10 +539,10 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
 };
 
 const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);

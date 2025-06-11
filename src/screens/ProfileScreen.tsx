@@ -691,7 +691,7 @@ export default function ProfileScreen() {
 
           <ScrollView style={styles.modalContent}>
             <View style={[styles.modalSection, styles.modalImageContainer]}>
-              <View style={styles.avatarContainer}>
+              <View style={modalStyles.avatarContainer}>
                 <TouchableOpacity onPress={showImagePickerOptions}>
                   {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
                     <ProfileImage
@@ -707,7 +707,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
                 {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' && (
                   <TouchableOpacity
-                    style={styles.deleteImageButton}
+                    style={modalStyles.deleteImageButton}
                     onPress={handleRemoveImage}
                   >
                     <Ionicons name="trash" size={16} color="white" />
@@ -869,7 +869,7 @@ const darkTheme = {
 const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
-  
+
   // Get proper width value for shimmer effect
   const imageWidth = typeof style?.width === 'number' ? style.width : 120;
   const imageHeight = typeof style?.height === 'number' ? style.height : 120;
@@ -976,7 +976,8 @@ const styles = StyleSheet.create({
   },
   bio: {
     fontSize: 14,
-    fontFamily: FONTS.regular,
+    fontFamily: FONTS```
+.regular,
     textAlign: 'center',
     marginBottom: SPACING.md,
     lineHeight: 20,
@@ -1065,53 +1066,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: SPACING.lg,
   },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: SPACING.md,
-  },
-  modalAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    resizeMode: 'cover',
-  },
-  placeholderModalAvatar: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderStyle: 'dashed',
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-    marginBottom: SPACING.sm,
-  },
-  input: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  textArea: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 12,
-    borderWidth: 1,
-    textAlignVertical: 'top',
-    minHeight: 100,
-  },
-  emailDisplayContainer: {
-    justifyContent: 'center',
-  },
-  emailDisplayText: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-  },
+});
+
+const modalStyles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
     marginBottom: SPACING.md,
@@ -1144,6 +1101,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.regular,
     marginLeft: SPACING.xs,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: SPACING.sm,
+  },
+  input: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  textArea: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+    textAlignVertical: 'top',
+    minHeight: 100,
+  },
+  emailDisplayContainer: {
+    justifyContent: 'center',
+  },
+  emailDisplayText: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
   },
   imagePickerContainer: {
     borderWidth: 1,

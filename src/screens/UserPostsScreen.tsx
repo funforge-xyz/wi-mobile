@@ -36,7 +36,7 @@ interface UserPost {
   isLikedByUser?: boolean;
 }
 
-const AvatarImage = ({ source, style }: { source: any; style: any }) => {
+const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -71,12 +71,13 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
           setLoading(false);
           setError(true);
         }}
+        {...props}
       />
     </View>
   );
 };
 
-const PostImage = ({ source, style }: { source: any; style: any }) => {
+const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   
@@ -113,6 +114,7 @@ const PostImage = ({ source, style }: { source: any; style: any }) => {
           setError(true);
         }}
         resizeMode='cover'
+        {...props}
       />
     </View>
   );

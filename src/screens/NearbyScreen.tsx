@@ -50,10 +50,10 @@ interface NearbyPost {
 }
 
 const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);
@@ -87,10 +87,10 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
 };
 
 const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);
@@ -1014,75 +1014,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  messageItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    marginVertical: SPACING.xs,
-    borderRadius: 12,
-  },
-  messageInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  messageDetails: {
-    flex: 1,
-  },
-  participantName: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-    marginBottom: 2,
-  },
-  lastMessage: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-  },
-  messageTime: {
-    alignItems: 'flex-end',
-  },
-  timeText: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-  },
-  unreadBadge: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SPACING.xs,
-  },
-  unreadText: {
-    fontSize: 12,
-    fontFamily: FONTS.bold,
-    color: 'white',
-  },
-  connectionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    marginVertical: SPACING.xs,
-    borderRadius: 12,
-  },
-  connectionActions: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-  },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  acceptButton: {
-    backgroundColor: COLORS.success,
-  },
-  rejectButton: {
-    backgroundColor: COLORS.error,
-  },
+  
 });
