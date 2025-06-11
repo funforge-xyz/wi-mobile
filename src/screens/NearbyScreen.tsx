@@ -83,7 +83,7 @@ export default function NearbyScreen({ navigation }: any) {
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadNearbyUsers();
+    loadData();
   }, []);
 
   const loadData = async () => {
