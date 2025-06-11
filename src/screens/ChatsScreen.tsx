@@ -458,7 +458,7 @@ export default function ChatsScreen({ navigation }: any) {
         </View>
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: currentTheme.text }]}>
-            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+            {(item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
           <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
             {formatTimeAgo(item.createdAt)}
@@ -501,7 +501,7 @@ export default function ChatsScreen({ navigation }: any) {
       <View style={styles.chatContent}>
         <View style={styles.nameRow}>
           <Text style={[styles.participantName, { color: currentTheme.text }]}>
-            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+            {(item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
           {item.unreadCount && item.unreadCount > 0 && (
             <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
@@ -612,8 +612,8 @@ export default function ChatsScreen({ navigation }: any) {
           ]}>
             Requests
           </Text>
-          {connectionRequests.length > 0 && (
-            <View style={styles.unreadBadge}>
+          {connectionRequests && connectionRequests.length > 0 && (
+            <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
               <Text style={styles.unreadText}>{String(connectionRequests.length)}</Text>
             </View>
           )}
