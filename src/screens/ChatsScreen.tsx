@@ -506,7 +506,7 @@ export default function ChatsScreen({ navigation }: any) {
           {item.unreadCount && item.unreadCount > 0 && (
             <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
               <Text style={styles.unreadText}>
-                {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                {item.unreadCount > 99 ? '99+' : String(item.unreadCount)}
               </Text>
             </View>
           )}
@@ -614,7 +614,7 @@ export default function ChatsScreen({ navigation }: any) {
           </Text>
           {connectionRequests.length > 0 && (
             <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{connectionRequests.length}</Text>
+              <Text style={styles.unreadText}>{String(connectionRequests.length)}</Text>
             </View>
           )}
         </TouchableOpacity>
