@@ -185,14 +185,6 @@ export default function FeedScreen({ navigation }: any) {
     };
 
     let unsubscribe: (() => void) | undefined;
-    let lastSeenInterval: NodeJS.Timeout | null = null;
-
-    const startLastSeenUpdates = () => {
-      updateUserLastSeen();
-      lastSeenInterval = setInterval(() => {
-        updateUserLastSeen();
-      }, 30000); // Update every 30 seconds
-    };
 
     setupAuthListener().then((unsub) => {
       unsubscribe = unsub;
@@ -202,26 +194,20 @@ export default function FeedScreen({ navigation }: any) {
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
         updateUserLastSeen();
-        startLastSeenUpdates();
       } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-        if (lastSeenInterval) {
-          clearInterval(lastSeenInterval);
-          lastSeenInterval = null;
-        }
+        // Update lastSeen when app goes to background to show user as offline
         updateUserLastSeen();
       }
     };
 
     const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-    startLastSeenUpdates();
+
+    // Set up interval to update lastSeen every 30 seconds
+    const lastSeenInterval = setInterval(updateUserLastSeen, 30000);
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-      if (lastSeenInterval) {
-        clearInterval(lastSeenInterval);
-      }
+      if (unsubscribe) unsubscribe();
+      clearInterval(lastSeenInterval);
       appStateSubscription?.remove();
     };
   }, []);
@@ -329,10 +315,10 @@ export default function FeedScreen({ navigation }: any) {
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
         const commentsSnapshot = await getDocs(commentsCollection);
 
-        // Check if user is online (last seen within 1 minute for more responsive detection)
+        // Check if user is online (last seen within 2 minutes to be more accurate)
         const isOnline = authorData.lastSeen && 
           authorData.lastSeen.toDate && 
-          (new Date().getTime() - authorData.lastSeen.toDate().getTime()) < 60 * 1000;
+          (new Date().getTime() - authorData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
 
         const postInfo = {
           id: postDoc.id,
