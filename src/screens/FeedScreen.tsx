@@ -39,6 +39,7 @@ interface ConnectionPost {
   allowComments: boolean;
   isLikedByUser: boolean;
   isAuthorOnline: boolean;
+  isFromConnection: boolean;
 }
 
 interface PostItemProps {
@@ -104,6 +105,11 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, currentTheme, navigat
           <View>
             <View style={styles.usernameRow}>
               <Text style={[styles.username, { color: currentTheme.text }]}>{post.authorName}</Text>
+              {post.isFromConnection && (
+                <View style={[styles.connectionPill, { backgroundColor: COLORS.primary }]}>
+                  <Text style={styles.connectionPillText}>Connection</Text>
+                </View>
+              )}
             </View>
             <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
               {formatTimeAgo(post.createdAt)}
@@ -263,14 +269,7 @@ export default function FeedScreen({ navigation }: any) {
         }
       });
 
-      if (connectedUserIds.size === 0) {
-        console.log('No connections found, showing empty state');
-        setPosts([]);
-        setLoading(false);
-        return;
-      }
-
-      // Get posts from connected users
+      // Get all public posts (not just from connections)
       const postsCollection = collection(firestore, 'posts');
       const postsQuery = query(
         postsCollection,
@@ -283,8 +282,9 @@ export default function FeedScreen({ navigation }: any) {
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
-        // Only include posts from connected users
-        if (!connectedUserIds.has(postData.authorId)) {
+        
+        // Skip current user's own posts
+        if (postData.authorId === currentUser.uid) {
           continue;
         }
 
@@ -334,6 +334,7 @@ export default function FeedScreen({ navigation }: any) {
           allowComments: postData.allowComments !== false,
           isLikedByUser: isLikedByUser,
           isAuthorOnline: isOnline || false,
+          isFromConnection: connectedUserIds.has(postData.authorId),
         };
 
         connectionPosts.push(postInfo);
@@ -429,10 +430,10 @@ export default function FeedScreen({ navigation }: any) {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Ionicons name="people-outline" size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Posts from Connections</Text>
+      <Ionicons name="newspaper-outline" size={64} color={currentTheme.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Posts Available</Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        Connect with people nearby to see their posts here!
+        No public posts found at the moment. Check back later!
       </Text>
     </View>
   );
@@ -645,6 +646,17 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontFamily: FONTS.medium,
+  },
+  connectionPill: {
+    marginLeft: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  connectionPillText: {
+    fontSize: 10,
+    fontFamily: FONTS.medium,
+    color: '#FFFFFF',
   },
   timestamp: {
     fontSize: 12,
