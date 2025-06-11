@@ -9,13 +9,14 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, limit, onSnapshot, setDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -116,6 +117,24 @@ export default function ChatsScreen({ navigation }: any) {
     }, [activeTab])
   );
 
+  const updateUserLastSeen = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        lastSeen: new Date(),
+      }, { merge: true });
+    } catch (error) {
+      console.error('Error updating last seen:', error);
+    }
+  };
+
   useEffect(() => {
     let unsubscribeRequests: (() => void) | null = null;
     let unsubscribeConnections: (() => void) | null = null;
@@ -127,6 +146,9 @@ export default function ChatsScreen({ navigation }: any) {
         const currentUser = auth.currentUser;
 
         if (!currentUser) return;
+
+        // Update user's lastSeen timestamp when app becomes active
+        updateUserLastSeen();
 
         const firestore = getFirestore();
 
@@ -219,6 +241,11 @@ export default function ChatsScreen({ navigation }: any) {
                 }
               }
 
+              // Check if user is online (last seen within 2 minutes to be more accurate)
+              const isOnline = userData.lastSeen && 
+                userData.lastSeen.toDate && 
+                (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+
               connections.push({
                 id: connectionDoc.id,
                 userId: otherParticipantId,
@@ -230,7 +257,7 @@ export default function ChatsScreen({ navigation }: any) {
                 connectedAt: connectionData.connectedAt?.toDate() || new Date(),
                 lastMessage,
                 lastMessageTime,
-                isOnline: Math.random() > 0.5, // Mock online status
+                isOnline,
               });
             }
           }
@@ -259,10 +286,23 @@ export default function ChatsScreen({ navigation }: any) {
 
     setupRealtimeListeners();
 
+    // Handle app state changes to update lastSeen
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        updateUserLastSeen();
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Update lastSeen when app goes to background to show user as offline
+        updateUserLastSeen();
+      }
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
     // Cleanup listeners on unmount
     return () => {
       if (unsubscribeRequests) unsubscribeRequests();
       if (unsubscribeConnections) unsubscribeConnections();
+      appStateSubscription?.remove();
     };
   }, []);
 
