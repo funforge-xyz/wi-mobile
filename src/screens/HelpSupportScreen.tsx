@@ -238,8 +238,8 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
       </SafeAreaView>
     </ScrollView>
 
-      {/* Contact Options Modal */}
-      <Modal visible={contactModalVisible} animationType="slide" presentationStyle="pageSheet">
+    {/* Contact Options Modal */}
+    <Modal visible={contactModalVisible} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
             <TouchableOpacity onPress={() => setContactModalVisible(false)}>
