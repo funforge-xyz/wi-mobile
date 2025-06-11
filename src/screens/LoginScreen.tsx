@@ -164,7 +164,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setErrorMessage('');
     try {
       if (isSignUp) {
-        let photoURL = '';
+        let photoURL : { fullUrl: string; thumbnailUrl: string; } | string = '';
 
         // Upload image to Firebase Storage if a local image is selected
         if (profileImage && profileImage.startsWith('file://')) {

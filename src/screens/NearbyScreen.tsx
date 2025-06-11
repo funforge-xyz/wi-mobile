@@ -494,7 +494,7 @@ export default function NearbyScreen({ navigation }: any) {
       if (post.isLikedByUser) {
         // Unlike: Find and delete the user's like
         const likesSnapshot = await getDocs(likesCollection);
-        let userLikeDoc = null;
+        let userLikeDoc : any = null;
 
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === currentUser.uid) {
@@ -525,7 +525,7 @@ export default function NearbyScreen({ navigation }: any) {
         if (post.authorId !== currentUser.uid) {
           // Get current user info
           const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-          const currentUserData = currentUserDoc.exists() ? currentUserData.data() : {};
+          const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
           const currentUserName = currentUserData.firstName && currentUserData.lastName 
             ? `${currentUserData.firstName} ${currentUserData.lastName}` 
             : 'Someone';

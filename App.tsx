@@ -11,8 +11,6 @@ import { Provider } from 'react-redux';
 import { store } from './src/store';
 
 // Screens
-import LoginScreen from './src/screens/LoginScreen';
-import HomeScreen from './src/screens/HomeScreen';
 import RootScreen from './src/screens/RootScreen';
 import ChatImagesScreen from './src/screens/ChatImagesScreen';
 import ChatScreen from './src/screens/ChatScreen';

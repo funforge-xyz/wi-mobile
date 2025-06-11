@@ -8,14 +8,12 @@ import { authService } from '../services/auth';
 import FeedScreen from './FeedScreen';
 import NearbyScreen from './NearbyScreen';
 import ChatsScreen from './ChatsScreen';
-import ProfileScreen from './ProfileScreen';
 import UserPostsScreen from './UserPostsScreen';
 import OnboardingScreen from './OnboardingScreen';
 import LoginScreen from './LoginScreen';
 import AddPostScreen from './AddPostScreen';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { setTheme } from '../store/themeSlice';
-import SinglePostScreen from './SinglePostScreen';
 
 // Redux imports
 

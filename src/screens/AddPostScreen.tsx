@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   ActionSheetIOS,
   Platform,
+  AlertButton,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -172,7 +173,7 @@ export default function AddPostScreen() {
       );
     } else {
       // For Android
-      const alertOptions = [
+      const alertOptions : AlertButton[] = [
         {
           text: 'Take Photo',
           onPress: handleCameraCapture,

@@ -43,7 +43,7 @@ export default function NotificationsScreen({ navigation }: any) {
         const { getAuth } = await import('../services/firebase');
         const auth = getAuth();
 
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        const unsubscribe = auth.onAuthStateChanged((user: any) => {
           if (user) {
             loadNotifications();
           } else {

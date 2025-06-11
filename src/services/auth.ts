@@ -111,7 +111,7 @@ export class AuthService {
     firstName?: string;
     lastName?: string;
     bio?: string;
-    photoURL?: string;
+    photoURL?: { fullUrl: string; thumbnailUrl: string; } | string;
     thumbnailURL?: string;
   }): Promise<FirebaseUser | null> {
     try {

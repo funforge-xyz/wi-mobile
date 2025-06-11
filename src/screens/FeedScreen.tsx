@@ -44,12 +44,11 @@ interface ConnectionPost {
 interface PostItemProps {
   post: ConnectionPost;
   onLike: (postId: string, liked: boolean) => void;
-  onComment: (postId: string) => void;
   currentTheme: any;
   navigation: any;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentTheme, navigation }) => {
+const PostItem: React.FC<PostItemProps> = ({ post, onLike, currentTheme, navigation }) => {
   const [liked, setLiked] = useState(post.isLikedByUser);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -152,13 +151,6 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
   );
 };
 
-// NotificationBell component (replace with your actual component)
-// const NotificationBell = ({ onPress, color }: any) => (
-//   <TouchableOpacity onPress={onPress}>
-//     <Ionicons name="notifications-outline" size={24} color={color} />
-//   </TouchableOpacity>
-// );
-
 export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -173,7 +165,7 @@ export default function FeedScreen({ navigation }: any) {
         const { getAuth } = await import('../services/firebase');
         const auth = getAuth();
 
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        const unsubscribe = auth.onAuthStateChanged((user:any) => {
           if (user) {
             loadConnectionPosts();
           } else {
@@ -478,7 +470,6 @@ export default function FeedScreen({ navigation }: any) {
           <PostItem
             post={item}
             onLike={handleLike}
-            onComment={() => {}}
             currentTheme={currentTheme}
             navigation={navigation}
           />

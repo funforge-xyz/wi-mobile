@@ -112,6 +112,7 @@ const PostImage = ({ source, style }: { source: any; style: any }) => {
           setLoading(false);
           setError(true);
         }}
+        resizeMode='cover'
       />
     </View>
   );
@@ -196,7 +197,7 @@ export default function UserPostsScreen({ navigation }: any) {
       // Get current user's profile data
       const userDocRef = doc(firestore, 'users', currentUser.uid);
       const userDoc = await getDoc(userDocRef);
-      let currentUserData = {};
+      let currentUserData : any = {};
 
       if (userDoc.exists()) {
         currentUserData = userDoc.data();
@@ -287,7 +288,7 @@ export default function UserPostsScreen({ navigation }: any) {
       if (post.isLikedByUser) {
         // Unlike: Find and delete the user's like
         const likesSnapshot = await getDocs(likesCollection);
-        let userLikeDoc = null;
+        let userLikeDoc : any = null;
 
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === currentUser.uid) {
@@ -400,7 +401,6 @@ export default function UserPostsScreen({ navigation }: any) {
           <PostImage
             source={{ uri: item.mediaURL }}
             style={styles.postMedia}
-            resizeMode="cover"
           />
         </View>
       )}
