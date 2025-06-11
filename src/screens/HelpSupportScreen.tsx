@@ -135,16 +135,15 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Help & Support</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.container, { backgroundColor: currentTheme.background }]} showsVerticalScrollIndicator={false}>
+      <SafeAreaView>
+        <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Help & Support</Text>
+          <View style={{ width: 24 }} />
+        </View>
         {/* Quick Actions */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Quick Actions</Text>
@@ -236,7 +235,8 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             <Text style={[styles.versionText, { color: currentTheme.textSecondary }]}>1.0.0</Text>
           </View>
         </View>
-      </ScrollView>
+      </SafeAreaView>
+    </ScrollView>
 
       {/* Contact Options Modal */}
       <Modal visible={contactModalVisible} animationType="slide" presentationStyle="pageSheet">
@@ -331,9 +331,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: FONTS.bold,
   },
-  content: {
-    flex: 1,
-  },
+  
   section: {
     margin: SPACING.md,
     borderRadius: 16,
@@ -374,6 +372,7 @@ const styles = StyleSheet.create({
   },
   faqAnswer: {
     paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.md,
   },
   faqAnswerText: {
