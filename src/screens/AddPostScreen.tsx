@@ -528,18 +528,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: SPACING.sm,
   },
-  selectedImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 12,
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 12,
-  },
+  
   privacyContainer: {
     borderRadius: 12,
     padding: SPACING.md,

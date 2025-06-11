@@ -50,7 +50,6 @@ export default function ProfileScreen() {
     bio: '',
     postsCount: 0,
     followersCount: 0,
-    followingCount: 0,
   });
   const [connectionsCount, setConnectionsCount] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -696,11 +695,11 @@ export default function ProfileScreen() {
                   {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
                     <ProfileImage
                       uri={editedProfile.thumbnailURL || editedProfile.photoURL}
-                      style={styles.modalAvatar}
+                      style={modalStyles.modalAvatar}
                       key={`modal-avatar-${Date.now()}-${Math.random()}`}
                     />
                   ) : (
-                    <View style={[styles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                    <View style={[modalStyles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
                       <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
                     </View>
                   )}
@@ -953,17 +952,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  editImageOverlay: {
-    position: 'absolute',
-    bottom: SPACING.md,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   displayName: {
     fontSize: 24,
     fontFamily: FONTS.bold,
@@ -976,8 +964,7 @@ const styles = StyleSheet.create({
   },
   bio: {
     fontSize: 14,
-    fontFamily: FONTS```
-.regular,
+    fontFamily: FONTS.regular,
     textAlign: 'center',
     marginBottom: SPACING.md,
     lineHeight: 20,
@@ -1162,5 +1149,12 @@ const modalStyles = StyleSheet.create({
     right: -12,
     backgroundColor: COLORS.surface,
     borderRadius: 15,
+  },
+  modalAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: SPACING.md,
+    resizeMode: 'cover',
   },
 });
