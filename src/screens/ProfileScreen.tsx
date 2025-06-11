@@ -213,7 +213,7 @@ export default function ProfileScreen() {
   
 
 
-  if (loading && !isEditing) {
+  if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
