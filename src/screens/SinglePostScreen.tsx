@@ -734,18 +734,18 @@ const AvatarImage = ({ uri, style, ...props }: { uri: string; style: any; [key: 
   }, [uri]);
 
   return (
-    <View style={style}>
+    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 40}
           height={style?.height || 40}
           borderRadius={style?.borderRadius || 20}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', zIndex: 1 }}
         />
       )}
       <Image
         source={{ uri }}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);

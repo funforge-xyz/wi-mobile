@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +16,7 @@ interface NotificationBellProps {
 export default function NotificationBell({ onPress, size = 24, color }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  
+
   const bellColor = color || (isDarkMode ? '#FFFFFF' : '#000000');
 
   useEffect(() => {
@@ -82,7 +81,7 @@ export default function NotificationBell({ onPress, size = 24, color }: Notifica
       {unreadCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
-            {unreadCount > 99 ? '99+' : unreadCount.toString()}
+            {unreadCount > 100 ? '100+' : unreadCount}
           </Text>
         </View>
       )}
