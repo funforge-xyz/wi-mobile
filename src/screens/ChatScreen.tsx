@@ -11,6 +11,7 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,13 +47,65 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [chatRoomId, setChatRoomId] = useState('');
+  const [isUserOnline, setIsUserOnline] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const lastSeenUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
+  const updateUserLastSeen = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        lastSeen: new Date(),
+      }, { merge: true });
+    } catch (error) {
+      console.error('Error updating last seen:', error);
+    }
+  };
+
   useEffect(() => {
     initializeChat();
+
+    // Update lastSeen every 30 seconds while chat is active
+    const startLastSeenUpdates = () => {
+      updateUserLastSeen();
+      lastSeenUpdateRef.current = setInterval(() => {
+        updateUserLastSeen();
+      }, 30000); // Update every 30 seconds
+    };
+
+    // Handle app state changes
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        updateUserLastSeen();
+        startLastSeenUpdates();
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        if (lastSeenUpdateRef.current) {
+          clearInterval(lastSeenUpdateRef.current);
+          lastSeenUpdateRef.current = null;
+        }
+        updateUserLastSeen();
+      }
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+    startLastSeenUpdates();
+
+    return () => {
+      if (lastSeenUpdateRef.current) {
+        clearInterval(lastSeenUpdateRef.current);
+      }
+      appStateSubscription?.remove();
+    };
   }, []);
 
   const initializeChat = async () => {
@@ -69,6 +122,9 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
       // Set up real-time message listener
       setupMessageListener(roomId);
+
+      // Set up real-time user online status listener
+      setupUserOnlineListener();
 
     } catch (error) {
       console.error('Error initializing chat:', error);
@@ -107,6 +163,25 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           flatListRef.current.scrollToEnd({ animated: true });
         }
       }, 100);
+    });
+
+    return () => unsubscribe();
+  };
+
+  const setupUserOnlineListener = () => {
+    const firestore = getFirestore();
+    const userRef = doc(firestore, 'users', userId);
+
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        // Check if user is online (last seen within 1 minute for more responsive detection)
+        const isOnline = userData.lastSeen && 
+          userData.lastSeen.toDate && 
+          (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 60 * 1000;
+        
+        setIsUserOnline(isOnline || false);
+      }
     });
 
     return () => unsubscribe();
@@ -242,13 +317,16 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           style={styles.headerInfo}
           onPress={() => navigation.navigate('UserProfile', { userId })}
         >
-          {userPhotoURL ? (
-            <Image source={{ uri: userPhotoURL }} style={styles.headerAvatar} />
-          ) : (
-            <View style={[styles.headerAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
-            </View>
-          )}
+          <View style={styles.headerAvatarContainer}>
+            {userPhotoURL ? (
+              <Image source={{ uri: userPhotoURL }} style={styles.headerAvatar} />
+            ) : (
+              <View style={[styles.headerAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+                <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
+              </View>
+            )}
+            {isUserOnline && <View style={[styles.headerOnlineIndicator, { borderColor: currentTheme.surface }]} />}
+          </View>
           <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
         </TouchableOpacity>
         <View style={{ width: 24 }} />
@@ -344,19 +422,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  headerAvatarContainer: {
+    position: 'relative',
+    marginRight: SPACING.sm,
+  },
   headerAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: SPACING.sm,
   },
   headerAvatarPlaceholder: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: SPACING.sm,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerOnlineIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#4CAF50',
+    borderWidth: 2,
   },
   headerTitle: {
     fontSize: 18,

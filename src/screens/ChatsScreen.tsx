@@ -138,6 +138,14 @@ export default function ChatsScreen({ navigation }: any) {
   useEffect(() => {
     let unsubscribeRequests: (() => void) | null = null;
     let unsubscribeConnections: (() => void) | null = null;
+    let lastSeenInterval: NodeJS.Timeout | null = null;
+
+    const startLastSeenUpdates = () => {
+      updateUserLastSeen();
+      lastSeenInterval = setInterval(() => {
+        updateUserLastSeen();
+      }, 30000); // Update every 30 seconds
+    };
 
     const setupRealtimeListeners = async () => {
       try {
@@ -241,10 +249,10 @@ export default function ChatsScreen({ navigation }: any) {
                 }
               }
 
-              // Check if user is online (last seen within 2 minutes to be more accurate)
+              // Check if user is online (last seen within 1 minute for more responsive detection)
               const isOnline = userData.lastSeen && 
                 userData.lastSeen.toDate && 
-                (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+                (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 60 * 1000;
 
               connections.push({
                 id: connectionDoc.id,
@@ -290,18 +298,24 @@ export default function ChatsScreen({ navigation }: any) {
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
         updateUserLastSeen();
+        startLastSeenUpdates();
       } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-        // Update lastSeen when app goes to background to show user as offline
+        if (lastSeenInterval) {
+          clearInterval(lastSeenInterval);
+          lastSeenInterval = null;
+        }
         updateUserLastSeen();
       }
     };
 
     const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+    startLastSeenUpdates();
 
     // Cleanup listeners on unmount
     return () => {
       if (unsubscribeRequests) unsubscribeRequests();
       if (unsubscribeConnections) unsubscribeConnections();
+      if (lastSeenInterval) clearInterval(lastSeenInterval);
       appStateSubscription?.remove();
     };
   }, []);
