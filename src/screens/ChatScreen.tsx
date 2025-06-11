@@ -14,6 +14,7 @@ import {
   AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
@@ -132,11 +133,30 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   }, []);
 
   useEffect(() => {
-    // Mark messages as read when chat is opened
-    if (chatRoomId && messages.length > 0) {
-      markMessagesAsRead();
+    // Mark messages as read when chat is opened or when new messages arrive
+    if (chatRoomId) {
+      // Small delay to ensure messages are loaded
+      const timer = setTimeout(() => {
+        markMessagesAsRead();
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
-  }, [chatRoomId, messages]);
+  }, [chatRoomId, messages.length]);
+
+  // Mark messages as read when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (chatRoomId) {
+        // Small delay to ensure any new messages are loaded
+        const timer = setTimeout(() => {
+          markMessagesAsRead();
+        }, 300);
+        
+        return () => clearTimeout(timer);
+      }
+    }, [chatRoomId])
+  );
 
   const initializeChat = async () => {
     try {
@@ -236,12 +256,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       
       const unreadSnapshot = await getDocs(unreadQuery);
       
-      // Mark each unread message as read
-      const updatePromises = unreadSnapshot.docs.map(doc => 
-        updateDoc(doc.ref, { read: true, readAt: new Date() })
-      );
-      
-      await Promise.all(updatePromises);
+      if (unreadSnapshot.size > 0) {
+        // Mark each unread message as read
+        const updatePromises = unreadSnapshot.docs.map(doc => 
+          updateDoc(doc.ref, { read: true, readAt: new Date() })
+        );
+        
+        await Promise.all(updatePromises);
+        console.log(`Marked ${unreadSnapshot.size} messages as read`);
+      }
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
@@ -286,7 +309,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         receiverId: userId,
         text: messageToSend,
         createdAt: new Date(),
-        read: false,
+        read: false, // All messages start as unread
       });
 
       // Update chat document with last message info
