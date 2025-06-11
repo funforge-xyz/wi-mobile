@@ -131,6 +131,13 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     };
   }, []);
 
+  useEffect(() => {
+    // Mark messages as read when chat is opened
+    if (chatRoomId && messages.length > 0) {
+      markMessagesAsRead();
+    }
+  }, [chatRoomId, messages]);
+
   const initializeChat = async () => {
     try {
       const { getAuth } = await import('../services/firebase');
@@ -210,6 +217,36 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     return () => unsubscribe();
   };
 
+  const markMessagesAsRead = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser || !chatRoomId) return;
+
+      const firestore = getFirestore();
+
+      // Get all unread messages from the other user
+      const unreadQuery = query(
+        collection(firestore, 'chats', chatRoomId, 'messages'),
+        where('senderId', '==', userId),
+        where('read', '==', false)
+      );
+      
+      const unreadSnapshot = await getDocs(unreadQuery);
+      
+      // Mark each unread message as read
+      const updatePromises = unreadSnapshot.docs.map(doc => 
+        updateDoc(doc.ref, { read: true, readAt: new Date() })
+      );
+      
+      await Promise.all(updatePromises);
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -249,6 +286,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         receiverId: userId,
         text: messageToSend,
         createdAt: new Date(),
+        read: false,
       });
 
       // Update chat document with last message info

@@ -55,6 +55,7 @@ interface Connection {
   lastMessage?: string;
   lastMessageTime?: Date;
   isOnline?: boolean;
+  unreadCount?: number;
 }
 
 const AvatarImage = ({ source, style }: { source: any; style: any }) => {
@@ -208,6 +209,7 @@ export default function ChatsScreen({ navigation }: any) {
               // Get last message from chat - try chat document first, then messages collection
               let lastMessage = '';
               let lastMessageTime: Date | undefined;
+              let unreadCount = 0;
 
               if (connectionData.chatId) {
                 try {
@@ -236,6 +238,15 @@ export default function ChatsScreen({ navigation }: any) {
                       lastMessageTime = lastMessageData.createdAt?.toDate();
                     }
                   }
+
+                  // Count unread messages (messages from other user that haven't been read)
+                  const unreadQuery = query(
+                    collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                    where('senderId', '==', otherParticipantId),
+                    where('read', '==', false)
+                  );
+                  const unreadSnapshot = await getDocs(unreadQuery);
+                  unreadCount = unreadSnapshot.size;
                 } catch (error) {
                   console.log('Error fetching last message:', error);
                 }
@@ -258,6 +269,7 @@ export default function ChatsScreen({ navigation }: any) {
                 lastMessage,
                 lastMessageTime,
                 isOnline,
+                unreadCount,
               });
             }
           }
@@ -487,9 +499,18 @@ export default function ChatsScreen({ navigation }: any) {
       </View>
 
       <View style={styles.chatContent}>
-        <Text style={[styles.participantName, { color: currentTheme.text }]}>
-          {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={[styles.participantName, { color: currentTheme.text }]}>
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+          </Text>
+          {item.unreadCount && item.unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>
+                {item.unreadCount > 99 ? '99+' : item.unreadCount}
+              </Text>
+            </View>
+          )}
+        </View>
 
         {item.lastMessage && (
           <View style={styles.messageRow}>
@@ -770,9 +791,15 @@ const styles = StyleSheet.create({
     gap: SPACING.xs / 2,
     marginTop: SPACING.xs / 2,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   participantName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
+    flex: 1,
   },
   lastMessage: {
     fontSize: 14,
