@@ -612,7 +612,7 @@ export default function ChatsScreen({ navigation }: any) {
         return {
           icon: 'people-outline',
           title: 'No Connections',
-          subtitle: 'Start messaging people from People to build connections.'
+          subtitle: 'Start messaging People nearby to build connections.'
         };
       }
     };
