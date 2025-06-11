@@ -112,7 +112,7 @@ export default function RootScreen() {
           } else if (route.name === 'Add') {
             iconName = 'add-circle';
           } else if (route.name === 'Nearby') {
-            iconName = focused ? 'location' : 'location-outline';
+            iconName = focused ? 'people' : 'people-outline';
           } else if (route.name === 'Chats') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'Profile') {
@@ -137,7 +137,11 @@ export default function RootScreen() {
       })}
     >
       <Tab.Screen name="Home" component={FeedScreen} />
-      <Tab.Screen name="Nearby" component={NearbyScreen} />
+      <Tab.Screen 
+        name="Nearby" 
+        component={NearbyScreen}
+        options={{ tabBarLabel: 'People' }}
+      />
       <Tab.Screen 
         name="Add" 
         component={AddPostScreen}

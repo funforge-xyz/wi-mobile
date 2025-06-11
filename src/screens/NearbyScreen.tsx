@@ -731,7 +731,7 @@ export default function NearbyScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Nearby</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>People</Text>
         <NotificationBell 
           onPress={() => navigation.navigate('Notifications')} 
           color={currentTheme.text}

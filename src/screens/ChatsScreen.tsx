@@ -98,7 +98,7 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
 
 
 export default function ChatsScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
+  const [showRequests, setShowRequests] = useState(false);
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -602,25 +602,18 @@ export default function ChatsScreen({ navigation }: any) {
 
   const renderEmptyState = () => {
     const getEmptyStateConfig = () => {
-      switch (activeTab) {
-        case 'requests':
-          return {
-            icon: 'mail-outline',
-            title: 'No Requests',
-            subtitle: 'No connection requests at the moment.'
-          };
-        case 'connections':
-          return {
-            icon: 'people-outline',
-            title: 'No Connections',
-            subtitle: 'Start messaging people from Nearby to build connections.'
-          };
-        default:
-          return {
-            icon: 'chatbubbles-outline',
-            title: 'No Data',
-            subtitle: 'Nothing to show right now.'
-          };
+      if (showRequests) {
+        return {
+          icon: 'mail-outline',
+          title: 'No Requests',
+          subtitle: 'No connection requests at the moment.'
+        };
+      } else {
+        return {
+          icon: 'people-outline',
+          title: 'No Connections',
+          subtitle: 'Start messaging people from People to build connections.'
+        };
       }
     };
 
@@ -647,43 +640,26 @@ export default function ChatsScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Messages</Text>
-        <NotificationBell
-          onPress={() => navigation.navigate('Notifications')}
-          color={currentTheme.text}
-        />
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.requestsButton}
+            onPress={() => setShowRequests(!showRequests)}
+          >
+            <Ionicons name="mail-outline" size={24} color={currentTheme.text} />
+            {Array.isArray(connectionRequests) && connectionRequests.length > 0 && (
+              <View style={[styles.requestsBadge, { backgroundColor: COLORS.primary }]}>
+                <Text style={styles.requestsBadgeText}>{connectionRequests.length}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <NotificationBell
+            onPress={() => navigation.navigate('Notifications')}
+            color={currentTheme.text}
+          />
+        </View>
       </View>
 
-      <View style={[styles.tabContainer, { backgroundColor: currentTheme.surface }]}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'connections' && styles.activeTab]}
-          onPress={() => setActiveTab('connections')}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: currentTheme.textSecondary },
-            activeTab === 'connections' && styles.activeTabText
-          ]}>
-            Connections
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
-          onPress={() => setActiveTab('requests')}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: currentTheme.textSecondary },
-            activeTab === 'requests' && styles.activeTabText
-          ]}>
-            Requests
-          </Text>
-          {Array.isArray(connectionRequests) && connectionRequests.length > 0 && (
-            <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
-              <Text style={styles.unreadText}>{connectionRequests.length.toString()}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -691,16 +667,16 @@ export default function ChatsScreen({ navigation }: any) {
         </View>
       ) : (
         <FlatList
-          data={activeTab === 'requests' ? connectionRequests : connections}
+          data={showRequests ? connectionRequests : connections}
           keyExtractor={(item) => item.id}
-          renderItem={activeTab === 'requests' ? renderRequestItem : renderConnectionItem}
+          renderItem={showRequests ? renderRequestItem : renderConnectionItem}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            (activeTab === 'requests' ? connectionRequests : connections).length === 0
+            (showRequests ? connectionRequests : connections).length === 0
               ? styles.emptyContainer
               : styles.listContent
           }
@@ -742,29 +718,32 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: FONTS.bold,
   },
-  tabContainer: {
+  headerActions: {
     flexDirection: 'row',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: SPACING.sm,
     alignItems: 'center',
-    borderRadius: 8,
-    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  requestsButton: {
+    position: 'relative',
+    padding: SPACING.xs,
+  },
+  requestsBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
-  activeTab: {
-    backgroundColor: COLORS.primary + '20',
+  requestsBadgeText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    color: 'white',
   },
-  tabText: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-  },
-  activeTabText: {
-    color: COLORS.primary,
-  },
+  
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
