@@ -8,6 +8,12 @@ import {
   Switch,
   Alert,
   ScrollView,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Image,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -15,9 +21,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
-import { Settings } from '../services/storage';
+import { Settings, storageService } from '../services/storage';
 import { initializeNotifications } from '../services/notifications';
 import * as Notifications from 'expo-notifications';
+import * as ImagePicker from 'expo-image-picker';
+import { authService } from '../services/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { getFirestore } from '../services/firebase';
+import SkeletonLoader from '../components/SkeletonLoader';
+
+interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  photoURL: string;
+  thumbnailURL: string;
+  bio: string;
+}
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -25,12 +46,24 @@ export default function SettingsScreen() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>({
+    id: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    photoURL: '',
+    thumbnailURL: '',
+    bio: '',
+  });
+  const [editedProfile, setEditedProfile] = useState(profile);
   const settings = new Settings();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
     loadSettings();
+    loadUserProfile();
   }, []);
 
   const loadSettings = async () => {
@@ -40,6 +73,50 @@ export default function SettingsScreen() {
       setPushNotificationsEnabled(status === 'granted');
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser || await authService.getCurrentUser();
+
+      if (currentUser) {
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        let userData: UserProfile;
+
+        if (userDoc.exists()) {
+          const firestoreData = userDoc.data();
+          userData = {
+            id: currentUser.uid,
+            firstName: firestoreData.firstName || '',
+            lastName: firestoreData.lastName || '',
+            email: currentUser.email || '',
+            photoURL: firestoreData.photoURL || '',
+            thumbnailURL: firestoreData.thumbnailURL || '',
+            bio: firestoreData.bio || '',
+          };
+        } else {
+          userData = {
+            id: currentUser.uid,
+            firstName: '',
+            lastName: '',
+            email: currentUser.email || '',
+            photoURL: '',
+            thumbnailURL: '',
+            bio: '',
+          };
+        }
+
+        setProfile(userData);
+        setEditedProfile(userData);
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
     }
   };
 
@@ -85,6 +162,282 @@ export default function SettingsScreen() {
       Alert.alert('Error', 'Failed to update notification settings');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEditProfile = () => {
+    setEditedProfile(profile);
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsLoading(true);
+
+      let photoURL = editedProfile.photoURL;
+      let thumbnailURL = editedProfile.thumbnailURL;
+
+      // Delete old images from storage if removing image
+      if (!photoURL && (profile.photoURL || profile.thumbnailURL)) {
+        try {
+          await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
+        } catch (error) {
+          console.error('Error deleting old images:', error);
+        }
+      }
+
+      // Check if the photo is a local file that needs to be uploaded
+      if (photoURL && photoURL.startsWith('file://')) {
+        try {
+          // Delete old images first if they exist
+          if (profile.photoURL || profile.thumbnailURL) {
+            await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
+          }
+
+          // Upload the new image to Firebase Storage and get both full and thumbnail URLs
+          const uploadResult = await storageService.uploadProfilePicture(profile.id, photoURL);
+          photoURL = uploadResult.fullUrl;
+          thumbnailURL = uploadResult.thumbnailUrl;
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          Alert.alert('Error', 'Failed to upload profile picture');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Update profile using authService with the Firebase Storage URLs
+      await authService.updateProfile({
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        bio: editedProfile.bio,
+        photoURL: photoURL,
+        thumbnailURL: thumbnailURL,
+      });
+
+      // Force update the profile state immediately to clear any cached images
+      const updatedProfile = {
+        ...profile,
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        bio: editedProfile.bio,
+        photoURL: photoURL,
+        thumbnailURL: thumbnailURL,
+      };
+
+      setProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
+
+      setIsEditingProfile(false);
+      Alert.alert('Success', 'Profile updated successfully');
+
+      // Reload from server to ensure consistency
+      await loadUserProfile();
+    } catch (error) {
+      console.error('Profile save error:', error);
+      Alert.alert('Error', 'Failed to update profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedProfile(profile);
+    setIsEditingProfile(false);
+  };
+
+  const compressImage = async (uri: string): Promise<string> => {
+    try {
+      const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+
+      // Get file info to check initial size
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      let initialSize = blob.size;
+
+      console.log('Initial image size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+
+      // Start with high quality and reduce if needed
+      let quality = 0.8;
+      let compressedUri = uri;
+
+      // Keep compressing until under 5MB or quality gets too low
+      while (initialSize > 5242880 && quality > 0.1) { // 5MB = 5242880 bytes
+        const result = await manipulateAsync(
+          compressedUri,
+          [{ resize: { width: 1920 } }], // Resize to max width 1920px
+          {
+            compress: quality,
+            format: SaveFormat.JPEG,
+          }
+        );
+
+        // Check new file size
+        const newResponse = await fetch(result.uri);
+        const newBlob = await newResponse.blob();
+        initialSize = newBlob.size;
+        compressedUri = result.uri;
+
+        console.log('Compressed to quality', quality, 'Size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+
+        // Reduce quality for next iteration
+        quality -= 0.1;
+      }
+
+      // Final check
+      if (initialSize > 5242880) {
+        throw new Error('Unable to compress image below 5MB');
+      }
+
+      console.log('Final compressed size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+      return compressedUri;
+    } catch (error) {
+      console.error('Image compression error:', error);
+      throw error;
+    }
+  };
+
+  const handleImagePicker = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+
+      try {
+        setIsLoading(true);
+        const compressedUri = await compressImage(asset.uri);
+
+        setEditedProfile({
+          ...editedProfile,
+          photoURL: compressedUri,
+          thumbnailURL: '', // Will be generated on save
+        });
+      } catch (error) {
+        console.error('Error processing image:', error);
+        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please select a smaller image.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleCameraCapture = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access the camera is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+
+      try {
+        setIsLoading(true);
+        const compressedUri = await compressImage(asset.uri);
+
+        setEditedProfile({
+          ...editedProfile,
+          photoURL: compressedUri,
+          thumbnailURL: '', // Will be generated on save
+        });
+      } catch (error) {
+        console.error('Error processing image:', error);
+        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please take a photo with better lighting or closer subject.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    try {
+      setIsLoading(true);
+
+      // Delete from Firebase Storage first if there are existing images
+      if (profile.photoURL || profile.thumbnailURL) {
+        try {
+          await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
+        } catch (error) {
+          console.error('Error deleting from storage:', error);
+        }
+      }
+
+      // Clear the image from edited profile
+      setEditedProfile({
+        ...editedProfile,
+        photoURL: '',
+        thumbnailURL: '',
+      });
+
+      Alert.alert('Image Removed', 'Press save to update');
+
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      Alert.alert('Error', 'Failed to remove profile picture');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showImagePickerOptions = () => {
+    const options = ['Take Photo', 'Choose from Library', 'Cancel'];
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: 2,
+        },
+        buttonIndex => {
+          if (buttonIndex === 0) {
+            handleCameraCapture();
+          } else if (buttonIndex === 1) {
+            handleImagePicker();
+          }
+        }
+      );
+    } else {
+      // For Android - reversed order (bottom to top)
+      const alertOptions = [
+        {
+          text: 'Cancel',
+          style: 'cancel' as const,
+        },
+        {
+          text: 'Choose from Library',
+          onPress: handleImagePicker,
+        },
+        {
+          text: 'Take Photo',
+          onPress: handleCameraCapture,
+        },
+      ];
+
+      Alert.alert(
+        'Choose an option',
+        'Select how you want to set your profile picture',
+        alertOptions,
+        { cancelable: true }
+      );
     }
   };
 
@@ -161,6 +514,29 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Account</Text>
           
+          <TouchableOpacity 
+            style={styles.settingRow} 
+            onPress={handleEditProfile}
+          >
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="person-outline" 
+                size={20} 
+                color={currentTheme.text} 
+                style={styles.settingIcon}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
+                  Edit Profile
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
+                  Update your profile information
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+
           <TouchableOpacity 
             style={styles.settingRow} 
             onPress={() => (navigation as any).navigate('ChangePassword')}
@@ -258,9 +634,156 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal visible={isEditingProfile} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={handleCancelEdit}>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Edit Profile</Text>
+            <TouchableOpacity onPress={handleSaveProfile} disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.modalSave}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <View style={[styles.modalSection, styles.modalImageContainer]}>
+              <View style={modalStyles.avatarContainer}>
+                <TouchableOpacity onPress={showImagePickerOptions}>
+                  {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
+                    <ProfileImage
+                      uri={editedProfile.thumbnailURL || editedProfile.photoURL}
+                      style={modalStyles.modalAvatar}
+                      key={`modal-avatar-${Date.now()}-${Math.random()}`}
+                    />
+                  ) : (
+                    <View style={[modalStyles.modalAvatar, modalStyles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                      <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' && (
+                  <TouchableOpacity
+                    style={modalStyles.deleteImageButton}
+                    onPress={handleRemoveImage}
+                  >
+                    <Ionicons name="trash" size={16} color="white" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
+              <TextInput
+                style={[modalStyles.input, {
+                  backgroundColor: currentTheme.surface,
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border
+                }]}
+                value={editedProfile.firstName}
+                onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
+                placeholder="Enter your first name"
+                placeholderTextColor={currentTheme.textSecondary}
+              />
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
+              <TextInput
+                style={[modalStyles.input, {
+                  backgroundColor: currentTheme.surface,
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border
+                }]}
+                value={editedProfile.lastName}
+                onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
+                placeholder="Enter your last name"
+                placeholderTextColor={currentTheme.textSecondary}
+              />
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Email</Text>
+              <View style={[modalStyles.input, modalStyles.emailDisplayContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Text style={[modalStyles.emailDisplayText, { color: currentTheme.textSecondary }]}>
+                  {profile.email}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
+              <TextInput
+                style={[modalStyles.textArea, {
+                  backgroundColor: currentTheme.surface,
+                  color: currentTheme.text,
+                  borderColor: currentTheme.border
+                }]}
+                value={editedProfile.bio}
+                onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
+                placeholder="Tell us about yourself"
+                placeholderTextColor={currentTheme.textSecondary}
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  // Get proper width value for shimmer effect
+  const imageWidth = typeof style?.width === 'number' ? style.width : 100;
+  const imageHeight = typeof style?.height === 'number' ? style.height : 100;
+
+  React.useEffect(() => {
+    setLoading(true);
+    setError(false);
+  }, [uri]);
+
+  return (
+    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
+      {loading && !error && (
+        <SkeletonLoader
+          width={imageWidth}
+          height={imageHeight}
+          borderRadius={style?.borderRadius || 50}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+        />
+      )}
+      <Image
+        source={{ uri, cache: 'reload' }}
+        style={[style, { opacity: loading ? 0 : 1 }]}
+        onLoadStart={() => {
+          setLoading(true);
+          setError(false);
+        }}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          setError(true);
+        }}
+        {...props}
+      />
+    </View>
+  );
+};
 
 const lightTheme = {
   background: COLORS.background,
@@ -340,5 +863,100 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.regular,
     lineHeight: 18,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+  },
+  modalCancel: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+  },
+  modalSave: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    color: COLORS.primary,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+  },
+  modalSection: {
+    marginVertical: SPACING.md,
+  },
+  modalImageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.lg,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: SPACING.md,
+  },
+  placeholderModalAvatar: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.error,
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: SPACING.sm,
+  },
+  input: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  textArea: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+    textAlignVertical: 'top',
+    minHeight: 100,
+  },
+  emailDisplayContainer: {
+    justifyContent: 'center',
+  },
+  emailDisplayText: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+  },
+  modalAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: SPACING.md,
+    resizeMode: 'cover',
   },
 });
