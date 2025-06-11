@@ -771,18 +771,18 @@ const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: st
   }, [uri]);
 
   return (
-    <View style={[style, { position: 'relative' }]}>
+    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || '100%'}
           height={style?.height || 300}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', zIndex: 1 }}
         />
       )}
       <Image
         source={{ uri }}
-        style={[style, { opacity: 1 }]}
+        style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
