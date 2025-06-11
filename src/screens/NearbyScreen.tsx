@@ -49,7 +49,7 @@ interface NearbyPost {
   isLikedByUser?: boolean;
 }
 
-const AvatarImage = ({ source, style }: { source: any, style: any }) => {
+const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -59,18 +59,18 @@ const AvatarImage = ({ source, style }: { source: any, style: any }) => {
   }, [source?.uri]);
 
   return (
-    <View style={[style, { overflow: 'hidden' }]}>
+    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 50}
           height={style?.height || 50}
           borderRadius={style?.borderRadius || 25}
-          style={{ position: 'absolute', zIndex: 1 }}
+          style={{ position: 'absolute' }}
         />
       )}
       <Image
         source={source}
-        style={[style, { opacity: loading ? 0 : 1 }]}
+        style={[style, { opacity: loading || error ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -80,12 +80,13 @@ const AvatarImage = ({ source, style }: { source: any, style: any }) => {
           setLoading(false);
           setError(true);
         }}
+        {...props}
       />
     </View>
   );
 };
 
-const PostImage = ({ source, style }: { source: any, style: any }) => {
+const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -101,12 +102,12 @@ const PostImage = ({ source, style }: { source: any, style: any }) => {
           width={style?.width || 300}
           height={style?.height || 200}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute', zIndex: 1 }}
+          style={{ position: 'absolute' }}
         />
       )}
       <Image
         source={source}
-        style={[style, { opacity: loading ? 0 : 1 }]}
+        style={[style, { opacity: loading || error ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -116,6 +117,7 @@ const PostImage = ({ source, style }: { source: any, style: any }) => {
           setLoading(false);
           setError(true);
         }}
+        {...props}
       />
     </View>
   );

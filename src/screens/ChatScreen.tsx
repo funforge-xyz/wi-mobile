@@ -42,7 +42,7 @@ interface ChatScreenProps {
   navigation: any;
 }
 
-const AvatarImage = ({ source, style }: { source: any; style: any }) => {
+const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -52,18 +52,18 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
   }, [source?.uri]);
 
   return (
-    <View style={[style, { overflow: 'hidden' }]}>
+    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 32}
           height={style?.height || 32}
           borderRadius={style?.borderRadius || 16}
-          style={{ position: 'absolute', zIndex: 1 }}
+          style={{ position: 'absolute' }}
         />
       )}
       <Image
         source={source}
-        style={[style, { opacity: loading ? 0 : 1 }]}
+        style={[style, { opacity: loading || error ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
           setError(false);
@@ -73,6 +73,7 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
           setLoading(false);
           setError(true);
         }}
+        {...props}
       />
     </View>
   );
@@ -112,7 +113,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
   useEffect(() => {
     initializeChat();
-    
+
     // Update user's lastSeen timestamp when component mounts
     updateUserLastSeen();
 
@@ -139,7 +140,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       const timer = setTimeout(() => {
         markMessagesAsRead();
       }, 500);
-      
+
       return () => clearTimeout(timer);
     }
   }, [chatRoomId, messages.length]);
@@ -152,7 +153,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         const timer = setTimeout(() => {
           markMessagesAsRead();
         }, 300);
-        
+
         return () => clearTimeout(timer);
       }
     }, [chatRoomId])
@@ -229,7 +230,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         const isOnline = userData.lastSeen && 
           userData.lastSeen.toDate && 
           (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
-        
+
         setUserOnlineStatus(isOnline);
       }
     });
@@ -253,15 +254,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         where('senderId', '==', userId),
         where('read', '==', false)
       );
-      
+
       const unreadSnapshot = await getDocs(unreadQuery);
-      
+
       if (unreadSnapshot.size > 0) {
         // Mark each unread message as read
         const updatePromises = unreadSnapshot.docs.map(doc => 
           updateDoc(doc.ref, { read: true, readAt: new Date() })
         );
-        
+
         await Promise.all(updatePromises);
         console.log(`Marked ${unreadSnapshot.size} messages as read`);
       }
