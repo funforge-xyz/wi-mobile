@@ -60,6 +60,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const getErrorMessage = (error: any): string => {
     const errorCode = error.code;
+    const errorMessage = error.message;
+    
+    // Handle custom email verification error
+    if (errorMessage === 'email-not-verified') {
+      return 'Please verify your email address before signing in. Check your inbox for a verification link.';
+    }
+    
     switch (errorCode) {
       case 'auth/user-not-found':
         return 'No account found with this email address.';
@@ -212,10 +219,32 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           bio: bio.trim(),
           photoURL: photoURL,
         });
+        
+        // Show success message for signup
+        Alert.alert(
+          'Account Created!',
+          'Please check your email and click the verification link before signing in.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Switch to sign in mode after successful signup
+                setIsSignUp(false);
+                setErrorMessage('');
+                setFirstName('');
+                setLastName('');
+                setConfirmPassword('');
+                setBio('');
+                setProfileImage('');
+                setAcceptTerms(false);
+              }
+            }
+          ]
+        );
       } else {
         await authService.signInWithEmail(email, password);
+        onLoginSuccess?.();
       }
-      onLoginSuccess?.();
     } catch (error: any) {
       setErrorMessage(getErrorMessage(error));
     } finally {

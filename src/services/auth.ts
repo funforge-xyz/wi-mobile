@@ -8,6 +8,8 @@ import {
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  sendEmailVerification,
+  reload,
 } from 'firebase/auth';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth } from './firebase';
@@ -31,6 +33,16 @@ export class AuthService {
       const user = userCredential.user;
 
       if (user) {
+        // Reload user to get latest emailVerified status
+        await reload(user);
+        
+        // Check if email is verified
+        if (!user.emailVerified) {
+          // Sign out the user since email is not verified
+          await firebaseSignOut(auth);
+          throw new Error('email-not-verified');
+        }
+
         const token = await user.getIdToken();
         await this.credentials.setToken(token);
         await this.credentials.setUser({
@@ -120,6 +132,9 @@ export class AuthService {
       const user = userCredential.user;
 
       if (user) {
+        // Send email verification before creating user document
+        await sendEmailVerification(user);
+
         // Create user document in Firestore
         const { getFirestore } = await import('./firebase');
         const { doc, setDoc } = await import('firebase/firestore');
@@ -146,14 +161,8 @@ export class AuthService {
           });
         }
 
-        const token = await user.getIdToken();
-        await this.credentials.setToken(token);
-        await this.credentials.setUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-        });
+        // Sign out the user after signup so they must verify email before signing in
+        await firebaseSignOut(auth);
       }
 
       return user;
@@ -256,6 +265,26 @@ export class AuthService {
       }
 
       throw new Error('Failed to change password. Please try again.');
+    }
+  }
+
+  async resendVerificationEmail(): Promise<void> {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error('No authenticated user');
+      }
+
+      if (user.emailVerified) {
+        throw new Error('Email is already verified');
+      }
+
+      await sendEmailVerification(user);
+    } catch (error) {
+      console.error('Resend verification email error:', error);
+      throw error;
     }
   }
 
