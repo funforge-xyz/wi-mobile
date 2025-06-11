@@ -100,11 +100,6 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
           <View>
             <View style={styles.usernameRow}>
               <Text style={[styles.username, { color: currentTheme.text }]}>{post.authorName}</Text>
-              {post.isAuthorOnline && (
-                <View style={styles.onlineTextContainer}>
-                  <Text style={styles.onlineText}>Online</Text>
-                </View>
-              )}
             </View>
             <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
               {formatTimeAgo(post.createdAt)}
@@ -198,6 +193,9 @@ export default function FeedScreen({ navigation }: any) {
     // Handle app state changes to update lastSeen
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
+        updateUserLastSeen();
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Update lastSeen when app goes to background to show user as offline
         updateUserLastSeen();
       }
     };
@@ -315,10 +313,10 @@ export default function FeedScreen({ navigation }: any) {
         const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
         const commentsSnapshot = await getDocs(commentsCollection);
 
-        // Check if user is online (last seen within 5 minutes)
+        // Check if user is online (last seen within 2 minutes to be more accurate)
         const isOnline = authorData.lastSeen && 
           authorData.lastSeen.toDate && 
-          (new Date().getTime() - authorData.lastSeen.toDate().getTime()) < 5 * 60 * 1000;
+          (new Date().getTime() - authorData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
 
         const postInfo = {
           id: postDoc.id,
@@ -645,18 +643,6 @@ const styles = StyleSheet.create({
   usernameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  onlineTextContainer: {
-    marginLeft: SPACING.xs,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: '#4CAF50',
-    borderRadius: 10,
-  },
-  onlineText: {
-    fontSize: 10,
-    fontFamily: FONTS.medium,
-    color: 'white',
   },
   username: {
     fontSize: 16,
