@@ -1,0 +1,58 @@
+ ERROR  Warning: Text strings must be rendered within a <Text> component.
+
+   97 |
+   98 |
+>  99 | export default function ChatsScreen({ navigation }: any) {
+      |                                                 ^
+  100 |   const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
+  101 |   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+  102 |   const [connections, setConnections] = useState<Connection[]>([]);
+
+Call Stack
+  TouchableOpacity (<anonymous>)
+  Wrapper (<anonymous>)
+  RNCSafeAreaView (<anonymous>)
+  ChatsScreen (src/screens/ChatsScreen.tsx:99:49)
+  RootScreen (src/screens/RootScreen.tsx:25:45)
+  RNSScreenContainer (<anonymous>)
+  RNCSafeAreaProvider (<anonymous>)
+  App (App.tsx:41:45)
+ ERROR  Warning: Text strings must be rendered within a <Text> component.
+
+   97 |
+   98 |
+>  99 | export default function ChatsScreen({ navigation }: any) {
+      |                                                 ^
+  100 |   const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
+  101 |   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+  102 |   const [connections, setConnections] = useState<Connection[]>([]);
+
+Call Stack
+  TouchableOpacity (<anonymous>)
+  Wrapper (<anonymous>)
+  RNCSafeAreaView (<anonymous>)
+  ChatsScreen (src/screens/ChatsScreen.tsx:99:49)
+  RootScreen (src/screens/RootScreen.tsx:25:45)
+  RNSScreenContainer (<anonymous>)
+  RNCSafeAreaProvider (<anonymous>)
+  App (App.tsx:41:45)
+ ERROR  Warning: Text strings must be rendered within a <Text> component.
+
+   97 |
+   98 |
+>  99 | export default function ChatsScreen({ navigation }: any) {
+      |                                                 ^
+  100 |   const [activeTab, setActiveTab] = useState<'connections' | 'requests'>('connections');
+  101 |   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+  102 |   const [connections, setConnections] = useState<Connection[]>([]);
+
+Call Stack
+  TouchableOpacity (<anonymous>)
+  Wrapper (<anonymous>)
+  RNCSafeAreaView (<anonymous>)
+  ChatsScreen (src/screens/ChatsScreen.tsx:99:49)
+  RootScreen (src/screens/RootScreen.tsx:25:45)
+  RNSScreenContainer (<anonymous>)
+  RNCSafeAreaProvider (<anonymous>)
+  App (App.tsx:41:45)
+
