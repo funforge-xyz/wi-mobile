@@ -11,6 +11,7 @@ import {
   FlatList,
   Modal,
   Switch,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -764,6 +765,11 @@ const AvatarImage = ({ uri, style, ...props }: { uri: string; style: any; [key: 
 const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
+  
+  // Get the actual width from Dimensions since style width might be '100%'
+  const { width } = Dimensions.get('window');
+  const imageWidth = width - (SPACING.md * 4); // Account for padding
+  const imageHeight = typeof style?.height === 'number' ? style.height : 300;
 
   React.useEffect(() => {
     setLoading(true);
@@ -774,10 +780,10 @@ const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: st
     <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
-          width={style?.width || '100%'}
-          height={style?.height || 300}
+          width={imageWidth}
+          height={imageHeight}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute', zIndex: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
       <Image
