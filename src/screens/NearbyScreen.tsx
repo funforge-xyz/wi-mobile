@@ -59,13 +59,13 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
   }, [source?.uri]);
 
   return (
-    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
+    <View style={[style, { overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 50}
           height={style?.height || 50}
           borderRadius={style?.borderRadius || 25}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
       <Image
@@ -96,13 +96,13 @@ const PostImage = ({ source, style, ...props }: { source: any; style: any; [key:
   }, [source?.uri]);
 
   return (
-    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
+    <View style={[style, { overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 300}
           height={style?.height || 200}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
       <Image
