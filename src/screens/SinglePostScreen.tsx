@@ -527,11 +527,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
           {post.mediaURL && (
             <View style={styles.mediaContainer}>
               <PostImage
-                uri={post.mediaURL}
+                source={{ uri: post.mediaURL }}
                 style={styles.postMedia}
-                resizeMode="cover"
-                onError={(error) => console.log('SinglePost image load error:', error.nativeEvent.error)}
-                onLoad={() => console.log('SinglePost image loaded successfully:', post.mediaURL)}
               />
             </View>
           )}
@@ -762,22 +759,22 @@ const AvatarImage = ({ uri, style, ...props }: { uri: string; style: any; [key: 
   );
 };
 
-const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+const PostImage = ({ source, style }: { source: any; style: any }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   
   // Get the actual width from Dimensions since style width might be '100%'
   const { width } = Dimensions.get('window');
   const imageWidth = width - (SPACING.md * 4); // Account for padding
   const imageHeight = typeof style?.height === 'number' ? style.height : 300;
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
-  }, [uri]);
+  }, [source?.uri]);
 
   return (
-    <View style={[style, { position: 'relative', overflow: 'hidden' }]}>
+    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
       {loading && !error && (
         <SkeletonLoader
           width={imageWidth}
@@ -787,7 +784,7 @@ const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: st
         />
       )}
       <Image
-        source={{ uri }}
+        source={source}
         style={[style, { opacity: loading ? 0 : 1 }]}
         onLoadStart={() => {
           setLoading(true);
@@ -798,7 +795,6 @@ const PostImage = ({ uri, style, ...props }: { uri: string; style: any; [key: st
           setLoading(false);
           setError(true);
         }}
-        {...props}
       />
     </View>
   );
