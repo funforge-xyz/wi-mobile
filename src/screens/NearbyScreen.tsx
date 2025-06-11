@@ -50,22 +50,22 @@ interface NearbyPost {
 }
 
 const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);
 
   return (
-    <View style={[style, { overflow: 'hidden' }]}>
+    <View style={[style, { position: 'relative' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 50}
           height={style?.height || 50}
           borderRadius={style?.borderRadius || 25}
-          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+          style={{ position: 'absolute' }}
         />
       )}
       <Image
@@ -87,22 +87,22 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
 };
 
 const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setLoading(true);
     setError(false);
   }, [source?.uri]);
 
   return (
-    <View style={[style, { overflow: 'hidden' }]}>
+    <View style={[style, { position: 'relative' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 300}
           height={style?.height || 200}
           borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+          style={{ position: 'absolute' }}
         />
       )}
       <Image
