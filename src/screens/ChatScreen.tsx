@@ -346,7 +346,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
                 <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
               </View>
             )}
-            {userOnlineStatus && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+            {userOnlineStatus && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />}
           </View>
           <View style={styles.headerTextContainer}>
             <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
@@ -466,13 +466,14 @@ const styles = StyleSheet.create({
   },
   onlineIndicator: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: COLORS.success,
     borderWidth: 2,
+    zIndex: 1,
   },
   headerTextContainer: {
     alignItems: 'center',
