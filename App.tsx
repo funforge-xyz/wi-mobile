@@ -158,6 +158,11 @@ export default function App() {
           options={{ headerShown: false }} 
         />
         <Stack.Screen 
+          name="Settings" 
+          component={SettingsScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
           name="PrivacyPolicy" 
           component={PrivacyPolicyScreen} 
           options={{ headerShown: false }} 

@@ -634,7 +634,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={[styles.menuSection, { backgroundColor: currentTheme.surface }]}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => (navigation as any).navigate('Settings')}>
             <Ionicons name="settings-outline" size={20} color={currentTheme.text} />
             <Text style={[styles.menuText, { color: currentTheme.text }]}>Settings</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
