@@ -490,12 +490,12 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         <View style={{ width: 24 }} />
       </View>
 
-      {pendingRequestStatus === 'sent' && (
-        <View style={[styles.statusBanner, { backgroundColor: COLORS.warning + '20' }]}>
-          <View style={styles.statusBannerContent}>
-            <Ionicons name="time-outline" size={16} color={COLORS.warning} />
-            <Text style={[styles.statusBannerText, { color: COLORS.warning }]}>
-              Connection request sent • Waiting for {userName} to respond
+      {pendingRequestStatus === 'sent' && messages.length > 0 && (
+        <View style={styles.statusBannerContainer}>
+          <View style={[styles.statusPill, { backgroundColor: COLORS.warning + '15', borderColor: COLORS.warning + '30' }]}>
+            <Ionicons name="time-outline" size={14} color={COLORS.warning} />
+            <Text style={[styles.statusPillText, { color: COLORS.warning }]}>
+              Request sent • Waiting for response
             </Text>
           </View>
         </View>
@@ -742,21 +742,22 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.xs,
     textAlign: 'center',
   },
-  statusBanner: {
+  statusBannerContainer: {
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    alignItems: 'center',
   },
-  statusBannerContent: {
+  statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  statusBannerText: {
-    fontSize: 14,
+  statusPillText: {
+    fontSize: 12,
     fontFamily: FONTS.medium,
     marginLeft: SPACING.xs,
-    textAlign: 'center',
   },
 });
