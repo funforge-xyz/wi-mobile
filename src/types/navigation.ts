@@ -25,6 +25,7 @@ export type RootStackParamList = {
     userName: string;
     userPhotoURL?: string;
   };
+  PrivacyPolicy: undefined;
 };
 
 export type BottomTabParamList = {

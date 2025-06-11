@@ -123,11 +123,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   };
 
   const handlePrivacyPolicy = () => {
-    Alert.alert(
-      'Privacy Policy',
-      'Our privacy policy outlines how we collect, use, and protect your personal information. We are committed to maintaining your privacy and security.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('PrivacyPolicy');
   };
 
   const handleTermsOfService = () => {

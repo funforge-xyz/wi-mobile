@@ -22,6 +22,7 @@ import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import TermsScreen from './src/screens/TermsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import HelpSupportScreen from './src/screens/HelpSupportScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 
 // Services
 import { initializeFirebase } from './src/services/firebase';
@@ -154,6 +155,11 @@ export default function App() {
         <Stack.Screen 
           name="HelpSupport" 
           component={HelpSupportScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="PrivacyPolicy" 
+          component={PrivacyPolicyScreen} 
           options={{ headerShown: false }} 
         />
       </Stack.Navigator>
