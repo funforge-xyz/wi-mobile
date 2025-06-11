@@ -363,7 +363,7 @@ export default function ChatsScreen({ navigation }: any) {
     navigation.navigate('Chat', {
       userId: request.userId,
       userName: request.firstName && request.lastName ? `${request.firstName} ${request.lastName}` : 'Anonymous User',
-      userPhotoURL: request.photoURL
+      userPhotoURL: request.photoURL || ''
     });
   };
 
@@ -394,7 +394,7 @@ export default function ChatsScreen({ navigation }: any) {
     navigation.navigate('Chat', {
       userId: connection.userId,
       userName: connection.firstName && connection.lastName ? `${connection.firstName} ${connection.lastName}` : 'Anonymous User',
-      userPhotoURL: connection.photoURL
+      userPhotoURL: connection.photoURL || ''
     });
   };
 
@@ -458,7 +458,7 @@ export default function ChatsScreen({ navigation }: any) {
         </View>
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: currentTheme.text }]}>
-            {(item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
           <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
             {formatTimeAgo(item.createdAt)}
@@ -495,24 +495,24 @@ export default function ChatsScreen({ navigation }: any) {
             <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
           </View>
         )}
-        {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+        {item.isOnline === true && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
       </View>
 
       <View style={styles.chatContent}>
         <View style={styles.nameRow}>
           <Text style={[styles.participantName, { color: currentTheme.text }]}>
-            {(item.firstName && item.lastName) ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
+            {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          {item.unreadCount && item.unreadCount > 0 && (
+          {typeof item.unreadCount === 'number' && item.unreadCount > 0 && (
             <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
               <Text style={styles.unreadText}>
-                {item.unreadCount > 99 ? '99+' : String(item.unreadCount)}
+                {item.unreadCount > 99 ? '99+' : item.unreadCount.toString()}
               </Text>
             </View>
           )}
         </View>
 
-        {item.lastMessage && (
+        {item.lastMessage && item.lastMessage.length > 0 && (
           <View style={styles.messageRow}>
             <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
               {item.lastMessage}
@@ -612,9 +612,9 @@ export default function ChatsScreen({ navigation }: any) {
           ]}>
             Requests
           </Text>
-          {connectionRequests && connectionRequests.length > 0 && (
+          {Array.isArray(connectionRequests) && connectionRequests.length > 0 && (
             <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
-              <Text style={styles.unreadText}>{String(connectionRequests.length)}</Text>
+              <Text style={styles.unreadText}>{connectionRequests.length.toString()}</Text>
             </View>
           )}
         </TouchableOpacity>
