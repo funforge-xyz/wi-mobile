@@ -19,6 +19,7 @@ export type RootStackParamList = {
     bio?: string;
   };
   Notifications: undefined;
+  HelpSupport: undefined;
   Chat: {
     userId: string;
     userName: string;
