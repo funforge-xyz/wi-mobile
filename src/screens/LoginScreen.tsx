@@ -39,6 +39,25 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Password must contain at least one number';
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return 'Password must contain at least one special character';
+    }
+    return null;
+  };
+
   const getErrorMessage = (error: any): string => {
     const errorCode = error.code;
     switch (errorCode) {
@@ -55,7 +74,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       case 'auth/email-already-in-use':
         return 'An account with this email already exists.';
       case 'auth/weak-password':
-        return 'Password should be at least 6 characters long.';
+        return 'Password does not meet security requirements.';
       case 'auth/invalid-credential':
         return 'Invalid email or password. Please check your credentials.';
       default:
@@ -146,6 +165,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     if (isSignUp) {
       if (!firstName.trim() || !lastName.trim()) {
         setErrorMessage('First name and last name are required');
+        return;
+      }
+
+      // Validate password strength
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        setErrorMessage(passwordError);
         return;
       }
 
