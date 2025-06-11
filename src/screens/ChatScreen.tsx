@@ -52,13 +52,13 @@ const AvatarImage = ({ source, style }: { source: any; style: any }) => {
   }, [source?.uri]);
 
   return (
-    <View style={style}>
+    <View style={[style, { overflow: 'hidden' }]}>
       {loading && !error && (
         <SkeletonLoader
           width={style?.width || 32}
           height={style?.height || 32}
           borderRadius={style?.borderRadius || 16}
-          style={{ position: 'absolute' }}
+          style={{ position: 'absolute', zIndex: 1 }}
         />
       )}
       <Image

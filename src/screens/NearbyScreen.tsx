@@ -211,6 +211,12 @@ export default function NearbyScreen({ navigation }: any) {
         if (doc.id !== currentUser.uid && 
             !blockedUserIds.has(doc.id) && 
             !connectedUserIds.has(doc.id)) {
+          
+          // Check if user is online (last seen within 2 minutes)
+          const isOnline = userData.lastSeen && 
+            userData.lastSeen.toDate && 
+            (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+
           users.push({
             id: doc.id,
             firstName: userData.firstName || '',
@@ -218,7 +224,7 @@ export default function NearbyScreen({ navigation }: any) {
             email: userData.email || '',
             photoURL: userData.thumbnailURL || userData.photoURL || '',
             bio: userData.bio || '',
-            isOnline: Math.random() > 0.5, // Mock online status
+            isOnline: isOnline || false,
           });
         }
       });
@@ -586,7 +592,7 @@ export default function NearbyScreen({ navigation }: any) {
               <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
             </View>
           )}
-          {item.isOnline && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+          {item.isOnline === true && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
         </View>
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: currentTheme.text }]}>
