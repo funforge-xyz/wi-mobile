@@ -505,11 +505,7 @@ export default function ChatsScreen({ navigation }: any) {
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
           {typeof item.unreadCount === 'number' && item.unreadCount > 0 && (
-            <View style={[styles.unreadBadge, { backgroundColor: COLORS.primary }]}>
-              <Text style={styles.unreadText}>
-                {item.unreadCount > 99 ? '99+' : item.unreadCount.toString()}
-              </Text>
-            </View>
+            <View style={[styles.unreadDot, { backgroundColor: COLORS.primary }]} />
           )}
         </View>
 
@@ -827,6 +823,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: FONTS.bold,
     color: 'white',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: SPACING.sm,
   },
   userItem: {
     flexDirection: 'row',
