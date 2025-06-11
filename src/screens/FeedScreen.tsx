@@ -60,7 +60,12 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, onComment, currentThe
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
 
-    if (diffInDays > 0) {
+    if (diffInDays > 6) {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } else if (diffInDays > 0) {
       return `${diffInDays}d`;
     } else if (diffInHours > 0) {
       return `${diffInHours}h`;
