@@ -576,8 +576,9 @@ export default function NearbyScreen({ navigation }: any) {
   };
 
   const renderUserItem = ({ item }: { item: NearbyUser }) => (
-    <View
+    <TouchableOpacity
       style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
+      onPress={() => handleMessageUser(item)}
     >
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
@@ -607,13 +608,8 @@ export default function NearbyScreen({ navigation }: any) {
           ) : null}
         </View>
       </View>
-      <TouchableOpacity
-        style={styles.messageIconButton}
-        onPress={() => handleMessageUser(item)}
-      >
-        <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
-      </TouchableOpacity>
-    </View>
+      <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+    </TouchableOpacity>
   );
 
 
@@ -913,15 +909,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  messageIconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
+  
   postItem: {
     padding: SPACING.md,
     marginVertical: SPACING.xs,

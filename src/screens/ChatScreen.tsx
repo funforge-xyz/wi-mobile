@@ -88,6 +88,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [sending, setSending] = useState(false);
   const [chatRoomId, setChatRoomId] = useState('');
   const [userOnlineStatus, setUserOnlineStatus] = useState(false);
+  const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received'>('none');
   const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
@@ -177,9 +178,56 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       // Set up online status listener for the other user
       setupOnlineStatusListener();
 
+      // Check for pending request status
+      await checkPendingRequestStatus();
+
     } catch (error) {
       console.error('Error initializing chat:', error);
       setLoading(false);
+    }
+  };
+
+  const checkPendingRequestStatus = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+
+      // Check if current user sent a request to the other user
+      const sentRequestQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', userId),
+        where('status', '==', 'pending')
+      );
+      const sentRequestSnapshot = await getDocs(sentRequestQuery);
+
+      if (!sentRequestSnapshot.empty) {
+        setPendingRequestStatus('sent');
+        return;
+      }
+
+      // Check if the other user sent a request to current user
+      const receivedRequestQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('fromUserId', '==', userId),
+        where('toUserId', '==', currentUser.uid),
+        where('status', '==', 'pending')
+      );
+      const receivedRequestSnapshot = await getDocs(receivedRequestQuery);
+
+      if (!receivedRequestSnapshot.empty) {
+        setPendingRequestStatus('received');
+        return;
+      }
+
+      setPendingRequestStatus('none');
+    } catch (error) {
+      console.error('Error checking pending request status:', error);
     }
   };
 
@@ -442,7 +490,16 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         <View style={{ width: 24 }} />
       </View>
 
-
+      {pendingRequestStatus === 'sent' && (
+        <View style={[styles.statusBanner, { backgroundColor: COLORS.warning + '20' }]}>
+          <View style={styles.statusBannerContent}>
+            <Ionicons name="time-outline" size={16} color={COLORS.warning} />
+            <Text style={[styles.statusBannerText, { color: COLORS.warning }]}>
+              Connection request sent • Waiting for {userName} to respond
+            </Text>
+          </View>
+        </View>
+      )}
 
       {messages.length === 0 ? (
         renderEmptyState()
@@ -682,6 +739,23 @@ const styles = StyleSheet.create({
   emptyHintText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
+    textAlign: 'center',
+  },
+  statusBanner: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  statusBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusBannerText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
     marginLeft: SPACING.xs,
     textAlign: 'center',
   },

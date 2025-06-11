@@ -1,4 +1,3 @@
-
 export const APP_NAME = 'Wi Chat';
 
 export const COLORS = {
