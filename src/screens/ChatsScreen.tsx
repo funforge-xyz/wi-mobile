@@ -610,9 +610,6 @@ export default function ChatsScreen({ navigation }: any) {
           <Text style={[styles.participantName, { color: currentTheme.text }]}>
             {item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : 'Anonymous User'}
           </Text>
-          {typeof item.unreadCount === 'number' && item.unreadCount > 0 && (
-            <View style={[styles.unreadDot, { backgroundColor: COLORS.primary }]} />
-          )}
         </View>
 
         {item.lastMessage && item.lastMessage.length > 0 && (
@@ -632,6 +629,10 @@ export default function ChatsScreen({ navigation }: any) {
           </View>
         )}
       </View>
+
+      {typeof item.unreadCount === 'number' && item.unreadCount > 0 && (
+            <View style={[styles.unreadDot, { backgroundColor: COLORS.primary }]} />
+          )}
 
       <TouchableOpacity
         style={styles.blockIconButton}
