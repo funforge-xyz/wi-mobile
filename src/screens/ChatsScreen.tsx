@@ -107,116 +107,11 @@ export default function ChatsScreen({ navigation }: any) {
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
-  // Force refresh when screen comes into focus
+  // Update lastSeen when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      if (activeTab === 'connections') {
-        // Force a re-fetch of connection data to ensure UI is up to date
-        const refreshConnections = async () => {
-          try {
-            const { getAuth } = await import('../services/firebase');
-            const auth = getAuth();
-            const currentUser = auth.currentUser;
-
-            if (!currentUser) return;
-
-            const firestore = getFirestore();
-            
-            // Re-query connections to get the latest data
-            const connectionsQuery = query(
-              collection(firestore, 'connections'),
-              where('participants', 'array-contains', currentUser.uid),
-              where('status', '==', 'active')
-            );
-
-            const snapshot = await getDocs(connectionsQuery);
-            const refreshedConnections: Connection[] = [];
-
-            for (const connectionDoc of snapshot.docs) {
-              const connectionData = connectionDoc.data();
-              const otherParticipantId = connectionData.participants.find((id: string) => id !== currentUser.uid);
-
-              if (otherParticipantId) {
-                // Get other participant information
-                const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
-                const userData = userDoc.exists() ? userDoc.data() : {};
-
-                // Get last message from chat
-                let lastMessage = '';
-                let lastMessageTime: Date | undefined;
-                let unreadCount = 0;
-
-                if (connectionData.chatId) {
-                  try {
-                    // Get last message from chat document
-                    const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
-                    if (chatDoc.exists()) {
-                      const chatData = chatDoc.data();
-                      if (chatData.lastMessage) {
-                        lastMessage = chatData.lastMessage;
-                        lastMessageTime = chatData.lastMessageTime?.toDate();
-                      }
-                    }
-
-                    // Count unread messages
-                    const unreadQuery = query(
-                      collection(firestore, 'chats', connectionData.chatId, 'messages'),
-                      where('senderId', '==', otherParticipantId),
-                      where('read', '==', false)
-                    );
-                    const unreadSnapshot = await getDocs(unreadQuery);
-                    unreadCount = unreadSnapshot.size;
-                  } catch (error) {
-                    console.log('Error fetching last message:', error);
-                  }
-                }
-
-                // Check if user is online
-                const isOnline = userData.lastSeen && 
-                  userData.lastSeen.toDate && 
-                  (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
-
-                refreshedConnections.push({
-                  id: connectionDoc.id,
-                  userId: otherParticipantId,
-                  firstName: userData.firstName || '',
-                  lastName: userData.lastName || '',
-                  email: userData.email || '',
-                  photoURL: userData.thumbnailURL || userData.photoURL || '',
-                  bio: userData.bio || '',
-                  connectedAt: connectionData.connectedAt?.toDate() || new Date(),
-                  lastMessage,
-                  lastMessageTime,
-                  isOnline,
-                  unreadCount,
-                });
-              }
-            }
-
-            // Sort by last message time, then by connection time
-            refreshedConnections.sort((a, b) => {
-              if (a.lastMessageTime && b.lastMessageTime) {
-                return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
-              } else if (a.lastMessageTime) {
-                return -1;
-              } else if (b.lastMessageTime) {
-                return 1;
-              } else {
-                return b.connectedAt.getTime() - a.connectedAt.getTime();
-              }
-            });
-
-            setConnections(refreshedConnections);
-          } catch (error) {
-            console.error('Error refreshing connections:', error);
-          }
-        };
-
-        // Small delay to ensure any recent updates are processed
-        const timer = setTimeout(refreshConnections, 200);
-        return () => clearTimeout(timer);
-      }
-    }, [activeTab])
+      updateUserLastSeen();
+    }, [])
   );
 
   const updateUserLastSeen = async () => {
@@ -288,16 +183,19 @@ export default function ChatsScreen({ navigation }: any) {
           setConnectionRequests(requests);
         });
 
-        // Real-time listener for connections
+        // Real-time listener for connections with live message updates
         const connectionsQuery = query(
           collection(firestore, 'connections'),
           where('participants', 'array-contains', currentUser.uid),
           where('status', '==', 'active')
         );
 
+        // Set up listeners for each chat to get live message updates
+        const chatListeners = new Map();
+
         unsubscribeConnections = onSnapshot(connectionsQuery, async (snapshot) => {
           try {
-            const connections: Connection[] = [];
+            const connectionsMap = new Map();
 
             for (const connectionDoc of snapshot.docs) {
               const connectionData = connectionDoc.data();
@@ -308,58 +206,12 @@ export default function ChatsScreen({ navigation }: any) {
                 const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
                 const userData = userDoc.exists() ? userDoc.data() : {};
 
-                // Get last message from chat - try chat document first, then messages collection
-                let lastMessage = '';
-                let lastMessageTime: Date | undefined;
-                let unreadCount = 0;
-
-                if (connectionData.chatId) {
-                  try {
-                    // First try to get last message from chat document
-                    const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
-                    if (chatDoc.exists()) {
-                      const chatData = chatDoc.data();
-                      if (chatData.lastMessage) {
-                        lastMessage = chatData.lastMessage;
-                        lastMessageTime = chatData.lastMessageTime?.toDate();
-                      }
-                    }
-
-                    // If no last message in chat document, query messages collection
-                    if (!lastMessage) {
-                      const messagesQuery = query(
-                        collection(firestore, 'chats', connectionData.chatId, 'messages'),
-                        orderBy('createdAt', 'desc'),
-                        limit(1)
-                      );
-                      const messagesSnapshot = await getDocs(messagesQuery);
-
-                      if (!messagesSnapshot.empty) {
-                        const lastMessageData = messagesSnapshot.docs[0].data();
-                        lastMessage = lastMessageData.text || '';
-                        lastMessageTime = lastMessageData.createdAt?.toDate();
-                      }
-                    }
-
-                    // Count unread messages (messages from other user that haven't been read)
-                    const unreadQuery = query(
-                      collection(firestore, 'chats', connectionData.chatId, 'messages'),
-                      where('senderId', '==', otherParticipantId),
-                      where('read', '==', false)
-                    );
-                    const unreadSnapshot = await getDocs(unreadQuery);
-                    unreadCount = unreadSnapshot.size;
-                  } catch (error) {
-                    console.log('Error fetching last message:', error);
-                  }
-                }
-
-                // Check if user is online (last seen within 2 minutes to be more accurate)
+                // Check if user is online
                 const isOnline = userData.lastSeen && 
                   userData.lastSeen.toDate && 
                   (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
 
-                connections.push({
+                const baseConnection = {
                   id: connectionDoc.id,
                   userId: otherParticipantId,
                   firstName: userData.firstName || '',
@@ -368,15 +220,108 @@ export default function ChatsScreen({ navigation }: any) {
                   photoURL: userData.thumbnailURL || userData.photoURL || '',
                   bio: userData.bio || '',
                   connectedAt: connectionData.connectedAt?.toDate() || new Date(),
-                  lastMessage,
-                  lastMessageTime,
+                  lastMessage: '',
+                  lastMessageTime: undefined,
                   isOnline,
-                  unreadCount,
-                });
+                  unreadCount: 0,
+                };
+
+                connectionsMap.set(connectionDoc.id, baseConnection);
+
+                // Set up real-time listener for each chat
+                if (connectionData.chatId && !chatListeners.has(connectionData.chatId)) {
+                  const chatDocRef = doc(firestore, 'chats', connectionData.chatId);
+                  
+                  const chatUnsubscribe = onSnapshot(chatDocRef, (chatDoc) => {
+                    if (chatDoc.exists()) {
+                      const chatData = chatDoc.data();
+                      
+                      // Update connection with latest message info
+                      setConnections(prevConnections => {
+                        const updatedConnections = prevConnections.map(conn => {
+                          if (conn.id === connectionDoc.id) {
+                            return {
+                              ...conn,
+                              lastMessage: chatData.lastMessage || '',
+                              lastMessageTime: chatData.lastMessageTime?.toDate(),
+                            };
+                          }
+                          return conn;
+                        });
+
+                        // Sort by last message time
+                        updatedConnections.sort((a, b) => {
+                          if (a.lastMessageTime && b.lastMessageTime) {
+                            return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
+                          } else if (a.lastMessageTime) {
+                            return -1;
+                          } else if (b.lastMessageTime) {
+                            return 1;
+                          } else {
+                            return b.connectedAt.getTime() - a.connectedAt.getTime();
+                          }
+                        });
+
+                        return updatedConnections;
+                      });
+                    }
+                  });
+
+                  // Also listen for unread count changes
+                  const unreadQuery = query(
+                    collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                    where('senderId', '==', otherParticipantId),
+                    where('read', '==', false)
+                  );
+
+                  const unreadUnsubscribe = onSnapshot(unreadQuery, (unreadSnapshot) => {
+                    const unreadCount = unreadSnapshot.size;
+                    
+                    setConnections(prevConnections => {
+                      return prevConnections.map(conn => {
+                        if (conn.id === connectionDoc.id) {
+                          return { ...conn, unreadCount };
+                        }
+                        return conn;
+                      });
+                    });
+                  });
+
+                  chatListeners.set(connectionData.chatId, () => {
+                    chatUnsubscribe();
+                    unreadUnsubscribe();
+                  });
+                }
+
+                // Get initial message data
+                if (connectionData.chatId) {
+                  try {
+                    const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
+                    if (chatDoc.exists()) {
+                      const chatData = chatDoc.data();
+                      if (chatData.lastMessage) {
+                        baseConnection.lastMessage = chatData.lastMessage;
+                        baseConnection.lastMessageTime = chatData.lastMessageTime?.toDate();
+                      }
+                    }
+
+                    // Get initial unread count
+                    const unreadQuery = query(
+                      collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                      where('senderId', '==', otherParticipantId),
+                      where('read', '==', false)
+                    );
+                    const unreadSnapshot = await getDocs(unreadQuery);
+                    baseConnection.unreadCount = unreadSnapshot.size;
+                  } catch (error) {
+                    console.log('Error fetching initial message data:', error);
+                  }
+                }
               }
             }
 
-            // Sort by last message time, then by connection time
+            // Convert map to array and sort
+            const connections = Array.from(connectionsMap.values());
             connections.sort((a, b) => {
               if (a.lastMessageTime && b.lastMessageTime) {
                 return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
@@ -389,14 +334,26 @@ export default function ChatsScreen({ navigation }: any) {
               }
             });
 
-            // Force state update with new reference
-            setConnections([...connections]);
+            setConnections(connections);
             setLoading(false);
           } catch (error) {
             console.error('Error in connections listener:', error);
             setLoading(false);
           }
         });
+
+        // Cleanup function for chat listeners
+        const cleanupChatListeners = () => {
+          chatListeners.forEach(unsubscribe => unsubscribe());
+          chatListeners.clear();
+        };
+
+        // Return cleanup function that includes chat listeners
+        const originalUnsubscribe = unsubscribeConnections;
+        unsubscribeConnections = () => {
+          if (originalUnsubscribe) originalUnsubscribe();
+          cleanupChatListeners();
+        };
       } catch (error) {
         console.error('Error setting up real-time listeners:', error);
         setLoading(false);
