@@ -35,8 +35,6 @@ interface UserProfile {
   thumbnailURL: string;
   bio: string;
   postsCount: number;
-  followersCount: number;
-  followingCount: number;
 }
 
 export default function ProfileScreen() {
@@ -49,7 +47,6 @@ export default function ProfileScreen() {
     thumbnailURL: '',
     bio: '',
     postsCount: 0,
-    followersCount: 0,
   });
   const [connectionsCount, setConnectionsCount] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -115,8 +112,6 @@ export default function ProfileScreen() {
             thumbnailURL: firestoreData.thumbnailURL || '',
             bio: firestoreData.bio || '',
             postsCount: postsCount,
-            followersCount: 0,
-            followingCount: 0,
           };
         } else {
           // Create default profile data if no Firestore document exists
@@ -129,8 +124,6 @@ export default function ProfileScreen() {
             thumbnailURL: '',
             bio: '',
             postsCount: postsCount,
-            followersCount: 0,
-            followingCount: 0,
           };
         }
 
