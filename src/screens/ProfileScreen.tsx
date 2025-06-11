@@ -692,7 +692,7 @@ export default function ProfileScreen() {
                       key={`modal-avatar-${Date.now()}-${Math.random()}`}
                     />
                   ) : (
-                    <View style={[modalStyles.modalAvatar, styles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
+                    <View style={[modalStyles.modalAvatar, modalStyles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
                       <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
                     </View>
                   )}
@@ -709,9 +709,9 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
               <TextInput
-                style={[styles.input, {
+                style={[modalStyles.input, {
                   backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
                   borderColor: currentTheme.border
@@ -724,9 +724,9 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
               <TextInput
-                style={[styles.input, {
+                style={[modalStyles.input, {
                   backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
                   borderColor: currentTheme.border
@@ -739,21 +739,21 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Email</Text>
-              <View style={[styles.input, styles.emailDisplayContainer, {
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Email</Text>
+              <View style={[modalStyles.input, modalStyles.emailDisplayContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
               }]}>
-                <Text style={[styles.emailDisplayText, { color: currentTheme.textSecondary }]}>
+                <Text style={[modalStyles.emailDisplayText, { color: currentTheme.textSecondary }]}>
                   {profile.email}
                 </Text>
               </View>
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
               <TextInput
-                style={[styles.textArea, {
+                style={[modalStyles.textArea, {
                   backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
                   borderColor: currentTheme.border
@@ -789,9 +789,9 @@ export default function ProfileScreen() {
 
           <ScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Current Password</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Current Password</Text>
               <TextInput
-                style={[styles.input, {
+                style={[modalStyles.input, {
                   backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
                   borderColor: currentTheme.border
@@ -805,9 +805,9 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>New Password</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>New Password</Text>
               <TextInput
-                style={[styles.input, {
+                style={[modalStyles.input, {
                   backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
                   borderColor: currentTheme.border
@@ -821,9 +821,9 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Confirm New Password</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Confirm New Password</Text>
               <TextInput
-                style={[styles.input, {
+                style={[modalStyles.input, {
                   backgroundColor: currentTheme.surface,
                   color: currentTheme.text,
                   borderColor: currentTheme.border
@@ -1052,6 +1052,10 @@ const modalStyles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
     marginBottom: SPACING.md,
+  },
+  placeholderModalAvatar: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteImageButton: {
     position: 'absolute',
