@@ -511,7 +511,11 @@ export default function ChatsScreen({ navigation }: any) {
 
         {item.lastMessage && item.lastMessage.length > 0 && (
           <View style={styles.messageRow}>
-            <Text style={[styles.lastMessage, { color: currentTheme.textSecondary }]} numberOfLines={1}>
+            <Text style={[
+              styles.lastMessage, 
+              { color: currentTheme.textSecondary },
+              typeof item.unreadCount === 'number' && item.unreadCount > 0 && { fontWeight: 'bold', fontFamily: FONTS.bold }
+            ]} numberOfLines={1}>
               {item.lastMessage}
             </Text>
             {item.lastMessageTime && (
