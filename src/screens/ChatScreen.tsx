@@ -11,6 +11,7 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -84,13 +85,50 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [chatRoomId, setChatRoomId] = useState('');
+  const [userOnlineStatus, setUserOnlineStatus] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
+  const updateUserLastSeen = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const firestore = getFirestore();
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        lastSeen: new Date(),
+      }, { merge: true });
+    } catch (error) {
+      console.error('Error updating last seen:', error);
+    }
+  };
+
   useEffect(() => {
     initializeChat();
+    
+    // Update user's lastSeen timestamp when component mounts
+    updateUserLastSeen();
+
+    // Handle app state changes to update lastSeen
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        updateUserLastSeen();
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        updateUserLastSeen();
+      }
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      appStateSubscription?.remove();
+    };
   }, []);
 
   const initializeChat = async () => {
@@ -107,6 +145,9 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
       // Set up real-time message listener
       setupMessageListener(roomId);
+
+      // Set up online status listener for the other user
+      setupOnlineStatusListener();
 
     } catch (error) {
       console.error('Error initializing chat:', error);
@@ -150,7 +191,24 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     return () => unsubscribe();
   };
 
+  const setupOnlineStatusListener = () => {
+    const firestore = getFirestore();
+    const userRef = doc(firestore, 'users', userId);
 
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        // Check if user is online (last seen within 2 minutes)
+        const isOnline = userData.lastSeen && 
+          userData.lastSeen.toDate && 
+          (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+        
+        setUserOnlineStatus(isOnline);
+      }
+    });
+
+    return () => unsubscribe();
+  };
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -280,14 +338,22 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           style={styles.headerInfo}
           onPress={() => navigation.navigate('UserProfile', { userId })}
         >
-          {userPhotoURL ? (
-             <AvatarImage source={{ uri: userPhotoURL }} style={styles.headerAvatar} />
-          ) : (
-            <View style={[styles.headerAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-              <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
-            </View>
-          )}
-          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
+          <View style={styles.avatarContainer}>
+            {userPhotoURL ? (
+               <AvatarImage source={{ uri: userPhotoURL }} style={styles.headerAvatar} />
+            ) : (
+              <View style={[styles.headerAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
+                <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
+              </View>
+            )}
+            {userOnlineStatus && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
+            {userOnlineStatus && (
+              <Text style={[styles.onlineStatus, { color: COLORS.success }]}>Online</Text>
+            )}
+          </View>
         </TouchableOpacity>
         <View style={{ width: 24 }} />
       </View>
@@ -382,23 +448,43 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: SPACING.sm,
+  },
   headerAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: SPACING.sm,
   },
   headerAvatarPlaceholder: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: SPACING.sm,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.success,
+    borderWidth: 2,
+  },
+  headerTextContainer: {
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontFamily: FONTS.medium,
+  },
+  onlineStatus: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
   },
   statusContainer: {
     padding: SPACING.sm,
