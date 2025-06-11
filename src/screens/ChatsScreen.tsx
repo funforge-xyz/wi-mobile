@@ -111,10 +111,110 @@ export default function ChatsScreen({ navigation }: any) {
   useFocusEffect(
     React.useCallback(() => {
       if (activeTab === 'connections') {
-        // Force a small delay to ensure any recent message updates are reflected
-        setTimeout(() => {
-          setConnections(prevConnections => [...prevConnections]);
-        }, 100);
+        // Force a re-fetch of connection data to ensure UI is up to date
+        const refreshConnections = async () => {
+          try {
+            const { getAuth } = await import('../services/firebase');
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
+
+            if (!currentUser) return;
+
+            const firestore = getFirestore();
+            
+            // Re-query connections to get the latest data
+            const connectionsQuery = query(
+              collection(firestore, 'connections'),
+              where('participants', 'array-contains', currentUser.uid),
+              where('status', '==', 'active')
+            );
+
+            const snapshot = await getDocs(connectionsQuery);
+            const refreshedConnections: Connection[] = [];
+
+            for (const connectionDoc of snapshot.docs) {
+              const connectionData = connectionDoc.data();
+              const otherParticipantId = connectionData.participants.find((id: string) => id !== currentUser.uid);
+
+              if (otherParticipantId) {
+                // Get other participant information
+                const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                // Get last message from chat
+                let lastMessage = '';
+                let lastMessageTime: Date | undefined;
+                let unreadCount = 0;
+
+                if (connectionData.chatId) {
+                  try {
+                    // Get last message from chat document
+                    const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
+                    if (chatDoc.exists()) {
+                      const chatData = chatDoc.data();
+                      if (chatData.lastMessage) {
+                        lastMessage = chatData.lastMessage;
+                        lastMessageTime = chatData.lastMessageTime?.toDate();
+                      }
+                    }
+
+                    // Count unread messages
+                    const unreadQuery = query(
+                      collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                      where('senderId', '==', otherParticipantId),
+                      where('read', '==', false)
+                    );
+                    const unreadSnapshot = await getDocs(unreadQuery);
+                    unreadCount = unreadSnapshot.size;
+                  } catch (error) {
+                    console.log('Error fetching last message:', error);
+                  }
+                }
+
+                // Check if user is online
+                const isOnline = userData.lastSeen && 
+                  userData.lastSeen.toDate && 
+                  (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+
+                refreshedConnections.push({
+                  id: connectionDoc.id,
+                  userId: otherParticipantId,
+                  firstName: userData.firstName || '',
+                  lastName: userData.lastName || '',
+                  email: userData.email || '',
+                  photoURL: userData.thumbnailURL || userData.photoURL || '',
+                  bio: userData.bio || '',
+                  connectedAt: connectionData.connectedAt?.toDate() || new Date(),
+                  lastMessage,
+                  lastMessageTime,
+                  isOnline,
+                  unreadCount,
+                });
+              }
+            }
+
+            // Sort by last message time, then by connection time
+            refreshedConnections.sort((a, b) => {
+              if (a.lastMessageTime && b.lastMessageTime) {
+                return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
+              } else if (a.lastMessageTime) {
+                return -1;
+              } else if (b.lastMessageTime) {
+                return 1;
+              } else {
+                return b.connectedAt.getTime() - a.connectedAt.getTime();
+              }
+            });
+
+            setConnections(refreshedConnections);
+          } catch (error) {
+            console.error('Error refreshing connections:', error);
+          }
+        };
+
+        // Small delay to ensure any recent updates are processed
+        const timer = setTimeout(refreshConnections, 200);
+        return () => clearTimeout(timer);
       }
     }, [activeTab])
   );
@@ -196,100 +296,106 @@ export default function ChatsScreen({ navigation }: any) {
         );
 
         unsubscribeConnections = onSnapshot(connectionsQuery, async (snapshot) => {
-          const connections: Connection[] = [];
+          try {
+            const connections: Connection[] = [];
 
-          for (const connectionDoc of snapshot.docs) {
-            const connectionData = connectionDoc.data();
-            const otherParticipantId = connectionData.participants.find((id: string) => id !== currentUser.uid);
+            for (const connectionDoc of snapshot.docs) {
+              const connectionData = connectionDoc.data();
+              const otherParticipantId = connectionData.participants.find((id: string) => id !== currentUser.uid);
 
-            if (otherParticipantId) {
-              // Get other participant information
-              const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
-              const userData = userDoc.exists() ? userDoc.data() : {};
+              if (otherParticipantId) {
+                // Get other participant information
+                const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
+                const userData = userDoc.exists() ? userDoc.data() : {};
 
-              // Get last message from chat - try chat document first, then messages collection
-              let lastMessage = '';
-              let lastMessageTime: Date | undefined;
-              let unreadCount = 0;
+                // Get last message from chat - try chat document first, then messages collection
+                let lastMessage = '';
+                let lastMessageTime: Date | undefined;
+                let unreadCount = 0;
 
-              if (connectionData.chatId) {
-                try {
-                  // First try to get last message from chat document
-                  const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
-                  if (chatDoc.exists()) {
-                    const chatData = chatDoc.data();
-                    if (chatData.lastMessage) {
-                      lastMessage = chatData.lastMessage;
-                      lastMessageTime = chatData.lastMessageTime?.toDate();
+                if (connectionData.chatId) {
+                  try {
+                    // First try to get last message from chat document
+                    const chatDoc = await getDoc(doc(firestore, 'chats', connectionData.chatId));
+                    if (chatDoc.exists()) {
+                      const chatData = chatDoc.data();
+                      if (chatData.lastMessage) {
+                        lastMessage = chatData.lastMessage;
+                        lastMessageTime = chatData.lastMessageTime?.toDate();
+                      }
                     }
-                  }
 
-                  // If no last message in chat document, query messages collection
-                  if (!lastMessage) {
-                    const messagesQuery = query(
+                    // If no last message in chat document, query messages collection
+                    if (!lastMessage) {
+                      const messagesQuery = query(
+                        collection(firestore, 'chats', connectionData.chatId, 'messages'),
+                        orderBy('createdAt', 'desc'),
+                        limit(1)
+                      );
+                      const messagesSnapshot = await getDocs(messagesQuery);
+
+                      if (!messagesSnapshot.empty) {
+                        const lastMessageData = messagesSnapshot.docs[0].data();
+                        lastMessage = lastMessageData.text || '';
+                        lastMessageTime = lastMessageData.createdAt?.toDate();
+                      }
+                    }
+
+                    // Count unread messages (messages from other user that haven't been read)
+                    const unreadQuery = query(
                       collection(firestore, 'chats', connectionData.chatId, 'messages'),
-                      orderBy('createdAt', 'desc'),
-                      limit(1)
+                      where('senderId', '==', otherParticipantId),
+                      where('read', '==', false)
                     );
-                    const messagesSnapshot = await getDocs(messagesQuery);
-
-                    if (!messagesSnapshot.empty) {
-                      const lastMessageData = messagesSnapshot.docs[0].data();
-                      lastMessage = lastMessageData.text || '';
-                      lastMessageTime = lastMessageData.createdAt?.toDate();
-                    }
+                    const unreadSnapshot = await getDocs(unreadQuery);
+                    unreadCount = unreadSnapshot.size;
+                  } catch (error) {
+                    console.log('Error fetching last message:', error);
                   }
-
-                  // Count unread messages (messages from other user that haven't been read)
-                  const unreadQuery = query(
-                    collection(firestore, 'chats', connectionData.chatId, 'messages'),
-                    where('senderId', '==', otherParticipantId),
-                    where('read', '==', false)
-                  );
-                  const unreadSnapshot = await getDocs(unreadQuery);
-                  unreadCount = unreadSnapshot.size;
-                } catch (error) {
-                  console.log('Error fetching last message:', error);
                 }
+
+                // Check if user is online (last seen within 2 minutes to be more accurate)
+                const isOnline = userData.lastSeen && 
+                  userData.lastSeen.toDate && 
+                  (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+
+                connections.push({
+                  id: connectionDoc.id,
+                  userId: otherParticipantId,
+                  firstName: userData.firstName || '',
+                  lastName: userData.lastName || '',
+                  email: userData.email || '',
+                  photoURL: userData.thumbnailURL || userData.photoURL || '',
+                  bio: userData.bio || '',
+                  connectedAt: connectionData.connectedAt?.toDate() || new Date(),
+                  lastMessage,
+                  lastMessageTime,
+                  isOnline,
+                  unreadCount,
+                });
               }
-
-              // Check if user is online (last seen within 2 minutes to be more accurate)
-              const isOnline = userData.lastSeen && 
-                userData.lastSeen.toDate && 
-                (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
-
-              connections.push({
-                id: connectionDoc.id,
-                userId: otherParticipantId,
-                firstName: userData.firstName || '',
-                lastName: userData.lastName || '',
-                email: userData.email || '',
-                photoURL: userData.thumbnailURL || userData.photoURL || '',
-                bio: userData.bio || '',
-                connectedAt: connectionData.connectedAt?.toDate() || new Date(),
-                lastMessage,
-                lastMessageTime,
-                isOnline,
-                unreadCount,
-              });
             }
+
+            // Sort by last message time, then by connection time
+            connections.sort((a, b) => {
+              if (a.lastMessageTime && b.lastMessageTime) {
+                return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
+              } else if (a.lastMessageTime) {
+                return -1;
+              } else if (b.lastMessageTime) {
+                return 1;
+              } else {
+                return b.connectedAt.getTime() - a.connectedAt.getTime();
+              }
+            });
+
+            // Force state update with new reference
+            setConnections([...connections]);
+            setLoading(false);
+          } catch (error) {
+            console.error('Error in connections listener:', error);
+            setLoading(false);
           }
-
-          // Sort by last message time, then by connection time
-          connections.sort((a, b) => {
-            if (a.lastMessageTime && b.lastMessageTime) {
-              return b.lastMessageTime.getTime() - a.lastMessageTime.getTime();
-            } else if (a.lastMessageTime) {
-              return -1;
-            } else if (b.lastMessageTime) {
-              return 1;
-            } else {
-              return b.connectedAt.getTime() - a.connectedAt.getTime();
-            }
-          });
-
-          setConnections(connections);
-          setLoading(false);
         });
       } catch (error) {
         console.error('Error setting up real-time listeners:', error);
