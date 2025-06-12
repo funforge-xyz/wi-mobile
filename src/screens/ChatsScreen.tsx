@@ -641,22 +641,48 @@ export default function ChatsScreen({ navigation }: any) {
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Messages</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.requestsButton}
-            onPress={() => setShowRequests(!showRequests)}
-          >
-            <Ionicons name="mail-outline" size={24} color={currentTheme.text} />
-            {Array.isArray(connectionRequests) && connectionRequests.length > 0 && (
-              <View style={[styles.requestsBadge, { backgroundColor: COLORS.primary }]}>
-                <Text style={styles.requestsBadgeText}>{connectionRequests.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
           <NotificationBell
             onPress={() => navigation.navigate('Notifications')}
             color={currentTheme.text}
           />
         </View>
+      </View>
+
+      <View style={[styles.tabsContainer, { backgroundColor: currentTheme.surface }]}>
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            !showRequests && [styles.activeTab, { backgroundColor: currentTheme.background }]
+          ]}
+          onPress={() => setShowRequests(false)}
+        >
+          <Text style={[
+            styles.tabText,
+            { color: !showRequests ? currentTheme.text : currentTheme.textSecondary }
+          ]}>
+            Connections
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            showRequests && [styles.activeTab, { backgroundColor: currentTheme.background }]
+          ]}
+          onPress={() => setShowRequests(true)}
+        >
+          <Text style={[
+            styles.tabText,
+            { color: showRequests ? currentTheme.text : currentTheme.textSecondary }
+          ]}>
+            Requests
+          </Text>
+          {Array.isArray(connectionRequests) && connectionRequests.length > 0 && (
+            <View style={[styles.requestsBadge, { backgroundColor: COLORS.primary }]}>
+              <Text style={styles.requestsBadgeText}>{connectionRequests.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       
@@ -723,14 +749,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
   },
-  requestsButton: {
+  tabsContainer: {
+    flexDirection: 'row',
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    borderRadius: 8,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 6,
     position: 'relative',
-    padding: SPACING.xs,
+  },
+  activeTab: {
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
   },
   requestsBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
+    marginLeft: SPACING.xs,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
