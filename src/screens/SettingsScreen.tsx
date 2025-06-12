@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -29,6 +28,7 @@ import { authService } from '../services/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface UserProfile {
   id: string;
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
 
   const handleTogglePushNotifications = async (value: boolean) => {
     setIsLoading(true);
-    
+
     try {
       if (value) {
         // Request permission and initialize notifications
@@ -454,7 +454,7 @@ export default function SettingsScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Appearance</Text>
-          
+
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
               <Ionicons 
@@ -483,7 +483,7 @@ export default function SettingsScreen() {
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Notifications</Text>
-          
+
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
               <Ionicons 
@@ -513,7 +513,7 @@ export default function SettingsScreen() {
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Account</Text>
-          
+
           <TouchableOpacity 
             style={styles.settingRow} 
             onPress={handleEditProfile}
@@ -586,7 +586,7 @@ export default function SettingsScreen() {
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Support</Text>
-          
+
           <TouchableOpacity 
             style={styles.settingRow} 
             onPress={() => (navigation as any).navigate('HelpSupport')}
@@ -652,7 +652,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalContent}>
+          <KeyboardAwareScrollView style={styles.modalContent}>
             <View style={[styles.modalSection, styles.modalImageContainer]}>
               <View style={modalStyles.avatarContainer}>
                 <TouchableOpacity onPress={showImagePickerOptions}>
@@ -737,7 +737,7 @@ export default function SettingsScreen() {
                 numberOfLines={4}
               />
             </View>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

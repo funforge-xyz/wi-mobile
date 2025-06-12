@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,11 +45,18 @@ export default function ProfileScreen() {
   const [connectionsCount, setConnectionsCount] = useState(0);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
     loadUserProfile();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadUserProfile();
+    setRefreshing(false);
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -233,7 +241,13 @@ export default function ProfileScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
           {(profile.thumbnailURL || profile.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
             <ProfileImage
