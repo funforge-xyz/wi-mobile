@@ -58,6 +58,24 @@ export class Settings {
       console.error('Error setting user settings:', error);
     }
   }
+
+  async getTrackingRadius(): Promise<number> {
+    try {
+      const value = await AsyncStorage.getItem('@WiChat_Settings_trackingRadius');
+      return value ? parseInt(value, 10) : 1; // Default to 1km
+    } catch (error) {
+      console.error('Error getting tracking radius setting:', error);
+      return 1;
+    }
+  }
+
+  async setTrackingRadius(value: number): Promise<void> {
+    try {
+      await AsyncStorage.setItem('@WiChat_Settings_trackingRadius', value.toString());
+    } catch (error) {
+      console.error('Error setting tracking radius:', error);
+    }
+  }
 }
 
 export class Credentials {
@@ -126,7 +144,7 @@ export class StorageService {
 
       const storage = getStorage();
       const timestamp = Date.now();
-      
+
       // Upload full size image
       const imageRef = ref(storage, `profile-pictures/${userId}/${timestamp}.jpg`);
       await uploadBytes(imageRef, blob);
@@ -151,7 +169,7 @@ export class StorageService {
   private async createThumbnail(imageUri: string): Promise<Blob> {
     try {
       const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
-      
+
       // Create thumbnail with max width/height of 200px and higher quality
       const result = await manipulateAsync(
         imageUri,
@@ -195,11 +213,11 @@ export class StorageService {
       }
 
       const storage = getStorageInstance();
-      
+
       // Delete full size image
       const url = new URL(photoURL);
       const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
-      
+
       if (pathMatch) {
         const decodedPath = decodeURIComponent(pathMatch[1]);
         const imageRef = ref(storage, decodedPath);
@@ -211,7 +229,7 @@ export class StorageService {
       if (thumbnailURL && thumbnailURL.includes('firebase')) {
         const thumbUrl = new URL(thumbnailURL);
         const thumbPathMatch = thumbUrl.pathname.match(/\/o\/(.+)\?/);
-        
+
         if (thumbPathMatch) {
           const decodedThumbPath = decodeURIComponent(thumbPathMatch[1]);
           const thumbRef = ref(storage, decodedThumbPath);

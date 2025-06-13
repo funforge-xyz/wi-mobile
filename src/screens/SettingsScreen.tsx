@@ -45,6 +45,7 @@ export default function SettingsScreen() {
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
+  const [trackingRadius, setTrackingRadius] = useState(1); // Default 1km
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
@@ -71,6 +72,10 @@ export default function SettingsScreen() {
       // Load push notification settings
       const { status } = await Notifications.getPermissionsAsync();
       setPushNotificationsEnabled(status === 'granted');
+      
+      // Load tracking radius setting
+      const savedRadius = await settings.getTrackingRadius();
+      setTrackingRadius(savedRadius || 1);
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -162,6 +167,17 @@ export default function SettingsScreen() {
       Alert.alert('Error', 'Failed to update notification settings');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleTrackingRadiusChange = async (radius: number) => {
+    try {
+      setTrackingRadius(radius);
+      await settings.setTrackingRadius(radius);
+      Alert.alert('Settings Updated', `Tracking radius set to ${radius}km`);
+    } catch (error) {
+      console.error('Error updating tracking radius:', error);
+      Alert.alert('Error', 'Failed to update tracking radius');
     }
   };
 
@@ -478,6 +494,53 @@ export default function SettingsScreen() {
               trackColor={{ false: currentTheme.border, true: COLORS.primary }}
               thumbColor={isDarkMode ? 'white' : '#f4f3f4'}
             />
+          </View>
+        </View>
+
+        <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Location</Text>
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="location" 
+                size={20} 
+                color={currentTheme.text} 
+                style={styles.settingIcon}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
+                  Tracking Radius
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
+                  Connect with people within {trackingRadius}km
+                </Text>
+              </View>
+            </View>
+            <View style={styles.radiusButtons}>
+              {[1, 5, 10].map((radius) => (
+                <TouchableOpacity
+                  key={radius}
+                  style={[
+                    styles.radiusButton,
+                    {
+                      backgroundColor: trackingRadius === radius ? COLORS.primary : currentTheme.surface,
+                      borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
+                    }
+                  ]}
+                  onPress={() => handleTrackingRadiusChange(radius)}
+                >
+                  <Text style={[
+                    styles.radiusButtonText,
+                    {
+                      color: trackingRadius === radius ? 'white' : currentTheme.text,
+                    }
+                  ]}>
+                    {radius}km
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
 
@@ -863,6 +926,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.regular,
     lineHeight: 18,
+  },
+  radiusButtons: {
+    flexDirection: 'row',
+    gap: SPACING.xs,
+  },
+  radiusButton: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  radiusButtonText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
   },
   modalContainer: {
     flex: 1,
