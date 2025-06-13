@@ -48,6 +48,7 @@ export default function SettingsScreen() {
   const [trackingRadius, setTrackingRadius] = useState(1); // Default 1km
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showRadiusModal, setShowRadiusModal] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
@@ -182,50 +183,7 @@ export default function SettingsScreen() {
   };
 
   const showRadiusOptions = () => {
-    const radiusOptions = [
-      { label: '1km', value: 1 },
-      { label: '2km', value: 2 },
-      { label: '5km', value: 5 },
-      { label: '10km', value: 10 },
-      { label: '20km', value: 20 },
-      { label: '50km', value: 50 },
-    ];
-
-    if (Platform.OS === 'ios') {
-      const options = [...radiusOptions.map(option => option.label), 'Cancel'];
-      
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: options.length - 1,
-          title: 'Select Tracking Radius',
-        },
-        buttonIndex => {
-          if (buttonIndex < radiusOptions.length) {
-            handleTrackingRadiusChange(radiusOptions[buttonIndex].value);
-          }
-        }
-      );
-    } else {
-      // For Android - show alert with options
-      const alertOptions = radiusOptions.map(option => ({
-        text: option.label,
-        onPress: () => handleTrackingRadiusChange(option.value),
-      }));
-      
-      alertOptions.push({
-        text: 'Cancel',
-        style: 'cancel' as const,
-        onPress: () => {},
-      });
-
-      Alert.alert(
-        'Select Tracking Radius',
-        'Choose how far you want to connect with people',
-        alertOptions,
-        { cancelable: true }
-      );
-    }
+    setShowRadiusModal(true);
   };
 
   const handleEditProfile = () => {
@@ -549,7 +507,7 @@ export default function SettingsScreen() {
 
           <TouchableOpacity 
             style={styles.settingRow}
-            onPress={() => showRadiusOptions()}
+            onPress={showRadiusOptions}
           >
             <View style={styles.settingInfo}>
               <Ionicons 
@@ -835,6 +793,65 @@ export default function SettingsScreen() {
           </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Radius Selection Modal */}
+      <Modal 
+        visible={showRadiusModal} 
+        animationType="slide" 
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowRadiusModal(false)}
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={() => setShowRadiusModal(false)}>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Select Tracking Radius</Text>
+            <View style={{ width: 60 }} />
+          </View>
+
+          <View style={styles.radiusOptionsContainer}>
+            {[1, 5, 10].map((radius) => (
+              <TouchableOpacity
+                key={radius}
+                style={[
+                  styles.radiusOption,
+                  {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
+                    borderWidth: trackingRadius === radius ? 2 : 1,
+                  }
+                ]}
+                onPress={() => {
+                  handleTrackingRadiusChange(radius);
+                  setShowRadiusModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.radiusOptionText,
+                  {
+                    color: trackingRadius === radius ? COLORS.primary : currentTheme.text,
+                    fontFamily: trackingRadius === radius ? FONTS.bold : FONTS.medium,
+                  }
+                ]}>
+                  {radius}km
+                </Text>
+                <Text style={[
+                  styles.radiusOptionDescription,
+                  { color: currentTheme.textSecondary }
+                ]}>
+                  Connect with people within {radius}km
+                </Text>
+                {trackingRadius === radius && (
+                  <View style={styles.radiusSelectedIcon}>
+                    <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1064,5 +1081,28 @@ const modalStyles = StyleSheet.create({
     borderRadius: 50,
     marginBottom: SPACING.md,
     resizeMode: 'cover',
+  },
+  radiusOptionsContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.lg,
+    gap: SPACING.md,
+  },
+  radiusOption: {
+    padding: SPACING.lg,
+    borderRadius: 12,
+    position: 'relative',
+  },
+  radiusOptionText: {
+    fontSize: 18,
+    marginBottom: SPACING.xs,
+  },
+  radiusOptionDescription: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+  },
+  radiusSelectedIcon: {
+    position: 'absolute',
+    top: SPACING.lg,
+    right: SPACING.lg,
   },
 });
