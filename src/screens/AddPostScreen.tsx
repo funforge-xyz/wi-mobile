@@ -295,7 +295,6 @@ export default function AddPostScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <View style={{ width: 60 }} />
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>New Post</Text>
         <TouchableOpacity
           style={[styles.postButton, (!content.trim() && !selectedImage) && styles.postButtonDisabled]}
@@ -457,7 +456,7 @@ const styles = StyleSheet.create({
   },
   
   headerTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontFamily: FONTS.bold,
   },
   postButton: {
