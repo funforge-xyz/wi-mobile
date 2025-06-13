@@ -1,4 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getFirestore } from './firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export class Settings {
   private static readonly ONBOARDING_DONE_KEY = 'onboarding_done';
@@ -133,7 +136,6 @@ export class Credentials {
     }
   }
 }
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getStorage as getStorageInstance } from './firebase';
 
 export class StorageService {

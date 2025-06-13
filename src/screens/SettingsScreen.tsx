@@ -74,9 +74,31 @@ export default function SettingsScreen() {
       const { status } = await Notifications.getPermissionsAsync();
       setPushNotificationsEnabled(status === 'granted');
       
-      // Load tracking radius setting
-      const savedRadius = await settings.getTrackingRadius();
-      setTrackingRadius(savedRadius || 1);
+      // Load tracking radius setting from local storage first
+      let savedRadiusInMeters = await settings.getTrackingRadius();
+      
+      // Try to load from Firebase user document
+      try {
+        const { getAuth } = await import('../services/firebase');
+        const auth = getAuth();
+        const currentUser = auth.currentUser || await authService.getCurrentUser();
+        
+        if (currentUser) {
+          const firestore = getFirestore();
+          const userDocRef = doc(firestore, 'users', currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists() && userDoc.data().trackingRadius) {
+            savedRadiusInMeters = userDoc.data().trackingRadius;
+          }
+        }
+      } catch (error) {
+        console.log('Could not load radius from Firebase, using local storage');
+      }
+      
+      // Convert meters to kilometers for display (default 1000m = 1km)
+      const radiusInKm = savedRadiusInMeters ? Math.round(savedRadiusInMeters / 1000) : 1;
+      setTrackingRadius(radiusInKm);
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -174,7 +196,24 @@ export default function SettingsScreen() {
   const handleTrackingRadiusChange = async (radius: number) => {
     try {
       setTrackingRadius(radius);
-      await settings.setTrackingRadius(radius);
+      // Save radius in meters to Firebase (1km = 1000m)
+      const radiusInMeters = radius * 1000;
+      await settings.setTrackingRadius(radiusInMeters);
+      
+      // Also save to user's Firestore document
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser || await authService.getCurrentUser();
+      
+      if (currentUser) {
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        await userDocRef.update({
+          trackingRadius: radiusInMeters,
+          trackingRadiusUpdatedAt: new Date()
+        });
+      }
+      
       Alert.alert('Settings Updated', `Tracking radius set to ${radius}km`);
     } catch (error) {
       console.error('Error updating tracking radius:', error);
@@ -803,21 +842,28 @@ export default function SettingsScreen() {
       >
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={() => setShowRadiusModal(false)}>
+            <TouchableOpacity 
+              onPress={() => setShowRadiusModal(false)}
+              style={styles.modalHeaderButton}
+            >
               <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Select Tracking Radius</Text>
-            <View style={{ width: 60 }} />
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Tracking Radius</Text>
+            <View style={styles.modalHeaderButton} />
           </View>
 
           <View style={styles.radiusOptionsContainer}>
+            <Text style={[styles.radiusDescription, { color: currentTheme.textSecondary }]}>
+              Choose how far you want to connect with people around you
+            </Text>
+            
             {[1, 5, 10].map((radius) => (
               <TouchableOpacity
                 key={radius}
                 style={[
                   styles.radiusOption,
                   {
-                    backgroundColor: currentTheme.surface,
+                    backgroundColor: trackingRadius === radius ? `${COLORS.primary}15` : currentTheme.surface,
                     borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
                     borderWidth: trackingRadius === radius ? 2 : 1,
                   }
@@ -826,27 +872,33 @@ export default function SettingsScreen() {
                   handleTrackingRadiusChange(radius);
                   setShowRadiusModal(false);
                 }}
+                activeOpacity={0.7}
               >
-                <Text style={[
-                  styles.radiusOptionText,
-                  {
-                    color: trackingRadius === radius ? COLORS.primary : currentTheme.text,
-                    fontFamily: trackingRadius === radius ? FONTS.bold : FONTS.medium,
-                  }
-                ]}>
-                  {radius}km
-                </Text>
-                <Text style={[
-                  styles.radiusOptionDescription,
-                  { color: currentTheme.textSecondary }
-                ]}>
-                  Connect with people within {radius}km
-                </Text>
-                {trackingRadius === radius && (
-                  <View style={styles.radiusSelectedIcon}>
-                    <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
+                <View style={styles.radiusOptionContent}>
+                  <View style={styles.radiusOptionLeft}>
+                    <Text style={[
+                      styles.radiusOptionText,
+                      {
+                        color: trackingRadius === radius ? COLORS.primary : currentTheme.text,
+                        fontFamily: trackingRadius === radius ? FONTS.bold : FONTS.semiBold,
+                      }
+                    ]}>
+                      {radius}km radius
+                    </Text>
+                    <Text style={[
+                      styles.radiusOptionDescription,
+                      { color: currentTheme.textSecondary }
+                    ]}>
+                      Connect with people within {radius} kilometer{radius > 1 ? 's' : ''}
+                    </Text>
                   </View>
-                )}
+                  
+                  {trackingRadius === radius && (
+                    <View style={styles.radiusSelectedIcon}>
+                      <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.primary} />
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -1082,15 +1134,43 @@ const modalStyles = StyleSheet.create({
     marginBottom: SPACING.md,
     resizeMode: 'cover',
   },
+  modalHeaderButton: {
+    minWidth: 60,
+    alignItems: 'center',
+  },
   radiusOptionsContainer: {
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xl,
     gap: SPACING.md,
+    flex: 1,
+  },
+  radiusDescription: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+    lineHeight: 22,
   },
   radiusOption: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  radiusOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: SPACING.lg,
-    borderRadius: 12,
-    position: 'relative',
+  },
+  radiusOptionLeft: {
+    flex: 1,
   },
   radiusOptionText: {
     fontSize: 18,
@@ -1099,10 +1179,9 @@ const modalStyles = StyleSheet.create({
   radiusOptionDescription: {
     fontSize: 14,
     fontFamily: FONTS.regular,
+    lineHeight: 20,
   },
   radiusSelectedIcon: {
-    position: 'absolute',
-    top: SPACING.lg,
-    right: SPACING.lg,
+    marginLeft: SPACING.md,
   },
 });
