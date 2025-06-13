@@ -844,16 +844,16 @@ export default function SettingsScreen() {
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
             <TouchableOpacity 
               onPress={() => setShowRadiusModal(false)}
-              style={styles.modalHeaderButton}
+              style={modalStyles.modalHeaderButton}
             >
               <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
             <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Tracking Radius</Text>
-            <View style={styles.modalHeaderButton} />
+            <View style={modalStyles.modalHeaderButton} />
           </View>
 
-          <View style={styles.radiusOptionsContainer}>
-            <Text style={[styles.radiusDescription, { color: currentTheme.textSecondary }]}>
+          <View style={modalStyles.radiusOptionsContainer}>
+            <Text style={[modalStyles.radiusDescription, { color: currentTheme.textSecondary }]}>
               Choose how far you want to connect with people around you
             </Text>
             
@@ -861,7 +861,7 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 key={radius}
                 style={[
-                  styles.radiusOption,
+                  modalStyles.radiusOption,
                   {
                     backgroundColor: trackingRadius === radius ? `${COLORS.primary}15` : currentTheme.surface,
                     borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
@@ -874,19 +874,19 @@ export default function SettingsScreen() {
                 }}
                 activeOpacity={0.7}
               >
-                <View style={styles.radiusOptionContent}>
-                  <View style={styles.radiusOptionLeft}>
+                <View style={modalStyles.radiusOptionContent}>
+                  <View style={modalStyles.radiusOptionLeft}>
                     <Text style={[
-                      styles.radiusOptionText,
+                      modalStyles.radiusOptionText,
                       {
                         color: trackingRadius === radius ? COLORS.primary : currentTheme.text,
-                        fontFamily: trackingRadius === radius ? FONTS.bold : FONTS.semiBold,
+                        fontFamily: trackingRadius === radius ? FONTS.bold : FONTS.bold,
                       }
                     ]}>
                       {radius}km radius
                     </Text>
                     <Text style={[
-                      styles.radiusOptionDescription,
+                      modalStyles.radiusOptionDescription,
                       { color: currentTheme.textSecondary }
                     ]}>
                       Connect with people within {radius} kilometer{radius > 1 ? 's' : ''}
@@ -894,7 +894,7 @@ export default function SettingsScreen() {
                   </View>
                   
                   {trackingRadius === radius && (
-                    <View style={styles.radiusSelectedIcon}>
+                    <View style={modalStyles.radiusSelectedIcon}>
                       <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.primary} />
                     </View>
                   )}
