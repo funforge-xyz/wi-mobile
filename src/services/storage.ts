@@ -65,10 +65,10 @@ export class Settings {
   async getTrackingRadius(): Promise<number> {
     try {
       const value = await AsyncStorage.getItem('@WiChat_Settings_trackingRadius');
-      return value ? parseInt(value, 10) : 1; // Default to 1km
+      return value ? parseInt(value, 10) : 1000; // Default to 1000 meters (1km)
     } catch (error) {
       console.error('Error getting tracking radius setting:', error);
-      return 1;
+      return 1000;
     }
   }
 

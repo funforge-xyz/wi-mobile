@@ -149,6 +149,7 @@ export class AuthService {
           bio: profileData?.bio || '',
           photoURL: profileData?.photoURL || user.photoURL || '',
           thumbnailURL: profileData?.thumbnailURL || '',
+          trackingRadius: 1000, // Default 1km in meters
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });

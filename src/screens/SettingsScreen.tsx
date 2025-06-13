@@ -207,8 +207,9 @@ export default function SettingsScreen() {
       
       if (currentUser) {
         const firestore = getFirestore();
+        const { doc, updateDoc } = await import('firebase/firestore');
         const userDocRef = doc(firestore, 'users', currentUser.uid);
-        await userDocRef.update({
+        await updateDoc(userDocRef, {
           trackingRadius: radiusInMeters,
           trackingRadiusUpdatedAt: new Date()
         });
