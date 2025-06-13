@@ -21,6 +21,7 @@ import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
+import FeedSkeleton from '../components/FeedSkeleton';
 
 const { width } = Dimensions.get('window');
 
@@ -443,13 +444,12 @@ export default function FeedScreen({ navigation }: any) {
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
           <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
-          <TouchableOpacity>
-            <Ionicons name="notifications-outline" size={24} color={currentTheme.text} />
-          </TouchableOpacity>
+          <NotificationBell 
+            onPress={() => navigation.navigate('Notifications')} 
+            color={currentTheme.text}
+          />
         </View>
-        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
+        <FeedSkeleton count={3} />
       </SafeAreaView>
     );
   }
