@@ -231,6 +231,35 @@ export default function SettingsScreen() {
     setShowRadiusModal(true);
   };
 
+  const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+      errors.push('• At least 8 characters long');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      errors.push('• At least one uppercase letter');
+    }
+
+    if (!/[a-z]/.test(password)) {
+      errors.push('• At least one lowercase letter');
+    }
+
+    if (!/\d/.test(password)) {
+      errors.push('• At least one number');
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      errors.push('• At least one special character');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -242,14 +271,20 @@ export default function SettingsScreen() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+    if (currentPassword === newPassword) {
+      Alert.alert('Error', 'New password must be different from current password');
+      return;
+    }
+
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      Alert.alert('Password Requirements Not Met', passwordValidation.errors.join('\n'));
       return;
     }
 
     setIsLoading(true);
     try {
-      // Add change password logic here
+      await authService.changePassword(currentPassword, newPassword);
       Alert.alert('Success', 'Password changed successfully');
       setCurrentPassword('');
       setNewPassword('');
@@ -1050,7 +1085,11 @@ export default function SettingsScreen() {
 
             <View style={modalStyles.passwordRequirements}>
               <Text style={[modalStyles.requirementsTitle, { color: currentTheme.text }]}>Password Requirements:</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least 6 characters long</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least 8 characters long</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one uppercase letter (A-Z)</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one lowercase letter (a-z)</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one number (0-9)</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one special character (!@#$%^&*)</Text>
               <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• Must be different from current password</Text>
             </View>
           </KeyboardAwareScrollView>
