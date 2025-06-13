@@ -853,7 +853,6 @@ export default function SettingsScreen() {
                     <ProfileImage
                       uri={editedProfile.thumbnailURL || editedProfile.photoURL}
                       style={modalStyles.modalAvatar}
-                      key={`modal-avatar-${Date.now()}-${Math.random()}`}
                     />
                   ) : (
                     <View style={[modalStyles.modalAvatar, modalStyles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
@@ -1173,7 +1172,7 @@ export default function SettingsScreen() {
   );
 }
 
-const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
+const ProfileImage = React.memo(({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
 
@@ -1212,7 +1211,7 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
       />
     </View>
   );
-};
+});
 
 const lightTheme = {
   background: COLORS.background,
