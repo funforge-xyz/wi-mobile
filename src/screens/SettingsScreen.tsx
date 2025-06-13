@@ -1090,7 +1090,6 @@ export default function SettingsScreen() {
               <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one lowercase letter (a-z)</Text>
               <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one number (0-9)</Text>
               <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one special character (!@#$%^&*)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• Must be different from current password</Text>
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
