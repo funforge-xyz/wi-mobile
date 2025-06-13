@@ -181,6 +181,53 @@ export default function SettingsScreen() {
     }
   };
 
+  const showRadiusOptions = () => {
+    const radiusOptions = [
+      { label: '1km', value: 1 },
+      { label: '2km', value: 2 },
+      { label: '5km', value: 5 },
+      { label: '10km', value: 10 },
+      { label: '20km', value: 20 },
+      { label: '50km', value: 50 },
+    ];
+
+    if (Platform.OS === 'ios') {
+      const options = [...radiusOptions.map(option => option.label), 'Cancel'];
+      
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: options.length - 1,
+          title: 'Select Tracking Radius',
+        },
+        buttonIndex => {
+          if (buttonIndex < radiusOptions.length) {
+            handleTrackingRadiusChange(radiusOptions[buttonIndex].value);
+          }
+        }
+      );
+    } else {
+      // For Android - show alert with options
+      const alertOptions = radiusOptions.map(option => ({
+        text: option.label,
+        onPress: () => handleTrackingRadiusChange(option.value),
+      }));
+      
+      alertOptions.push({
+        text: 'Cancel',
+        style: 'cancel' as const,
+        onPress: () => {},
+      });
+
+      Alert.alert(
+        'Select Tracking Radius',
+        'Choose how far you want to connect with people',
+        alertOptions,
+        { cancelable: true }
+      );
+    }
+  };
+
   const handleEditProfile = () => {
     setEditedProfile(profile);
     setIsEditingProfile(true);
@@ -500,7 +547,10 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Location</Text>
 
-          <View style={styles.settingRow}>
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={() => showRadiusOptions()}
+          >
             <View style={styles.settingInfo}>
               <Ionicons 
                 name="location" 
@@ -517,31 +567,13 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
-            <View style={styles.radiusButtons}>
-              {[1, 5, 10].map((radius) => (
-                <TouchableOpacity
-                  key={radius}
-                  style={[
-                    styles.radiusButton,
-                    {
-                      backgroundColor: trackingRadius === radius ? COLORS.primary : currentTheme.surface,
-                      borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
-                    }
-                  ]}
-                  onPress={() => handleTrackingRadiusChange(radius)}
-                >
-                  <Text style={[
-                    styles.radiusButtonText,
-                    {
-                      color: trackingRadius === radius ? 'white' : currentTheme.text,
-                    }
-                  ]}>
-                    {radius}km
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.radiusDropdown}>
+              <Text style={[styles.radiusDropdownText, { color: currentTheme.text }]}>
+                {trackingRadius}km
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={currentTheme.textSecondary} />
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
@@ -927,20 +959,15 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     lineHeight: 18,
   },
-  radiusButtons: {
+  radiusDropdown: {
     flexDirection: 'row',
-    gap: SPACING.xs,
-  },
-  radiusButton: {
+    alignItems: 'center',
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
-    borderRadius: 8,
-    borderWidth: 1,
-    minWidth: 50,
-    alignItems: 'center',
+    gap: SPACING.xs,
   },
-  radiusButtonText: {
-    fontSize: 14,
+  radiusDropdownText: {
+    fontSize: 16,
     fontFamily: FONTS.medium,
   },
   modalContainer: {
