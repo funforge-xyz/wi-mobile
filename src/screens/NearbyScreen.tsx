@@ -20,6 +20,7 @@ import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc,
 import { getFirestore } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
+import NearbySkeleton from '../components/NearbySkeleton';
 
 interface NearbyUser {
   id: string;
@@ -373,9 +374,7 @@ export default function NearbyScreen({ navigation }: any) {
       
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
+        <NearbySkeleton count={5} />
       ) : (
         <FlatList
           data={nearbyUsers}
