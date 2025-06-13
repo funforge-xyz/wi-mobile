@@ -21,6 +21,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { createNearbyRequestNotification } from '../services/notifications';
 
 interface Message {
   id: string;
@@ -352,6 +353,14 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         requestId = requestSnapshot.docs[0].id;
       }
 
+      // Check if this is the first message (no existing messages)
+      const messagesQuery = query(
+        collection(firestore, 'chats', chatRoomId, 'messages'),
+        orderBy('createdAt', 'desc')
+      );
+      const existingMessages = await getDocs(messagesQuery);
+      const isFirstMessage = existingMessages.empty;
+
       // Add message to chat
       await addDoc(collection(firestore, 'chats', chatRoomId, 'messages'), {
         senderId: currentUser.uid,
@@ -359,7 +368,32 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         text: messageToSend,
         createdAt: new Date(),
         read: false, // All messages start as unread
+        isFirstMessage: isFirstMessage,
       });
+
+      // If this is the first message, send notification and create connection request
+      if (isFirstMessage) {
+        // Get current user's data for notification
+        const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+        const currentUserData = currentUserDoc.data();
+        
+        // Send notification to the receiver
+        await createNearbyRequestNotification(
+          userId,
+          currentUserData?.displayName || currentUserData?.name || 'Someone',
+          currentUserData?.photoURL
+        );
+
+        // Create connection request
+        await addDoc(collection(firestore, 'connectionRequests'), {
+          fromUserId: currentUser.uid,
+          toUserId: userId,
+          status: 'pending',
+          createdAt: new Date(),
+          firstMessage: messageToSend,
+          chatId: chatRoomId,
+        });
+      }
 
       // Update chat document with last message info
       const chatDocData = {
