@@ -17,8 +17,6 @@ import ChatScreen from './src/screens/ChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import DeleteAccountScreen from './src/screens/DeleteAccountScreen';
-import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import TermsScreen from './src/screens/TermsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import HelpSupportScreen from './src/screens/HelpSupportScreen';
@@ -124,8 +122,6 @@ export default function App() {
             <Stack.Screen name="Root" component={RootScreen} />
             <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
-            <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
             <Stack.Screen name="Terms" component={TermsScreen} />
             <Stack.Screen 
           name="SinglePost" 
