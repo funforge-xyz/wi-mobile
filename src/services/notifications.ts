@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from './firebase';
 
 Notifications.setNotificationHandler({
@@ -114,14 +114,22 @@ export const createNearbyRequestNotification = async (targetUserId: string, from
 
     const firestore = getFirestore();
 
+    // Get current user's profile to construct full name
+    const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+    const userData = userDoc.data();
+    
+    const fullName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`
+      : userData?.firstName || userData?.displayName || fromUserName || 'Someone';
+
     await addDoc(collection(firestore, 'notifications'), {
       type: 'nearby_request',
-      title: 'New Chat Request',
-      body: `${fromUserName} wants to start a conversation with you`,
+      title: 'New Connection Request',
+      body: `${fullName} wants to connect with you`,
       targetUserId: targetUserId,
       fromUserId: currentUser.uid,
-      fromUserName: fromUserName,
-      fromUserPhotoURL: fromUserPhotoURL || '',
+      fromUserName: fullName,
+      fromUserPhotoURL: fromUserPhotoURL || userData?.photoURL || '',
       read: false,
       createdAt: new Date(),
     });

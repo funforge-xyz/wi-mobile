@@ -94,13 +94,17 @@ const createNearbyRequestNotification = async (fromUserId, targetUserId) => {
     // Create notification document
     const notificationRef = admin.firestore().collection('notifications').doc();
     
+    const fromUserName = fromUser.firstName && fromUser.lastName 
+      ? `${fromUser.firstName} ${fromUser.lastName}`
+      : fromUser.firstName || fromUser.displayName || 'Someone';
+    
     const notificationData = {
       id: notificationRef.id,
       type: 'nearby_request',
       title: 'New Connection Request',
-      body: `${fromUser.firstName || 'Someone'} wants to connect with you`,
+      body: `${fromUserName} wants to connect with you`,
       fromUserId: fromUserId,
-      fromUserName: fromUser.firstName || 'Unknown',
+      fromUserName: fromUserName,
       fromUserPhotoURL: fromUser.photoURL || '',
       targetUserId: targetUserId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
