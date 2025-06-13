@@ -874,61 +874,70 @@ export default function SettingsScreen() {
 
             <View style={styles.modalSection}>
               <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
-              <TextInput
-                style={[modalStyles.input, {
-                  backgroundColor: currentTheme.surface,
-                  color: currentTheme.text,
-                  borderColor: currentTheme.border
-                }]}
-                value={editedProfile.firstName}
-                onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
-                placeholder="Enter your first name"
-                placeholderTextColor={currentTheme.textSecondary}
-              />
+              <View style={[modalStyles.inputContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Ionicons name="person-outline" size={20} color={currentTheme.textSecondary} />
+                <TextInput
+                  style={[modalStyles.input, { color: currentTheme.text }]}
+                  value={editedProfile.firstName}
+                  onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
+                  placeholder="Enter your first name"
+                  placeholderTextColor={currentTheme.textSecondary}
+                />
+              </View>
             </View>
 
             <View style={styles.modalSection}>
               <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
-              <TextInput
-                style={[modalStyles.input, {
-                  backgroundColor: currentTheme.surface,
-                  color: currentTheme.text,
-                  borderColor: currentTheme.border
-                }]}
-                value={editedProfile.lastName}
-                onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
-                placeholder="Enter your last name"
-                placeholderTextColor={currentTheme.textSecondary}
-              />
+              <View style={[modalStyles.inputContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Ionicons name="person-outline" size={20} color={currentTheme.textSecondary} />
+                <TextInput
+                  style={[modalStyles.input, { color: currentTheme.text }]}
+                  value={editedProfile.lastName}
+                  onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
+                  placeholder="Enter your last name"
+                  placeholderTextColor={currentTheme.textSecondary}
+                />
+              </View>
             </View>
 
             <View style={styles.modalSection}>
               <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Email</Text>
-              <View style={[modalStyles.input, modalStyles.emailDisplayContainer, {
+              <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
               }]}>
-                <Text style={[modalStyles.emailDisplayText, { color: currentTheme.textSecondary }]}>
-                  {profile.email}
-                </Text>
+                <Ionicons name="mail-outline" size={20} color={currentTheme.textSecondary} />
+                <View style={[modalStyles.emailDisplayContainer]}>
+                  <Text style={[modalStyles.emailDisplayText, { color: currentTheme.textSecondary }]}>
+                    {profile.email}
+                  </Text>
+                </View>
               </View>
             </View>
 
             <View style={styles.modalSection}>
               <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
-              <TextInput
-                style={[modalStyles.textArea, {
-                  backgroundColor: currentTheme.surface,
-                  color: currentTheme.text,
-                  borderColor: currentTheme.border
-                }]}
-                value={editedProfile.bio}
-                onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
-                placeholder="Tell us about yourself"
-                placeholderTextColor={currentTheme.textSecondary}
-                multiline
-                numberOfLines={4}
-              />
+              <View style={[modalStyles.inputContainer, modalStyles.textAreaContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Ionicons name="document-text-outline" size={20} color={currentTheme.textSecondary} style={modalStyles.textAreaIcon} />
+                <TextInput
+                  style={[modalStyles.textArea, { color: currentTheme.text }]}
+                  value={editedProfile.bio}
+                  onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
+                  placeholder="Tell us about yourself"
+                  placeholderTextColor={currentTheme.textSecondary}
+                  multiline
+                  numberOfLines={4}
+                />
+              </View>
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
@@ -1373,21 +1382,29 @@ const modalStyles = StyleSheet.create({
     borderWidth: 1,
   },
   textArea: {
+    flex: 1,
     fontSize: 16,
     fontFamily: FONTS.regular,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 12,
-    borderWidth: 1,
+    marginLeft: SPACING.sm,
     textAlignVertical: 'top',
-    minHeight: 100,
+    minHeight: 80,
   },
   emailDisplayContainer: {
+    flex: 1,
     justifyContent: 'center',
+    marginLeft: SPACING.sm,
   },
   emailDisplayText: {
     fontSize: 16,
     fontFamily: FONTS.regular,
+  },
+  textAreaContainer: {
+    alignItems: 'flex-start',
+    paddingVertical: SPACING.sm,
+    minHeight: 120,
+  },
+  textAreaIcon: {
+    marginTop: SPACING.xs,
   },
   modalAvatar: {
     width: 100,
