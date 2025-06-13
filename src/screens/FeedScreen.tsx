@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   AppState,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -162,17 +163,29 @@ export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [notificationKey, setNotificationKey] = useState(0);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
+  // Force NotificationBell to re-render when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      setNotificationKey(prev => prev + 1);
+    }, [])
+  );
+
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    let appStateSubscription: any;
+    let lastSeenInterval: NodeJS.Timeout;
+
     const setupAuthListener = async () => {
       try {
         const { getAuth } = await import('../services/firebase');
         const auth = getAuth();
 
-        const unsubscribe = auth.onAuthStateChanged((user:any) => {
+        unsubscribe = auth.onAuthStateChanged((user: any) => {
           if (user) {
             loadConnectionPosts();
           } else {
@@ -181,38 +194,33 @@ export default function FeedScreen({ navigation }: any) {
           }
         });
 
-        return unsubscribe;
+        // Handle app state changes to update lastSeen
+        const handleAppStateChange = (nextAppState: string) => {
+          if (nextAppState === 'active') {
+            updateUserLastSeen();
+          } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+            // Update lastSeen when app goes to background to show user as offline
+            updateUserLastSeen();
+          }
+        };
+
+        appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+        // Set up interval to update lastSeen every 30 seconds
+        lastSeenInterval = setInterval(updateUserLastSeen, 30000);
+
       } catch (error) {
         console.error('Error setting up auth listener:', error);
         setLoading(false);
       }
     };
 
-    let unsubscribe: (() => void) | undefined;
-
-    setupAuthListener().then((unsub) => {
-      unsubscribe = unsub;
-    });
-
-    // Handle app state changes to update lastSeen
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'active') {
-        updateUserLastSeen();
-      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-        // Update lastSeen when app goes to background to show user as offline
-        updateUserLastSeen();
-      }
-    };
-
-    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-
-    // Set up interval to update lastSeen every 30 seconds
-    const lastSeenInterval = setInterval(updateUserLastSeen, 30000);
+    setupAuthListener();
 
     return () => {
       if (unsubscribe) unsubscribe();
-      clearInterval(lastSeenInterval);
-      appStateSubscription?.remove();
+      if (lastSeenInterval) clearInterval(lastSeenInterval);
+      if (appStateSubscription) appStateSubscription?.remove();
     };
   }, []);
 
@@ -459,6 +467,7 @@ export default function FeedScreen({ navigation }: any) {
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
         <NotificationBell 
+          key={notificationKey}
           onPress={() => navigation.navigate('Notifications')} 
           color={currentTheme.text}
         />
