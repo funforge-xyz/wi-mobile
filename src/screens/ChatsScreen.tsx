@@ -20,6 +20,8 @@ import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, update
 import { getFirestore } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
+import ChatsSkeleton from '../components/ChatsSkeleton';
+import RequestsSkeleton from '../components/RequestsSkeleton';
 
 interface ChatMessage {
   id: string;
@@ -688,9 +690,11 @@ export default function ChatsScreen({ navigation }: any) {
       
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
+        showRequests ? (
+          <RequestsSkeleton count={3} />
+        ) : (
+          <ChatsSkeleton count={5} />
+        )
       ) : (
         <FlatList
           data={showRequests ? connectionRequests : connections}
