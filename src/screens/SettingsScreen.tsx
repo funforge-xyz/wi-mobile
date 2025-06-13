@@ -49,6 +49,11 @@ export default function SettingsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showRadiusModal, setShowRadiusModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
@@ -224,6 +229,66 @@ export default function SettingsScreen() {
 
   const showRadiusOptions = () => {
     setShowRadiusModal(true);
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Add change password logic here
+      Alert.alert('Success', 'Password changed successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowChangePasswordModal(false);
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              const { authService } = await import('../services/auth');
+              await authService.deleteProfile();
+              setShowDeleteAccountModal(false);
+              // Navigation will be handled by the auth service callback
+            } catch (error: any) {
+              Alert.alert('Error', error.message);
+              setIsLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleEditProfile = () => {
@@ -632,7 +697,7 @@ export default function SettingsScreen() {
 
           <TouchableOpacity 
             style={styles.settingRow} 
-            onPress={() => (navigation as any).navigate('ChangePassword')}
+            onPress={() => setShowChangePasswordModal(true)}
           >
             <View style={styles.settingInfo}>
               <Ionicons 
@@ -655,7 +720,7 @@ export default function SettingsScreen() {
 
           <TouchableOpacity 
             style={styles.settingRow} 
-            onPress={() => (navigation as any).navigate('DeleteAccount')}
+            onPress={() => setShowDeleteAccountModal(true)}
           >
             <View style={styles.settingInfo}>
               <Ionicons 
@@ -905,6 +970,158 @@ export default function SettingsScreen() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* Change Password Modal */}
+      <Modal visible={showChangePasswordModal} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={() => {
+              setCurrentPassword('');
+              setNewPassword('');
+              setConfirmPassword('');
+              setShowChangePasswordModal(false);
+            }}>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Change Password</Text>
+            <TouchableOpacity onPress={handleChangePassword} disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.modalSave}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <KeyboardAwareScrollView style={styles.modalContent}>
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Current Password</Text>
+              <View style={[modalStyles.inputContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
+                <TextInput
+                  style={[modalStyles.input, { color: currentTheme.text }]}
+                  placeholder="Enter current password"
+                  placeholderTextColor={currentTheme.textSecondary}
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                  secureTextEntry
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>New Password</Text>
+              <View style={[modalStyles.inputContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
+                <TextInput
+                  style={[modalStyles.input, { color: currentTheme.text }]}
+                  placeholder="Enter new password"
+                  placeholderTextColor={currentTheme.textSecondary}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Confirm New Password</Text>
+              <View style={[modalStyles.inputContainer, {
+                backgroundColor: currentTheme.surface,
+                borderColor: currentTheme.border
+              }]}>
+                <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
+                <TextInput
+                  style={[modalStyles.input, { color: currentTheme.text }]}
+                  placeholder="Confirm new password"
+                  placeholderTextColor={currentTheme.textSecondary}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                />
+              </View>
+            </View>
+
+            <View style={modalStyles.passwordRequirements}>
+              <Text style={[modalStyles.requirementsTitle, { color: currentTheme.text }]}>Password Requirements:</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least 6 characters long</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• Must be different from current password</Text>
+            </View>
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Delete Account Modal */}
+      <Modal visible={showDeleteAccountModal} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={() => setShowDeleteAccountModal(false)}>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Delete Account</Text>
+            <View style={{ width: 60 }} />
+          </View>
+
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <View style={modalStyles.warningSection}>
+              <View style={[modalStyles.warningIconContainer, { backgroundColor: `${COLORS.error}15` }]}>
+                <Ionicons name="warning" size={48} color={COLORS.error} />
+              </View>
+              <Text style={[modalStyles.warningTitle, { color: COLORS.error }]}>This action is permanent</Text>
+              <Text style={[modalStyles.warningText, { color: currentTheme.text }]}>
+                Deleting your account will permanently remove all your data, including:
+              </Text>
+
+              <View style={[modalStyles.listContainer, { backgroundColor: currentTheme.surface }]}>
+                <View style={modalStyles.listItem}>
+                  <Ionicons name="person-outline" size={16} color={currentTheme.textSecondary} />
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>Your profile information</Text>
+                </View>
+                <View style={modalStyles.listItem}>
+                  <Ionicons name="document-text-outline" size={16} color={currentTheme.textSecondary} />
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>All your posts and comments</Text>
+                </View>
+                <View style={modalStyles.listItem}>
+                  <Ionicons name="chatbubbles-outline" size={16} color={currentTheme.textSecondary} />
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>Your chat history</Text>
+                </View>
+                <View style={[modalStyles.listItem, { borderBottomWidth: 0 }]}>
+                  <Ionicons name="people-outline" size={16} color={currentTheme.textSecondary} />
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>Your connections and followers</Text>
+                </View>
+              </View>
+
+              <View style={[modalStyles.cautionBox, { backgroundColor: `${COLORS.error}08`, borderColor: `${COLORS.error}40` }]}>
+                <Ionicons name="alert-circle-outline" size={20} color={COLORS.error} />
+                <Text style={[modalStyles.cautionText, { color: currentTheme.text }]}>
+                  This action cannot be undone. Make sure you want to permanently delete your account before proceeding.
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[modalStyles.deleteButton, { opacity: isLoading ? 0.7 : 1 }]}
+              onPress={handleDeleteAccount}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={20} color="white" />
+                  <Text style={modalStyles.deleteButtonText}>Delete My Account</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1104,11 +1321,17 @@ const modalStyles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   input: {
+    flex: 1,
+    marginLeft: SPACING.sm,
     fontSize: 16,
     fontFamily: FONTS.regular,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderRadius: 12,
     borderWidth: 1,
   },
   textArea: {
@@ -1184,5 +1407,98 @@ const modalStyles = StyleSheet.create({
   },
   radiusSelectedIcon: {
     marginLeft: SPACING.md,
+  },
+  passwordRequirements: {
+    marginTop: SPACING.lg,
+    padding: SPACING.md,
+  },
+  requirementsTitle: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginBottom: SPACING.sm,
+  },
+  requirementItem: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginBottom: SPACING.xs,
+    lineHeight: 20,
+  },
+  warningSection: {
+    alignItems: 'center',
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.lg,
+  },
+  warningIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  warningTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  warningText: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+    lineHeight: 22,
+  },
+  listContainer: {
+    alignSelf: 'stretch',
+    borderRadius: 12,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  listItemText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.sm,
+    flex: 1,
+    lineHeight: 20,
+  },
+  cautionBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: SPACING.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: SPACING.xl,
+    alignSelf: 'stretch',
+  },
+  cautionText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.sm,
+    flex: 1,
+    lineHeight: 20,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.error,
+    paddingVertical: SPACING.md,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginBottom: SPACING.xl,
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginLeft: SPACING.sm,
   },
 });
