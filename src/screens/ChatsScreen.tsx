@@ -687,8 +687,6 @@ export default function ChatsScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      
-
       {loading ? (
         showRequests ? (
           <RequestsSkeleton count={3} />
