@@ -368,7 +368,6 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         text: messageToSend,
         createdAt: new Date(),
         read: false, // All messages start as unread
-        isFirstMessage: isFirstMessage,
       });
 
       // If this is the first message, send notification and create connection request

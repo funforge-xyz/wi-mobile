@@ -236,36 +236,8 @@ export default function NearbyScreen({ navigation }: any) {
         hasRequest = true;
       }
 
-      // If no connection and no pending request, create a request
-      if (!hasConnection && !hasRequest) {
-        await addDoc(collection(firestore, 'connectionRequests'), {
-          fromUserId: currentUser.uid,
-          toUserId: user.id,
-          status: 'pending',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-
-        // Get current user info for notification
-        const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-        const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
-        const currentUserName = currentUserData.firstName && currentUserData.lastName 
-          ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-          : 'Someone';
-
-        // Create notification for the target user
-        await addDoc(collection(firestore, 'notifications'), {
-          type: 'nearby_request',
-          title: 'New Connection Request',
-          body: `${currentUserName} wants to connect with you`,
-          targetUserId: user.id,
-          fromUserId: currentUser.uid,
-          fromUserName: currentUserName,
-          fromUserPhotoURL: currentUserData.photoURL || '',
-          createdAt: new Date(),
-          read: false,
-        });
-      }
+      // Don't create connection request or notification here
+      // They will be created when the user sends their first message
 
       // Navigate to chat screen with this user
       navigation.navigate('Chat', { 
