@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "Loading...",
@@ -176,6 +175,8 @@
     "reportBug": "Report a Bug",
     "deleteAccount": "Delete Account",
     "selectPreferredLanguage": "Select your preferred language",
+    "locationTracking": "Location Tracking",
+    "enableBackgroundLocation": "Enable background location updates",
     "appearance": "Appearance",
     "location": "Location",
     "support": "Support",

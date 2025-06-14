@@ -13,13 +13,15 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
-  Image
+  Image,
+  Linking
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
 import { authService } from '../services/auth';
 import { Settings, storageService } from '../services/storage';
+import { locationService } from '../services/locationService';
 import { useTranslation } from 'react-i18next';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -63,6 +65,7 @@ export default function SettingsScreen() {
   };
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [trackingRadius, setTrackingRadius] = useState(1); // Default 1km
+  const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showRadiusModal, setShowRadiusModal] = useState(false);
@@ -126,6 +129,11 @@ export default function SettingsScreen() {
       // Convert meters to kilometers for display (default 1000m = 1km)
       const radiusInKm = savedRadiusInMeters ? Math.round(savedRadiusInMeters / 1000) : 1;
       setTrackingRadius(radiusInKm);
+
+      // Check location tracking status
+      const hasLocationPermissions = await locationService.checkPermissions();
+      const isTracking = locationService.isLocationTrackingActive();
+      setLocationTrackingEnabled(hasLocationPermissions && isTracking);
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -215,6 +223,50 @@ export default function SettingsScreen() {
     } catch (error) {
       console.error('Error toggling push notifications:', error);
       Alert.alert('Error', 'Failed to update notification settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleToggleLocationTracking = async (value: boolean) => {
+    setIsLoading(true);
+
+    try {
+      if (value) {
+        const success = await locationService.startLocationTracking();
+        if (success) {
+          setLocationTrackingEnabled(true);
+          Alert.alert('Success', 'Location tracking enabled successfully');
+        } else {
+          Alert.alert(
+            'Permission Required',
+            'Please enable location permissions in your device settings to use location-based features',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+              },
+              {
+                text: 'Open Settings',
+                onPress: () => {
+                  // On iOS, this will open the app settings
+                  // On Android, we'd need to use a different approach
+                  if (Platform.OS === 'ios') {
+                    Linking.openURL('app-settings:');
+                  }
+                },
+              },
+            ]
+          );
+        }
+      } else {
+        await locationService.stopLocationTracking();
+        setLocationTrackingEnabled(false);
+        Alert.alert('Disabled', 'Location tracking has been disabled');
+      }
+    } catch (error) {
+      console.error('Error toggling location tracking:', error);
+      Alert.alert('Error', 'Failed to update location tracking settings');
     } finally {
       setIsLoading(false);
     }
@@ -701,13 +753,39 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.location')}</Text>
 
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="location" 
+                size={20} 
+                color={currentTheme.text} 
+                style={styles.settingIcon}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
+                  {t('settings.locationTracking')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
+                  {t('settings.enableBackgroundLocation')}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={locationTrackingEnabled}
+              onValueChange={handleToggleLocationTracking}
+              disabled={isLoading}
+              trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+              thumbColor={locationTrackingEnabled ? 'white' : '#f4f3f4'}
+            />
+          </View>
+
           <TouchableOpacity 
             style={styles.settingRow}
             onPress={showRadiusOptions}
           >
             <View style={styles.settingInfo}>
               <Ionicons 
-                name="location" 
+                name="navigate" 
                 size={20} 
                 color={currentTheme.text} 
                 style={styles.settingIcon}

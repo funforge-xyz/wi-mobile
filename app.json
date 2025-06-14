@@ -23,10 +23,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.wichat.app",
       "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "WiChat needs access to your location to find nearby users and enable location-based features.",
+        "NSLocationWhenInUseUsageDescription": "WiChat needs access to your location to find nearby users and enable location-based features.",
+        "NSLocationAlwaysUsageDescription": "WiChat needs background location access to keep your location updated for nearby user discovery.",
+        "UIBackgroundModes": ["location", "background-processing"],
         "NSCameraUsageDescription": "This app needs access to camera to take photos and videos",
-        "NSMicrophoneUsageDescription": "This app needs access to microphone to record videos",
-        "NSLocationWhenInUseUsageDescription": "This app needs location access to show nearby users and posts",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs location access to show nearby users and posts"
+        "NSMicrophoneUsageDescription": "This app needs access to microphone to record videos"
       }
     },
     "android": {
@@ -40,6 +42,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.INTERNET",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_EXTERNAL_STORAGE"

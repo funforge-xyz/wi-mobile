@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "Učitava...",
@@ -176,6 +175,8 @@
     "reportBug": "Prijavite grešku",
     "deleteAccount": "Obriši nalog",
     "selectPreferredLanguage": "Izaberite željeni jezik",
+    "locationTracking": "Praćenje Lokacije",
+    "enableBackgroundLocation": "Omogući ažuriranje lokacije u pozadini",
     "appearance": "Izgled",
     "location": "Lokacija",
     "support": "Podrška",

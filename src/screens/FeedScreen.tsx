@@ -19,6 +19,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
+import { locationService } from '../services/locationService';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
 import FeedSkeleton from '../components/FeedSkeleton';
@@ -190,6 +191,13 @@ export default function FeedScreen({ navigation }: any) {
 
         unsubscribe = auth.onAuthStateChanged((user: any) => {
           if (user) {
+            // Initialize location tracking for the authenticated user
+            try {
+              locationService.startLocationTracking();
+            } catch (error) {
+              console.error('Error initializing location tracking:', error);
+            }
+
             loadConnectionPosts();
           } else {
             setLoading(false);
