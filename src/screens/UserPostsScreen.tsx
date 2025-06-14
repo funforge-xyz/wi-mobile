@@ -18,6 +18,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import UserPostsSkeleton from '../components/UserPostsSkeleton';
 import { useTranslation } from 'react-i18next';
 
 interface UserPost {
@@ -514,9 +515,7 @@ export default function UserPostsScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
+        <UserPostsSkeleton count={5} />
       ) : (
         <FlatList
           data={posts}
