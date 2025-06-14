@@ -157,12 +157,12 @@ export default function SinglePostScreen({ route, navigation }: any) {
         await loadComments();
         await loadLikes();
       } else {
-        Alert.alert('Error', 'Post not found');
+        Alert.alert(t('common.error'), t('singlePost.postNotFound'));
         navigation.goBack();
       }
     } catch (error) {
       console.error('Error loading post:', error);
-      Alert.alert('Error', 'Failed to load post');
+      Alert.alert(t('common.error'), t('singlePost.failedToLoadPost'));
     } finally {
       setLoading(false);
     }
@@ -255,7 +255,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       }
     } catch (error) {
       console.error('Error handling like:', error);
-      Alert.alert('Error', 'Failed to update like');
+      Alert.alert(t('common.error'), t('singlePost.failedToUpdateLike'));
     }
   };
 
@@ -300,7 +300,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       setCommentText('');
     } catch (error) {
       console.error('Error adding comment:', error);
-      Alert.alert('Error', 'Failed to add comment');
+      Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));
     } finally {
       setSubmittingComment(false);
     }
@@ -341,21 +341,21 @@ export default function SinglePostScreen({ route, navigation }: any) {
       });
 
       setIsEditing(false);
-      Alert.alert('Success', 'Post updated successfully');
+      Alert.alert(t('singlePost.success'), t('singlePost.postUpdated'));
     } catch (error) {
       console.error('Error updating post:', error);
-      Alert.alert('Error', 'Failed to update post');
+      Alert.alert(t('common.error'), t('singlePost.failedToUpdate'));
     }
   };
 
   const handleDeletePost = () => {
     Alert.alert(
-      'Delete Post',
-      'Are you sure you want to delete this post? This action cannot be undone.',
+      t('singlePost.deletePost'),
+      t('singlePost.deletePostConfirmation'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -363,11 +363,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
               const postRef = doc(firestore, 'posts', postId);
               await deleteDoc(postRef);
 
-              Alert.alert('Success', 'Post deleted successfully');
+              Alert.alert(t('singlePost.success'), t('singlePost.postDeleted'));
               navigation.goBack();
             } catch (error) {
               console.error('Error deleting post:', error);
-              Alert.alert('Error', 'Failed to delete post');
+              Alert.alert(t('common.error'), t('singlePost.failedToDelete'));
             }
           }
         }
@@ -378,17 +378,17 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const handleDeleteComment = (commentId: string, commentAuthorId: string) => {
     // Only allow deletion if it's the user's own comment or their own post
     if (commentAuthorId !== currentUser?.uid && post?.authorId !== currentUser?.uid) {
-      Alert.alert('Error', 'You can only delete your own comments');
+      Alert.alert(t('common.error'), t('singlePost.canOnlyDeleteOwnComments'));
       return;
     }
 
     Alert.alert(
-      'Delete Comment',
-      'Are you sure you want to delete this comment?',
+      t('singlePost.deleteComment'),
+      t('singlePost.deleteCommentConfirmation'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -397,7 +397,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
               await deleteDoc(commentRef);
             } catch (error) {
               console.error('Error deleting comment:', error);
-              Alert.alert('Error', 'Failed to delete comment');
+              Alert.alert(t('common.error'), t('singlePost.failedToDeleteComment'));
             }
           }
         }
@@ -418,13 +418,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     } else if (diffInDays > 0) {
-      return `${diffInDays}d`;
+      return t('time.daysAgo', { count: diffInDays });
     } else if (diffInHours > 0) {
-      return `${diffInHours}h`;
+      return t('time.hoursAgo', { count: diffInHours });
     } else if (diffInMinutes > 0) {
-      return `${diffInMinutes}m`;
+      return t('time.minutesAgo', { count: diffInMinutes });
     } else {
-      return 'now';
+      return t('time.justNow');
     }
   };
 
@@ -478,7 +478,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: currentTheme.text }]}>Post not found</Text>
+          <Text style={[styles.errorText, { color: currentTheme.text }]}>{t('singlePost.postNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -492,7 +492,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Post</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('singlePost.title')}</Text>
         {isOwnPost && post?.authorId === currentUser?.uid ? (
           <TouchableOpacity onPress={handleEditPost}>
             <Ionicons name="create-outline" size={24} color={currentTheme.text} />
@@ -569,7 +569,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         {post.allowComments ? (
           <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
             <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
-              Comments ({comments.length})
+              {t('singlePost.comments')} ({comments.length})
             </Text>
 
             {comments.map((comment) => (
@@ -587,7 +587,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         ) : (
           <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
             <Text style={[styles.commentsDisabledText, { color: currentTheme.textSecondary }]}>
-              Comments are disabled for this post
+              {t('singlePost.commentsDisabled')}
             </Text>
           </View>
         )}
@@ -605,7 +605,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
               color: currentTheme.text,
               borderColor: currentTheme.border
             }]}
-            placeholder="Write a comment..."
+            placeholder={t('singlePost.writeComment')}
             placeholderTextColor={currentTheme.textSecondary}
             value={commentText}
             onChangeText={setCommentText}
@@ -633,17 +633,17 @@ export default function SinglePostScreen({ route, navigation }: any) {
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
             <TouchableOpacity onPress={() => setIsEditing(false)}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Edit Post</Text>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('singlePost.editPost')}</Text>
             <TouchableOpacity onPress={handleSaveEdit}>
-              <Text style={styles.modalSave}>Save</Text>
+              <Text style={styles.modalSave}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
 
           <KeyboardAwareScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Content</Text>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>{t('singlePost.content')}</Text>
               <TextInput
                 style={[styles.textArea, { 
                   backgroundColor: currentTheme.surface, 
@@ -661,7 +661,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
             <View style={styles.modalSection}>
               <View style={styles.switchContainer}>
-                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Private Post</Text>
+                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>{t('singlePost.privatePost')}</Text>
                 <Switch
                   value={editedPrivacy}
                   onValueChange={setEditedPrivacy}
@@ -670,13 +670,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 />
               </View>
               <Text style={[styles.switchDescription, { color: currentTheme.textSecondary }]}>
-                Private posts are only visible to your connections
+                {t('singlePost.privatePostDescription')}
               </Text>
             </View>
 
             <View style={styles.modalSection}>
               <View style={styles.switchContainer}>
-                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Allow Comments</Text>
+                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>{t('singlePost.allowComments')}</Text>
                 <Switch
                   value={editedAllowComments}
                   onValueChange={setEditedAllowComments}
@@ -688,7 +688,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
             <View style={styles.modalSection}>
               <View style={styles.switchContainer}>
-                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>Show Like Count</Text>
+                <Text style={[styles.inputLabel, { color: currentTheme.text }]}>{t('singlePost.showLikeCount')}</Text>
                 <Switch
                   value={editedShowLikeCount}
                   onValueChange={setEditedShowLikeCount}
@@ -704,7 +704,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 onPress={handleDeletePost}
               >
                 <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-                <Text style={[styles.deleteButtonText, { color: COLORS.error }]}>Delete Post</Text>
+                <Text style={[styles.deleteButtonText, { color: COLORS.error }]}>{t('singlePost.deletePost')}</Text>
               </TouchableOpacity>
             </View>
           </KeyboardAwareScrollView>

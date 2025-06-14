@@ -296,8 +296,32 @@
     "minutesAgo": "Pre {{count}} min"
   },
   "singlePost": {
+    "title": "Objava",
     "content": "Sadržaj",
-    "noCommentsYet": "Još nema komentara. Budite prvi koji će komentarisati!"
+    "noCommentsYet": "Još nema komentara. Budite prvi koji će komentarisati!",
+    "writeComment": "Napišite komentar...",
+    "comments": "Komentari",
+    "postNotFound": "Objava nije pronađena",
+    "editPost": "Uredi objavu",
+    "deletePost": "Obriši objavu",
+    "deletePostConfirmation": "Da li ste sigurni da želite da obrišete ovu objavu? Ova akcija se ne može poništiti.",
+    "postUpdated": "Objava je uspešno ažurirana",
+    "postDeleted": "Objava je uspešno obrisana",
+    "failedToUpdate": "Neuspešno ažuriranje objave",
+    "failedToDelete": "Neuspešno brisanje objave",
+    "deleteComment": "Obriši komentar",
+    "deleteCommentConfirmation": "Da li ste sigurni da želite da obrišete ovaj komentar?",
+    "failedToDeleteComment": "Neuspešno brisanje komentara",
+    "canOnlyDeleteOwnComments": "Možete brisati samo svoje komentare",
+    "commentsDisabled": "Komentari su onemogućeni za ovu objavu",
+    "privatePost": "Privatna objava",
+    "privatePostDescription": "Privatne objave su vidljive samo vašim konekcijama",
+    "allowComments": "Dozvoli komentare",
+    "showLikeCount": "Prikaži broj sviđanja",
+    "failedToLoadPost": "Neuspešno učitavanje objave",
+    "failedToAddComment": "Neuspešno dodavanje komentara",
+    "failedToUpdateLike": "Neuspešno ažuriranje sviđanja",
+    "success": "Uspešno"
   },
   "userProfile": {
     "title": "Profil",
