@@ -10,70 +10,91 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
+import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '../hooks/redux';
 
 export default function TermsScreen() {
   const navigation = useNavigation();
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
+
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Terms and Conditions</Text>
+        <Text style={[styles.title, { color: currentTheme.text }]}>{t('terms.title')}</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
-        <Text style={styles.sectionText}>
-          By accessing and using this application, you accept and agree to be bound by the terms and provision of this agreement.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.acceptanceTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.acceptanceText')}
         </Text>
 
-        <Text style={styles.sectionTitle}>2. Privacy Policy</Text>
-        <Text style={styles.sectionText}>
-          Your privacy is important to us. We collect and use your information in accordance with our Privacy Policy, which is incorporated into these Terms by reference.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.privacyTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.privacyText')}
         </Text>
 
-        <Text style={styles.sectionTitle}>3. User Conduct</Text>
-        <Text style={styles.sectionText}>
-          You agree to use the application in a manner consistent with any and all applicable laws and regulations. You may not use the application for any unlawful purpose or any purpose prohibited under this clause.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.conductTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.conductText')}
         </Text>
 
-        <Text style={styles.sectionTitle}>4. Content Guidelines</Text>
-        <Text style={styles.sectionText}>
-          Users are responsible for the content they post. Content must not be offensive, illegal, or violate any third-party rights. We reserve the right to remove any content that violates these guidelines.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.contentTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.contentText')}
         </Text>
 
-        <Text style={styles.sectionTitle}>5. Account Security</Text>
-        <Text style={styles.sectionText}>
-          You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.securityTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.securityText')}
         </Text>
 
-        <Text style={styles.sectionTitle}>6. Limitation of Liability</Text>
-        <Text style={styles.sectionText}>
-          The application is provided "as is" without any representations or warranties. We shall not be liable for any damages arising from the use of this application.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.liabilityTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.liabilityText')}
         </Text>
 
-        <Text style={styles.sectionTitle}>7. Changes to Terms</Text>
-        <Text style={styles.sectionText}>
-          We reserve the right to modify these terms at any time. Users will be notified of any significant changes.
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.changesTitle')}</Text>
+        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
+          {t('terms.changesText')}
         </Text>
 
-        <Text style={styles.lastUpdated}>
-          Last Updated: {new Date().toLocaleDateString()}
+        <Text style={[styles.lastUpdated, { color: currentTheme.textSecondary }]}>
+          {t('terms.lastUpdated', { date: new Date().toLocaleDateString() })}
         </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -81,7 +102,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   backButton: {
     marginRight: SPACING.md,
@@ -89,7 +109,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
   },
   content: {
     flex: 1,
@@ -99,21 +118,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    color: COLORS.text,
     marginTop: SPACING.lg,
     marginBottom: SPACING.sm,
   },
   sectionText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     lineHeight: 20,
     marginBottom: SPACING.md,
   },
   lastUpdated: {
     fontSize: 12,
     fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: SPACING.xl,
     marginBottom: SPACING.lg,

@@ -12,10 +12,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
+import { useTranslation } from 'react-i18next';
 
 export default function PrivacyPolicyScreen() {
   const navigation = useNavigation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -28,62 +30,62 @@ export default function PrivacyPolicyScreen() {
         >
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: currentTheme.text }]}>Privacy Policy</Text>
+        <Text style={[styles.title, { color: currentTheme.text }]}>{t('privacy.title')}</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>1. Information We Collect</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.infoCollectTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          We collect information you provide directly to us, such as when you create an account, post content, send messages, or contact us for support. This includes your name, email address, profile information, posts, messages, and any other information you choose to provide.
+          {t('privacy.infoCollectText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>2. Location Information</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.locationTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          With your permission, we collect and process information about your precise or approximate location to provide location-based features such as finding nearby users and posts. You can control location sharing through your device settings.
+          {t('privacy.locationText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>3. How We Use Your Information</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.howWeUseTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          We use the information we collect to provide, maintain, and improve our services, including to facilitate connections between users, personalize your experience, send you notifications, respond to your requests, and ensure the security of our platform.
+          {t('privacy.howWeUseText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>4. Information Sharing</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.sharingTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy. We may share information with service providers who assist us in operating our platform, conducting business, or serving users.
+          {t('privacy.sharingText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>5. Data Security</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.securityTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.
+          {t('privacy.securityText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>6. Data Retention</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.retentionTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          We retain your information for as long as your account is active or as needed to provide you services. You may delete your account at any time, which will remove your personal information from our active databases.
+          {t('privacy.retentionText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>7. Children's Privacy</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.childrenTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          Our service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we learn that we have collected personal information from a child under 13, we will delete that information.
+          {t('privacy.childrenText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>8. Your Rights</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.rightsTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          You have the right to access, update, or delete your personal information. You can manage most of this information through your account settings. For additional requests, please contact us through the support channels in the app.
+          {t('privacy.rightsText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>9. Changes to This Policy</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.changesTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          We may update this privacy policy from time to time. We will notify you of any significant changes by posting the new policy in the app and updating the "Last Updated" date below.
+          {t('privacy.changesText')}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>10. Contact Us</Text>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('privacy.contactTitle')}</Text>
         <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          If you have any questions about this privacy policy, please contact us through the Help & Support section in the app or email us at privacy@wichat.app.
+          {t('privacy.contactText')}
         </Text>
 
         <Text style={[styles.lastUpdated, { color: currentTheme.textSecondary }]}>
-          Last Updated: {new Date().toLocaleDateString()}
+          {t('privacy.lastUpdated', { date: new Date().toLocaleDateString() })}
         </Text>
       </ScrollView>
     </SafeAreaView>

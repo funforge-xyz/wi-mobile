@@ -17,6 +17,7 @@ import { useAppSelector } from '../hooks/redux';
 import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useTranslation } from 'react-i18next';
 
 interface UserProfileProps {
   route: {
@@ -56,6 +57,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   });
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -86,7 +88,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
-      Alert.alert('Error', 'Failed to load user profile');
+      Alert.alert(t('common.error'), t('userProfile.failedToLoadProfile'));
     } finally {
       setLoading(false);
     }
@@ -94,12 +96,12 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
   const handleBlockUser = async () => {
     Alert.alert(
-      'Block User',
-      `Are you sure you want to block ${profile.firstName || 'this user'}? They will be removed from your connections and you won't see them in nearby feeds.`,
+      t('userProfile.blockUser'),
+      t('userProfile.blockUserConfirmation', { user: profile.firstName || t('userProfile.anonymousUser') }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Block',
+          text: t('userProfile.blockUser'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -132,11 +134,11 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
                 }
               }
 
-              Alert.alert('Success', 'User has been blocked');
+              Alert.alert(t('common.done'), t('userProfile.userBlocked'));
               navigation.goBack();
             } catch (error) {
               console.error('Error blocking user:', error);
-              Alert.alert('Error', 'Failed to block user');
+              Alert.alert(t('common.error'), t('userProfile.failedToBlock'));
             }
           }
         }
@@ -160,7 +162,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Profile</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('userProfile.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -180,7 +182,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
             {profile.firstName && profile.lastName 
               ? `${profile.firstName} ${profile.lastName}` 
-              : 'Anonymous User'}
+              : t('userProfile.anonymousUser')}
           </Text>
           
           {profile.bio ? (
@@ -193,7 +195,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         <View style={[styles.menuSection, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity style={styles.menuItem} onPress={handleBlockUser}>
             <Ionicons name="ban-outline" size={20} color={COLORS.error} />
-            <Text style={[styles.menuText, { color: COLORS.error }]}>Block User</Text>
+            <Text style={[styles.menuText, { color: COLORS.error }]}>{t('userProfile.blockUser')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

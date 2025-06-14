@@ -298,5 +298,56 @@
   "singlePost": {
     "content": "Sadržaj",
     "noCommentsYet": "Još nema komentara. Budite prvi koji će komentarisati!"
+  },
+  "userProfile": {
+    "title": "Profil",
+    "anonymousUser": "Anonimni korisnik",
+    "blockUser": "Blokiraj korisnika",
+    "blockUserConfirmation": "Da li ste sigurni da želite da blokirate {{user}}? Biće uklonjeni iz vaših konekcija i nećete ih videti u objavljenim sadržajima.",
+    "userBlocked": "Korisnik je blokiran",
+    "failedToBlock": "Neuspešno blokiranje korisnika",
+    "failedToLoadProfile": "Neuspešno učitavanje korisničkog profila"
+  },
+  "terms": {
+    "title": "Uslovi korišćenja",
+    "acceptanceTitle": "1. Prihvatanje uslova",
+    "acceptanceText": "Pristupanjem i korišćenjem ove aplikacije, prihvatate i slažete se da budete vezani uslovima i odredbama ovog sporazuma.",
+    "privacyTitle": "2. Politika privatnosti",
+    "privacyText": "Vaša privatnost je važna za nas. Prikupljamo i koristimo vaše informacije u skladu sa našom Politikom privatnosti, koja je uključena u ove Uslove putem reference.",
+    "conductTitle": "3. Ponašanje korisnika",
+    "conductText": "Slažete se da ćete koristiti aplikaciju na način koji je u skladu sa svim važećim zakonima i propisima. Ne smete koristiti aplikaciju u nezakonite svrhe ili u svrhe zabranjene pod ovom klauzulom.",
+    "contentTitle": "4. Smernice za sadržaj",
+    "contentText": "Korisnici su odgovorni za sadržaj koji objavljuju. Sadržaj ne sme biti uvredljiv, nezakonit ili kršiti prava treće strane. Zadržavamo pravo da uklonimo svaki sadržaj koji krši ove smernice.",
+    "securityTitle": "5. Bezbednost naloga",
+    "securityText": "Odgovorni ste za čuvanje poverljivosti vaših podataka za nalog i za sve aktivnosti koje se dešavaju pod vašim nalogom.",
+    "liabilityTitle": "6. Ograničenje odgovornosti",
+    "liabilityText": "Aplikacija se pruža \"kakva jeste\" bez ikakvih predstava ili garancija. Nećemo biti odgovorni za bilo kakve posledice nastale korišćenjem ove aplikacije.",
+    "changesTitle": "7. Izmene uslova",
+    "changesText": "Zadržavamo pravo da menjamo ove uslove u bilo kom trenutku. Korisnici će biti obavešteni o svim značajnim promenama.",
+    "lastUpdated": "Poslednja izmena: {{date}}"
+  },
+  "privacy": {
+    "title": "Politika privatnosti",
+    "infoCollectTitle": "1. Informacije koje prikupljamo",
+    "infoCollectText": "Prikupljamo informacije koje nam direktno pružate, kao što je kada kreirate nalog, objavljujete sadržaj, šaljete poruke ili nas kontaktirate za podršku. Ovo uključuje vaše ime, email adresu, informacije o profilu, objave, poruke i sve ostale informacije koje odaberete da podelite.",
+    "locationTitle": "2. Informacije o lokaciji",
+    "locationText": "Uz vašu dozvolu, prikupljamo i obrađujemo informacije o vašoj preciznoj ili približnoj lokaciji kako bismo pružili funkcije zasnovane na lokaciji kao što je pronalaženje korisnika i objava u blizini. Možete kontrolisati deljenje lokacije kroz podešavanja vašeg uređaja.",
+    "howWeUseTitle": "3. Kako koristimo vaše informacije",
+    "howWeUseText": "Koristimo informacije koje prikupljamo da pružimo, održimo i poboljšamo naše usluge, uključujući olakšavanje konekcija između korisnika, personalizaciju vašeg iskustva, slanje obaveštenja, odgovaranje na vaše zahteve i obezbeđivanje bezbednosti naše platforme.",
+    "sharingTitle": "4. Deljenje informacija",
+    "sharingText": "Ne prodajemo, ne trgujemo niti prenošimo vaše lične informacije trećim stranama bez vaše saglasnosti, osim kako je opisano u ovoj politici. Možemo deliti informacije sa pružaocima usluga koji nam pomažu u upravljanju našom platformom, vođenju posla ili usluživanju korisnika.",
+    "securityTitle": "5. Bezbednost podataka",
+    "securityText": "Primenjujemo odgovarajuće bezbednosne mere za zaštitu vaših ličnih informacija od neovlašćenog pristupa, izmene, otkrivanja ili uništavanja. Međutim, nijedan metod prenosa preko interneta nije 100% bezbedan.",
+    "retentionTitle": "6. Čuvanje podataka",
+    "retentionText": "Čuvamo vaše informacije sve dok je vaš nalog aktivan ili koliko je potrebno da vam pružimo usluge. Možete obrisati svoj nalog u bilo kom trenutku, što će ukloniti vaše lične informacije iz naših aktivnih baza podataka.",
+    "childrenTitle": "7. Privatnost dece",
+    "childrenText": "Naša usluga nije namenjena deci mlađoj od 13 godina. Ne prikupljamo svesno lične informacije od dece mlađe od 13 godina. Ako saznamo da smo prikupili lične informacije od deteta mlađeg od 13 godina, obrisaćemo te informacije.",
+    "rightsTitle": "8. Vaša prava",
+    "rightsText": "Imate pravo da pristupite, ažurirate ili obrišete vaše lične informacije. Možete upravljati većinom ovih informacija kroz podešavanja naloga. Za dodatne zahteve, molimo kontaktirajte nas kroz kanale podrške u aplikaciji.",
+    "changesTitle": "9. Izmene ove politike",
+    "changesText": "Možemo ažurirati ovu politiku privatnosti s vremena na vreme. Obavestićemo vas o svim značajnim promenama objavljivanjem nove politike u aplikaciji i ažuriranjem datuma \"Poslednja izmena\" u nastavku.",
+    "contactTitle": "10. Kontaktirajte nas",
+    "contactText": "Ako imate bilo kakva pitanja o ovoj politici privatnosti, molimo kontaktirajte nas kroz sekciju Pomoć i podrška u aplikaciji ili pošaljite nam email na privacy@wichat.app.",
+    "lastUpdated": "Poslednja izmena: {{date}}"
   }
 }

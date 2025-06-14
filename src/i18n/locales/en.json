@@ -298,5 +298,56 @@
   "singlePost": {
     "content": "Content",
     "noCommentsYet": "No comments yet. Be the first to comment!"
+  },
+  "userProfile": {
+    "title": "Profile",
+    "anonymousUser": "Anonymous User",
+    "blockUser": "Block User",
+    "blockUserConfirmation": "Are you sure you want to block {{user}}? They will be removed from your connections and you won't see them in nearby feeds.",
+    "userBlocked": "User has been blocked",
+    "failedToBlock": "Failed to block user",
+    "failedToLoadProfile": "Failed to load user profile"
+  },
+  "terms": {
+    "title": "Terms and Conditions",
+    "acceptanceTitle": "1. Acceptance of Terms",
+    "acceptanceText": "By accessing and using this application, you accept and agree to be bound by the terms and provision of this agreement.",
+    "privacyTitle": "2. Privacy Policy",
+    "privacyText": "Your privacy is important to us. We collect and use your information in accordance with our Privacy Policy, which is incorporated into these Terms by reference.",
+    "conductTitle": "3. User Conduct",
+    "conductText": "You agree to use the application in a manner consistent with any and all applicable laws and regulations. You may not use the application for any unlawful purpose or any purpose prohibited under this clause.",
+    "contentTitle": "4. Content Guidelines",
+    "contentText": "Users are responsible for the content they post. Content must not be offensive, illegal, or violate any third-party rights. We reserve the right to remove any content that violates these guidelines.",
+    "securityTitle": "5. Account Security",
+    "securityText": "You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.",
+    "liabilityTitle": "6. Limitation of Liability",
+    "liabilityText": "The application is provided \"as is\" without any representations or warranties. We shall not be liable for any damages arising from the use of this application.",
+    "changesTitle": "7. Changes to Terms",
+    "changesText": "We reserve the right to modify these terms at any time. Users will be notified of any significant changes.",
+    "lastUpdated": "Last Updated: {{date}}"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "infoCollectTitle": "1. Information We Collect",
+    "infoCollectText": "We collect information you provide directly to us, such as when you create an account, post content, send messages, or contact us for support. This includes your name, email address, profile information, posts, messages, and any other information you choose to provide.",
+    "locationTitle": "2. Location Information",
+    "locationText": "With your permission, we collect and process information about your precise or approximate location to provide location-based features such as finding nearby users and posts. You can control location sharing through your device settings.",
+    "howWeUseTitle": "3. How We Use Your Information",
+    "howWeUseText": "We use the information we collect to provide, maintain, and improve our services, including to facilitate connections between users, personalize your experience, send you notifications, respond to your requests, and ensure the security of our platform.",
+    "sharingTitle": "4. Information Sharing",
+    "sharingText": "We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy. We may share information with service providers who assist us in operating our platform, conducting business, or serving users.",
+    "securityTitle": "5. Data Security",
+    "securityText": "We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.",
+    "retentionTitle": "6. Data Retention",
+    "retentionText": "We retain your information for as long as your account is active or as needed to provide you services. You may delete your account at any time, which will remove your personal information from our active databases.",
+    "childrenTitle": "7. Children's Privacy",
+    "childrenText": "Our service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we learn that we have collected personal information from a child under 13, we will delete that information.",
+    "rightsTitle": "8. Your Rights",
+    "rightsText": "You have the right to access, update, or delete your personal information. You can manage most of this information through your account settings. For additional requests, please contact us through the support channels in the app.",
+    "changesTitle": "9. Changes to This Policy",
+    "changesText": "We may update this privacy policy from time to time. We will notify you of any significant changes by posting the new policy in the app and updating the \"Last Updated\" date below.",
+    "contactTitle": "10. Contact Us",
+    "contactText": "If you have any questions about this privacy policy, please contact us through the Help & Support section in the app or email us at privacy@wichat.app.",
+    "lastUpdated": "Last Updated: {{date}}"
   }
 }
