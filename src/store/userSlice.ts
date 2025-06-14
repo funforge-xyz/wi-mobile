@@ -174,7 +174,11 @@ export const fetchUserPosts = createAsyncThunk(
           content: postData.content || '',
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',
-          createdAt: (postData.createdAt?.toDate() || new Date()).toISOString(),
+          createdAt: postData.createdAt?.toDate ? 
+                     postData.createdAt.toDate().toISOString() : 
+                     (postData.createdAt instanceof Date ? 
+                      postData.createdAt.toISOString() : 
+                      new Date().toISOString()),
           likesCount: likesSnapshot.size,
           commentsCount: commentsSnapshot.size,
           showLikeCount: postData.showLikeCount !== false,

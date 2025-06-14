@@ -31,7 +31,7 @@ interface UserPost {
   content: string;
   mediaURL?: string;
   mediaType?: 'image' | 'video';
-  createdAt: Date;
+  createdAt: Date | string;
   likesCount: number;
   commentsCount: number;
   showLikeCount: boolean;
@@ -133,12 +133,17 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
-  // Load data when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
+  // Load data only once when component mounts or when explicitly refreshed
+  useEffect(() => {
+    // Only load if we don't have data or if it's been more than 5 minutes
+    const shouldLoad = !profile || 
+                      posts.length === 0 || 
+                      (profile && Date.now() - profile.lastUpdated > 300000);
+    
+    if (shouldLoad) {
       loadInitialData();
-    }, [])
-  );
+    }
+  }, []);
 
   const loadInitialData = async () => {
     try {
@@ -237,8 +242,8 @@ export default function UserPostsScreen({ navigation }: any) {
     navigation.navigate('SinglePost', { postId: post.id, isOwnPost: true });
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatTimeAgo = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
@@ -261,7 +266,9 @@ export default function UserPostsScreen({ navigation }: any) {
     }
   };
 
-  const renderPostItem = ({ item }: { item: UserPost }) => (
+  const renderPostItem = ({ item }: { item: UserPost }) => {
+    console.log('Rendering post item:', item.id, item.content);
+    return (
     <TouchableOpacity
       style={[styles.postItem, { backgroundColor: currentTheme.surface }]}
       onPress={() => handlePostPress(item)}
@@ -336,7 +343,8 @@ export default function UserPostsScreen({ navigation }: any) {
         )}
       </View>
     </TouchableOpacity>
-  );
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={[styles.emptyContainer, { minHeight: 300 }]}>
@@ -416,8 +424,10 @@ export default function UserPostsScreen({ navigation }: any) {
       {(loading || postsLoading) ? (
         <UserPostsSkeleton count={5} />
       ) : (
-        <FlatList
-          data={posts}
+        <>
+          {console.log('Posts array in render:', posts.length, posts)}
+          <FlatList
+            data={posts}
           keyExtractor={(item) => item.id}
           renderItem={renderPostItem}
           refreshControl={
@@ -427,7 +437,8 @@ export default function UserPostsScreen({ navigation }: any) {
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
-        />
+          />
+        </>
       )}
     </SafeAreaView>
   );
