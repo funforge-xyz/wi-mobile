@@ -147,9 +147,13 @@ export default function UserPostsScreen({ navigation }: any) {
       const currentUser = auth.currentUser;
 
       if (currentUser) {
+        console.log('Loading posts for user:', currentUser.uid);
         // Always fetch profile and posts on focus
-        dispatch(fetchUserProfile(currentUser.uid));
-        dispatch(fetchUserPosts(currentUser.uid));
+        const profileResult = await dispatch(fetchUserProfile(currentUser.uid));
+        const postsResult = await dispatch(fetchUserPosts(currentUser.uid));
+        
+        console.log('Profile result:', profileResult);
+        console.log('Posts result:', postsResult);
       }
     } catch (error) {
       console.error('Error loading initial data:', error);

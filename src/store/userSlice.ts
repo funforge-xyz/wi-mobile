@@ -119,6 +119,7 @@ export const fetchUserPosts = createAsyncThunk(
   'user/fetchPosts',
   async (userId: string, { rejectWithValue }) => {
     try {
+      console.log('Fetching posts for user:', userId);
       const firestore = getFirestore();
       
       // Get current user's profile data
@@ -128,6 +129,9 @@ export const fetchUserPosts = createAsyncThunk(
 
       if (userDoc.exists()) {
         currentUserData = userDoc.data();
+        console.log('User data found:', currentUserData);
+      } else {
+        console.log('No user document found for:', userId);
       }
 
       // Get user's posts
@@ -137,6 +141,8 @@ export const fetchUserPosts = createAsyncThunk(
         where('authorId', '==', userId)
       );
       const postsSnapshot = await getDocs(userPostsQuery);
+      
+      console.log('Found', postsSnapshot.size, 'posts for user');
 
       const userPosts: UserPost[] = [];
 
@@ -178,8 +184,11 @@ export const fetchUserPosts = createAsyncThunk(
         });
       }
 
-      return userPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const sortedPosts = userPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      console.log('Returning', sortedPosts.length, 'sorted posts');
+      return sortedPosts;
     } catch (error) {
+      console.error('Error fetching user posts:', error);
       return rejectWithValue('Failed to fetch user posts');
     }
   }

@@ -191,12 +191,11 @@ export default function FeedScreen({ navigation }: any) {
 
         unsubscribe = auth.onAuthStateChanged((user: any) => {
           if (user) {
-            // Initialize location tracking for the authenticated user
-            try {
-              locationService.startLocationTracking();
-            } catch (error) {
-              console.error('Error initializing location tracking:', error);
-            }
+            // Initialize location tracking for the authenticated user (with error handling)
+            locationService.startLocationTracking().catch((error) => {
+              console.log('Location tracking not available:', error);
+              // Continue without location tracking
+            });
 
             loadConnectionPosts();
           } else {

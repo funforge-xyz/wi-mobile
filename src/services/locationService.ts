@@ -67,13 +67,29 @@ export class LocationService {
     try {
       const hasPermissions = await this.requestPermissions();
       if (!hasPermissions) {
+        console.log('Location permissions not granted, skipping location tracking');
         return false;
       }
 
-      // Get current location first
-      const currentLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      // Get current location first with timeout and fallback
+      let currentLocation;
+      try {
+        currentLocation = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 10000, // 10 second timeout
+        });
+      } catch (locationError) {
+        console.log('Failed to get current location, trying with lower accuracy:', locationError);
+        try {
+          currentLocation = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Low,
+            timeInterval: 15000, // 15 second timeout
+          });
+        } catch (fallbackError) {
+          console.log('Failed to get location with fallback, skipping location tracking:', fallbackError);
+          return false;
+        }
+      }
 
       await updateUserLocationInFirestore(
         currentLocation.coords.latitude,
