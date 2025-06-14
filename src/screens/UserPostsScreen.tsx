@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -132,30 +133,12 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  // Additional effect to ensure posts are loaded when profile is available
-  useEffect(() => {
-    const loadPostsIfNeeded = async () => {
-      if (profile && posts.length === 0 && !postsLoading) {
-        try {
-          const { getAuth } = await import('../services/firebase');
-          const auth = getAuth();
-          const currentUser = auth.currentUser;
-
-          if (currentUser) {
-            dispatch(fetchUserPosts(currentUser.uid));
-          }
-        } catch (error) {
-          console.error('Error loading posts when profile available:', error);
-        }
-      }
-    };
-
-    loadPostsIfNeeded();
-  }, [profile, posts.length, postsLoading, dispatch]);
+  // Load data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadInitialData();
+    }, [])
+  );
 
   const loadInitialData = async () => {
     try {
@@ -164,15 +147,9 @@ export default function UserPostsScreen({ navigation }: any) {
       const currentUser = auth.currentUser;
 
       if (currentUser) {
-        // Always fetch profile if not loaded
-        if (!profile) {
-          dispatch(fetchUserProfile(currentUser.uid));
-        }
-        
-        // Fetch posts if not already loaded
-        if (posts.length === 0) {
-          dispatch(fetchUserPosts(currentUser.uid));
-        }
+        // Always fetch profile and posts on focus
+        dispatch(fetchUserProfile(currentUser.uid));
+        dispatch(fetchUserPosts(currentUser.uid));
       }
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -187,7 +164,7 @@ export default function UserPostsScreen({ navigation }: any) {
       const currentUser = auth.currentUser;
 
       if (currentUser) {
-        // Refresh both profile and posts data
+        // Force refresh both profile and posts data
         await Promise.all([
           dispatch(fetchUserProfile(currentUser.uid)).unwrap(),
           dispatch(fetchUserPosts(currentUser.uid)).unwrap()
@@ -195,6 +172,7 @@ export default function UserPostsScreen({ navigation }: any) {
       }
     } catch (error) {
       console.error('Error refreshing data:', error);
+      Alert.alert('Error', 'Failed to refresh data');
     } finally {
       setRefreshing(false);
     }
