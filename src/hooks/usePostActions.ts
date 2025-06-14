@@ -16,6 +16,7 @@ export const usePostActions = () => {
         ? `${profile.firstName} ${profile.lastName}` 
         : 'You',
       authorPhotoURL: profile.thumbnailURL || profile.photoURL || '',
+      createdAt: typeof postData.createdAt === 'string' ? postData.createdAt : new Date().toISOString(),
     };
 
     dispatch(addPost(newPost));

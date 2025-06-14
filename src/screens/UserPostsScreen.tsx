@@ -232,7 +232,8 @@ export default function UserPostsScreen({ navigation }: any) {
     navigation.navigate('SinglePost', { postId: post.id, isOwnPost: true });
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));

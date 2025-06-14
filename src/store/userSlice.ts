@@ -24,7 +24,7 @@ export interface UserPost {
   content: string;
   mediaURL?: string;
   mediaType?: 'image' | 'video';
-  createdAt: Date;
+  createdAt: string; // ISO string format for Redux serialization
   likesCount: number;
   commentsCount: number;
   showLikeCount: boolean;
@@ -168,7 +168,7 @@ export const fetchUserPosts = createAsyncThunk(
           content: postData.content || '',
           mediaURL: postData.mediaURL || '',
           mediaType: postData.mediaType || 'image',
-          createdAt: postData.createdAt?.toDate() || new Date(),
+          createdAt: (postData.createdAt?.toDate() || new Date()).toISOString(),
           likesCount: likesSnapshot.size,
           commentsCount: commentsSnapshot.size,
           showLikeCount: postData.showLikeCount !== false,
@@ -178,7 +178,7 @@ export const fetchUserPosts = createAsyncThunk(
         });
       }
 
-      return userPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      return userPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch (error) {
       return rejectWithValue('Failed to fetch user posts');
     }
