@@ -15,6 +15,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { collection, query, where, orderBy, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: string;
@@ -34,6 +35,7 @@ export default function NotificationsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -159,7 +161,7 @@ export default function NotificationsScreen({ navigation }: any) {
     try {
       // Mark as read
       await markAsRead(notification.id);
-      
+
       // Update local state immediately
       setNotifications(prev => 
         prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
@@ -294,9 +296,9 @@ export default function NotificationsScreen({ navigation }: any) {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="notifications-outline" size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Notifications</Text>
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>{t('notifications.noNotifications')}</Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        You'll see notifications here when someone likes or comments on your posts
+        {t('notifications.checkBackLater')}
       </Text>
     </View>
   );

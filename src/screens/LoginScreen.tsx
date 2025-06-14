@@ -20,6 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { authService } from '../services/auth';
 import { storageService } from '../services/storage';
 import { COLORS, FONTS, SPACING } from '../config/constants';
+import { useTranslation } from 'react-i18next';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -38,6 +39,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+    const { t } = useTranslation();
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
@@ -61,12 +63,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const getErrorMessage = (error: any): string => {
     const errorCode = error.code;
     const errorMessage = error.message;
-    
+
     // Handle custom email verification error
     if (errorMessage === 'email-not-verified') {
       return 'Please verify your email address before signing in. Check your inbox for a verification link.';
     }
-    
+
     switch (errorCode) {
       case 'auth/user-not-found':
         return 'No account found with this email address.';
@@ -219,7 +221,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           bio: bio.trim(),
           photoURL: photoURL,
         });
-        
+
         // Show success message for signup
         Alert.alert(
           'Account Created!',

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -12,9 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
-
+import { useTranslation } from 'react-i18next';
 interface HelpSupportScreenProps {
   navigation: any;
 }
@@ -77,6 +75,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [contactModalVisible, setContactModalVisible] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -92,12 +91,12 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
     const email = 'support@wichat.app';
     const subject = 'Help Request';
     const body = 'Please describe your issue here...';
-    
+
     Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`)
       .catch(() => {
         Alert.alert('Error', 'Unable to open email app. Please contact support@wichat.app directly.');
       });
-    
+
     setContactModalVisible(false);
   };
 
@@ -105,12 +104,12 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
     const email = 'bugs@wichat.app';
     const subject = 'Bug Report';
     const body = 'Please describe the bug you encountered, including steps to reproduce it...';
-    
+
     Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`)
       .catch(() => {
         Alert.alert('Error', 'Unable to open email app. Please contact bugs@wichat.app directly.');
       });
-    
+
     setContactModalVisible(false);
   };
 
@@ -118,12 +117,12 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
     const email = 'features@wichat.app';
     const subject = 'Feature Request';
     const body = 'Please describe the feature you would like to see added...';
-    
+
     Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`)
       .catch(() => {
         Alert.alert('Error', 'Unable to open email app. Please contact features@wichat.app directly.');
       });
-    
+
     setContactModalVisible(false);
   };
 
@@ -143,13 +142,13 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Help & Support</Text>
+          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('helpSupport.title')}</Text>
           <View style={{ width: 24 }} />
         </View>
         {/* Quick Actions */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Quick Actions</Text>
-          
+
           <TouchableOpacity 
             style={[styles.actionItem, { borderBottomColor: currentTheme.border }]}
             onPress={handleContactSupport}
@@ -181,7 +180,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
         {/* FAQ Section */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Frequently Asked Questions</Text>
-          
+
           {faqData.map((faq, index) => (
             <View key={faq.id}>
               <TouchableOpacity 
@@ -197,7 +196,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
                   color={currentTheme.textSecondary} 
                 />
               </TouchableOpacity>
-              
+
               {expandedFAQ === faq.id && (
                 <View style={[styles.faqAnswer, { backgroundColor: currentTheme.background }]}>
                   <Text style={[styles.faqAnswerText, { color: currentTheme.textSecondary }]}>
@@ -212,7 +211,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
         {/* App Information */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>App Information</Text>
-          
+
           <TouchableOpacity 
             style={[styles.actionItem, { borderBottomColor: currentTheme.border }]}
             onPress={handlePrivacyPolicy}
@@ -333,7 +332,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: FONTS.bold,
   },
-  
+
   section: {
     margin: SPACING.md,
     borderRadius: 16,

@@ -1,23 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
-  Alert,
-  ScrollView,
-  Modal,
-  TextInput,
-  ActivityIndicator,
-  Image,
-  ActionSheetIOS,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActionSheetIOS, Platform, Modal, TextInput, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '../config/constants';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
 import { Settings, storageService } from '../services/storage';
@@ -28,6 +14,7 @@ import { authService } from '../services/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { COLORS, FONTS, SPACING } from '../config/constants';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface UserProfile {
@@ -41,9 +28,15 @@ interface UserProfile {
 }
 
 export default function SettingsScreen() {
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t, i18n } = useTranslation();
+  const dispatch = useAppDispatch();
+
+  const changeLanguage = (language: string) => {
+    i18n.changeLanguage(language);
+  };
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [trackingRadius, setTrackingRadius] = useState(1); // Default 1km
   const [isLoading, setIsLoading] = useState(false);
@@ -78,21 +71,21 @@ export default function SettingsScreen() {
       // Load push notification settings
       const { status } = await Notifications.getPermissionsAsync();
       setPushNotificationsEnabled(status === 'granted');
-      
+
       // Load tracking radius setting from local storage first
       let savedRadiusInMeters = await settings.getTrackingRadius();
-      
+
       // Try to load from Firebase user document
       try {
         const { getAuth } = await import('../services/firebase');
         const auth = getAuth();
         const currentUser = auth.currentUser || await authService.getCurrentUser();
-        
+
         if (currentUser) {
           const firestore = getFirestore();
           const userDocRef = doc(firestore, 'users', currentUser.uid);
           const userDoc = await getDoc(userDocRef);
-          
+
           if (userDoc.exists() && userDoc.data().trackingRadius) {
             savedRadiusInMeters = userDoc.data().trackingRadius;
           }
@@ -100,7 +93,7 @@ export default function SettingsScreen() {
       } catch (error) {
         console.log('Could not load radius from Firebase, using local storage');
       }
-      
+
       // Convert meters to kilometers for display (default 1000m = 1km)
       const radiusInKm = savedRadiusInMeters ? Math.round(savedRadiusInMeters / 1000) : 1;
       setTrackingRadius(radiusInKm);
@@ -204,12 +197,12 @@ export default function SettingsScreen() {
       // Save radius in meters to Firebase (1km = 1000m)
       const radiusInMeters = radius * 1000;
       await settings.setTrackingRadius(radiusInMeters);
-      
+
       // Also save to user's Firestore document
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser || await authService.getCurrentUser();
-      
+
       if (currentUser) {
         const firestore = getFirestore();
         const { doc, updateDoc } = await import('firebase/firestore');
@@ -219,7 +212,7 @@ export default function SettingsScreen() {
           trackingRadiusUpdatedAt: new Date()
         });
       }
-      
+
       Alert.alert('Settings Updated', `Tracking radius set to ${radius}km`);
     } catch (error) {
       console.error('Error updating tracking radius:', error);
@@ -608,13 +601,15 @@ export default function SettingsScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Settings</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
+          {t('settings.title')}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Appearance</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.appearance')}</Text>
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
@@ -626,10 +621,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Dark Mode
+                  {t('settings.darkMode')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  {isDarkMode ? 'Dark theme enabled' : 'Light theme enabled'}
+                  {isDarkMode ? t('settings.darkModeEnabled') : t('settings.lightModeEnabled')}
                 </Text>
               </View>
             </View>
@@ -643,7 +638,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Location</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.location')}</Text>
 
           <TouchableOpacity 
             style={styles.settingRow}
@@ -658,10 +653,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Tracking Radius
+                  {t('settings.trackingRadius')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  Connect with people within {trackingRadius}km
+                  {t('settings.connectWithin')} {trackingRadius}km
                 </Text>
               </View>
             </View>
@@ -675,7 +670,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Notifications</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.notifications')}</Text>
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
@@ -687,10 +682,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Push Notifications
+                  {t('settings.pushNotifications')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  Receive notifications for messages, likes, and comments
+                  {t('settings.receiveNotifications')}
                 </Text>
               </View>
             </View>
@@ -705,7 +700,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Account</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.account')}</Text>
 
           <TouchableOpacity 
             style={styles.settingRow} 
@@ -720,10 +715,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Edit Profile
+                  {t('settings.editProfile')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  Update your profile information
+                  {t('settings.updateProfileInfo')}
                 </Text>
               </View>
             </View>
@@ -743,10 +738,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Change Password
+                  {t('settings.changePassword')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  Update your account password
+                  {t('settings.updateAccountPassword')}
                 </Text>
               </View>
             </View>
@@ -766,10 +761,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: COLORS.error }]}>
-                  Delete Account
+                  {t('settings.deleteAccount')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  Permanently delete your account and data
+                  {t('settings.permanentlyDelete')}
                 </Text>
               </View>
             </View>
@@ -778,7 +773,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Support</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.support')}</Text>
 
           <TouchableOpacity 
             style={styles.settingRow} 
@@ -793,10 +788,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Help & Support
+                  {t('settings.helpAndSupport')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  Get help and view frequently asked questions
+                  {t('settings.getHelp')}
                 </Text>
               </View>
             </View>
@@ -816,10 +811,10 @@ export default function SettingsScreen() {
               />
               <View style={styles.settingTextContainer}>
                 <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
-                  Privacy Policy
+                  {t('settings.privacyPolicy')}
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  View our privacy policy and terms
+                  {t('settings.viewPrivacy')}
                 </Text>
               </View>
             </View>
@@ -833,14 +828,14 @@ export default function SettingsScreen() {
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
             <TouchableOpacity onPress={handleCancelEdit}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Edit Profile</Text>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.editProfile')}</Text>
             <TouchableOpacity onPress={handleSaveProfile} disabled={isLoading}>
               {isLoading ? (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <Text style={styles.modalSave}>Save</Text>
+                <Text style={styles.modalSave}>{t('common.save')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -872,7 +867,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>First Name</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.firstName')}</Text>
               <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -882,14 +877,14 @@ export default function SettingsScreen() {
                   style={[modalStyles.input, { color: currentTheme.text }]}
                   value={editedProfile.firstName}
                   onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
-                  placeholder="Enter your first name"
+                  placeholder={t('settings.enterFirstName')}
                   placeholderTextColor={currentTheme.textSecondary}
                 />
               </View>
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Last Name</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.lastName')}</Text>
               <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -899,14 +894,14 @@ export default function SettingsScreen() {
                   style={[modalStyles.input, { color: currentTheme.text }]}
                   value={editedProfile.lastName}
                   onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
-                  placeholder="Enter your last name"
+                  placeholder={t('settings.enterLastName')}
                   placeholderTextColor={currentTheme.textSecondary}
                 />
               </View>
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Email</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.email')}</Text>
               <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -921,7 +916,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Bio</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.bio')}</Text>
               <View style={[modalStyles.inputContainer, modalStyles.textAreaContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -929,9 +924,8 @@ export default function SettingsScreen() {
                 <Ionicons name="document-text-outline" size={20} color={currentTheme.textSecondary} style={modalStyles.textAreaIcon} />
                 <TextInput
                   style={[modalStyles.textArea, { color: currentTheme.text }]}
-                  value={editedProfile.bio}
-                  onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
-                  placeholder="Tell us about yourself"
+                  value={editedProfile.bio}                  onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
+                  placeholder={t('settings.tellUsAboutYourself')}
                   placeholderTextColor={currentTheme.textSecondary}
                   multiline
                   numberOfLines={4}
@@ -955,17 +949,17 @@ export default function SettingsScreen() {
               onPress={() => setShowRadiusModal(false)}
               style={modalStyles.modalHeaderButton}
             >
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Tracking Radius</Text>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.trackingRadius')}</Text>
             <View style={modalStyles.modalHeaderButton} />
           </View>
 
           <View style={modalStyles.radiusOptionsContainer}>
             <Text style={[modalStyles.radiusDescription, { color: currentTheme.textSecondary }]}>
-              Choose how far you want to connect with people around you
+              {t('settings.chooseConnectDistance')}
             </Text>
-            
+
             {[1, 5, 10].map((radius) => (
               <TouchableOpacity
                 key={radius}
@@ -992,16 +986,16 @@ export default function SettingsScreen() {
                         fontFamily: trackingRadius === radius ? FONTS.bold : FONTS.bold,
                       }
                     ]}>
-                      {radius}km radius
+                      {radius}km {t('settings.radius')}
                     </Text>
                     <Text style={[
                       modalStyles.radiusOptionDescription,
                       { color: currentTheme.textSecondary }
                     ]}>
-                      Connect with people within {radius} kilometer{radius > 1 ? 's' : ''}
+                      {t('settings.connectWithin')} {radius} {t('settings.kilometer', { count: radius })}
                     </Text>
                   </View>
-                  
+
                   {trackingRadius === radius && (
                     <View style={modalStyles.radiusSelectedIcon}>
                       <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.primary} />
@@ -1024,21 +1018,21 @@ export default function SettingsScreen() {
               setConfirmPassword('');
               setShowChangePasswordModal(false);
             }}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Change Password</Text>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.changePassword')}</Text>
             <TouchableOpacity onPress={handleChangePassword} disabled={isLoading}>
               {isLoading ? (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <Text style={styles.modalSave}>Save</Text>
+                <Text style={styles.modalSave}>{t('common.save')}</Text>
               )}
             </TouchableOpacity>
           </View>
 
           <KeyboardAwareScrollView style={styles.modalContent}>
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Current Password</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.currentPassword')}</Text>
               <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -1046,7 +1040,7 @@ export default function SettingsScreen() {
                 <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
                 <TextInput
                   style={[modalStyles.input, { color: currentTheme.text }]}
-                  placeholder="Enter current password"
+                  placeholder={t('settings.enterCurrentPassword')}
                   placeholderTextColor={currentTheme.textSecondary}
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
@@ -1056,7 +1050,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>New Password</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.newPassword')}</Text>
               <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -1064,7 +1058,7 @@ export default function SettingsScreen() {
                 <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
                 <TextInput
                   style={[modalStyles.input, { color: currentTheme.text }]}
-                  placeholder="Enter new password"
+                  placeholder={t('settings.enterNewPassword')}
                   placeholderTextColor={currentTheme.textSecondary}
                   value={newPassword}
                   onChangeText={setNewPassword}
@@ -1074,7 +1068,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>Confirm New Password</Text>
+              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.confirmNewPassword')}</Text>
               <View style={[modalStyles.inputContainer, {
                 backgroundColor: currentTheme.surface,
                 borderColor: currentTheme.border
@@ -1082,7 +1076,7 @@ export default function SettingsScreen() {
                 <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
                 <TextInput
                   style={[modalStyles.input, { color: currentTheme.text }]}
-                  placeholder="Confirm new password"
+                  placeholder={t('settings.confirmNewPassword')}
                   placeholderTextColor={currentTheme.textSecondary}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -1092,12 +1086,12 @@ export default function SettingsScreen() {
             </View>
 
             <View style={modalStyles.passwordRequirements}>
-              <Text style={[modalStyles.requirementsTitle, { color: currentTheme.text }]}>Password Requirements:</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least 8 characters long</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one uppercase letter (A-Z)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one lowercase letter (a-z)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one number (0-9)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• At least one special character (!@#$%^&*)</Text>
+              <Text style={[modalStyles.requirementsTitle, { color: currentTheme.text }]}>{t('settings.passwordRequirements')}:</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeast')} 8 {t('settings.charactersLong')}</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.uppercaseLetter')} (A-Z)</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.lowercaseLetter')} (a-z)</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.number')} (0-9)</Text>
+              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.specialCharacter')} (!@#$%^&*)</Text>
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
@@ -1108,9 +1102,9 @@ export default function SettingsScreen() {
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
             <TouchableOpacity onPress={() => setShowDeleteAccountModal(false)}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Delete Account</Text>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.deleteAccount')}</Text>
             <View style={{ width: 60 }} />
           </View>
 
@@ -1119,34 +1113,34 @@ export default function SettingsScreen() {
               <View style={[modalStyles.warningIconContainer, { backgroundColor: `${COLORS.error}15` }]}>
                 <Ionicons name="warning" size={48} color={COLORS.error} />
               </View>
-              <Text style={[modalStyles.warningTitle, { color: COLORS.error }]}>This action is permanent</Text>
+              <Text style={[modalStyles.warningTitle, { color: COLORS.error }]}>{t('settings.thisActionIsPermanent')}</Text>
               <Text style={[modalStyles.warningText, { color: currentTheme.text }]}>
-                Deleting your account will permanently remove all your data, including:
+                {t('settings.deletingAccountRemovesData')}
               </Text>
 
               <View style={[modalStyles.listContainer, { backgroundColor: currentTheme.surface }]}>
                 <View style={modalStyles.listItem}>
                   <Ionicons name="person-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>Your profile information</Text>
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourProfileInfo')}</Text>
                 </View>
                 <View style={modalStyles.listItem}>
                   <Ionicons name="document-text-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>All your posts and comments</Text>
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourPostsAndComments')}</Text>
                 </View>
                 <View style={modalStyles.listItem}>
                   <Ionicons name="chatbubbles-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>Your chat history</Text>
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourChatHistory')}</Text>
                 </View>
                 <View style={[modalStyles.listItem, { borderBottomWidth: 0 }]}>
                   <Ionicons name="people-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>Your connections and followers</Text>
+                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourConnectionsAndFollowers')}</Text>
                 </View>
               </View>
 
               <View style={[modalStyles.cautionBox, { backgroundColor: `${COLORS.error}08`, borderColor: `${COLORS.error}40` }]}>
                 <Ionicons name="alert-circle-outline" size={20} color={COLORS.error} />
                 <Text style={[modalStyles.cautionText, { color: currentTheme.text }]}>
-                  This action cannot be undone. Make sure you want to permanently delete your account before proceeding.
+                  {t('settings.thisActionCannotBeUndone')}
                 </Text>
               </View>
             </View>
@@ -1161,7 +1155,7 @@ export default function SettingsScreen() {
               ) : (
                 <>
                   <Ionicons name="trash-outline" size={20} color="white" />
-                  <Text style={modalStyles.deleteButtonText}>Delete My Account</Text>
+                  <Text style={modalStyles.deleteButtonText}>{t('settings.deleteMyAccount')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -1554,5 +1548,20 @@ const modalStyles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.medium,
     marginLeft: SPACING.sm,
+  },
+  languageButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  languageButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  languageButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

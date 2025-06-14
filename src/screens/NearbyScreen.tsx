@@ -21,6 +21,7 @@ import { getFirestore } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
 import NearbySkeleton from '../components/NearbySkeleton';
+import { useTranslation } from 'react-i18next';
 
 interface NearbyUser {
   id: string;
@@ -80,6 +81,7 @@ export default function NearbyScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -159,7 +161,7 @@ export default function NearbyScreen({ navigation }: any) {
         if (doc.id !== currentUser.uid && 
             !blockedUserIds.has(doc.id) && 
             !connectedUserIds.has(doc.id)) {
-          
+
           // Check if user is online (last seen within 2 minutes)
           const isOnline = userData.lastSeen && 
             userData.lastSeen.toDate && 
@@ -251,7 +253,7 @@ export default function NearbyScreen({ navigation }: any) {
     }
   };
 
-  
+
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -307,7 +309,7 @@ export default function NearbyScreen({ navigation }: any) {
 
 
 
-  
+
 
   const renderEmptyState = () => {
     const config = {
@@ -324,10 +326,10 @@ export default function NearbyScreen({ navigation }: any) {
           color={currentTheme.textSecondary}
         />
         <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-          {config.title}
+          {t('nearby.noUsers')}
         </Text>
         <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-          {config.subtitle}
+          {t('nearby.checkBackLater')}
         </Text>
       </View>
     );
@@ -343,7 +345,7 @@ export default function NearbyScreen({ navigation }: any) {
         />
       </View>
 
-      
+
 
       {loading ? (
         <NearbySkeleton count={5} />
@@ -401,7 +403,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: FONTS.bold,
   },
-  
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -485,5 +487,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  
+
 });

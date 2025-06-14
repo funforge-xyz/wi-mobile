@@ -26,6 +26,7 @@ import { authService } from '../services/auth';
 import { getFirestore } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
@@ -37,6 +38,7 @@ export default function AddPostScreen() {
   const settings = new Settings();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const compressImage = async (uri: string): Promise<string> => {
     try {
@@ -44,13 +46,13 @@ export default function AddPostScreen() {
       const response = await fetch(uri);
       const blob = await response.blob();
       let initialSize = blob.size;
-      
+
       console.log('Initial image size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
-      
+
       // Start with high quality and reduce if needed
       let quality = 0.8;
       let compressedUri = uri;
-      
+
       // Keep compressing until under 5MB or quality gets too low
       while (initialSize > 5242880 && quality > 0.1) { // 5MB = 5242880 bytes
         const result = await ImageManipulator.manipulateAsync(
@@ -61,24 +63,24 @@ export default function AddPostScreen() {
             format: ImageManipulator.SaveFormat.JPEG,
           }
         );
-        
+
         // Check new file size
         const newResponse = await fetch(result.uri);
         const newBlob = await newResponse.blob();
         initialSize = newBlob.size;
         compressedUri = result.uri;
-        
+
         console.log('Compressed to quality', quality, 'Size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
-        
+
         // Reduce quality for next iteration
         quality -= 0.1;
       }
-      
+
       // Final check
       if (initialSize > 5242880) {
         throw new Error('Unable to compress image below 5MB');
       }
-      
+
       console.log('Final compressed size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
       return compressedUri;
     } catch (error) {
@@ -104,7 +106,7 @@ export default function AddPostScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      
+
       try {
         // Compress the image
         const compressedUri = await compressImage(asset.uri);
@@ -132,7 +134,7 @@ export default function AddPostScreen() {
 
     if (!result.canceled) {
       const asset = result.assets[0];
-      
+
       try {
         // Compress the image
         const compressedUri = await compressImage(asset.uri);
@@ -224,7 +226,7 @@ export default function AddPostScreen() {
     }
   };
 
-  
+
 
   const handlePost = async () => {
     if (!content.trim() && !selectedImage) {
@@ -245,7 +247,7 @@ export default function AddPostScreen() {
       }
 
       let mediaURL = '';
-      
+
       // Upload image if selected
       if (selectedImage) {
         try {
@@ -261,7 +263,7 @@ export default function AddPostScreen() {
       // Create post in Firestore
       const firestore = getFirestore();
       const postsCollection = collection(firestore, 'posts');
-      
+
       await addDoc(postsCollection, {
         authorId: currentUser.uid,
         content: content.trim(),
@@ -295,7 +297,7 @@ export default function AddPostScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>New Post</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('addPost.title')}</Text>
         <TouchableOpacity
           style={[styles.postButton, (!content.trim() && !selectedImage) && styles.postButtonDisabled]}
           onPress={handlePost}
@@ -304,7 +306,7 @@ export default function AddPostScreen() {
           {isPosting ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text style={styles.postButtonText}>Post</Text>
+            <Text style={styles.postButtonText}>{isPosting ? t('addPost.posting') : t('addPost.post')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -313,7 +315,7 @@ export default function AddPostScreen() {
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <TextInput
           style={[styles.textInput, { color: currentTheme.text }]}
-          placeholder="What's on your mind?"
+          placeholder={t('addPost.whatsOnMind')}
           placeholderTextColor={currentTheme.textSecondary}
           value={content}
           onChangeText={setContent}
@@ -352,7 +354,7 @@ export default function AddPostScreen() {
             </TouchableOpacity>
           </View>
 
-        
+
 
         <View style={[styles.privacyContainer, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity style={styles.privacyOption} onPress={() => setIsPrivate(!isPrivate)}>
@@ -454,7 +456,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
   },
-  
+
   headerTitle: {
     fontSize: 24,
     fontFamily: FONTS.bold,
@@ -506,7 +508,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: SPACING.sm,
   },
-  
+
   privacyContainer: {
     borderRadius: 12,
     padding: SPACING.md,

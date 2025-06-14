@@ -23,6 +23,7 @@ import { getAuth } from '../services/firebase';
 import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
 import FeedSkeleton from '../components/FeedSkeleton';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -165,6 +166,7 @@ export default function FeedScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [notificationKey, setNotificationKey] = useState(0);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -291,7 +293,7 @@ export default function FeedScreen({ navigation }: any) {
 
       for (const postDoc of postsSnapshot.docs) {
         const postData = postDoc.data();
-        
+
         // Skip current user's own posts
         if (postData.authorId === currentUser.uid) {
           continue;
@@ -440,9 +442,9 @@ export default function FeedScreen({ navigation }: any) {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Ionicons name="newspaper-outline" size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>No Posts Available</Text>
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>{t('feed.noPostsAvailable')}</Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        No public posts found at the moment. Check back later!
+        {t('feed.noPublicPosts')}
       </Text>
     </View>
   );
@@ -451,7 +453,7 @@ export default function FeedScreen({ navigation }: any) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
+          <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('feed.title')}</Text>
           <NotificationBell 
             onPress={() => navigation.navigate('Notifications')} 
             color={currentTheme.text}
@@ -465,7 +467,7 @@ export default function FeedScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Feed</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('feed.title')}</Text>
         <NotificationBell 
           key={notificationKey}
           onPress={() => navigation.navigate('Notifications')} 

@@ -19,6 +19,7 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { getFirestore } from '../services/firebase';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useTranslation } from 'react-i18next';
 
 interface UserProfile {
   id: string;
@@ -47,6 +48,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadUserProfile();
@@ -130,19 +132,19 @@ export default function ProfileScreen() {
     }
   };
 
-  
+
 
   const handleSignOut = async () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('profile.signOut'),
+      t('profile.signOutConfirmation'),
       [
         {
-          text: 'Cancel',
+          text: t('profile.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Sign Out',
+          text: t('profile.signOut'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -163,19 +165,19 @@ export default function ProfileScreen() {
     );
   };
 
-  
+
 
   const handleDeleteProfile = async () => {
     Alert.alert(
-      'Delete Profile',
-      'Are you sure you want to permanently delete your profile? This action cannot be undone and will delete all your data including posts, messages, and profile information.',
+      t('profile.deleteProfile'),
+      t('profile.deleteProfileConfirmation'),
       [
         {
-          text: 'Cancel',
+          text: t('profile.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t('profile.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -195,8 +197,8 @@ export default function ProfileScreen() {
               // Handle specific re-authentication error
               if (error.message && error.message.includes('sign out and sign back in')) {
                 Alert.alert(
-                  'Re-authentication Required',
-                  'For security reasons, please sign out and sign back in before deleting your account.',
+                  t('profile.reAuthenticationRequired'),
+                  t('profile.reAuthenticationMessage'),
                   [
                     {
                       text: 'OK',
@@ -205,7 +207,7 @@ export default function ProfileScreen() {
                   ]
                 );
               } else {
-                Alert.alert('Error', 'Failed to delete profile. Please try again.');
+                Alert.alert('Error', t('profile.failedToDelete'));
               }
             }
           },
@@ -214,11 +216,11 @@ export default function ProfileScreen() {
     );
   };
 
-  
+
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
-  
+
 
 
   if (loading) {
@@ -237,7 +239,7 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Profile</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('profile.profile')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -263,7 +265,7 @@ export default function ProfileScreen() {
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
             {profile.firstName && profile.lastName
               ? `${profile.firstName} ${profile.lastName}`
-              : 'Anonymous User'}
+              : t('profile.anonymousUser')}
           </Text>
 
           <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
@@ -276,7 +278,7 @@ export default function ProfileScreen() {
                 {profile.postsCount}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Posts
+                {t('profile.posts')}
               </Text>
             </View>
             <View style={styles.stat}>
@@ -284,42 +286,42 @@ export default function ProfileScreen() {
                 {connectionsCount}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Connections
+                {t('profile.connections')}
               </Text>
             </View>
           </View>
 
-          
+
         </View>
 
         <View style={[styles.menuSection, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity style={styles.menuItem} onPress={() => (navigation as any).navigate('Settings')}>
             <Ionicons name="settings-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.menuText, { color: currentTheme.text }]}>Settings</Text>
+            <Text style={[styles.menuText, { color: currentTheme.text }]}>{t('profile.settings')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
-          
+
 
           <TouchableOpacity style={styles.menuItem} onPress={() => (navigation as any).navigate('HelpSupport')}>
             <Ionicons name="help-circle-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.menuText, { color: currentTheme.text }]}>Help & Support</Text>
+            <Text style={[styles.menuText, { color: currentTheme.text }]}>{t('profile.helpSupport')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
-            <Text style={[styles.menuText, { color: COLORS.error }]}>Sign Out</Text>
+            <Text style={[styles.menuText, { color: COLORS.error }]}>{t('profile.signOut')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={handleDeleteProfile}>
             <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-            <Text style={[styles.menuText, { color: COLORS.error }]}>Delete Profile</Text>
+            <Text style={[styles.menuText, { color: COLORS.error }]}>{t('profile.deleteProfile')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      
+
     </SafeAreaView>
   );
 }
@@ -492,6 +494,5 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     marginLeft: SPACING.md,
   },
-  
-});
 
+});

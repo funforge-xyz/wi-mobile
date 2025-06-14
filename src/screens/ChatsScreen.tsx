@@ -22,6 +22,7 @@ import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
 import ChatsSkeleton from '../components/ChatsSkeleton';
 import RequestsSkeleton from '../components/RequestsSkeleton';
+import { useTranslation } from 'react-i18next';
 
 interface ChatMessage {
   id: string;
@@ -106,6 +107,7 @@ export default function ChatsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -233,11 +235,11 @@ export default function ChatsScreen({ navigation }: any) {
                 // Set up real-time listener for each chat
                 if (connectionData.chatId && !chatListeners.has(connectionData.chatId)) {
                   const chatDocRef = doc(firestore, 'chats', connectionData.chatId);
-                  
+
                   const chatUnsubscribe = onSnapshot(chatDocRef, (chatDoc) => {
                     if (chatDoc.exists()) {
                       const chatData = chatDoc.data();
-                      
+
                       // Update connection with latest message info
                       setConnections(prevConnections => {
                         const updatedConnections = prevConnections.map(conn => {
@@ -278,7 +280,7 @@ export default function ChatsScreen({ navigation }: any) {
 
                   const unreadUnsubscribe = onSnapshot(unreadQuery, (unreadSnapshot) => {
                     const unreadCount = unreadSnapshot.size;
-                    
+
                     setConnections(prevConnections => {
                       return prevConnections.map(conn => {
                         if (conn.id === connectionDoc.id) {
@@ -665,7 +667,7 @@ export default function ChatsScreen({ navigation }: any) {
             Connections
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.tab,
@@ -796,7 +798,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: 'white',
   },
-  
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
