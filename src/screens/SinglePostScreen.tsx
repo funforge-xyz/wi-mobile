@@ -34,6 +34,7 @@ import { getFirestore } from '../services/firebase';
 import { authService } from '../services/auth';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useTranslation } from 'react-i18next';
 
 interface Post {
   id: string;
@@ -79,6 +80,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [editedAllowComments, setEditedAllowComments] = useState(true);
   const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -993,7 +996,6 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-```text
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,

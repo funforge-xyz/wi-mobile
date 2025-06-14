@@ -55,6 +55,8 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, currentTheme, navigat
   const [liked, setLiked] = useState(post.isLikedByUser);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
+  const { t } = useTranslation();
+
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
