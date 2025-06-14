@@ -148,14 +148,14 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
         </View>
         {/* Quick Actions */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('helpSupport.quickActions')}</Text>
 
           <TouchableOpacity 
             style={[styles.actionItem, { borderBottomColor: currentTheme.border }]}
             onPress={handleContactSupport}
           >
             <Ionicons name="mail-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.actionText, { color: currentTheme.text }]}>Contact Support</Text>
+            <Text style={[styles.actionText, { color: currentTheme.text }]}>{t('helpSupport.contactSupport')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
@@ -164,7 +164,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             onPress={handleReportBug}
           >
             <Ionicons name="bug-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.actionText, { color: currentTheme.text }]}>Report a Bug</Text>
+            <Text style={[styles.actionText, { color: currentTheme.text }]}>{t('helpSupport.reportaBug')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
@@ -173,14 +173,14 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             onPress={handleFeatureRequest}
           >
             <Ionicons name="bulb-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.actionText, { color: currentTheme.text }]}>Request Feature</Text>
+            <Text style={[styles.actionText, { color: currentTheme.text }]}>{t('helpSupport.requestFeature')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* FAQ Section */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Frequently Asked Questions</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('helpSupport.frequentlyAskedQuestions')}</Text>
 
           {faqData.map((faq, index) => (
             <View key={faq.id}>
@@ -211,14 +211,14 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
 
         {/* App Information */}
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>App Information</Text>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('helpSupport.appInformation')}</Text>
 
           <TouchableOpacity 
             style={[styles.actionItem, { borderBottomColor: currentTheme.border }]}
             onPress={handlePrivacyPolicy}
           >
             <Ionicons name="shield-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.actionText, { color: currentTheme.text }]}>Privacy Policy</Text>
+            <Text style={[styles.actionText, { color: currentTheme.text }]}>{t('helpSupport.privacyPolicy')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
@@ -227,13 +227,13 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             onPress={handleTermsOfService}
           >
             <Ionicons name="document-text-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.actionText, { color: currentTheme.text }]}>Terms of Service</Text>
+            <Text style={[styles.actionText, { color: currentTheme.text }]}>{t('helpSupport.termsOfService')}</Text>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
 
           <View style={[styles.actionItem, { borderBottomColor: 'transparent' }]}>
             <Ionicons name="information-circle-outline" size={20} color={currentTheme.text} />
-            <Text style={[styles.actionText, { color: currentTheme.text }]}>App Version</Text>
+            <Text style={[styles.actionText, { color: currentTheme.text }]}>{t('helpSupport.appVersion')}</Text>
             <Text style={[styles.versionText, { color: currentTheme.textSecondary }]}>1.0.0</Text>
           </View>
         </View>
@@ -245,15 +245,15 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
           <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
             <TouchableOpacity onPress={() => setContactModalVisible(false)}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('helpSupport.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Contact Support</Text>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('helpSupport.contactSupportModal')}</Text>
             <View style={{ width: 60 }} />
           </View>
 
           <View style={styles.modalContent}>
             <Text style={[styles.modalDescription, { color: currentTheme.textSecondary }]}>
-              How would you like to contact our support team?
+              {t('helpSupport.howWouldYouLike')}
             </Text>
 
             <TouchableOpacity 
@@ -262,9 +262,9 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             >
               <Ionicons name="mail" size={24} color={COLORS.primary} />
               <View style={styles.contactOptionText}>
-                <Text style={[styles.contactOptionTitle, { color: currentTheme.text }]}>Email Support</Text>
+                <Text style={[styles.contactOptionTitle, { color: currentTheme.text }]}>{t('helpSupport.emailSupport')}</Text>
                 <Text style={[styles.contactOptionSubtitle, { color: currentTheme.textSecondary }]}>
-                  Get help via email
+                  {t('helpSupport.getHelpViaEmail')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -275,9 +275,9 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             >
               <Ionicons name="bug" size={24} color={COLORS.error} />
               <View style={styles.contactOptionText}>
-                <Text style={[styles.contactOptionTitle, { color: currentTheme.text }]}>Report Bug</Text>
+                <Text style={[styles.contactOptionTitle, { color: currentTheme.text }]}>{t('helpSupport.reportBugModal')}</Text>
                 <Text style={[styles.contactOptionSubtitle, { color: currentTheme.textSecondary }]}>
-                  Report technical issues
+                  {t('helpSupport.reportTechnicalIssues')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -288,9 +288,9 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
             >
               <Ionicons name="bulb" size={24} color={COLORS.success} />
               <View style={styles.contactOptionText}>
-                <Text style={[styles.contactOptionTitle, { color: currentTheme.text }]}>Feature Request</Text>
+                <Text style={[styles.contactOptionTitle, { color: currentTheme.text }]}>{t('helpSupport.featureRequestModal')}</Text>
                 <Text style={[styles.contactOptionSubtitle, { color: currentTheme.textSecondary }]}>
-                  Suggest new features
+                  {t('helpSupport.suggestNewFeatures')}
                 </Text>
               </View>
             </TouchableOpacity>

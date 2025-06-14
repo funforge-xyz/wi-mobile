@@ -168,54 +168,7 @@ export default function ProfileScreen() {
 
 
 
-  const handleDeleteProfile = async () => {
-    Alert.alert(
-      t('profile.deleteProfile'),
-      t('profile.deleteProfileConfirmation'),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await authService.deleteProfile();
-              // Reset navigation stack to Login screen
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Root' }],
-                })
-              );
-            } catch (error: any) {
-              console.error('Delete profile error:', error);
-              setLoading(false);
-
-              // Handle specific re-authentication error
-              if (error.message && error.message.includes('sign out and sign back in')) {
-                Alert.alert(
-                  t('profile.reAuthenticationRequired'),
-                  t('profile.reAuthenticationMessage'),
-                  [
-                    {
-                      text: t('common.ok'),
-                      onPress: () => handleSignOut(),
-                    },
-                  ]
-                );
-              } else {
-                Alert.alert(t('common.error'), t('profile.failedToDelete'));
-              }
-            }
-          },
-        },
-      ]
-    );
-  };
+  
 
 
 
@@ -307,11 +260,6 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
             <Text style={[styles.menuText, { color: COLORS.error }]}>{t('profile.signOut')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={handleDeleteProfile}>
-            <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-            <Text style={[styles.menuText, { color: COLORS.error }]}>{t('profile.deleteProfile')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
