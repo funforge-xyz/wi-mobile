@@ -33,6 +33,7 @@ import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
 import SettingsSkeleton from '../components/SettingsSkeleton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { fetchUserProfile, updateProfile } from '../store/userSlice';
 
 interface UserProfile {
   id: string;
@@ -50,6 +51,7 @@ export default function SettingsScreen() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
+  const profile = useAppSelector((state) => state.user.profile);
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
@@ -75,7 +77,7 @@ export default function SettingsScreen() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [profile, setProfile] = useState<UserProfile>({
+  const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
     lastName: '',
@@ -84,7 +86,6 @@ export default function SettingsScreen() {
     thumbnailURL: '',
     bio: '',
   });
-  const [editedProfile, setEditedProfile] = useState(profile);
   const settings = new Settings();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -95,7 +96,6 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     loadSettings();
-    loadUserProfile();
   }, []);
 
   const loadSettings = async () => {
@@ -139,49 +139,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const loadUserProfile = async () => {
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser || await authService.getCurrentUser();
-
-      if (currentUser) {
-        const firestore = getFirestore();
-        const userDocRef = doc(firestore, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        let userData: UserProfile;
-
-        if (userDoc.exists()) {
-          const firestoreData = userDoc.data();
-          userData = {
-            id: currentUser.uid,
-            firstName: firestoreData.firstName || '',
-            lastName: firestoreData.lastName || '',
-            email: currentUser.email || '',
-            photoURL: firestoreData.photoURL || '',
-            thumbnailURL: firestoreData.thumbnailURL || '',
-            bio: firestoreData.bio || '',
-          };
-        } else {
-          userData = {
-            id: currentUser.uid,
-            firstName: '',
-            lastName: '',
-            email: currentUser.email || '',
-            photoURL: '',
-            thumbnailURL: '',
-            bio: '',
-          };
-        }
-
-        setProfile(userData);
-        setEditedProfile(userData);
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    }
-  };
 
   const handleToggleTheme = async () => {
     const newValue = !isDarkMode;
@@ -401,13 +358,23 @@ export default function SettingsScreen() {
   };
 
   const handleEditProfile = () => {
-    setEditedProfile(profile);
+    setEditedProfile(profile || {
+      id: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      photoURL: '',
+      thumbnailURL: '',
+      bio: '',
+    });
     setIsEditingProfile(true);
   };
 
   const handleSaveProfile = async () => {
     try {
       setIsLoading(true);
+
+      if (!profile) return;
 
       let photoURL = editedProfile.photoURL;
       let thumbnailURL = editedProfile.thumbnailURL;
@@ -441,7 +408,7 @@ export default function SettingsScreen() {
         }
       }
 
-      // Update profile using authService with the Firebase Storage URLs
+      // Update profile using authService
       await authService.updateProfile({
         firstName: editedProfile.firstName,
         lastName: editedProfile.lastName,
@@ -450,24 +417,25 @@ export default function SettingsScreen() {
         thumbnailURL: thumbnailURL,
       });
 
-      // Force update the profile state immediately to clear any cached images
-      const updatedProfile = {
-        ...profile,
+      // Update Redux state
+      dispatch(updateProfile({
         firstName: editedProfile.firstName,
         lastName: editedProfile.lastName,
         bio: editedProfile.bio,
         photoURL: photoURL,
         thumbnailURL: thumbnailURL,
-      };
-
-      setProfile(updatedProfile);
-      setEditedProfile(updatedProfile);
+      }));
 
       setIsEditingProfile(false);
       Alert.alert('Success', 'Profile updated successfully');
 
-      // Reload from server to ensure consistency
-      await loadUserProfile();
+      // Refresh profile from server
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        dispatch(fetchUserProfile(currentUser.uid));
+      }
     } catch (error) {
       console.error('Profile save error:', error);
       Alert.alert('Error', 'Failed to update profile');
@@ -477,7 +445,15 @@ export default function SettingsScreen() {
   };
 
   const handleCancelEdit = () => {
-    setEditedProfile(profile);
+    setEditedProfile(profile || {
+      id: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      photoURL: '',
+      thumbnailURL: '',
+      bio: '',
+    });
     setIsEditingProfile(false);
   };
 
@@ -608,7 +584,7 @@ export default function SettingsScreen() {
       setIsLoading(true);
 
       // Delete from Firebase Storage first if there are existing images
-      if (profile.photoURL || profile.thumbnailURL) {
+      if (profile?.photoURL || profile?.thumbnailURL) {
         try {
           await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
         } catch (error) {
@@ -1048,7 +1024,7 @@ export default function SettingsScreen() {
                 <Ionicons name="mail-outline" size={20} color={currentTheme.textSecondary} />
                 <View style={[modalStyles.emailDisplayContainer]}>
                   <Text style={[modalStyles.emailDisplayText, { color: currentTheme.textSecondary }]}>
-                    {profile.email}
+                    {profile?.email || ''}
                   </Text>
                 </View>
               </View>

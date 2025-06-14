@@ -14,12 +14,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
 import UserPostsSkeleton from '../components/UserPostsSkeleton';
 import { useTranslation } from 'react-i18next';
+import { fetchUserProfile, fetchUserPosts, updatePostLike } from '../store/userSlice';
 
 interface UserPost {
   id: string;
@@ -124,152 +125,56 @@ const PostImage = ({ source, style, ...props }: { source: any; style: any; [key:
 
 export default function UserPostsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { profile, posts, loading, postsLoading } = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
-  const [posts, setPosts] = useState<UserPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [connectionsCount, setConnectionsCount] = useState(0);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadUserProfile();
-    loadUserPosts();
+    loadInitialData();
   }, []);
 
-  const loadUserProfile = async () => {
+  const loadInitialData = async () => {
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
       if (currentUser) {
-        const firestore = getFirestore();
-        const userDocRef = doc(firestore, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        // Get user's connections count
-        const connectionsQuery = query(
-          collection(firestore, 'connections'),
-          where('participants', 'array-contains', currentUser.uid),
-          where('status', '==', 'active')
-        );
-        const connectionsSnapshot = await getDocs(connectionsQuery);
-        setConnectionsCount(connectionsSnapshot.size);
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          // Force reload from server by clearing any cached values
-          setProfile({
-            id: currentUser.uid,
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: currentUser.email || '',
-            photoURL: userData.photoURL || '',
-            thumbnailURL: userData.thumbnailURL || '',
-            bio: userData.bio || '',
-          });
-        } else {
-          // If no document exists, clear the profile
-          setProfile({
-            id: currentUser.uid,
-            firstName: '',
-            lastName: '',
-            email: currentUser.email || '',
-            photoURL: '',
-            thumbnailURL: '',
-            bio: '',
-          });
+        // Only fetch posts if not already loaded or cache is stale (older than 5 minutes)
+        const now = Date.now();
+        const cacheAge = 5 * 60 * 1000; // 5 minutes
+        
+        if (posts.length === 0) {
+          dispatch(fetchUserPosts(currentUser.uid));
         }
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
-    }
-  };
-
-  const loadUserPosts = async () => {
-    try {
-      setLoading(true);
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) return;
-
-      const firestore = getFirestore();
-
-      // Get current user's profile data
-      const userDocRef = doc(firestore, 'users', currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      let currentUserData : any = {};
-
-      if (userDoc.exists()) {
-        currentUserData = userDoc.data();
-      }
-
-      // Get user's posts
-      const postsCollection = collection(firestore, 'posts');
-      const userPostsQuery = query(
-        postsCollection,
-        where('authorId', '==', currentUser.uid)
-      );
-      const postsSnapshot = await getDocs(userPostsQuery);
-
-      const userPosts: UserPost[] = [];
-
-      for (const postDoc of postsSnapshot.docs) {
-        const postData = postDoc.data();
-
-        // Get likes count and check if user liked
-        const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
-        const likesSnapshot = await getDocs(likesCollection);
-
-        let isLikedByUser = false;
-        likesSnapshot.forEach((likeDoc) => {
-          if (likeDoc.data().authorId === currentUser.uid) {
-            isLikedByUser = true;
-          }
-        });
-
-        // Get comments count
-        const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-        const commentsSnapshot = await getDocs(commentsCollection);
-
-        userPosts.push({
-          id: postDoc.id,
-          authorId: postData.authorId,
-          authorName: currentUserData.firstName && currentUserData.lastName 
-            ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-            : 'You',
-          authorPhotoURL: currentUserData.thumbnailURL || currentUserData.photoURL || '',
-          content: postData.content || '',
-          mediaURL: postData.mediaURL || '',
-          mediaType: postData.mediaType || 'image',
-          createdAt: postData.createdAt?.toDate() || new Date(),
-          likesCount: likesSnapshot.size,
-          commentsCount: commentsSnapshot.size,
-          showLikeCount: postData.showLikeCount !== false,
-          allowComments: postData.allowComments !== false,
-          isPrivate: postData.isPrivate || false,
-          isLikedByUser: isLikedByUser,
-        });
-      }
-
-      setPosts(userPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
-    } catch (error) {
-      console.error('Error loading user posts:', error);
-      Alert.alert('Error', 'Failed to load posts');
-    } finally {
-      setLoading(false);
+      console.error('Error loading initial data:', error);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadUserProfile(); // Also reload profile data
-    await loadUserPosts();
-    setRefreshing(false);
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (currentUser) {
+        // Refresh both profile and posts data
+        await Promise.all([
+          dispatch(fetchUserProfile(currentUser.uid)),
+          dispatch(fetchUserPosts(currentUser.uid))
+        ]);
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleLike = async (postId: string) => {
@@ -305,14 +210,8 @@ export default function UserPostsScreen({ navigation }: any) {
           await deleteDoc(doc(firestore, 'posts', postId, 'likes', userLikeDoc.id));
         }
 
-        // Update UI
-        setPosts(prevPosts =>
-          prevPosts.map(p =>
-            p.id === postId
-              ? { ...p, likesCount: Math.max(0, p.likesCount - 1), isLikedByUser: false }
-              : p
-          )
-        );
+        // Update Redux state
+        dispatch(updatePostLike({ postId, isLiked: false }));
       } else {
         // Like: Add new like
         await addDoc(likesCollection, {
@@ -320,14 +219,8 @@ export default function UserPostsScreen({ navigation }: any) {
           createdAt: new Date(),
         });
 
-        // Update UI
-        setPosts(prevPosts =>
-          prevPosts.map(p =>
-            p.id === postId
-              ? { ...p, likesCount: p.likesCount + 1, isLikedByUser: true }
-              : p
-          )
-        );
+        // Update Redux state
+        dispatch(updatePostLike({ postId, isLiked: true }));
       }
     } catch (error) {
       console.error('Error handling like:', error);
@@ -465,7 +358,7 @@ export default function UserPostsScreen({ navigation }: any) {
               cache: 'reload'
             }} 
             style={styles.smallAvatar}
-            key={`${profile.thumbnailURL || profile.photoURL}-${Date.now()}`}
+            key={`${profile.thumbnailURL || profile.photoURL}-${profile?.lastUpdated}`}
           />
         ) : (
           <View style={[styles.smallAvatar, styles.placeholderAvatar, { backgroundColor: currentTheme.border }]}>
@@ -483,7 +376,7 @@ export default function UserPostsScreen({ navigation }: any) {
           <View style={styles.statsContainer}>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {posts?.length || 0}
+                {profile?.postsCount || posts?.length || 0}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
                 {t('profile.posts')}
@@ -491,7 +384,7 @@ export default function UserPostsScreen({ navigation }: any) {
             </View>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {connectionsCount}
+                {profile?.connectionsCount || 0}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
                 {t('profile.connections')}
@@ -514,7 +407,7 @@ export default function UserPostsScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {(loading || postsLoading) ? (
         <UserPostsSkeleton count={5} />
       ) : (
         <FlatList

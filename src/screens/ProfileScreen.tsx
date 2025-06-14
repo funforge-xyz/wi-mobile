@@ -34,102 +34,30 @@ interface UserProfile {
 }
 
 export default function ProfileScreen() {
-  const [profile, setProfile] = useState<UserProfile>({
-    id: '1',
-    firstName: '',
-    lastName: '',
-    email: 'loading@example.com',
-    photoURL: 'https://via.placeholder.com/120',
-    thumbnailURL: '',
-    bio: '',
-    postsCount: 0,
-  });
-  const [connectionsCount, setConnectionsCount] = useState(0);
+  const { profile, loading } = useAppSelector((state) => state.user);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    loadUserProfile();
-  }, []);
-
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadUserProfile();
-    setRefreshing(false);
-  };
-
-  const loadUserProfile = async () => {
     try {
-      setLoading(true);
-
-      // Wait for Firebase to be initialized
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
-
-      // Get current user from Firebase Auth
       const currentUser = auth.currentUser || await authService.getCurrentUser();
 
       if (currentUser) {
-        // Try to get profile data from Firestore
-        const firestore = getFirestore();
-        const userDocRef = doc(firestore, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        let userData: UserProfile;
-
-        // Get user's post count
-        const postsCollection = collection(firestore, 'posts');
-        const userPostsQuery = query(postsCollection, where('authorId', '==', currentUser.uid));
-        const userPostsSnapshot = await getDocs(userPostsQuery);
-        const postsCount = userPostsSnapshot.size;
-
-        // Get user's connections count
-        const connectionsQuery = query(
-          collection(firestore, 'connections'),
-          where('participants', 'array-contains', currentUser.uid),
-          where('status', '==', 'active')
-        );
-        const connectionsSnapshot = await getDocs(connectionsQuery);
-        setConnectionsCount(connectionsSnapshot.size);
-
-        if (userDoc.exists()) {
-          const firestoreData = userDoc.data();
-          userData = {
-            id: currentUser.uid,
-            firstName: firestoreData.firstName || '',
-            lastName: firestoreData.lastName || '',
-            email: currentUser.email || '',
-            photoURL: firestoreData.photoURL || '',
-            thumbnailURL: firestoreData.thumbnailURL || '',
-            bio: firestoreData.bio || '',
-            postsCount: postsCount,
-          };
-        } else {
-          // Create default profile data if no Firestore document exists
-          userData = {
-            id: currentUser.uid,
-            firstName: '',
-            lastName: '',
-            email: currentUser.email || '',
-            photoURL: '',
-            thumbnailURL: '',
-            bio: '',
-            postsCount: postsCount,
-          };
-        }
-
-        setProfile(userData);
+        await dispatch(fetchUserProfile(currentUser.uid));
       } else {
         Alert.alert(t('common.error'), 'No user found');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Error refreshing profile:', error);
       Alert.alert(t('common.error'), t('profile.failedToLoad'));
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -199,7 +127,7 @@ export default function ProfileScreen() {
         }
       >
         <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
-          {(profile.thumbnailURL || profile.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
+          {(profile?.thumbnailURL || profile?.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
             <ProfileImage
               uri={profile.thumbnailURL || profile.photoURL}
               style={styles.avatar}
@@ -211,19 +139,19 @@ export default function ProfileScreen() {
           )}
 
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
-            {profile.firstName && profile.lastName
+            {profile?.firstName && profile?.lastName
               ? `${profile.firstName} ${profile.lastName}`
               : t('profile.anonymousUser')}
           </Text>
 
           <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
-            {profile.bio}
+            {profile?.bio || ''}
           </Text>
 
           <View style={styles.statsContainer}>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile.postsCount}
+                {profile?.postsCount || 0}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
                 {t('profile.posts')}
@@ -231,7 +159,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.stat}>
               <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {connectionsCount}
+                {profile?.connectionsCount || 0}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
                 {t('profile.connections')}
