@@ -50,12 +50,22 @@ export default function SettingsScreen() {
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
+    setShowLanguageModal(false);
+  };
+
+  const getCurrentLanguageName = () => {
+    return i18n.language === 'bs' ? 'Bosanski' : 'English';
+  };
+
+  const showLanguageOptions = () => {
+    setShowLanguageModal(true);
   };
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [trackingRadius, setTrackingRadius] = useState(1); // Default 1km
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showRadiusModal, setShowRadiusModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -652,6 +662,38 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.language')}</Text>
+
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={showLanguageOptions}
+          >
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="language" 
+                size={20} 
+                color={currentTheme.text} 
+                style={styles.settingIcon}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
+                  {t('settings.changeLanguage')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
+                  {getCurrentLanguageName()}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.radiusDropdown}>
+              <Text style={[styles.radiusDropdownText, { color: currentTheme.text }]}>
+                {getCurrentLanguageName()}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={currentTheme.textSecondary} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
           <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('settings.location')}</Text>
 
           <TouchableOpacity 
@@ -947,6 +989,78 @@ export default function SettingsScreen() {
               </View>
             </View>
           </KeyboardAwareScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Language Selection Modal */}
+      <Modal 
+        visible={showLanguageModal} 
+        animationType="slide" 
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity 
+              onPress={() => setShowLanguageModal(false)}
+              style={modalStyles.modalHeaderButton}
+            >
+              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.changeLanguage')}</Text>
+            <View style={modalStyles.modalHeaderButton} />
+          </View>
+
+          <View style={modalStyles.radiusOptionsContainer}>
+            <Text style={[modalStyles.radiusDescription, { color: currentTheme.textSecondary }]}>
+              {t('settings.selectPreferredLanguage')}
+            </Text>
+
+            {[
+              { code: 'en', name: 'English', nativeName: 'English' },
+              { code: 'bs', name: 'Bosnian', nativeName: 'Bosanski' }
+            ].map((language) => (
+              <TouchableOpacity
+                key={language.code}
+                style={[
+                  modalStyles.radiusOption,
+                  {
+                    backgroundColor: i18n.language === language.code ? `${COLORS.primary}15` : currentTheme.surface,
+                    borderColor: i18n.language === language.code ? COLORS.primary : currentTheme.border,
+                    borderWidth: i18n.language === language.code ? 2 : 1,
+                  }
+                ]}
+                onPress={() => changeLanguage(language.code)}
+                activeOpacity={0.7}
+              >
+                <View style={modalStyles.radiusOptionContent}>
+                  <View style={modalStyles.radiusOptionLeft}>
+                    <Text style={[
+                      modalStyles.radiusOptionText,
+                      {
+                        color: i18n.language === language.code ? COLORS.primary : currentTheme.text,
+                        fontFamily: i18n.language === language.code ? FONTS.bold : FONTS.bold,
+                      }
+                    ]}>
+                      {language.nativeName}
+                    </Text>
+                    <Text style={[
+                      modalStyles.radiusOptionDescription,
+                      { color: currentTheme.textSecondary }
+                    ]}>
+                      {language.name}
+                    </Text>
+                  </View>
+
+                  {i18n.language === language.code && (
+                    <View style={modalStyles.radiusSelectedIcon}>
+                      <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.primary} />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </SafeAreaView>
       </Modal>
 
