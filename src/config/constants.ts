@@ -3,15 +3,13 @@ export const APP_NAME = 'Wi Chat';
 export const COLORS = {
   primary: '#007AFF',
   secondary: '#5856D6',
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  background: '#F2F2F7',
-  surface: '#FFFFFF',
-  text: '#000000',
+  background: '#FFFFFF',
+  surface: '#F8F9FA',
+  text: '#1C1C1E',
   textSecondary: '#8E8E93',
-  border: '#C6C6C8',
-  placeholder: '#C7C7CD',
+  border: '#E5E5EA',
+  error: '#FF3B30',
+  success: '#34C759',
 };
 
 export const FONTS = {

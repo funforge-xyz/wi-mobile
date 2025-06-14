@@ -14,6 +14,8 @@ import {
   AlertButton,
   TouchableWithoutFeedback,
   Keyboard,
+  Modal,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,12 +37,42 @@ export default function AddPostScreen() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalAnimation] = useState(new Animated.Value(0));
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const settings = new Settings();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation();
   const { t } = useTranslation();
   const { addNewPost } = usePostActions();
+
+  const showSuccessModalWithAnimation = () => {
+    setShowSuccessModal(true);
+    Animated.sequence([
+      Animated.timing(modalAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(2000),
+      Animated.timing(modalAnimation, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowSuccessModal(false);
+      resetForm();
+    });
+  };
+
+  const resetForm = () => {
+    setContent('');
+    setSelectedImage(null);
+    setIsPrivate(false);
+    setAllowComments(true);
+    setShowLikeCount(true);
+  };
 
   const compressImage = async (uri: string): Promise<string> => {
     try {
@@ -292,15 +324,7 @@ export default function AddPostScreen() {
         isLikedByUser: false,
       });
 
-      Alert.alert(t('addPost.success', 'Success'), t('addPost.postShared', 'Your post has been shared!'), [
-        { text: t('common.ok'), onPress: () => {
-          setContent('');
-          setSelectedImage(null);
-          setIsPrivate(false);
-          setAllowComments(true);
-          setShowLikeCount(true);
-        }}
-      ]);
+      showSuccessModalWithAnimation();
     } catch (error) {
       console.error('Post creation error:', error);
       Alert.alert(t('common.error'), t('addPost.postFailed'));
@@ -441,6 +465,44 @@ export default function AddPostScreen() {
         </View>
         </ScrollView>
       </TouchableWithoutFeedback>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="none"
+        statusBarTranslucent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            style={[
+              styles.successModal,
+              {
+                backgroundColor: currentTheme.surface,
+                transform: [
+                  {
+                    scale: modalAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.8, 1],
+                    }),
+                  },
+                ],
+                opacity: modalAnimation,
+              },
+            ]}
+          >
+            <View style={styles.successIconContainer}>
+              <Ionicons name="checkmark-circle" size={60} color={COLORS.success} />
+            </View>
+            <Text style={[styles.successTitle, { color: currentTheme.text }]}>
+              {t('addPost.success', 'Success')}
+            </Text>
+            <Text style={[styles.successMessage, { color: currentTheme.textSecondary }]}>
+              {t('addPost.postShared', 'Your post has been shared!')}
+            </Text>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -627,5 +689,40 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     position: 'absolute',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successModal: {
+    width: 280,
+    padding: SPACING.xl,
+    borderRadius: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  successIconContainer: {
+    marginBottom: SPACING.md,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontFamily: FONTS.bold,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
