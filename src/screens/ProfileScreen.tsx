@@ -42,6 +42,26 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
 
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { getAuth } = await import('../services/firebase');
+        const auth = getAuth();
+        const currentUser = auth.currentUser || await authService.getCurrentUser();
+
+        if (currentUser) {
+          dispatch(fetchUserProfile(currentUser.uid));
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    if (!profile || (profile && Date.now() - profile.lastUpdated > 300000)) { // Refresh if data is older than 5 minutes
+      loadProfile();
+    }
+  }, [dispatch, profile]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -223,9 +243,18 @@ const ProfileImage = ({ uri, style, ...props }: { uri: string; style: any; [key:
   const imageHeight = typeof style?.height === 'number' ? style.height : 120;
 
   React.useEffect(() => {
-    setLoading(true);
-    setError(false);
+    if (uri && uri.trim() !== '') {
+      setLoading(true);
+      setError(false);
+    } else {
+      setLoading(false);
+      setError(true);
+    }
   }, [uri]);
+
+  if (!uri || uri.trim() === '' || error) {
+    return null; // Return null so parent component can show placeholder
+  }
 
   return (
     <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>

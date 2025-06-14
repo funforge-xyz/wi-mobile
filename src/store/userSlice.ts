@@ -85,7 +85,7 @@ export const fetchUserProfile = createAsyncThunk(
           lastName: firestoreData.lastName || '',
           email: firestoreData.email || '',
           photoURL: firestoreData.photoURL || '',
-          thumbnailURL: firestoreData.thumbnailURL || '',
+          thumbnailURL: firestoreData.thumbnailURL || firestoreData.photoURL || '',
           bio: firestoreData.bio || '',
           postsCount,
           connectionsCount,
