@@ -437,8 +437,8 @@ export default function ChatsScreen({ navigation }: any) {
 
   const handleDeclineRequest = async (request: ConnectionRequest) => {
     Alert.alert(
-      'Decline Request',
-      `Are you sure you want to decline the request from ${request.firstName || 'this user'}?`,
+      t('chats.declineRequest', 'Decline Request'),
+      t('chats.declineRequestMessage', 'Are you sure you want to decline the request from {{user}}?', { user: request.firstName || t('profile.anonymousUser') }),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -468,8 +468,8 @@ export default function ChatsScreen({ navigation }: any) {
 
   const handleBlockUser = async (connection: Connection) => {
     Alert.alert(
-      'Block User',
-      `Are you sure you want to block ${connection.firstName || 'this user'}? They will be removed from your connections.`,
+      t('chats.blockUser', 'Block User'),
+      t('chats.blockUserMessage', 'Are you sure you want to block {{user}}? They will be removed from your connections.', { user: connection.firstName || t('profile.anonymousUser') }),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -499,7 +499,7 @@ export default function ChatsScreen({ navigation }: any) {
                 blockedBy: currentUser.uid
               });
 
-              Alert.alert('Success', 'User has been blocked');
+              Alert.alert(t('common.done'), t('chats.userBlocked', 'User has been blocked'));
             } catch (error) {
               console.error('Error blocking user:', error);
               Alert.alert('Error', 'Failed to block user');
@@ -609,14 +609,14 @@ export default function ChatsScreen({ navigation }: any) {
       if (showRequests) {
         return {
           icon: 'mail-outline',
-          title: 'No Requests',
-          subtitle: 'No connection requests at the moment.'
+          title: t('chats.noRequests', 'No Requests'),
+          subtitle: t('chats.noRequestsSubtitle', 'No connection requests at the moment.')
         };
       } else {
         return {
           icon: 'people-outline',
-          title: 'No Connections',
-          subtitle: 'Start messaging People nearby to build connections.'
+          title: t('chats.noConnections', 'No Connections'),
+          subtitle: t('chats.noConnectionsSubtitle', 'Start messaging People nearby to build connections.')
         };
       }
     };
@@ -643,7 +643,7 @@ export default function ChatsScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Messages</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('chats.title')}</Text>
         <View style={styles.headerActions}>
           <NotificationBell
             onPress={() => navigation.navigate('Notifications')}
@@ -664,7 +664,7 @@ export default function ChatsScreen({ navigation }: any) {
             styles.tabText,
             { color: !showRequests ? currentTheme.text : currentTheme.textSecondary }
           ]}>
-            Connections
+            {t('navigation.chats')}
           </Text>
         </TouchableOpacity>
 
@@ -679,7 +679,7 @@ export default function ChatsScreen({ navigation }: any) {
             styles.tabText,
             { color: showRequests ? currentTheme.text : currentTheme.textSecondary }
           ]}>
-            Requests
+            {t('chats.requests', 'Requests')}
           </Text>
           {Array.isArray(connectionRequests) && connectionRequests.length > 0 && (
             <View style={[styles.requestsBadge, { backgroundColor: COLORS.primary }]}>

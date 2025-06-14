@@ -75,7 +75,17 @@
     "online": "Na mreži",
     "typing": "kuca...",
     "messageInput": "Ukucajte poruku...",
-    "sendMessage": "Pošaljite poruku"
+    "sendMessage": "Pošaljite poruku",
+    "requests": "Zahtevi",
+    "noRequests": "Nema zahteva",
+    "noRequestsSubtitle": "Trenutno nema zahteva za konekciju.",
+    "noConnections": "Nema konekcija",
+    "noConnectionsSubtitle": "Počnite razgovor sa ljudima u blizini da izgradite konekcije.",
+    "declineRequest": "Odbaci zahtev",
+    "declineRequestMessage": "Da li ste sigurni da želite da odbacite zahtev od {{user}}?",
+    "blockUser": "Blokiraj korisnika",
+    "blockUserMessage": "Da li ste sigurni da želite da blokirate {{user}}? Biće uklonjeni iz vaših konekcija.",
+    "userBlocked": "Korisnik je blokiran"
   },
   "addPost": {
     "title": "Napravite objavu",
@@ -85,7 +95,32 @@
     "location": "Dodajte lokaciju",
     "post": "Objavi",
     "posting": "Objavljuje...",
-    "postFailed": "Neuspešno kreiranje objave"
+    "postFailed": "Neuspešno kreiranje objave",
+    "takePhoto": "Uslikajte",
+    "removePhoto": "Uklonite fotografiju",
+    "selectPhoto": "Izaberite fotografiju",
+    "useCameraToAdd": "Koristite kameru da dodate fotografiju",
+    "discardPost": "Odbaci objavu",
+    "discardPostMessage": "Da li ste sigurni da želite da odbacite ovu objavu?",
+    "keepEditing": "Nastavi editovanje",
+    "discard": "Odbaci",
+    "addContentError": "Molimo dodajte sadržaj ili fotografiju u vašu objavu",
+    "loginRequired": "Morate biti prijavljeni da biste kreirali objavu",
+    "uploadFailed": "Neuspešno otpremanje fotografije",
+    "success": "Uspešno",
+    "postShared": "Vaša objava je podeljena!",
+    "private": "Privatno",
+    "public": "Javno",
+    "privateDescription": "Samo vi možete videti ovu objavu",
+    "publicDescription": "Svi mogu videti ovu objavu",
+    "allowComments": "Dozvoli komentare",
+    "commentsEnabled": "Ljudi mogu komentarisati ovu objavu",
+    "commentsDisabled": "Komentari su onemogućeni",
+    "showLikeCount": "Prikaži broj sviđanja",
+    "likeCountVisible": "Broj sviđanja je vidljiv",
+    "likeCountHidden": "Broj sviđanja je sakriven",
+    "changePhoto": "Promenite fotografiju",
+    "takePhotoOptional": "Uslikajte (opciono)"
   },
   "profile": {
     "title": "Profil",
@@ -114,7 +149,8 @@
     "delete": "Obriši",
     "reAuthenticationRequired": "Potrebna je ponovna autentifikacija",
     "reAuthenticationMessage": "Iz bezbednosnih razloga, molimo odjavite se i ponovo se prijavite pre brisanja naloga.",
-    "failedToDelete": "Neuspešno brisanje profila"
+    "failedToDelete": "Neuspešno brisanje profila",
+    "yourProfile": "Vaš profil"
   },
   "settings": {
     "title": "Podešavanja",

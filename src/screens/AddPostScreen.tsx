@@ -148,8 +148,8 @@ export default function AddPostScreen() {
 
   const showImagePicker = () => {
     const options = selectedImage 
-      ? ['Take Photo', 'Remove Photo', 'Cancel']
-      : ['Take Photo', 'Cancel'];
+      ? [t('addPost.takePhoto', 'Take Photo'), t('addPost.removePhoto', 'Remove Photo'), t('common.cancel')]
+      : [t('addPost.takePhoto', 'Take Photo'), t('common.cancel')];
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -170,27 +170,27 @@ export default function AddPostScreen() {
       // For Android
       const alertOptions : AlertButton[] = [
         {
-          text: 'Take Photo',
+          text: t('addPost.takePhoto', 'Take Photo'),
           onPress: handleCameraCapture,
         },
       ];
 
       if (selectedImage) {
         alertOptions.push({
-          text: 'Remove Photo',
+          text: t('addPost.removePhoto', 'Remove Photo'),
           onPress: () => setSelectedImage(''),
           style: 'destructive' as const,
         });
       }
 
       alertOptions.push({
-        text: 'Cancel',
+        text: t('common.cancel'),
         style: 'cancel' as const,
       });
 
       Alert.alert(
-        'Select Photo',
-        'Use camera to add a photo',
+        t('addPost.selectPhoto', 'Select Photo'),
+        t('addPost.useCameraToAdd', 'Use camera to add a photo'),
         alertOptions,
         { cancelable: true }
       );
@@ -200,15 +200,15 @@ export default function AddPostScreen() {
   const handleCancel = () => {
     if (content.trim() || selectedImage) {
       Alert.alert(
-        'Discard Post',
-        'Are you sure you want to discard this post?',
+        t('addPost.discardPost', 'Discard Post'),
+        t('addPost.discardPostMessage', 'Are you sure you want to discard this post?'),
         [
           {
-            text: 'Keep Editing',
+            text: t('addPost.keepEditing', 'Keep Editing'),
             style: 'cancel',
           },
           {
-            text: 'Discard',
+            text: t('addPost.discard', 'Discard'),
             style: 'destructive',
             onPress: () => {
               setContent('');
@@ -230,7 +230,7 @@ export default function AddPostScreen() {
 
   const handlePost = async () => {
     if (!content.trim() && !selectedImage) {
-      Alert.alert('Error', 'Please add some content or an image to your post');
+      Alert.alert(t('common.error'), t('addPost.addContentError', 'Please add some content or an image to your post'));
       return;
     }
 
@@ -242,7 +242,7 @@ export default function AddPostScreen() {
       const currentUser = auth.currentUser || await authService.getCurrentUser();
 
       if (!currentUser) {
-        Alert.alert('Error', 'You must be logged in to create a post');
+        Alert.alert(t('common.error'), t('addPost.loginRequired', 'You must be logged in to create a post'));
         return;
       }
 
@@ -254,7 +254,7 @@ export default function AddPostScreen() {
           mediaURL = await storageService.uploadPostImage(currentUser.uid, selectedImage);
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
-          Alert.alert('Error', 'Failed to upload image');
+          Alert.alert(t('common.error'), t('addPost.uploadFailed', 'Failed to upload image'));
           setIsPosting(false);
           return;
         }
@@ -275,8 +275,8 @@ export default function AddPostScreen() {
         createdAt: serverTimestamp(),
       });
 
-      Alert.alert('Success', 'Your post has been shared!', [
-        { text: 'OK', onPress: () => {
+      Alert.alert(t('addPost.success', 'Success'), t('addPost.postShared', 'Your post has been shared!'), [
+        { text: t('common.ok'), onPress: () => {
           setContent('');
           setSelectedImage(null);
           setIsPrivate(false);
@@ -286,7 +286,7 @@ export default function AddPostScreen() {
       ]);
     } catch (error) {
       console.error('Post creation error:', error);
-      Alert.alert('Error', 'Failed to create post. Please try again.');
+      Alert.alert(t('common.error'), t('addPost.postFailed'));
     } finally {
       setIsPosting(false);
     }
@@ -337,7 +337,7 @@ export default function AddPostScreen() {
               <View style={styles.imagePickerContent}>
                 <Ionicons name="camera-outline" size={20} color={currentTheme.textSecondary} />
                 <Text style={[styles.imagePickerText, { color: currentTheme.textSecondary }]}>
-                  {selectedImage ? 'Change Photo' : 'Take Photo (optional)'}
+                  {selectedImage ? t('addPost.changePhoto', 'Change Photo') : t('addPost.takePhotoOptional', 'Take Photo (optional)')}
                 </Text>
               </View>
               {selectedImage && (
@@ -365,10 +365,10 @@ export default function AddPostScreen() {
             />
             <View style={styles.privacyTextContainer}>
               <Text style={[styles.privacyText, { color: currentTheme.text }]}>
-                {isPrivate ? 'Private' : 'Public'}
+                {isPrivate ? t('addPost.private', 'Private') : t('addPost.public', 'Public')}
               </Text>
               <Text style={[styles.privacySubtext, { color: currentTheme.textSecondary }]}>
-                {isPrivate ? 'Only you can see this post' : 'Anyone can see this post'}
+                {isPrivate ? t('addPost.privateDescription', 'Only you can see this post') : t('addPost.publicDescription', 'Anyone can see this post')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
@@ -384,10 +384,10 @@ export default function AddPostScreen() {
             />
             <View style={styles.optionTextContainer}>
               <Text style={[styles.optionText, { color: currentTheme.text }]}>
-                Allow Comments
+                {t('addPost.allowComments', 'Allow Comments')}
               </Text>
               <Text style={[styles.optionSubtext, { color: currentTheme.textSecondary }]}>
-                {allowComments ? 'People can comment on this post' : 'Comments are disabled'}
+                {allowComments ? t('addPost.commentsEnabled', 'People can comment on this post') : t('addPost.commentsDisabled', 'Comments are disabled')}
               </Text>
             </View>
             <View style={[styles.switchContainer, { backgroundColor: allowComments ? COLORS.primary : currentTheme.border }]}>
@@ -408,10 +408,10 @@ export default function AddPostScreen() {
             />
             <View style={styles.optionTextContainer}>
               <Text style={[styles.optionText, { color: currentTheme.text }]}>
-                Show Like Count
+                {t('addPost.showLikeCount', 'Show Like Count')}
               </Text>
               <Text style={[styles.optionSubtext, { color: currentTheme.textSecondary }]}>
-                {showLikeCount ? 'Like count is visible' : 'Like count is hidden'}
+                {showLikeCount ? t('addPost.likeCountVisible', 'Like count is visible') : t('addPost.likeCountHidden', 'Like count is hidden')}
               </Text>
             </View>
             <View style={[styles.switchContainer, { backgroundColor: showLikeCount ? COLORS.primary : currentTheme.border }]}>

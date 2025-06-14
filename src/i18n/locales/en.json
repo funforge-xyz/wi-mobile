@@ -75,7 +75,17 @@
     "online": "Online",
     "typing": "typing...",
     "messageInput": "Type a message...",
-    "sendMessage": "Send message"
+    "sendMessage": "Send message",
+    "requests": "Requests",
+    "noRequests": "No Requests",
+    "noRequestsSubtitle": "No connection requests at the moment.",
+    "noConnections": "No Connections",
+    "noConnectionsSubtitle": "Start messaging People nearby to build connections.",
+    "declineRequest": "Decline Request",
+    "declineRequestMessage": "Are you sure you want to decline the request from {{user}}?",
+    "blockUser": "Block User",
+    "blockUserMessage": "Are you sure you want to block {{user}}? They will be removed from your connections.",
+    "userBlocked": "User has been blocked"
   },
   "addPost": {
     "title": "Create Post",
@@ -85,7 +95,32 @@
     "location": "Add Location",
     "post": "Post",
     "posting": "Posting...",
-    "postFailed": "Failed to create post"
+    "postFailed": "Failed to create post",
+    "takePhoto": "Take Photo",
+    "removePhoto": "Remove Photo",
+    "selectPhoto": "Select Photo",
+    "useCameraToAdd": "Use camera to add a photo",
+    "discardPost": "Discard Post",
+    "discardPostMessage": "Are you sure you want to discard this post?",
+    "keepEditing": "Keep Editing",
+    "discard": "Discard",
+    "addContentError": "Please add some content or an image to your post",
+    "loginRequired": "You must be logged in to create a post",
+    "uploadFailed": "Failed to upload image",
+    "success": "Success",
+    "postShared": "Your post has been shared!",
+    "private": "Private",
+    "public": "Public",
+    "privateDescription": "Only you can see this post",
+    "publicDescription": "Anyone can see this post",
+    "allowComments": "Allow Comments",
+    "commentsEnabled": "People can comment on this post",
+    "commentsDisabled": "Comments are disabled",
+    "showLikeCount": "Show Like Count",
+    "likeCountVisible": "Like count is visible",
+    "likeCountHidden": "Like count is hidden",
+    "changePhoto": "Change Photo",
+    "takePhotoOptional": "Take Photo (optional)"
   },
   "profile": {
     "title": "Profile",
@@ -114,7 +149,8 @@
     "delete": "Delete",
     "reAuthenticationRequired": "Re-authentication Required",
     "reAuthenticationMessage": "For security reasons, please sign out and sign back in before deleting your account.",
-    "failedToDelete": "Failed to delete profile"
+    "failedToDelete": "Failed to delete profile",
+    "yourProfile": "Your Profile"
   },
   "settings": {
     "title": "Settings",

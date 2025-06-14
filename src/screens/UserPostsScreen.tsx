@@ -386,7 +386,7 @@ export default function UserPostsScreen({ navigation }: any) {
               {item.isPrivate && (
                 <View style={styles.privateIndicator}>
                   <Ionicons name="lock-closed" size={12} color={currentTheme.textSecondary} />
-                  <Text style={[styles.privateText, { color: currentTheme.textSecondary }]}>Private</Text>
+                  <Text style={[styles.privateText, { color: currentTheme.textSecondary }]}>{t('addPost.private', 'Private')}</Text>
                 </View>
               )}
             </View>
@@ -443,10 +443,10 @@ export default function UserPostsScreen({ navigation }: any) {
         color={currentTheme.textSecondary}
       />
       <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-        No Posts Yet
+        {t('profile.noPosts')}
       </Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        Start sharing your thoughts and moments with others.
+        {t('profile.shareFirst')}
       </Text>
     </View>
   );
@@ -473,7 +473,7 @@ export default function UserPostsScreen({ navigation }: any) {
           <Text style={[styles.displayName, { color: currentTheme.text }]}>
             {profile?.firstName && profile?.lastName 
               ? `${profile.firstName} ${profile.lastName}` 
-              : 'Your Profile'}
+              : t('profile.yourProfile', 'Your Profile')}
           </Text>
 
           <View style={styles.statsContainer}>
@@ -482,7 +482,7 @@ export default function UserPostsScreen({ navigation }: any) {
                 {posts?.length || 0}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Posts
+                {t('profile.posts')}
               </Text>
             </View>
             <View style={styles.stat}>
@@ -490,7 +490,7 @@ export default function UserPostsScreen({ navigation }: any) {
                 {connectionsCount}
               </Text>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                Connections
+                {t('profile.connections')}
               </Text>
             </View>
           </View>
