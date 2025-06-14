@@ -27,6 +27,7 @@ import { getFirestore } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { usePostActions } from '../hooks/usePostActions';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
@@ -39,6 +40,7 @@ export default function AddPostScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { addNewPost } = usePostActions();
 
   const compressImage = async (uri: string): Promise<string> => {
     try {
@@ -264,7 +266,7 @@ export default function AddPostScreen() {
       const firestore = getFirestore();
       const postsCollection = collection(firestore, 'posts');
 
-      await addDoc(postsCollection, {
+      const newPostDoc = await addDoc(postsCollection, {
         authorId: currentUser.uid,
         content: content.trim(),
         mediaURL: mediaURL || null,
@@ -273,6 +275,21 @@ export default function AddPostScreen() {
         allowComments: allowComments,
         showLikeCount: showLikeCount,
         createdAt: serverTimestamp(),
+      });
+
+      // Add the new post to Redux store immediately
+      addNewPost({
+        id: newPostDoc.id,
+        content: content.trim(),
+        mediaURL: mediaURL || '',
+        mediaType: 'image',
+        createdAt: new Date().toISOString(),
+        likesCount: 0,
+        commentsCount: 0,
+        showLikeCount: showLikeCount,
+        allowComments: allowComments,
+        isPrivate: isPrivate,
+        isLikedByUser: false,
       });
 
       Alert.alert(t('addPost.success', 'Success'), t('addPost.postShared', 'Your post has been shared!'), [
