@@ -288,7 +288,27 @@
     "reportTechnicalIssues": "Prijavite tehničke probleme",
     "featureRequestModal": "Zahtev za funkciju",
     "suggestNewFeatures": "Predložite nove funkcije",
-    "cancel": "Odustani"
+    "cancel": "Odustani",
+    "faqQuestions": {
+      "howDoesMatchingWork": "Kako funkcioniše povezivanje?",
+      "howDoesMatchingWorkAnswer": "Povezivanje funkcioniše na osnovu vašeg radijusa lokacije i WiFi konekcije. Videćete korisnike koji se nalaze u okviru vašeg postavljenog radijusa lokacije ili su povezani na istu WiFi mrežu kao vi. Ovo vam pomaže da otkrijete ljude u blizini za značajne konekcije.",
+      "howToConnect": "Kako da se povežem sa drugim korisnicima?",
+      "howToConnectAnswer": "Možete se povezati sa korisnicima tako što ćete ići na tab U blizini, dodirnuti ljude sa kojima želite da se povežete i poslati im prvu poruku. Ovo će poslati zahtev za konekciju. Takođe možete posetiti njihove profile i dodirnuti \"Poveži se\", ili pronaći korisnike pretragom.",
+      "changeProfilePicture": "Kako da promenim svoju profilnu sliku?",
+      "changeProfilePictureAnswer": "Idite na Podešavanja > Uredi profil, zatim dodirnite svoju trenutnu profilnu sliku da je promenite. Možete uslikati novu fotografiju ili izabrati iz vaše galerije fotografija.",
+      "deletePost": "Kako da obrišem objavu?",
+      "deletePostAnswer": "Dodirnite jednu od vaših objava, zatim dodirnite meni sa tri tačke u gornjem desnom uglu i izaberite \"Obriši objavu\".",
+      "blockOrReport": "Kako da blokiram ili prijavim nekoga?",
+      "blockOrReportAnswer": "Idite na njihov profil, dodirnite meni sa tri tačke i izaberite \"Blokiraj korisnika\" ili \"Prijavi korisnika\". Takođe možete prijaviti pojedinačne objave tako što ćete dodirnuti tri tačke na bilo kojoj objavi.",
+      "nearbyFeature": "Kako funkcioniše funkcija U blizini?",
+      "nearbyFeatureAnswer": "Funkcija U blizini prikazuje objave i ljude blizu vaše trenutne lokacije. Proverite da su dozvole za lokaciju omogućene za aplikaciju da biste koristili ovu funkciju.",
+      "changePassword": "Kako da promenim svoju lozinku?",
+      "changePasswordAnswer": "Idite na Podešavanja > Promeni lozinku i pratite instrukcije za ažuriranje vaše lozinke.",
+      "deleteAccount": "Kako da obrišem svoj nalog?",
+      "deleteAccountAnswer": "Idite na Podešavanja > Obriši profil. Ova akcija je trajna i ne može se poništiti.",
+      "notReceivingNotifications": "Zašto ne primam obaveštenja?",
+      "notReceivingNotificationsAnswer": "Proverite podešavanja vašeg uređaja da se uverite da su obaveštenja omogućena za ovu aplikaciju. Takođe možete proveriti podešavanja obaveštenja u aplikaciji."
+    }
   },
   "errors": {
     "networkError": "Greška mreže. Molimo proverite konekciju.",

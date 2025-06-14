@@ -288,7 +288,27 @@
     "reportTechnicalIssues": "Report technical issues",
     "featureRequestModal": "Feature Request",
     "suggestNewFeatures": "Suggest new features",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "faqQuestions": {
+      "howDoesMatchingWork": "How does matching work?",
+      "howDoesMatchingWorkAnswer": "Matching works based on your location radius and WiFi connection. You will see users who are within your set location radius or connected to the same WiFi network as you. This helps you discover people nearby for meaningful connections.",
+      "howToConnect": "How do I connect with other users?",
+      "howToConnectAnswer": "You can connect with users by going to the Nearby tab, tapping on people you want to connect with, and sending them the first message. This will send a connection request. You can also visit their profiles and tap \"Connect\", or find users by searching.",
+      "changeProfilePicture": "How do I change my profile picture?",
+      "changeProfilePictureAnswer": "Go to Settings > Edit Profile, then tap on your current profile picture to change it. You can take a new photo or choose from your photo library.",
+      "deletePost": "How do I delete a post?",
+      "deletePostAnswer": "Tap on one of your posts, then tap the three dots menu in the top right corner and select \"Delete Post\".",
+      "blockOrReport": "How do I block or report someone?",
+      "blockOrReportAnswer": "Go to their profile, tap the three dots menu, and select either \"Block User\" or \"Report User\". You can also report individual posts by tapping the three dots on any post.",
+      "nearbyFeature": "How does the Nearby feature work?",
+      "nearbyFeatureAnswer": "The Nearby feature shows posts and people near your current location. Make sure location permissions are enabled for the app to use this feature.",
+      "changePassword": "How do I change my password?",
+      "changePasswordAnswer": "Go to Settings > Change Password and follow the prompts to update your password.",
+      "deleteAccount": "How do I delete my account?",
+      "deleteAccountAnswer": "Go to Settings > Delete Profile. This action is permanent and cannot be undone.",
+      "notReceivingNotifications": "Why am I not receiving notifications?",
+      "notReceivingNotificationsAnswer": "Check your device settings to make sure notifications are enabled for this app. You can also check notification settings within the app."
+    }
   },
   "errors": {
     "networkError": "Network error. Please check your connection.",

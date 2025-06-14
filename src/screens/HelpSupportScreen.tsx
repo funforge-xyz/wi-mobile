@@ -20,57 +20,9 @@ interface HelpSupportScreenProps {
 
 interface FAQItem {
   id: string;
-  question: string;
-  answer: string;
+  questionKey: string;
+  answerKey: string;
 }
-
-const faqData: FAQItem[] = [
-  {
-    id: '1',
-    question: 'How does matching work?',
-    answer: 'Matching works based on your location radius and WiFi connection. You will see users who are within your set location radius or connected to the same WiFi network as you. This helps you discover people nearby for meaningful connections.',
-  },
-  {
-    id: '2',
-    question: 'How do I connect with other users?',
-    answer: 'You can connect with users by going to the Nearby tab, tapping on people you want to connect with, and sending them the first message. This will send a connection request. You can also visit their profiles and tap "Connect", or find users by searching.',
-  },
-  {
-    id: '3',
-    question: 'How do I change my profile picture?',
-    answer: 'Go to Settings > Edit Profile, then tap on your current profile picture to change it. You can take a new photo or choose from your photo library.',
-  },
-  {
-    id: '4',
-    question: 'How do I delete a post?',
-    answer: 'Tap on one of your posts, then tap the three dots menu in the top right corner and select "Delete Post".',
-  },
-  {
-    id: '5',
-    question: 'How do I block or report someone?',
-    answer: 'Go to their profile, tap the three dots menu, and select either "Block User" or "Report User". You can also report individual posts by tapping the three dots on any post.',
-  },
-  {
-    id: '6',
-    question: 'How does the Nearby feature work?',
-    answer: 'The Nearby feature shows posts and people near your current location. Make sure location permissions are enabled for the app to use this feature.',
-  },
-  {
-    id: '7',
-    question: 'How do I change my password?',
-    answer: 'Go to Settings > Change Password and follow the prompts to update your password.',
-  },
-  {
-    id: '8',
-    question: 'How do I delete my account?',
-    answer: 'Go to Settings > Delete Profile. This action is permanent and cannot be undone.',
-  },
-  {
-    id: '9',
-    question: 'Why am I not receiving notifications?',
-    answer: 'Check your device settings to make sure notifications are enabled for this app. You can also check notification settings within the app.',
-  },
-];
 
 export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps) {
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
@@ -79,6 +31,54 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
+  const faqData: FAQItem[] = [
+    {
+      id: '1',
+      questionKey: 'helpSupport.faqQuestions.howDoesMatchingWork',
+      answerKey: 'helpSupport.faqQuestions.howDoesMatchingWorkAnswer',
+    },
+    {
+      id: '2',
+      questionKey: 'helpSupport.faqQuestions.howToConnect',
+      answerKey: 'helpSupport.faqQuestions.howToConnectAnswer',
+    },
+    {
+      id: '3',
+      questionKey: 'helpSupport.faqQuestions.changeProfilePicture',
+      answerKey: 'helpSupport.faqQuestions.changeProfilePictureAnswer',
+    },
+    {
+      id: '4',
+      questionKey: 'helpSupport.faqQuestions.deletePost',
+      answerKey: 'helpSupport.faqQuestions.deletePostAnswer',
+    },
+    {
+      id: '5',
+      questionKey: 'helpSupport.faqQuestions.blockOrReport',
+      answerKey: 'helpSupport.faqQuestions.blockOrReportAnswer',
+    },
+    {
+      id: '6',
+      questionKey: 'helpSupport.faqQuestions.nearbyFeature',
+      answerKey: 'helpSupport.faqQuestions.nearbyFeatureAnswer',
+    },
+    {
+      id: '7',
+      questionKey: 'helpSupport.faqQuestions.changePassword',
+      answerKey: 'helpSupport.faqQuestions.changePasswordAnswer',
+    },
+    {
+      id: '8',
+      questionKey: 'helpSupport.faqQuestions.deleteAccount',
+      answerKey: 'helpSupport.faqQuestions.deleteAccountAnswer',
+    },
+    {
+      id: '9',
+      questionKey: 'helpSupport.faqQuestions.notReceivingNotifications',
+      answerKey: 'helpSupport.faqQuestions.notReceivingNotificationsAnswer',
+    },
+  ];
 
   const handleFAQPress = (id: string) => {
     setExpandedFAQ(expandedFAQ === id ? null : id);
@@ -189,7 +189,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
                 onPress={() => handleFAQPress(faq.id)}
               >
                 <Text style={[styles.faqQuestion, { color: currentTheme.text }]}>
-                  {faq.question}
+                  {t(faq.questionKey)}
                 </Text>
                 <Ionicons 
                   name={expandedFAQ === faq.id ? "chevron-up" : "chevron-down"} 
@@ -201,7 +201,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
               {expandedFAQ === faq.id && (
                 <View style={[styles.faqAnswer, { backgroundColor: currentTheme.background }]}>
                   <Text style={[styles.faqAnswerText, { color: currentTheme.textSecondary }]}>
-                    {faq.answer}
+                    {t(faq.answerKey)}
                   </Text>
                 </View>
               )}
