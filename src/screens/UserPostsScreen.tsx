@@ -136,6 +136,27 @@ export default function UserPostsScreen({ navigation }: any) {
     loadInitialData();
   }, []);
 
+  // Additional effect to ensure posts are loaded when profile is available
+  useEffect(() => {
+    const loadPostsIfNeeded = async () => {
+      if (profile && posts.length === 0 && !postsLoading) {
+        try {
+          const { getAuth } = await import('../services/firebase');
+          const auth = getAuth();
+          const currentUser = auth.currentUser;
+
+          if (currentUser) {
+            dispatch(fetchUserPosts(currentUser.uid));
+          }
+        } catch (error) {
+          console.error('Error loading posts when profile available:', error);
+        }
+      }
+    };
+
+    loadPostsIfNeeded();
+  }, [profile, posts.length, postsLoading, dispatch]);
+
   const loadInitialData = async () => {
     try {
       const { getAuth } = await import('../services/firebase');
@@ -143,10 +164,12 @@ export default function UserPostsScreen({ navigation }: any) {
       const currentUser = auth.currentUser;
 
       if (currentUser) {
-        // Only fetch posts if not already loaded or cache is stale (older than 5 minutes)
-        const now = Date.now();
-        const cacheAge = 5 * 60 * 1000; // 5 minutes
+        // Always fetch profile if not loaded
+        if (!profile) {
+          dispatch(fetchUserProfile(currentUser.uid));
+        }
         
+        // Fetch posts if not already loaded
         if (posts.length === 0) {
           dispatch(fetchUserPosts(currentUser.uid));
         }
@@ -166,8 +189,8 @@ export default function UserPostsScreen({ navigation }: any) {
       if (currentUser) {
         // Refresh both profile and posts data
         await Promise.all([
-          dispatch(fetchUserProfile(currentUser.uid)),
-          dispatch(fetchUserPosts(currentUser.uid))
+          dispatch(fetchUserProfile(currentUser.uid)).unwrap(),
+          dispatch(fetchUserPosts(currentUser.uid)).unwrap()
         ]);
       }
     } catch (error) {
