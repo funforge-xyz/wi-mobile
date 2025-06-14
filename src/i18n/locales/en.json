@@ -89,6 +89,7 @@
   },
   "profile": {
     "title": "Profile",
+    "myPosts": "My Posts",
     "posts": "Posts",
     "followers": "Followers",
     "following": "Following",

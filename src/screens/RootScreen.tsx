@@ -141,27 +141,47 @@ export default function RootScreen() {
       <Tab.Screen 
         name="Home" 
         component={FeedScreen}
-        options={{ tabBarLabel: t('navigation.home') }}
+        options={{ 
+          tabBarLabel: t('navigation.home'),
+          headerTitle: t('feed.title'),
+          headerShown: false
+        }}
       />
       <Tab.Screen 
         name="Nearby" 
         component={NearbyScreen}
-        options={{ tabBarLabel: t('navigation.nearby') }}
+        options={{ 
+          tabBarLabel: t('navigation.nearby'),
+          headerTitle: t('nearby.title'),
+          headerShown: false
+        }}
       />
       <Tab.Screen 
         name="Add" 
         component={AddPostScreen}
-        options={{ tabBarLabel: t('navigation.add') }}
+        options={{ 
+          tabBarLabel: t('navigation.add'),
+          headerTitle: t('addPost.title'),
+          headerShown: false
+        }}
       />
       <Tab.Screen 
         name="Chats" 
         component={ChatsScreen}
-        options={{ tabBarLabel: t('navigation.chats') }}
+        options={{ 
+          tabBarLabel: t('navigation.chats'),
+          headerTitle: t('chats.title'),
+          headerShown: false
+        }}
       />
       <Tab.Screen 
         name="Profile" 
         component={UserPostsScreen}
-        options={{ tabBarLabel: t('navigation.profile') }}
+        options={{ 
+          tabBarLabel: t('navigation.profile'),
+          headerTitle: t('profile.title'),
+          headerShown: false
+        }}
       />
     </Tab.Navigator>
   );

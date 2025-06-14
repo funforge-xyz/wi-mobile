@@ -89,6 +89,7 @@
   },
   "profile": {
     "title": "Profil",
+    "myPosts": "Moje objave",
     "posts": "Objave",
     "followers": "Pratioci",
     "following": "Pratim",

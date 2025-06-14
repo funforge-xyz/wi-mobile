@@ -18,6 +18,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useTranslation } from 'react-i18next';
 
 interface UserPost {
   id: string;
@@ -80,7 +81,7 @@ const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [ke
 const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  
+
   // Get the actual width from Dimensions since style width might be '100%'
   const { width } = Dimensions.get('window');
   const imageWidth = width - (SPACING.md * 4); // Account for padding
@@ -121,11 +122,12 @@ const PostImage = ({ source, style, ...props }: { source: any; style: any; [key:
 };
 
 export default function UserPostsScreen({ navigation }: any) {
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<UserPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
-  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const [connectionsCount, setConnectionsCount] = useState(0);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
@@ -500,7 +502,9 @@ export default function UserPostsScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>My Posts</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
+          {t('profile.myPosts')}
+        </Text>
         <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings')}>
           <Ionicons name="settings-outline" size={24} color={currentTheme.text} />
         </TouchableOpacity>
