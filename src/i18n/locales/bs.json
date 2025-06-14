@@ -101,7 +101,19 @@
     "privacyPolicy": "Politika privatnosti",
     "terms": "Uslovi korišćenja",
     "logout": "Odjavi se",
-    "version": "Verzija {{version}}"
+    "version": "Verzija {{version}}",
+    "profile": "Profil",
+    "connections": "Konekcije",
+    "anonymousUser": "Anonimni korisnik",
+    "signOut": "Odjavi se",
+    "signOutConfirmation": "Da li ste sigurni da se želite odjaviti?",
+    "cancel": "Odustani",
+    "deleteProfile": "Obriši profil",
+    "deleteProfileConfirmation": "Da li ste sigurni da želite trajno da obrišete svoj profil? Ova akcija se ne može poništiti.",
+    "delete": "Obriši",
+    "reAuthenticationRequired": "Potrebna je ponovna autentifikacija",
+    "reAuthenticationMessage": "Iz bezbednosnih razloga, molimo odjavite se i ponovo se prijavite pre brisanja naloga.",
+    "failedToDelete": "Neuspešno brisanje profila"
   },
   "settings": {
     "title": "Podešavanja",
@@ -232,5 +244,12 @@
     "loadFailed": "Neuspešno učitavanje podataka.",
     "permissionDenied": "Dozvola odbijena.",
     "locationUnavailable": "Usluge lokacije nisu dostupne."
+  },
+  "navigation": {
+    "home": "Početna",
+    "nearby": "Ljudi",
+    "add": "Dodaj",
+    "chats": "Razgovori",
+    "profile": "Profil"
   }
 }

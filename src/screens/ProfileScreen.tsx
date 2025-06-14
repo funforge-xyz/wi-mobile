@@ -122,11 +122,11 @@ export default function ProfileScreen() {
 
         setProfile(userData);
       } else {
-        Alert.alert('Error', 'No user found');
+        Alert.alert(t('common.error'), 'No user found');
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      Alert.alert('Error', 'Failed to load profile');
+      Alert.alert(t('common.error'), t('profile.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ export default function ProfileScreen() {
       t('profile.signOutConfirmation'),
       [
         {
-          text: t('profile.cancel'),
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
@@ -157,7 +157,7 @@ export default function ProfileScreen() {
                 })
               );
             } catch (error) {
-              Alert.alert('Error', 'Failed to sign out');
+              Alert.alert(t('common.error'), 'Failed to sign out');
             }
           },
         },
@@ -173,11 +173,11 @@ export default function ProfileScreen() {
       t('profile.deleteProfileConfirmation'),
       [
         {
-          text: t('profile.cancel'),
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: t('profile.delete'),
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -201,13 +201,13 @@ export default function ProfileScreen() {
                   t('profile.reAuthenticationMessage'),
                   [
                     {
-                      text: 'OK',
+                      text: t('common.ok'),
                       onPress: () => handleSignOut(),
                     },
                   ]
                 );
               } else {
-                Alert.alert('Error', t('profile.failedToDelete'));
+                Alert.alert(t('common.error'), t('profile.failedToDelete'));
               }
             }
           },
@@ -239,7 +239,7 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('profile.profile')}</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('profile.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 

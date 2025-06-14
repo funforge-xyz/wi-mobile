@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS } from '../config/constants';
 import { Settings } from '../services/storage';
 import { authService } from '../services/auth';
+import { useTranslation } from 'react-i18next';
 
 import FeedScreen from './FeedScreen';
 import NearbyScreen from './NearbyScreen';
@@ -25,6 +26,7 @@ export default function RootScreen() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const settings = new Settings();
 
   useEffect(() => {
@@ -136,18 +138,31 @@ export default function RootScreen() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={FeedScreen} />
+      <Tab.Screen 
+        name="Home" 
+        component={FeedScreen}
+        options={{ tabBarLabel: t('navigation.home') }}
+      />
       <Tab.Screen 
         name="Nearby" 
         component={NearbyScreen}
-        options={{ tabBarLabel: 'People' }}
+        options={{ tabBarLabel: t('navigation.nearby') }}
       />
       <Tab.Screen 
         name="Add" 
         component={AddPostScreen}
+        options={{ tabBarLabel: t('navigation.add') }}
       />
-      <Tab.Screen name="Chats" component={ChatsScreen} />
-      <Tab.Screen name="Profile" component={UserPostsScreen} />
+      <Tab.Screen 
+        name="Chats" 
+        component={ChatsScreen}
+        options={{ tabBarLabel: t('navigation.chats') }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={UserPostsScreen}
+        options={{ tabBarLabel: t('navigation.profile') }}
+      />
     </Tab.Navigator>
   );
 }

@@ -101,7 +101,19 @@
     "privacyPolicy": "Privacy Policy",
     "terms": "Terms of Service",
     "logout": "Logout",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "profile": "Profile",
+    "connections": "Connections",
+    "anonymousUser": "Anonymous User",
+    "signOut": "Sign Out",
+    "signOutConfirmation": "Are you sure you want to sign out?",
+    "cancel": "Cancel",
+    "deleteProfile": "Delete Profile",
+    "deleteProfileConfirmation": "Are you sure you want to permanently delete your profile? This action cannot be undone.",
+    "delete": "Delete",
+    "reAuthenticationRequired": "Re-authentication Required",
+    "reAuthenticationMessage": "For security reasons, please sign out and sign back in before deleting your account.",
+    "failedToDelete": "Failed to delete profile"
   },
   "settings": {
     "title": "Settings",
@@ -232,5 +244,12 @@
     "loadFailed": "Failed to load data.",
     "permissionDenied": "Permission denied.",
     "locationUnavailable": "Location services unavailable."
+  },
+  "navigation": {
+    "home": "Home",
+    "nearby": "People",
+    "add": "Add",
+    "chats": "Chats",
+    "profile": "Profile"
   }
 }
