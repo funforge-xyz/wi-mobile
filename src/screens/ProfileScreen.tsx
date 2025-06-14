@@ -19,6 +19,7 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { getFirestore } from '../services/firebase';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import SkeletonLoader from '../components/SkeletonLoader';
+import ProfileSkeleton from '../components/ProfileSkeleton';
 import { useTranslation } from 'react-i18next';
 
 interface UserProfile {
@@ -224,13 +225,7 @@ export default function ProfileScreen() {
 
 
   if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      </SafeAreaView>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (

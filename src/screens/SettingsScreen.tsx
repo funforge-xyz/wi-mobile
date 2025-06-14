@@ -29,6 +29,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import SettingsSkeleton from '../components/SettingsSkeleton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface UserProfile {
@@ -84,6 +85,10 @@ export default function SettingsScreen() {
   const settings = new Settings();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
+
+  if (loading) {
+    return <SettingsSkeleton />;
+  }
 
   useEffect(() => {
     loadSettings();
