@@ -85,34 +85,18 @@ export default function ProfileScreen() {
 
 
   const handleSignOut = async () => {
-    Alert.alert(
-      t('profile.signOut'),
-      t('profile.signOutConfirmation'),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('profile.signOut'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await authService.signOut();
-              // Reset navigation stack to Login screen
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Root' }],
-                })
-              );
-            } catch (error) {
-              Alert.alert(t('common.error'), 'Failed to sign out');
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await authService.signOut();
+      // Reset navigation stack to Login screen
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Root' }],
+        })
+      );
+    } catch (error) {
+      Alert.alert(t('common.error'), 'Failed to sign out');
+    }
   };
 
 

@@ -936,37 +936,6 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
           </TouchableOpacity>
         </View>
-
-        <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
-          <TouchableOpacity 
-            style={styles.settingRow} 
-            onPress={async () => {
-              try {
-                await authService.signOut();
-              } catch (error) {
-                console.error('Logout error:', error);
-              }
-            }}
-          >
-            <View style={styles.settingInfo}>
-              <Ionicons 
-                name="log-out-outline" 
-                size={20} 
-                color={COLORS.error} 
-                style={styles.settingIcon}
-              />
-              <View style={styles.settingTextContainer}>
-                <Text style={[styles.settingTitle, { color: COLORS.error }]}>
-                  {t('settings.signOut', 'Sign Out')}
-                </Text>
-                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
-                  {t('settings.signOutFromAccount', 'Sign out from your account')}
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
-          </TouchableOpacity>
-        </View>
       </ScrollView>
 
       {/* Edit Profile Modal */}
