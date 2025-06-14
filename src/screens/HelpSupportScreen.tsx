@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../config/constants';
+import { COLORS, FONTS, SPACING } from '../config/constants';
 interface HelpSupportScreenProps {
   navigation: any;
 }

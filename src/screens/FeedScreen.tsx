@@ -9,7 +9,6 @@ import {
   RefreshControl,
   Alert,
   Dimensions,
-  ActivityIndicator,
   AppState,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
