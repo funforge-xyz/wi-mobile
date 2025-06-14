@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActionSheetIOS, Platform, Modal, TextInput, ActivityIndicator, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  ActionSheetIOS,
+  Platform,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Image
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
+import { authService } from '../services/auth';
 import { Settings, storageService } from '../services/storage';
+import { useTranslation } from 'react-i18next';
+import { COLORS, FONTS, SPACING } from '../config/constants';
+import { Ionicons } from '@expo/vector-icons';
 import { initializeNotifications } from '../services/notifications';
 import * as Notifications from 'expo-notifications';
 import * as ImagePicker from 'expo-image-picker';
-import { authService } from '../services/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { COLORS, FONTS, SPACING } from '../config/constants';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface UserProfile {
