@@ -413,13 +413,13 @@ export default function ChatsScreen({ navigation }: any) {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     } else if (diffInDays > 0) {
-      return `${diffInDays}d ago`;
+      return t('time.daysAgo', { count: diffInDays });
     } else if (diffInHours > 0) {
-      return `${diffInHours}h ago`;
+      return t('time.hoursAgo', { count: diffInHours });
     } else if (diffInMinutes > 0) {
-      return `${diffInMinutes}m ago`;
+      return t('time.minutesAgo', { count: diffInMinutes });
     } else {
-      return 'Just now';
+      return t('time.justNow');
     }
   };
 

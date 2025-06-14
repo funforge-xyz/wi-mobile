@@ -341,7 +341,8 @@ export default function UserPostsScreen({ navigation }: any) {
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInDays > 6) {
@@ -350,11 +351,13 @@ export default function UserPostsScreen({ navigation }: any) {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     } else if (diffInDays > 0) {
-      return `${diffInDays}d ago`;
+      return t('time.daysAgo', { count: diffInDays });
     } else if (diffInHours > 0) {
-      return `${diffInHours}h ago`;
+      return t('time.hoursAgo', { count: diffInHours });
+    } else if (diffInMinutes > 0) {
+      return t('time.minutesAgo', { count: diffInMinutes });
     } else {
-      return 'Just now';
+      return t('time.justNow');
     }
   };
 

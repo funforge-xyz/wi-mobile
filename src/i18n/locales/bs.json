@@ -294,5 +294,9 @@
     "daysAgo": "Pre {{count}} d",
     "hoursAgo": "Pre {{count}} h",
     "minutesAgo": "Pre {{count}} min"
+  },
+  "singlePost": {
+    "content": "Sadržaj",
+    "noCommentsYet": "Još nema komentara. Budite prvi koji će komentarisati!"
   }
 }

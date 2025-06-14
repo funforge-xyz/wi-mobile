@@ -68,13 +68,13 @@ const PostItem: React.FC<PostItemProps> = ({ post, onLike, currentTheme, navigat
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     } else if (diffInDays > 0) {
-      return `${diffInDays}d`;
+      return t('time.daysAgo', { count: diffInDays });
     } else if (diffInHours > 0) {
-      return `${diffInHours}h`;
+      return t('time.hoursAgo', { count: diffInHours });
     } else if (diffInMinutes > 0) {
-      return `${diffInMinutes}m`;
+      return t('time.minutesAgo', { count: diffInMinutes });
     } else {
-      return 'now';
+      return t('time.justNow');
     }
   };
 
@@ -441,9 +441,9 @@ export default function FeedScreen({ navigation }: any) {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Ionicons name="newspaper-outline" size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>{t('feed.noPostsAvailable')}</Text>
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>{t('feed.noPosts')}</Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        {t('feed.noPublicPosts')}
+        {t('feed.shareFirst')}
       </Text>
     </View>
   );

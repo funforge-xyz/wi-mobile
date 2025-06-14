@@ -22,6 +22,7 @@ import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc,
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { createNearbyRequestNotification } from '../services/notifications';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   id: string;
@@ -92,6 +93,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received'>('none');
   const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { t } = useTranslation();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -431,6 +433,24 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     }
   };
 
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays > 0) {
+      return t('time.daysAgo', { count: diffInDays });
+    } else if (diffInHours > 0) {
+      return t('time.hoursAgo', { count: diffInHours });
+    } else if (diffInMinutes > 0) {
+      return t('time.minutesAgo', { count: diffInMinutes });
+    } else {
+      return t('time.justNow');
+    }
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const { getAuth } = require('../services/firebase');
     const auth = getAuth();
@@ -466,15 +486,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           <Ionicons name="chatbubbles-outline" size={48} color={currentTheme.textSecondary} />
         </View>
         <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-          Start the Conversation
+          {t('chats.startChatting')}
         </Text>
         <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-          Send your first message to connect with {userName}
+          {t('chats.sendMessage')} {userName}
         </Text>
         <View style={[styles.emptyHint, { backgroundColor: currentTheme.surface }]}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.primary} />
           <Text style={[styles.emptyHintText, { color: currentTheme.textSecondary }]}>
-            Your first message will send a connection request
+            {t('nearby.sendRequest')}
           </Text>
         </View>
       </View>
@@ -516,7 +536,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           <View style={styles.headerTextContainer}>
             <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
             {userOnlineStatus && (
-              <Text style={[styles.onlineStatus, { color: COLORS.success }]}>Online</Text>
+              <Text style={[styles.onlineStatus, { color: COLORS.success }]}>{t('chat.online')}</Text>
             )}
           </View>
         </TouchableOpacity>
@@ -528,7 +548,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           <View style={[styles.statusPill, { backgroundColor: COLORS.warning + '15', borderColor: COLORS.warning + '30' }]}>
             <Ionicons name="time-outline" size={14} color={COLORS.warning} />
             <Text style={[styles.statusPillText, { color: COLORS.warning }]}>
-              Request sent • Waiting for response
+              {t('nearby.requestSent')} • {t('common.loading')}
             </Text>
           </View>
         </View>
@@ -567,7 +587,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           }]}
           value={newMessage}
           onChangeText={setNewMessage}
-          placeholder="Type a message..."
+          placeholder={t('chat.messageInput')}
           placeholderTextColor={currentTheme.textSecondary}
           multiline
           maxLength={500}

@@ -294,5 +294,9 @@
     "daysAgo": "{{count}}d ago",
     "hoursAgo": "{{count}}h ago",
     "minutesAgo": "{{count}}m ago"
+  },
+  "singlePost": {
+    "content": "Content",
+    "noCommentsYet": "No comments yet. Be the first to comment!"
   }
 }

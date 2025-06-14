@@ -577,7 +577,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
             {comments.length === 0 && (
               <Text style={[styles.noCommentsText, { color: currentTheme.textSecondary }]}>
-                No comments yet. Be the first to comment!
+                {t('singlePost.noCommentsYet')}
               </Text>
             )}
           </View>
@@ -767,7 +767,7 @@ const AvatarImage = ({ uri, style, ...props }: { uri: string; style: any; [key: 
 const PostImage = ({ source, style }: { source: any; style: any }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  
+
   // Get the actual width from Dimensions since style width might be '100%'
   const { width } = Dimensions.get('window');
   const imageWidth = width - (SPACING.md * 4); // Account for padding
@@ -993,6 +993,7 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+```text
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
