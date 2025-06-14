@@ -288,5 +288,11 @@
     "add": "Add",
     "chats": "Chats",
     "profile": "Profile"
+  },
+  "time": {
+    "justNow": "Just now",
+    "daysAgo": "{{count}}d ago",
+    "hoursAgo": "{{count}}h ago",
+    "minutesAgo": "{{count}}m ago"
   }
 }

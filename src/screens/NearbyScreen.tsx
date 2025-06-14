@@ -255,18 +255,22 @@ export default function NearbyScreen({ navigation }: any) {
 
 
 
-  const formatTimeAgo = (date: Date) => {
+  const formatLastSeen = (timestamp: any) => {
+    if (!timestamp) return 'Unknown';
+
     const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
+    const lastSeen = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const diffInMs = now.getTime() - lastSeen.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays > 0) {
-      return `${diffInDays}d ago`;
+      return t('time.daysAgo', { count: diffInDays });
     } else if (diffInHours > 0) {
-      return `${diffInHours}h ago`;
+      return t('time.hoursAgo', { count: diffInHours });
     } else {
-      return 'Just now';
+      return t('time.justNow');
     }
   };
 

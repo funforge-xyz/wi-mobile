@@ -288,5 +288,11 @@
     "add": "Dodaj",
     "chats": "Razgovori",
     "profile": "Profil"
+  },
+  "time": {
+    "justNow": "Upravo sada",
+    "daysAgo": "Pre {{count}} d",
+    "hoursAgo": "Pre {{count}} h",
+    "minutesAgo": "Pre {{count}} min"
   }
 }
