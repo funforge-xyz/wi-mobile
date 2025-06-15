@@ -300,7 +300,7 @@
       "deletePost": "How do I delete a post?",
       "deletePostAnswer": "Tap on one of your posts, then tap the three dots menu in the top right corner and select \"Delete Post\".",
       "blockOrReport": "How do I block or report someone?",
-      "blockOrReportAnswer": "Go to their profile, tap the three dots menu, and select either \"Block User\" or \"Report User\". You can also report individual posts by tapping the three dots on any post.",
+      "blockOrReportAnswer": "Go to their profile, tap the three dots menu, and select either \"Block User\". You can also report individual posts by tapping the three dots on any post.",
       "nearbyFeature": "How does the Nearby feature work?",
       "nearbyFeatureAnswer": "The Nearby feature shows posts and people near your current location. Make sure location permissions are enabled for the app to use this feature.",
       "changePassword": "How do I change my password?",
