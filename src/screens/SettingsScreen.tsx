@@ -147,6 +147,18 @@ export default function SettingsScreen() {
     }
   };
 
+  const setUserData = (userData: any) => {
+    setEditedProfile({
+      id: userData.id || '',
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      email: userData.email || '',
+      photoURL: userData.photoURL || '',
+      thumbnailURL: userData.thumbnailURL || userData.photoURL || '',
+      bio: userData.bio || '',
+    });
+  };
+
   const loadUserData = async () => {
     setIsLoading(true);
     try {
@@ -211,18 +223,18 @@ export default function SettingsScreen() {
         const token = await initializeNotifications();
         if (token) {
           setPushNotificationsEnabled(true);
-          Alert.alert('Success', 'Push notifications enabled successfully');
+          Alert.alert(t('common.success'), t('settings.pushNotificationsEnabledSuccessfully'));
         } else {
           Alert.alert(
-            'Permission Required',
-            'Please enable notifications in your device settings to receive updates',
+            t('settings.permissionRequired'),
+            t('settings.enableNotificationsInDeviceSettings'),
             [
               {
-                text: 'Cancel',
+                text: t('common.cancel'),
                 style: 'cancel',
               },
               {
-                text: 'Open Settings',
+                text: t('settings.openSettings'),
                 onPress: () => Notifications.openSettingsAsync(),
               },
             ]
@@ -231,11 +243,11 @@ export default function SettingsScreen() {
       } else {
         // For disabling, we can't revoke permissions but we can stop handling them
         setPushNotificationsEnabled(false);
-        Alert.alert('Disabled', 'Push notifications have been disabled');
+        Alert.alert(t('settings.disabled'), t('settings.pushNotificationsDisabled'));
       }
     } catch (error) {
       console.error('Error toggling push notifications:', error);
-      Alert.alert('Error', 'Failed to update notification settings');
+      Alert.alert(t('common.error'), t('settings.failedToUpdateNotificationSettings'));
     } finally {
       setIsLoading(false);
     }
@@ -249,18 +261,18 @@ export default function SettingsScreen() {
         const success = await locationService.startLocationTracking();
         if (success) {
           setLocationTrackingEnabled(true);
-          Alert.alert('Success', 'Location tracking enabled successfully');
+          Alert.alert(t('common.success'), t('settings.locationTrackingEnabledSuccessfully'));
         } else {
           Alert.alert(
-            'Permission Required',
-            'Please enable location permissions in your device settings to use location-based features',
+            t('settings.permissionRequired'),
+            t('settings.enableLocationPermissionsInDeviceSettings'),
             [
               {
-                text: 'Cancel',
+                text: t('common.cancel'),
                 style: 'cancel',
               },
               {
-                text: 'Open Settings',
+                text: t('settings.openSettings'),
                 onPress: () => {
                   // On iOS, this will open the app settings
                   // On Android, we'd need to use a different approach
@@ -275,11 +287,11 @@ export default function SettingsScreen() {
       } else {
         await locationService.stopLocationTracking();
         setLocationTrackingEnabled(false);
-        Alert.alert('Disabled', 'Location tracking has been disabled');
+        Alert.alert(t('settings.disabled'), t('settings.locationTrackingDisabled'));
       }
     } catch (error) {
       console.error('Error toggling location tracking:', error);
-      Alert.alert('Error', 'Failed to update location tracking settings');
+      Alert.alert(t('common.error'), t('settings.failedToUpdateLocationTrackingSettings'));
     } finally {
       setIsLoading(false);
     }
@@ -307,10 +319,10 @@ export default function SettingsScreen() {
         });
       }
 
-      Alert.alert('Settings Updated', `Tracking radius set to ${radius}km`);
+      Alert.alert(t('settings.settingsUpdated'), `${t('settings.trackingRadiusSetTo')} ${radius}km`);
     } catch (error) {
       console.error('Error updating tracking radius:', error);
-      Alert.alert('Error', 'Failed to update tracking radius');
+      Alert.alert(t('common.error'), t('settings.failedToUpdateTrackingRadius'));
     }
   };
 
@@ -322,23 +334,23 @@ export default function SettingsScreen() {
     const errors: string[] = [];
 
     if (password.length < 8) {
-      errors.push('• At least 8 characters long');
+      errors.push(t('settings.atLeast8CharactersLong'));
     }
 
     if (!/[A-Z]/.test(password)) {
-      errors.push('• At least one uppercase letter');
+      errors.push(t('settings.atLeastOneUppercaseLetter'));
     }
 
     if (!/[a-z]/.test(password)) {
-      errors.push('• At least one lowercase letter');
+      errors.push(t('settings.atLeastOneLowercaseLetter'));
     }
 
     if (!/\d/.test(password)) {
-      errors.push('• At least one number');
+      errors.push(t('settings.atLeastOneNumber'));
     }
 
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push('• At least one special character');
+      errors.push(t('settings.atLeastOneSpecialCharacter'));
     }
 
     return {
@@ -349,36 +361,36 @@ export default function SettingsScreen() {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('settings.pleaseFillInAllFields'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
+      Alert.alert(t('common.error'), t('settings.newPasswordsDoNotMatch'));
       return;
     }
 
     if (currentPassword === newPassword) {
-      Alert.alert('Error', 'New password must be different from current password');
+      Alert.alert(t('common.error'), t('settings.newPasswordMustBeDifferent'));
       return;
     }
 
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.isValid) {
-      Alert.alert('Password Requirements Not Met', passwordValidation.errors.join('\n'));
+      Alert.alert(t('settings.passwordRequirementsNotMet'), passwordValidation.errors.join('\n'));
       return;
     }
 
     setIsLoading(true);
     try {
       await authService.changePassword(currentPassword, newPassword);
-      Alert.alert('Success', 'Password changed successfully');
+      Alert.alert(t('common.success'), t('settings.passwordChangedSuccessfully'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowChangePasswordModal(false);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
     } finally {
       setIsLoading(false);
     }
@@ -386,15 +398,15 @@ export default function SettingsScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
+      t('settings.deleteAccount'),
+      t('settings.areYouSureYouWantToDeleteAccount'),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t('settings.delete'),
           style: 'destructive',
           onPress: async () => {
             setIsLoading(true);
@@ -404,7 +416,7 @@ export default function SettingsScreen() {
               setShowDeleteAccountModal(false);
               // Navigation will be handled by the auth service callback
             } catch (error: any) {
-              Alert.alert('Error', error.message);
+              Alert.alert(t('common.error'), error.message);
               setIsLoading(false);
             }
           },
@@ -458,7 +470,7 @@ export default function SettingsScreen() {
           thumbnailURL = uploadResult.thumbnailUrl;
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
-          Alert.alert('Error', 'Failed to upload profile picture');
+          Alert.alert(t('common.error'), t('settings.failedToUploadProfilePicture'));
           setIsLoading(false);
           return;
         }
@@ -483,7 +495,7 @@ export default function SettingsScreen() {
       }));
 
       setIsEditingProfile(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      Alert.alert(t('common.success'), t('settings.profileUpdatedSuccessfully'));
 
       // Refresh profile from server
       const { getAuth } = await import('../services/firebase');
@@ -494,7 +506,7 @@ export default function SettingsScreen() {
       }
     } catch (error) {
       console.error('Profile save error:', error);
-      Alert.alert('Error', 'Failed to update profile');
+      Alert.alert(t('common.error'), t('settings.failedToUpdateProfile'));
     } finally {
       setIsLoading(false);
     }
@@ -568,7 +580,7 @@ export default function SettingsScreen() {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+      Alert.alert(t('settings.permissionRequired'), t('settings.cameraRollAccessRequired'));
       return;
     }
 
@@ -593,7 +605,7 @@ export default function SettingsScreen() {
         });
       } catch (error) {
         console.error('Error processing image:', error);
-        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please select a smaller image.');
+        Alert.alert(t('settings.imageTooLarge'), t('settings.unableToCompressImage'));
       } finally {
         setIsLoading(false);
       }
@@ -604,7 +616,7 @@ export default function SettingsScreen() {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access the camera is required!');
+      Alert.alert(t('settings.permissionRequired'), t('settings.cameraAccessRequired'));
       return;
     }
 
@@ -628,7 +640,7 @@ export default function SettingsScreen() {
         });
       } catch (error) {
         console.error('Error processing image:', error);
-        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please take a photo with better lighting or closer subject.');
+        Alert.alert(t('settings.imageTooLarge'), t('settings.unableToCompressImage'));
       } finally {
         setIsLoading(false);
       }
@@ -655,18 +667,18 @@ export default function SettingsScreen() {
         thumbnailURL: '',
       });
 
-      Alert.alert('Image Removed', 'Press save to update');
+      Alert.alert(t('settings.imageRemoved'), t('settings.pressSaveToUpdate'));
 
     } catch (error) {
       console.error('Error removing profile picture:', error);
-      Alert.alert('Error', 'Failed to remove profile picture');
+      Alert.alert(t('common.error'), t('settings.failedToRemoveProfilePicture'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const showImagePickerOptions = () => {
-    const options = ['Take Photo', 'Choose from Library', 'Cancel'];
+    const options = [t('settings.takePhoto'), t('settings.chooseFromLibrary'), t('common.cancel')];
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -686,22 +698,22 @@ export default function SettingsScreen() {
       // For Android - reversed order (bottom to top)
       const alertOptions = [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel' as const,
         },
         {
-          text: 'Choose from Library',
+          text: t('settings.chooseFromLibrary'),
           onPress: handleImagePicker,
         },
         {
-          text: 'Take Photo',
+          text: t('settings.takePhoto'),
           onPress: handleCameraCapture,
         },
       ];
 
       Alert.alert(
-        'Choose an option',
-        'Select how you want to set your profile picture',
+        t('settings.chooseAnOption'),
+        t('settings.selectHowToSetProfilePicture'),
         alertOptions,
         { cancelable: true }
       );
@@ -1773,7 +1785,7 @@ const modalStyles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   placeholderModalAvatar: {
-    justifyContent: 'center',
+    justifyContent: center,
     alignItems: 'center',
   },
   deleteImageButton: {

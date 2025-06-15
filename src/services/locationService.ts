@@ -86,8 +86,19 @@ export class LocationService {
             timeInterval: 15000, // 15 second timeout
           });
         } catch (fallbackError) {
-          console.log('Failed to get location with fallback, skipping location tracking:', fallbackError);
-          return false;
+          console.log('Failed to get location with fallback, trying last known position:', fallbackError);
+          try {
+            currentLocation = await Location.getLastKnownPositionAsync({
+              maxAge: 60000, // Accept location up to 1 minute old
+            });
+            if (!currentLocation) {
+              console.log('No last known position available, skipping location tracking');
+              return false;
+            }
+          } catch (lastKnownError) {
+            console.log('Failed to get last known position, skipping location tracking:', lastKnownError);
+            return false;
+          }
         }
       }
 
@@ -138,9 +149,29 @@ export class LocationService {
         return null;
       }
 
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      let location;
+      try {
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 10000,
+        });
+      } catch (error) {
+        console.log('Failed to get current location, trying with lower accuracy:', error);
+        try {
+          location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Low,
+            timeInterval: 15000,
+          });
+        } catch (fallbackError) {
+          console.log('Failed with low accuracy, trying last known position:', fallbackError);
+          location = await Location.getLastKnownPositionAsync({
+            maxAge: 300000, // Accept location up to 5 minutes old
+          });
+          if (!location) {
+            return null;
+          }
+        }
+      }
 
       return {
         latitude: location.coords.latitude,
