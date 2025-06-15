@@ -24,8 +24,23 @@ import NotificationBell from '../components/NotificationBell';
 import SkeletonLoader from '../components/SkeletonLoader';
 import FeedSkeleton from '../components/FeedSkeleton';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
+
+// Calculate distance between two coordinates using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c; // Distance in kilometers
+  return distance;
+};
 
 interface ConnectionPost {
   id: string;
@@ -167,6 +182,8 @@ export default function FeedScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notificationKey, setNotificationKey] = useState(0);
+  const [userRadius, setUserRadius] = useState<number | null>(null);
+  const [currentUserLocation, setCurrentUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -184,6 +201,24 @@ export default function FeedScreen({ navigation }: any) {
     let appStateSubscription: any;
     let lastSeenInterval: NodeJS.Timeout;
 
+    const loadUserSettings = async () => {
+      try {
+        // Load user's radius setting
+        const savedRadius = await AsyncStorage.getItem('userLocationRadius');
+        if (savedRadius) {
+          setUserRadius(parseFloat(savedRadius));
+        }
+        
+        // Get current user location
+        const location = await locationService.getCurrentLocation();
+        if (location) {
+          setCurrentUserLocation(location);
+        }
+      } catch (error) {
+        console.error('Error loading user settings:', error);
+      }
+    };
+
     const setupAuthListener = async () => {
       try {
         const { getAuth } = await import('../services/firebase');
@@ -197,6 +232,7 @@ export default function FeedScreen({ navigation }: any) {
               // Continue without location tracking
             });
 
+            loadUserSettings();
             loadConnectionPosts();
           } else {
             setLoading(false);
@@ -315,6 +351,31 @@ export default function FeedScreen({ navigation }: any) {
         // Get author information
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
+
+        // Location-based filtering
+        if (userRadius && currentUserLocation) {
+          // Check if author has location data
+          const authorLat = authorData.lastUpdatedLatitude || authorData.location?.latitude;
+          const authorLon = authorData.lastUpdatedLongitude || authorData.location?.longitude;
+          
+          if (authorLat && authorLon) {
+            // Calculate distance between current user and post author
+            const distance = calculateDistance(
+              currentUserLocation.latitude,
+              currentUserLocation.longitude,
+              authorLat,
+              authorLon
+            );
+            
+            // Skip post if author is outside the radius
+            if (distance > userRadius) {
+              continue;
+            }
+          } else {
+            // Skip post if author location is not available
+            continue;
+          }
+        }
 
         // Get likes count and check if user liked
         const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');

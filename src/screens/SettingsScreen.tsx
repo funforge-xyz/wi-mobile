@@ -34,6 +34,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import SettingsSkeleton from '../components/SettingsSkeleton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { fetchUserProfile, updateProfile } from '../store/userSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserProfile {
   id: string;
@@ -87,6 +88,10 @@ export default function SettingsScreen() {
     bio: '',
   });
   const settings = new Settings();
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+  const [isLanguagePickerVisible, setIsLanguagePickerVisible] = useState(false);
+  const [isLocationRadiusVisible, setIsLocationRadiusVisible] = useState(false);
+  const [selectedRadius, setSelectedRadius] = useState<number>(10);
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
@@ -96,6 +101,9 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     loadSettings();
+    loadUserData();
+    loadLanguagePreference();
+    loadLocationRadiusPreference();
   }, []);
 
   const loadSettings = async () => {
@@ -136,6 +144,54 @@ export default function SettingsScreen() {
       setLocationTrackingEnabled(hasLocationPermissions && isTracking);
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadUserData = async () => {
+    setIsLoading(true);
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const user = auth.currentUser || await authService.getCurrentUser();
+
+      if (user) {
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        } else {
+          console.warn('User document not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadLanguagePreference = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem('userLanguage');
+      if (savedLanguage) {
+        setSelectedLanguage(savedLanguage);
+        i18n.changeLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.error('Error loading language preference:', error);
+    }
+  };
+
+  const loadLocationRadiusPreference = async () => {
+    try {
+      const savedRadius = await AsyncStorage.getItem('userLocationRadius');
+      if (savedRadius) {
+        setSelectedRadius(parseFloat(savedRadius));
+      }
+    } catch (error) {
+      console.error('Error loading location radius preference:', error);
     }
   };
 
@@ -652,6 +708,30 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleLanguageChange = async (language: string) => {
+    try {
+      await AsyncStorage.setItem('userLanguage', language);
+      setSelectedLanguage(language);
+      i18n.changeLanguage(language);
+      setIsLanguagePickerVisible(false);
+    } catch (error) {
+      console.error('Error saving language preference:', error);
+      Alert.alert(t('common.error'), t('settings.languageChangeError'));
+    }
+  };
+
+  const handleLocationRadiusChange = async (radius: number) => {
+    try {
+      await AsyncStorage.setItem('userLocationRadius', radius.toString());
+      setSelectedRadius(radius);
+      setIsLocationRadiusVisible(false);
+      Alert.alert(t('common.success'), t('settings.locationRadiusChanged'));
+    } catch (error) {
+      console.error('Error saving location radius preference:', error);
+      Alert.alert(t('common.error'), t('settings.locationRadiusChangeError'));
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
@@ -896,8 +976,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.settingInfo}>
               <Ionicons 
-                name="help-circle-outline" 
-                size={20} 
+                name="help-circle-outline"                 size={20} 
                 color={currentTheme.text} 
                 style={styles.settingIcon}
               />
@@ -930,6 +1009,48 @@ export default function SettingsScreen() {
                 </Text>
                 <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
                   {t('settings.viewPrivacy')}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
+          <TouchableOpacity style={styles.settingRow} onPress={() => setIsLanguagePickerVisible(true)}>
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="language-outline" 
+                size={20} 
+                color={currentTheme.text} 
+                style={styles.settingIcon}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
+                  {t('settings.language')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
+                  {selectedLanguage === 'en' ? 'English' : 'Bosanski'}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingRow} onPress={() => setIsLocationRadiusVisible(true)}>
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="location-outline" 
+                size={20} 
+                color={currentTheme.text} 
+                style={styles.settingIcon}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: currentTheme.text }]}>
+                  {t('settings.locationRadius')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: currentTheme.textSecondary }]}>
+                  {selectedRadius} km {t('settings.feedRadius')}
                 </Text>
               </View>
             </View>
@@ -1349,6 +1470,95 @@ export default function SettingsScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Language Picker Modal */}
+      <Modal
+        visible={isLanguagePickerVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsLanguagePickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                {t('settings.selectLanguage')}
+              </Text>
+              <TouchableOpacity onPress={() => setIsLanguagePickerVisible(false)}>
+                <Ionicons name="close" size={24} color={currentTheme.text} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.languageOption, selectedLanguage === 'en' && { backgroundColor: COLORS.primary + '20' }]}
+              onPress={() => handleLanguageChange('en')}
+            >
+              <Text style={[styles.languageText, { color: currentTheme.text }]}>English</Text>
+              {selectedLanguage === 'en' && (
+                <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.languageOption, selectedLanguage === 'bs' && { backgroundColor: COLORS.primary + '20' }]}
+              onPress={() => handleLanguageChange('bs')}
+            >
+              <Text style={[styles.languageText, { color: currentTheme.text }]}>Bosanski</Text>
+              {selectedLanguage === 'bs' && (
+                <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Location Radius Picker Modal */}
+      <Modal
+        visible={isLocationRadiusVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsLocationRadiusVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                {t('settings.selectLocationRadius')}
+              </Text>
+              <TouchableOpacity onPress={() => setIsLocationRadiusVisible(false)}>
+                <Ionicons name="close" size={24} color={currentTheme.text} />
+              </TouchableOpacity>
+            </View>
+
+            {[1, 5, 10, 20, 50, 100].map((radius) => (
+              <TouchableOpacity 
+                key={radius}
+                style={[styles.languageOption, selectedRadius === radius && { backgroundColor: COLORS.primary + '20' }]}
+                onPress={() => handleLocationRadiusChange(radius)}
+              >
+                <Text style={[styles.languageText, { color: currentTheme.text }]}>
+                  {radius} km
+                </Text>
+                {selectedRadius === radius && (
+                  <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity 
+              style={[styles.languageOption, selectedRadius === null && { backgroundColor: COLORS.primary + '20' }]}
+              onPress={() => handleLocationRadiusChange(0)}
+            >
+              <Text style={[styles.languageText, { color: currentTheme.text }]}>
+                {t('settings.noLocationFilter')}
+              </Text>
+              {selectedRadius === 0 && (
+                <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1519,6 +1729,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: SPACING.lg,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  languageOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  languageText: {
+    fontSize: 16,
   },
 });
 
