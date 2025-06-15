@@ -191,13 +191,13 @@ export default function NotificationsScreen({ navigation }: any) {
     const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInDays > 0) {
-      return `${diffInDays}d ago`;
+      return t('time.daysAgo', { count: diffInDays });
     } else if (diffInHours > 0) {
-      return `${diffInHours}h ago`;
+      return t('time.hoursAgo', { count: diffInHours });
     } else if (diffInMinutes > 0) {
-      return `${diffInMinutes}m ago`;
+      return t('time.minutesAgo', { count: diffInMinutes });
     } else {
-      return 'Just now';
+      return t('time.justNow');
     }
   };
 
@@ -326,9 +326,9 @@ export default function NotificationsScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>Notifications</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('notifications.title')}</Text>
         <TouchableOpacity onPress={markAllAsRead}>
-          <Text style={[styles.markAllText, { color: COLORS.primary }]}>Mark all read</Text>
+          <Text style={[styles.markAllText, { color: COLORS.primary }]}>{t('notifications.markAllRead')}</Text>
         </TouchableOpacity>
       </View>
 
