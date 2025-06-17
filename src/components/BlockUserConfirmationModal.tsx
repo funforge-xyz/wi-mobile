@@ -4,10 +4,10 @@ import { View, Text, Modal, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
+import { useTranslation } from 'react-i18next';
+
 interface BlockUserConfirmationModalProps {
   visible: boolean;
-  title: string;
-  message: string;
   onConfirm: () => void;
   onCancel: () => void;
   currentTheme: any;
@@ -16,13 +16,12 @@ interface BlockUserConfirmationModalProps {
 
 export default function BlockUserConfirmationModal({
   visible,
-  title,
-  message,
   onConfirm,
   onCancel,
   currentTheme,
   animation,
 }: BlockUserConfirmationModalProps) {
+  const { t } = useTranslation();
   const animatedStyle = animation ? {
     transform: [
       {
@@ -61,11 +60,11 @@ export default function BlockUserConfirmationModal({
           </View>
           
           <Text style={[styles.title, { color: currentTheme.text }]}>
-            {title}
+            {t('userProfile.blockUser')}
           </Text>
           
           <Text style={[styles.message, { color: currentTheme.textSecondary }]}>
-            {message}
+            {t('userProfile.blockUserConfirmation')}
           </Text>
 
           <View style={styles.buttonContainer}>
@@ -74,7 +73,7 @@ export default function BlockUserConfirmationModal({
               onPress={onCancel}
             >
               <Text style={[styles.cancelButtonText, { color: currentTheme.textSecondary }]}>
-                Cancel
+                {t('common.cancel')}
               </Text>
             </TouchableOpacity>
 
@@ -87,7 +86,7 @@ export default function BlockUserConfirmationModal({
               onPress={onConfirm}
             >
               <Text style={styles.confirmButtonText}>
-                Block
+                {t('common.block')}
               </Text>
             </TouchableOpacity>
           </View>

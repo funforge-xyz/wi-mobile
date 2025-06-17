@@ -228,11 +228,6 @@ export default function ChatsScreen({ navigation }: any) {
 
       <BlockUserConfirmationModal
         visible={showBlockModal}
-        title={t('chats.blockUser', 'Block User')}
-        message={t('chats.blockUserConfirmation', {
-          user: selectedConnection?.otherUserName || t('chats.thisUser', 'this user'),
-          defaultValue: `Are you sure you want to block ${selectedConnection?.otherUserName || 'this user'}? They will no longer be able to message you.`
-        })}
         onConfirm={handleConfirmBlock}
         onCancel={handleCancelBlock}
         currentTheme={currentTheme}

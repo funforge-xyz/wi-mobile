@@ -14,6 +14,7 @@
     "ok": "OK",
     "yes": "Yes",
     "no": "No",
+    "block": "Block",
     "search": "Search",
     "settings": "Settings",
     "logout": "Logout",
@@ -365,7 +366,7 @@
     "title": "Profile",
     "anonymousUser": "Anonymous User",
     "blockUser": "Block User",
-    "blockUserConfirmation": "Are you sure you want to block {{user}}? They will be removed from your connections and you won't see them in nearby feeds.",
+    "blockUserConfirmation": "Are you sure you want to block this user? They will be removed from your connections and you won't see them in nearby feeds.",
     "userBlocked": "User has been blocked",
     "failedToBlock": "Failed to block user",
     "failedToLoadProfile": "Failed to load user profile"

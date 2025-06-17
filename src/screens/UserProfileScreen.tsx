@@ -200,11 +200,6 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       <BlockUserConfirmationModal
         visible={showBlockModal}
-        title={t('userProfile.blockUser')}
-        message={t('userProfile.blockUserConfirmation', { 
-          user: profile.firstName || t('userProfile.anonymousUser'),
-          defaultValue: `Are you sure you want to block ${profile.firstName || 'this user'}? They will no longer be able to see your posts or message you.`
-        })}
         onConfirm={handleConfirmBlock}
         onCancel={handleCancelBlock}
         currentTheme={currentTheme}
