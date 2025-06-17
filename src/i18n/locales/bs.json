@@ -83,7 +83,7 @@
     "declineRequest": "Odbaci zahtjev",
     "declineRequestMessage": "Da li ste sigurni da želite da odbacite zahtjev od {{user}}?",
     "blockUser": "Blokiraj korisnika",
-    "blockUserMessage": "Da li ste sigurni da želite da blokirate {{user}}? Bit će uklonjeni iz vaših konekcija.",
+    "blockUserMessage": "Da li ste sigurni da želite da blokirate ovog korisnika? Bit će uklonjeni iz vaših konekcija.",
     "userBlocked": "Korisnik je blokiran"
   },
   "addPost": {
@@ -365,7 +365,7 @@
     "title": "Profil",
     "anonymousUser": "Anonimni korisnik",
     "blockUser": "Blokiraj korisnika",
-    "blockUserConfirmation": "Da li ste sigurni da želite da blokirate {{user}}? Biće uklonjeni iz vaših konekcija i nećete ih vidjeti u objavljenim sadržajima.",
+    "blockUserConfirmation": "Da li ste sigurni da želite da blokirate ovog korisnika? Biće uklonjeni iz vaših konekcija i nećete ih vidjeti u objavljenim sadržajima.",
     "userBlocked": "Korisnik je blokiran",
     "failedToBlock": "Neuspješno blokiranje korisnika",
     "failedToLoadProfile": "Neuspješno učitavanje korisničkog profila"
