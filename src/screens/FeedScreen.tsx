@@ -4,16 +4,12 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  Image,
   RefreshControl,
   Alert,
-  Dimensions,
   AppState,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc } from 'firebase/firestore';
@@ -21,10 +17,14 @@ import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
 import { locationService } from '../services/locationService';
 import NotificationBell from '../components/NotificationBell';
-import SkeletonLoader from '../components/SkeletonLoader';
 import FeedSkeleton from '../components/FeedSkeleton';
+import PostItem from '../components/PostItem';
+import EmptyFeedState from '../components/EmptyFeedState';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Dimensions, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -59,123 +59,6 @@ interface ConnectionPost {
   isAuthorOnline: boolean;
   isFromConnection: boolean;
 }
-
-interface PostItemProps {
-  post: ConnectionPost;
-  onLike: (postId: string, liked: boolean) => void;
-  currentTheme: any;
-  navigation: any;
-}
-
-const PostItem: React.FC<PostItemProps> = ({ post, onLike, currentTheme, navigation }) => {
-  const [liked, setLiked] = useState(post.isLikedByUser);
-  const [likesCount, setLikesCount] = useState(post.likesCount);
-
-  const { t } = useTranslation();
-
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (diffInDays > 6) {
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    } else if (diffInDays > 0) {
-      return t('time.daysAgo', { count: diffInDays });
-    } else if (diffInHours > 0) {
-      return t('time.hoursAgo', { count: diffInHours });
-    } else if (diffInMinutes > 0) {
-      return t('time.minutesAgo', { count: diffInMinutes });
-    } else {
-      return t('time.justNow');
-    }
-  };
-
-  const handleLikePress = () => {
-    onLike(post.id, liked);
-    setLiked(!liked);
-    setLikesCount(liked ? likesCount - 1 : likesCount + 1);
-  };
-
-  return (
-    <TouchableOpacity 
-      style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}
-      onPress={() => navigation.navigate('SinglePost', { postId: post.id })}
-      activeOpacity={0.95}
-    >
-      <View style={styles.postHeader}>
-        <View style={styles.userInfo}>
-          <View style={styles.avatarContainer}>
-            {post.authorPhotoURL ? (
-              <AvatarImage source={{ uri: post.authorPhotoURL }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-                <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
-              </View>
-            )}
-            {post.isAuthorOnline && (
-              <View style={styles.onlineIndicator} />
-            )}
-          </View>
-          <View>
-            <View style={styles.usernameRow}>
-              <Text style={[styles.username, { color: currentTheme.text }]}>{post.authorName}</Text>
-              {post.isFromConnection && (
-                <View style={[styles.connectionPill, { backgroundColor: COLORS.primary }]}>
-                  <Text style={styles.connectionPillText}>Connection</Text>
-                </View>
-              )}
-            </View>
-            <Text style={[styles.timestamp, { color: currentTheme.textSecondary }]}>
-              {formatTimeAgo(post.createdAt)}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {post.content ? (
-        <Text style={[styles.postContent, { color: currentTheme.text }]}>{post.content}</Text>
-      ) : null}
-
-      {post.mediaURL && post.mediaURL.trim() !== '' && (
-        <View style={styles.mediaContainer}>
-          <PostImage
-            source={{ uri: post.mediaURL }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
-        </View>
-      )}
-
-      <View style={[styles.postActions, { borderTopColor: currentTheme.border }]}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleLikePress}
-        >
-          <Ionicons name={liked ? "heart" : "heart-outline"} size={24} color={liked ? "red" : currentTheme.textSecondary} />
-          {post.showLikeCount && (
-            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{likesCount}</Text>
-          )}
-        </TouchableOpacity>
-
-        {post.allowComments && (
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('SinglePost', { postId: post.id })}
-          >
-            <Ionicons name="chatbubble-outline" size={24} color={currentTheme.textSecondary} />
-            <Text style={[styles.actionText, { color: currentTheme.textSecondary }]}>{post.commentsCount}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
@@ -228,10 +111,10 @@ export default function FeedScreen({ navigation }: any) {
       try {
         // Ensure Firebase is initialized first
         const { initializeFirebase, getAuth } = await import('../services/firebase');
-        
+
         // Initialize Firebase if not already done
         await initializeFirebase();
-        
+
         const auth = getAuth();
 
         unsubscribe = auth.onAuthStateChanged((user: any) => {
@@ -303,7 +186,7 @@ export default function FeedScreen({ navigation }: any) {
   const loadConnectionPosts = async () => {
     try {
       setLoading(true);
-      
+
       // Add timeout to prevent infinite loading
       const timeout = setTimeout(() => {
         console.warn('Loading posts is taking too long');
@@ -352,7 +235,7 @@ export default function FeedScreen({ navigation }: any) {
         orderBy('createdAt', 'desc'),
         limit(50)
       );
-      
+
       console.log('Fetching posts from Firestore...');
       const postsSnapshot = await getDocs(postsQuery);
       console.log('Posts fetched:', postsSnapshot.size);
@@ -536,18 +419,6 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
-  
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Ionicons name="newspaper-outline" size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>{t('feed.noPosts')}</Text>
-      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        {t('feed.shareFirst')}
-      </Text>
-    </View>
-  );
-
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -588,7 +459,7 @@ export default function FeedScreen({ navigation }: any) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={posts.length === 0 ? styles.emptyContainer : undefined}
       />
