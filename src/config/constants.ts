@@ -10,6 +10,12 @@ export const COLORS = {
   border: '#E5E5EA',
   error: '#FF3B30',
   success: '#34C759',
+  // Dark theme colors
+  darkBackground: '#121212',
+  darkSurface: '#1E1E1E',
+  darkText: '#FFFFFF',
+  darkTextSecondary: '#B0B0B0',
+  darkBorder: '#333333',
 };
 
 export const FONTS = {
