@@ -156,7 +156,7 @@
     "title": "Settings",
     "editProfile": "Edit Profile",
     "firstName": "First Name",
-    "lastName": "Last Name", 
+    "lastName": "Last Name",
     "bio": "Bio",
     "save": "Save",
     "darkMode": "Dark Mode",
@@ -229,7 +229,7 @@
     "notificationPermissionTitle": "Enable Notifications",
     "notificationPermissionDescription": "To receive important updates and stay connected, please enable notifications in your device settings.",
     "newMessageNotifications": "New message alerts",
-    "likeNotifications": "Post like notifications", 
+    "likeNotifications": "Post like notifications",
     "commentNotifications": "Comment notifications",
     "connectionNotifications": "New connection requests"
   },
