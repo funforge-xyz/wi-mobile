@@ -152,12 +152,6 @@ export default function FeedScreen({ navigation }: any) {
     try {
       setLoading(true);
 
-      // Add timeout to prevent infinite loading
-      timeout = setTimeout(() => {
-        console.warn('Loading posts is taking too long');
-        setLoading(false);
-      }, 15000);
-
       const connectionPosts = await loadConnectionPosts(userRadius, currentUserLocation);
       setPosts(connectionPosts);
       if (timeout) clearTimeout(timeout);
