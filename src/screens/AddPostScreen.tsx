@@ -174,7 +174,12 @@ export default function AddPostScreen() {
         showLikeCount,
       };
 
-      const newPostId = await createPost(postData, t);
+      // Create a wrapper function that matches the expected signature
+      const translateWrapper = (key: string, fallback?: string) => {
+        return fallback ? t(key, fallback) : t(key);
+      };
+
+      const newPostId = await createPost(postData, translateWrapper);
 
       // Add the new post to Redux store immediately
       addNewPost({
