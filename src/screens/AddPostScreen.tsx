@@ -3,9 +3,6 @@ import {
   View,
   Alert,
   Animated,
-  Platform,
-  AlertButton,
-  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,7 +28,7 @@ export default function AddPostScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { addNewPost } = usePostActions();
 
@@ -122,50 +119,41 @@ export default function AddPostScreen() {
   };
 
   const showImagePicker = () => {
-    const options = selectedImage 
-      ? [t('addPost.takePhoto', 'Take Photo'), t('addPost.removePhoto', 'Remove Photo'), t('common.cancel')]
-      : [t('addPost.takePhoto', 'Take Photo'), t('common.cancel')];
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: selectedImage ? 2 : 1,
-          destructiveButtonIndex: selectedImage ? 1 : undefined,
-        },
-        buttonIndex => {
-          if (buttonIndex === 0) {
-            handleCameraCapture();
-          } else if (buttonIndex === 1 && selectedImage) {
-            setSelectedImage('');
-          }
-        }
-      );
-    } else {
-      const alertOptions: AlertButton[] = [
-        {
-          text: t('addPost.takePhoto', 'Take Photo'),
-          onPress: handleCameraCapture,
-        },
-      ];
-
-      if (selectedImage) {
-        alertOptions.push({
-          text: t('addPost.removePhoto', 'Remove Photo'),
-          onPress: () => setSelectedImage(''),
-          style: 'destructive' as const,
-        });
-      }
-
-      alertOptions.push({
-        text: t('common.cancel'),
-        style: 'cancel' as const,
-      });
-
+    if (selectedImage) {
       Alert.alert(
         t('addPost.selectPhoto', 'Select Photo'),
         t('addPost.useCameraToAdd', 'Use camera to add a photo'),
-        alertOptions,
+        [
+          {
+            text: t('addPost.takePhoto', 'Take Photo'),
+            onPress: handleCameraCapture,
+          },
+          {
+            text: t('addPost.removePhoto', 'Remove Photo'),
+            onPress: () => setSelectedImage(''),
+            style: 'destructive',
+          },
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+        ],
+        { cancelable: true }
+      );
+    } else {
+      Alert.alert(
+        t('addPost.selectPhoto', 'Select Photo'),
+        t('addPost.useCameraToAdd', 'Use camera to add a photo'),
+        [
+          {
+            text: t('addPost.takePhoto', 'Take Photo'),
+            onPress: handleCameraCapture,
+          },
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+        ],
         { cancelable: true }
       );
     }
