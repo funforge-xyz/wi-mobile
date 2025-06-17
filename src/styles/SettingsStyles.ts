@@ -18,6 +18,15 @@ export const darkTheme = {
   border: '#333333',
 };
 
+export const settingsStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+});
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,

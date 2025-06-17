@@ -66,3 +66,13 @@ export const setupSignOutCallback = (
     }, 50);
   });
 };
+
+export const getTabBarStyles = (isDarkMode: boolean) => ({
+  backgroundColor: isDarkMode ? '#1E1E1E' : '#FFFFFF',
+  borderTopColor: isDarkMode ? '#333333' : '#E5E5E5',
+});
+
+export const getTabBarLabelStyle = () => ({
+  fontFamily: 'System',
+  fontSize: 12,
+});

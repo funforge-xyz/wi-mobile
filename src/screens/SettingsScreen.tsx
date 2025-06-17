@@ -220,6 +220,12 @@ export default function SettingsScreen() {
     setShowLanguageModal(true);
   };
 
+  const showDeleteAccountModal = () => {
+    setShowDeleteAccountModal(true);
+  }
+
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <SettingsHeader
