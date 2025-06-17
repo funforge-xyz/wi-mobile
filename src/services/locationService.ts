@@ -215,13 +215,11 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const userRef = doc(firestore, 'users', currentUser.uid);
 
     await updateDoc(userRef, {
-      lastUpdatedLatitude: latitude,
-      lastUpdatedLongitude: longitude,
-      lastUpdatedLocation: new Date(),
       location: {
         latitude,
         longitude,
       },
+      lastUpdatedLocation: new Date(),
     });
 
     console.log('User location updated in Firestore:', { latitude, longitude });
