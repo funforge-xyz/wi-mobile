@@ -209,19 +209,29 @@ export default function FeedScreen({ navigation }: any) {
           setUserRadius(parseFloat(savedRadius));
         }
 
-        // Get current user location
-        const location = await locationService.getCurrentLocation();
-        if (location) {
-          setCurrentUserLocation(location);
+        // Get current user location (continue even if it fails)
+        try {
+          const location = await locationService.getCurrentLocation();
+          if (location) {
+            setCurrentUserLocation(location);
+          }
+        } catch (locationError) {
+          console.log('Location service not available:', locationError);
+          // Continue without location - posts will still load
         }
       } catch (error) {
         console.error('Error loading user settings:', error);
       }
     };
 
-    const setupAuthListener = async () => {
+    const initializeAndSetupAuth = async () => {
       try {
-        const { getAuth } = await import('../services/firebase');
+        // Ensure Firebase is initialized first
+        const { initializeFirebase, getAuth } = await import('../services/firebase');
+        
+        // Initialize Firebase if not already done
+        await initializeFirebase();
+        
         const auth = getAuth();
 
         unsubscribe = auth.onAuthStateChanged((user: any) => {
@@ -243,25 +253,28 @@ export default function FeedScreen({ navigation }: any) {
         // Handle app state changes to update lastSeen
         const handleAppStateChange = (nextAppState: string) => {
           if (nextAppState === 'active') {
-            updateUserLastSeen();
+            updateUserLastSeen().catch(console.error);
           } else if (nextAppState === 'background' || nextAppState === 'inactive') {
             // Update lastSeen when app goes to background to show user as offline
-            updateUserLastSeen();
+            updateUserLastSeen().catch(console.error);
           }
         };
 
         appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
         // Set up interval to update lastSeen every 30 seconds
-        lastSeenInterval = setInterval(updateUserLastSeen, 30000);
+        lastSeenInterval = setInterval(() => {
+          updateUserLastSeen().catch(console.error);
+        }, 30000);
 
       } catch (error) {
-        console.error('Error setting up auth listener:', error);
+        console.error('Error initializing Firebase or setting up auth listener:', error);
         setLoading(false);
+        Alert.alert('Error', 'Failed to initialize app. Please restart the application.');
       }
     };
 
-    setupAuthListener();
+    initializeAndSetupAuth();
 
     return () => {
       if (unsubscribe) unsubscribe();
@@ -290,12 +303,20 @@ export default function FeedScreen({ navigation }: any) {
   const loadConnectionPosts = async () => {
     try {
       setLoading(true);
+      
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.warn('Loading posts is taking too long');
+        setLoading(false);
+      }, 15000);
+
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
       if (!currentUser) {
         console.log('No current user found');
         setLoading(false);
+        clearTimeout(timeout);
         return;
       }
 
@@ -331,7 +352,10 @@ export default function FeedScreen({ navigation }: any) {
         orderBy('createdAt', 'desc'),
         limit(50)
       );
+      
+      console.log('Fetching posts from Firestore...');
       const postsSnapshot = await getDocs(postsQuery);
+      console.log('Posts fetched:', postsSnapshot.size);
 
       const connectionPosts: ConnectionPost[] = [];
 
@@ -426,9 +450,14 @@ export default function FeedScreen({ navigation }: any) {
       }
 
       setPosts(connectionPosts);
+      clearTimeout(timeout);
     } catch (error) {
       console.error('Error loading connection posts:', error);
-      Alert.alert('Error', 'Failed to load posts');
+      // Don't show alert if it's just a timeout or network issue
+      if (error.code !== 'cancelled' && error.code !== 'timeout') {
+        Alert.alert('Error', 'Failed to load posts. Please check your connection and try again.');
+      }
+      clearTimeout(timeout);
     } finally {
       setLoading(false);
     }

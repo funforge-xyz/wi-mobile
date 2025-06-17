@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { AppState } from 'react-native';
+import { AppState, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -42,35 +42,10 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Initialize Firebase
+        // Initialize Firebase first
+        console.log('Starting Firebase initialization...');
         await initializeFirebase();
-
-        // Initialize notifications
-        await initializeNotifications();
-
-        // Handle notification taps
-        const notificationResponse = Notifications.addNotificationResponseReceivedListener(response => {
-          const data = response.notification.request.content.data;
-          console.log('Notification tapped:', data);
-
-          // Use a timeout to ensure navigation is ready
-          setTimeout(() => {
-            // Handle navigation based on notification type
-            if (data.type === 'like' || data.type === 'comment') {
-              // Navigate to post screen
-              if (data.postId) {
-                // You'll need to get navigation reference to navigate
-                // For now, this will be handled by the notification screen navigation
-              }
-            } else if (data.type === 'nearby_request') {
-              // Navigate to chat with the requesting user
-              if (data.fromUserId && data.fromUserName) {
-                // Navigate to chat screen directly
-                // This will be handled by the notification press in NotificationsScreen
-              }
-            }
-          }, 1000);
-        });
+        console.log('Firebase initialization complete');
 
         // Load fonts
         await Font.loadAsync({
@@ -78,7 +53,8 @@ export default function App() {
         });
 
       } catch (e) {
-        console.warn(e);
+        console.error('App initialization error:', e);
+        Alert.alert('Initialization Error', 'Failed to start the app. Please restart.');
       } finally {
         setIsLoading(false);
         await SplashScreen.hideAsync();

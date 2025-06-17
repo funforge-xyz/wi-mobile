@@ -26,6 +26,7 @@ export const initializeFirebase = async () => {
   try {
     // Only initialize if not already initialized
     if (!app) {
+      console.log('Initializing Firebase...');
       app = initializeApp(firebaseConfig);
       
       // Initialize Auth with AsyncStorage persistence
@@ -44,9 +45,14 @@ export const initializeFirebase = async () => {
       }
       
       console.log('Firebase initialized successfully');
+    } else {
+      console.log('Firebase already initialized');
     }
+    
+    return { app, auth, firestore, storage };
   } catch (error) {
     console.error('Firebase initialization error:', error);
+    console.error('Config:', { ...firebaseConfig, apiKey: '***' });
     throw error;
   }
 };
