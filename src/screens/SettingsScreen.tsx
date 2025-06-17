@@ -1785,7 +1785,7 @@ const modalStyles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   placeholderModalAvatar: {
-    justifyContent: center,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   deleteImageButton: {
