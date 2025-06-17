@@ -220,11 +220,11 @@ export default function SettingsScreen() {
     setShowLanguageModal(true);
   };
 
-  const showDeleteAccountModal = () => {
-    setShowDeleteAccountModal(true);
-  }
-
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+
+  const showDeleteAccountModalHandler = () => {
+    setShowDeleteAccountModal(true);
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -310,7 +310,7 @@ export default function SettingsScreen() {
             icon="trash-outline"
             title={t('settings.deleteAccount')}
             description={t('settings.permanentlyDelete')}
-            onPress={() => setShowDeleteAccountModal(true)}
+            onPress={showDeleteAccountModalHandler}
             iconColor={COLORS.error}
             titleColor={COLORS.error}
             currentTheme={currentTheme}
