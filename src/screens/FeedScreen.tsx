@@ -354,9 +354,9 @@ export default function FeedScreen({ navigation }: any) {
 
         // Location-based filtering
         if (userRadius && currentUserLocation) {
-          // Check if author has location data
-          const authorLat = authorData.lastUpdatedLatitude || authorData.location?.latitude;
-          const authorLon = authorData.lastUpdatedLongitude || authorData.location?.longitude;
+          // Check if author has location data (using consolidated location format)
+          const authorLat = authorData.location?.latitude;
+          const authorLon = authorData.location?.longitude;
 
           if (authorLat && authorLon) {
             // Calculate distance between current user and post author
