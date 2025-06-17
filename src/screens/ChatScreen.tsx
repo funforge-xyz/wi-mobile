@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Image,
   ActivityIndicator,
   AppState,
 } from 'react-native';
@@ -21,6 +20,7 @@ import { useAppSelector } from '../hooks/redux';
 import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import UserAvatar from '../components/UserAvatar';
 import { createNearbyRequestNotification } from '../services/notifications';
 import { useTranslation } from 'react-i18next';
 
@@ -44,44 +44,6 @@ interface ChatScreenProps {
   navigation: any;
 }
 
-const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [source?.uri]);
-
-  return (
-    <View style={[style, { position: 'relative' }]}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={style?.width || 32}
-          height={style?.height || 32}
-          borderRadius={style?.borderRadius || 16}
-          style={{ position: 'absolute' }}
-        />
-      )}
-      <Image
-        source={source}
-        style={[style, { opacity: loading || error ? 0 : 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        {...props}
-      />
-    </View>
-  );
-};
-
-
 export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const { userId, userName, userPhotoURL } = route.params;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -95,7 +57,13 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = {
+    background: isDarkMode ? COLORS.darkBackground : COLORS.background,
+    surface: isDarkMode ? COLORS.darkSurface : COLORS.surface,
+    text: isDarkMode ? COLORS.darkText : COLORS.text,
+    textSecondary: isDarkMode ? COLORS.darkTextSecondary : COLORS.textSecondary,
+    border: isDarkMode ? COLORS.darkBorder : COLORS.border,
+  };
 
   const updateUserLastSeen = async () => {
     try {
@@ -524,13 +492,11 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           onPress={() => navigation.navigate('UserProfile', { userId })}
         >
           <View style={styles.avatarContainer}>
-            {userPhotoURL ? (
-               <AvatarImage source={{ uri: userPhotoURL }} style={styles.headerAvatar} />
-            ) : (
-              <View style={[styles.headerAvatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-                <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
-              </View>
-            )}
+            <UserAvatar 
+              photoURL={userPhotoURL} 
+              size={32} 
+              style={styles.headerAvatar}
+            />
             {userOnlineStatus && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />}
           </View>
           <View style={styles.headerTextContainer}>
@@ -610,22 +576,6 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   );
 }
 
-const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
-
-const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  border: '#333333',
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -653,18 +603,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: SPACING.sm,
   },
-  headerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  headerAvatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  
   onlineIndicator: {
     position: 'absolute',
     bottom: 0,
