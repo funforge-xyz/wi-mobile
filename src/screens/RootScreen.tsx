@@ -1,24 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS } from '../config/constants';
 import { Settings } from '../services/storage';
-import { authService } from '../services/auth';
-import { useTranslation } from 'react-i18next';
-
-import FeedScreen from './FeedScreen';
-import NearbyScreen from './NearbyScreen';
-import ChatsScreen from './ChatsScreen';
-import UserPostsScreen from './UserPostsScreen';
-import OnboardingScreen from './OnboardingScreen';
-import LoginScreen from './LoginScreen';
-import AddPostScreen from './AddPostScreen';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { setTheme } from '../store/themeSlice';
+import {
+  initializeFirebaseAndAuth,
+  checkOnboardingStatus,
+  loadDarkModeSettings,
+  handleOnboardingComplete as utilHandleOnboardingComplete,
+  setupSignOutCallback,
+} from '../utils/rootUtils';
 
-// Redux imports
-
-const Tab = createBottomTabNavigator();
+import OnboardingScreen from './OnboardingScreen';
+import LoginScreen from './LoginScreen';
+import RootTabNavigator from '../components/RootTabNavigator';
 
 export default function RootScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -26,42 +20,24 @@ export default function RootScreen() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const dispatch = useAppDispatch();
-  const { t } = useTranslation();
   const settings = new Settings();
 
   useEffect(() => {
     checkAuthState();
-
-    // Set up sign out callback to reset navigation
-    authService.setOnSignOutCallback(() => {
-      // Reset all navigation state completely
-      setIsAuthenticated(false);
-      setShowOnboarding(false);
-      // Force a complete reset of the component
-      setIsLoading(true);
-      // Clear any cached state
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 50);
-    });
+    setupSignOutCallback(setIsAuthenticated, setShowOnboarding, setIsLoading);
   }, []);
 
   const checkAuthState = async () => {
     try {
-      // Ensure Firebase is initialized
-      const { initializeFirebase } = await import('../services/firebase');
-      await initializeFirebase();
-
-      const isLoggedIn = await authService.isAuthenticated();
+      const isLoggedIn = await initializeFirebaseAndAuth();
       setIsAuthenticated(isLoggedIn);
 
       if (isLoggedIn) {
-        const onboardingDone = await settings.getOnboardingDone();
+        const onboardingDone = await checkOnboardingStatus(settings);
         setShowOnboarding(!onboardingDone);
       }
 
-      // Load dark mode setting
-      const darkMode = await settings.getDarkMode();
+      const darkMode = await loadDarkModeSettings(settings);
       dispatch(setTheme(darkMode));
     } catch (error) {
       console.error('Error checking auth state:', error);
@@ -72,27 +48,16 @@ export default function RootScreen() {
   };
 
   const handleOnboardingComplete = async () => {
-    await settings.setOnboardingDone(true);
-    setShowOnboarding(false);
+    await utilHandleOnboardingComplete(settings, setShowOnboarding);
   };
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    checkAuthState(); // Recheck to determine if onboarding is needed
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authService.signOut();
-      setIsAuthenticated(false);
-      setShowOnboarding(false);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+    checkAuthState();
   };
 
   if (isLoading) {
-    return null; // You could add a loading screen here
+    return null;
   }
 
   if (!isAuthenticated) {
@@ -103,86 +68,5 @@ export default function RootScreen() {
     return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'newspaper' : 'newspaper-outline';
-          } else if (route.name === 'Add') {
-            iconName = 'add-circle';
-          } else if (route.name === 'Nearby') {
-            iconName = focused ? 'people' : 'people-outline';
-          } else if (route.name === 'Chats') {
-            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          } else {
-            iconName = 'home-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: isDarkMode ? '#B0B0B0' : COLORS.textSecondary,
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? '#1E1E1E' : COLORS.surface,
-          borderTopColor: isDarkMode ? '#333333' : COLORS.border,
-        },
-        tabBarLabelStyle: {
-          fontFamily: FONTS.medium,
-          fontSize: 12,
-        },
-        headerShown: false,
-      })}
-    >
-      <Tab.Screen 
-        name="Home" 
-        component={FeedScreen}
-        options={{ 
-          tabBarLabel: t('navigation.home'),
-          headerTitle: t('feed.title'),
-          headerShown: false
-        }}
-      />
-      <Tab.Screen 
-        name="Nearby" 
-        component={NearbyScreen}
-        options={{ 
-          tabBarLabel: t('navigation.nearby'),
-          headerTitle: t('nearby.title'),
-          headerShown: false
-        }}
-      />
-      <Tab.Screen 
-        name="Add" 
-        component={AddPostScreen}
-        options={{ 
-          tabBarLabel: t('navigation.add'),
-          headerTitle: t('addPost.title'),
-          headerShown: false
-        }}
-      />
-      <Tab.Screen 
-        name="Chats" 
-        component={ChatsScreen}
-        options={{ 
-          tabBarLabel: t('navigation.chats'),
-          headerTitle: t('chats.title'),
-          headerShown: false
-        }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={UserPostsScreen}
-        options={{ 
-          tabBarLabel: t('navigation.profile'),
-          headerTitle: t('profile.title'),
-          headerShown: false
-        }}
-      />
-    </Tab.Navigator>
-  );
+  return <RootTabNavigator isDarkMode={isDarkMode} />;
 }
