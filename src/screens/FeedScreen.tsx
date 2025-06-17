@@ -9,7 +9,6 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector } from '../hooks/redux';
-import { getAuth } from '../services/firebase';
 import { locationService } from '../services/locationService';
 import NotificationBell from '../components/NotificationBell';
 import FeedSkeleton from '../components/FeedSkeleton';
@@ -17,7 +16,6 @@ import PostItem from '../components/PostItem';
 import EmptyFeedState from '../components/EmptyFeedState';
 import { useTranslation } from 'react-i18next';
 import { 
-  calculateDistance, 
   updateUserLastSeen, 
   loadUserSettings, 
   handleLikePost,
@@ -65,7 +63,7 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let appStateSubscription: any;
-    let lastSeenInterval: NodeJS.Timeout;
+    let lastSeenInterval: NodeJS.Timeout |  number;
 
     const loadUserSettingsAndLocation = async () => {
       try {
