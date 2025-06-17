@@ -352,27 +352,27 @@ export default function FeedScreen({ navigation }: any) {
         const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
         const authorData = authorDoc.exists() ? authorDoc.data() : {};
 
-        // Location-based filtering
+        // Check if author has location data (always required)
+        const authorLat = authorData.location?.latitude;
+        const authorLon = authorData.location?.longitude;
+
+        // Skip post if author doesn't have location data
+        if (!authorLat || !authorLon) {
+          continue;
+        }
+
+        // Location-based filtering (if radius is set)
         if (userRadius && currentUserLocation) {
-          // Check if author has location data (using consolidated location format)
-          const authorLat = authorData.location?.latitude;
-          const authorLon = authorData.location?.longitude;
+          // Calculate distance between current user and post author
+          const distance = calculateDistance(
+            currentUserLocation.latitude,
+            currentUserLocation.longitude,
+            authorLat,
+            authorLon
+          );
 
-          if (authorLat && authorLon) {
-            // Calculate distance between current user and post author
-            const distance = calculateDistance(
-              currentUserLocation.latitude,
-              currentUserLocation.longitude,
-              authorLat,
-              authorLon
-            );
-
-            // Skip post if author is outside the radius
-            if (distance > userRadius) {
-              continue;
-            }
-          } else {
-            // Skip post if author location is not available
+          // Skip post if author is outside the radius
+          if (distance > userRadius) {
             continue;
           }
         }
