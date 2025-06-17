@@ -1,4 +1,3 @@
-
 import { Alert, Platform, Linking, ActionSheetIOS } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as ImagePicker from 'expo-image-picker';
@@ -98,10 +97,11 @@ export const handleTogglePushNotifications = async (
   value: boolean,
   setPushNotificationsEnabled: (value: boolean) => void,
   setIsLoading: (loading: boolean) => void,
-  t: (key: string) => string
+  t: (key: string) => string,
+  setShowPushNotificationModal?: (show: boolean) => void,
+  setShowSettingsOption?: (show: boolean) => void
 ) => {
   setIsLoading(true);
-
   try {
     if (value) {
       const token = await initializeNotifications();
@@ -109,20 +109,26 @@ export const handleTogglePushNotifications = async (
         setPushNotificationsEnabled(true);
         Alert.alert(t('common.success'), t('settings.pushNotificationsEnabledSuccessfully'));
       } else {
-        Alert.alert(
-          t('settings.permissionRequired'),
-          t('settings.enableNotificationsInDeviceSettings'),
-          [
-            {
-              text: t('common.cancel'),
-              style: 'cancel',
-            },
-            {
-              text: t('settings.openSettings'),
-              onPress: () => Notifications.openSettingsAsync(),
-            },
-          ]
-        );
+        setPushNotificationsEnabled(false);
+        if (setShowPushNotificationModal && setShowSettingsOption) {
+          setShowSettingsOption(true);
+          setShowPushNotificationModal(true);
+        } else {
+          Alert.alert(
+            t('settings.permissionRequired'),
+            t('settings.enableNotificationsInDeviceSettings'),
+            [
+              {
+                text: t('common.cancel'),
+                style: 'cancel',
+              },
+              {
+                text: t('settings.openSettings'),
+                onPress: () => Linking.openSettings(),
+              },
+            ]
+          );
+        }
       }
     } else {
       setPushNotificationsEnabled(false);

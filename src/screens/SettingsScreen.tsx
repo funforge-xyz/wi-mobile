@@ -60,6 +60,8 @@ export default function SettingsScreen() {
   const [showRadiusModal, setShowRadiusModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
+  const [showSettingsOption, setShowSettingsOption] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
