@@ -104,7 +104,11 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const onDeclineRequest = (request: ConnectionRequest) => {
-    handleDeclineRequest(request, t);
+    // Create a wrapper function that matches the expected signature
+    const translateWrapper = (key: string, fallback?: string) => {
+      return fallback ? t(key, fallback) : t(key);
+    };
+    handleDeclineRequest(request, translateWrapper);
   };
 
   const onStartChat = (connection: Connection) => {
@@ -112,7 +116,11 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const onBlockUser = (connection: Connection) => {
-    handleBlockUser(connection, t);
+    // Create a wrapper function that matches the expected signature  
+    const translateWrapper = (key: string, fallback?: string) => {
+      return fallback ? t(key, fallback) : t(key);
+    };
+    handleBlockUser(connection, translateWrapper);
   };
 
   const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
