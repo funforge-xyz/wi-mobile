@@ -147,11 +147,13 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
 
   const loadPosts = async () => {
+    let timeout: NodeJS.Timeout;
+    
     try {
       setLoading(true);
 
       // Add timeout to prevent infinite loading
-      const timeout = setTimeout(() => {
+      timeout = setTimeout(() => {
         console.warn('Loading posts is taking too long');
         setLoading(false);
       }, 15000);
@@ -161,7 +163,7 @@ export default function FeedScreen({ navigation }: any) {
       clearTimeout(timeout);
     } catch (error) {
       console.error('Error loading posts:', error);
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     } finally {
       setLoading(false);
     }
