@@ -208,7 +208,7 @@ export default function FeedScreen({ navigation }: any) {
         if (savedRadius) {
           setUserRadius(parseFloat(savedRadius));
         }
-        
+
         // Get current user location
         const location = await locationService.getCurrentLocation();
         if (location) {
@@ -357,7 +357,7 @@ export default function FeedScreen({ navigation }: any) {
           // Check if author has location data
           const authorLat = authorData.lastUpdatedLatitude || authorData.location?.latitude;
           const authorLon = authorData.lastUpdatedLongitude || authorData.location?.longitude;
-          
+
           if (authorLat && authorLon) {
             // Calculate distance between current user and post author
             const distance = calculateDistance(
@@ -366,7 +366,7 @@ export default function FeedScreen({ navigation }: any) {
               authorLat,
               authorLon
             );
-            
+
             // Skip post if author is outside the radius
             if (distance > userRadius) {
               continue;
@@ -507,6 +507,33 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
+  const filterPostsByLocation = (posts: any[], userLocation: { latitude: number; longitude: number } | null, radiusKm: number) => {
+    if (!userLocation || radiusKm === 0) {
+      return posts;
+    }
+
+    return posts.filter(post => {
+      // If post doesn't have location, ignore it
+      if (!post.location?.latitude || !post.location?.longitude) {
+        return false;
+      }
+
+      // If post author doesn't have location, ignore it
+      if (!post.authorLocation?.latitude || !post.authorLocation?.longitude) {
+        return false;
+      }
+
+      // Calculate distance between current user and post author
+      const distance = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        post.authorLocation.latitude,
+        post.authorLocation.longitude
+      );
+
+      return distance <= radiusKm;
+    });
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
