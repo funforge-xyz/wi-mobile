@@ -17,6 +17,7 @@ import { useAppSelector } from '../hooks/redux';
 import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import SkeletonLoader from '../components/SkeletonLoader';
+import ConfirmationModal from '../components/ConfirmationModal';
 import { useTranslation } from 'react-i18next';
 
 interface UserProfileProps {
@@ -56,6 +57,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     connectionsCount: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [showBlockModal, setShowBlockModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -94,56 +96,52 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     }
   };
 
-  const handleBlockUser = async () => {
-    Alert.alert(
-      t('userProfile.blockUser'),
-      t('userProfile.blockUserConfirmation', { user: profile.firstName || t('userProfile.anonymousUser') }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('userProfile.blockUser'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const { getAuth } = await import('../services/firebase');
-              const auth = getAuth();
-              const currentUser = auth.currentUser;
+  const handleBlockUser = () => {
+    setShowBlockModal(true);
+  };
 
-              if (!currentUser) return;
+  const handleConfirmBlock = async () => {
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
 
-              const firestore = getFirestore();
+      if (!currentUser) return;
 
-              // Add to blocked users
-              await addDoc(collection(firestore, 'blockedUsers'), {
-                blockerUserId: currentUser.uid,
-                blockedUserId: userId,
-                createdAt: new Date(),
-              });
+      const firestore = getFirestore();
 
-              // Remove from connections
-              const connectionsQuery = query(
-                collection(firestore, 'connections'),
-                where('participants', 'array-contains', currentUser.uid)
-              );
-              const connectionsSnapshot = await getDocs(connectionsQuery);
-              
-              for (const connectionDoc of connectionsSnapshot.docs) {
-                const data = connectionDoc.data();
-                if (data.participants.includes(userId)) {
-                  await connectionDoc.ref.delete();
-                }
-              }
+      // Add to blocked users
+      await addDoc(collection(firestore, 'blockedUsers'), {
+        blockerUserId: currentUser.uid,
+        blockedUserId: userId,
+        createdAt: new Date(),
+      });
 
-              Alert.alert(t('common.done'), t('userProfile.userBlocked'));
-              navigation.goBack();
-            } catch (error) {
-              console.error('Error blocking user:', error);
-              Alert.alert(t('common.error'), t('userProfile.failedToBlock'));
-            }
-          }
+      // Remove from connections
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid)
+      );
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+      
+      for (const connectionDoc of connectionsSnapshot.docs) {
+        const data = connectionDoc.data();
+        if (data.participants.includes(userId)) {
+          await connectionDoc.ref.delete();
         }
-      ]
-    );
+      }
+
+      Alert.alert(t('common.done'), t('userProfile.userBlocked'));
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      Alert.alert(t('common.error'), t('userProfile.failedToBlock'));
+    }
+    setShowBlockModal(false);
+  };
+
+  const handleCancelBlock = () => {
+    setShowBlockModal(false);
   };
 
   if (loading) {
@@ -199,6 +197,21 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <ConfirmationModal
+        visible={showBlockModal}
+        title={t('userProfile.blockUser')}
+        message={t('userProfile.blockUserConfirmation', { 
+          user: profile.firstName || t('userProfile.anonymousUser'),
+          defaultValue: `Are you sure you want to block ${profile.firstName || 'this user'}? They will no longer be able to see your posts or message you.`
+        })}
+        confirmText={t('userProfile.blockUser')}
+        cancelText={t('common.cancel')}
+        onConfirm={handleConfirmBlock}
+        onCancel={handleCancelBlock}
+        currentTheme={currentTheme}
+        isDestructive={true}
+      />
     </SafeAreaView>
   );
 }

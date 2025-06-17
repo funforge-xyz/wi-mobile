@@ -12,6 +12,7 @@ import ConnectionItem from '../components/ConnectionItem';
 import ChatsEmptyState from '../components/ChatsEmptyState';
 import ChatsSkeleton from '../components/ChatsSkeleton';
 import RequestsSkeleton from '../components/RequestsSkeleton';
+import ConfirmationModal from '../components/ConfirmationModal';
 import { chatsStyles } from '../styles/ChatsStyles';
 import {
   ConnectionRequest,
@@ -31,6 +32,8 @@ export default function ChatsScreen({ navigation }: any) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -116,11 +119,25 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const onBlockUser = (connection: Connection) => {
-    // Create a wrapper function that matches the expected signature  
-    const translateWrapper = (key: string, fallback?: string) => {
-      return fallback ? t(key, fallback) : t(key);
-    };
-    handleBlockUser(connection, translateWrapper);
+    setSelectedConnection(connection);
+    setShowBlockModal(true);
+  };
+
+  const handleConfirmBlock = () => {
+    if (selectedConnection) {
+      // Create a wrapper function that matches the expected signature  
+      const translateWrapper = (key: string, fallback?: string) => {
+        return fallback ? t(key, fallback) : t(key);
+      };
+      handleBlockUser(selectedConnection, translateWrapper);
+    }
+    setShowBlockModal(false);
+    setSelectedConnection(null);
+  };
+
+  const handleCancelBlock = () => {
+    setShowBlockModal(false);
+    setSelectedConnection(null);
   };
 
   const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
@@ -207,6 +224,21 @@ export default function ChatsScreen({ navigation }: any) {
             ? chatsStyles.emptyContainer
             : chatsStyles.listContent
         }
+      />
+
+      <ConfirmationModal
+        visible={showBlockModal}
+        title={t('chats.blockUser', 'Block User')}
+        message={t('chats.blockUserConfirmation', {
+          user: selectedConnection?.otherUserName || t('chats.thisUser', 'this user'),
+          defaultValue: `Are you sure you want to block ${selectedConnection?.otherUserName || 'this user'}? They will no longer be able to message you.`
+        })}
+        confirmText={t('chats.block', 'Block')}
+        cancelText={t('common.cancel', 'Cancel')}
+        onConfirm={handleConfirmBlock}
+        onCancel={handleCancelBlock}
+        currentTheme={currentTheme}
+        isDestructive={true}
       />
     </SafeAreaView>
   );
