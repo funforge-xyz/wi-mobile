@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  View,
   Alert,
   Animated,
 } from 'react-native';
@@ -33,7 +32,7 @@ export default function AddPostScreen() {
   const { addNewPost } = usePostActions();
 
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
-  const canPost = content.trim() || selectedImage;
+  const canPost = Boolean(content.trim() || selectedImage);
 
   const showSuccessModalWithAnimation = () => {
     setShowSuccessModal(true);
@@ -159,15 +158,6 @@ export default function AddPostScreen() {
     }
   };
 
-  const handleCancel = () => {
-    const hasContent = content.trim() || selectedImage;
-
-    showDiscardAlert(hasContent, () => {
-      resetForm();
-      navigation.goBack();
-    }, t);
-  };
-
   const handlePost = async () => {
     if (!canPost) {
       Alert.alert(t('common.error'), t('addPost.addContentError', 'Please add some content or an image to your post'));
@@ -218,7 +208,6 @@ export default function AddPostScreen() {
         canPost={canPost}
         onPostPress={handlePost}
         currentTheme={currentTheme}
-        t={t}
       />
 
       <AddPostForm
@@ -234,7 +223,6 @@ export default function AddPostScreen() {
         showLikeCount={showLikeCount}
         onShowLikeCountToggle={() => setShowLikeCount(!showLikeCount)}
         currentTheme={currentTheme}
-        t={t}
       />
 
       <SuccessModal

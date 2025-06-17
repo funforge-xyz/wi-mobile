@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../config/constants';
 import { addPostStyles } from '../styles/AddPostStyles';
+import { useTranslation } from 'react-i18next';
 
 interface AddPostFormProps {
   content: string;
@@ -27,7 +28,6 @@ interface AddPostFormProps {
   showLikeCount: boolean;
   onShowLikeCountToggle: () => void;
   currentTheme: any;
-  t: (key: string, fallback?: string) => string;
 }
 
 export default function AddPostForm({
@@ -43,8 +43,9 @@ export default function AddPostForm({
   showLikeCount,
   onShowLikeCountToggle,
   currentTheme,
-  t,
 }: AddPostFormProps) {
+  const { t } = useTranslation();
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView style={addPostStyles.content} showsVerticalScrollIndicator={false}>

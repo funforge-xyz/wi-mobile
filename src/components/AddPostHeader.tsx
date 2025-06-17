@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { addPostStyles } from '../styles/AddPostStyles';
+import { useTranslation } from 'react-i18next';
 
 interface AddPostHeaderProps {
   title: string;
@@ -9,7 +10,6 @@ interface AddPostHeaderProps {
   canPost: boolean;
   onPostPress: () => void;
   currentTheme: any;
-  t: (key: string, fallback?: string) => string;
 }
 
 export default function AddPostHeader({
@@ -18,8 +18,9 @@ export default function AddPostHeader({
   canPost,
   onPostPress,
   currentTheme,
-  t,
 }: AddPostHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={[addPostStyles.header, { borderBottomColor: currentTheme.border }]}>
       <Text style={[addPostStyles.headerTitle, { color: currentTheme.text }]}>{title}</Text>
