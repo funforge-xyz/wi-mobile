@@ -111,7 +111,6 @@ export const handleTogglePushNotifications = async (
       } else {
         setPushNotificationsEnabled(false);
         if (setShowPushNotificationModal && setShowSettingsOption) {
-          setShowSettingsOption(true);
           setShowPushNotificationModal(true);
         } else {
           Alert.alert(

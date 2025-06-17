@@ -222,7 +222,16 @@
     "chooseConnectDistance": "Choose the distance within which you want to connect with people",
     "radius": "radius",
     "kilometer": "kilometer",
-    "success": "Success"
+    "success": "Success",
+    "pushNotificationsEnabledSuccessfully": "Push notifications enabled successfully",
+    "pushNotificationsDisabled": "Push notifications have been disabled",
+    "disabled": "Disabled",
+    "notificationPermissionTitle": "Enable Notifications",
+    "notificationPermissionDescription": "To receive important updates and stay connected, please enable notifications in your device settings.",
+    "newMessageNotifications": "New message alerts",
+    "likeNotifications": "Post like notifications", 
+    "commentNotifications": "Comment notifications",
+    "connectionNotifications": "New connection requests"
   },
   "notifications": {
     "title": "Notifications",

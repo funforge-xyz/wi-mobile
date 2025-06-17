@@ -222,7 +222,16 @@
     "chooseConnectDistance": "Odaberite udaljenost u okviru koje se želite povezati sa ljudima",
     "radius": "radius",
     "kilometer": "kilometar",
-    "success": "Uspeh"
+    "success": "Uspeh",
+    "pushNotificationsEnabledSuccessfully": "Push obavještenja su uspješno omogućena",
+    "pushNotificationsDisabled": "Push obavještenja su onemogućena",
+    "disabled": "Onemogućeno",
+    "notificationPermissionTitle": "Omogući Obavještenja",
+    "notificationPermissionDescription": "Da biste primali važne ažuriranja i ostali povezani, molimo omogućite obavještenja u postavkama vašeg uređaja.",
+    "newMessageNotifications": "Obavještenja o novim porukama",
+    "likeNotifications": "Obavještenja o lajkovima", 
+    "commentNotifications": "Obavještenja o komentarima",
+    "connectionNotifications": "Zahtjevi za nova povezivanja"
   },
   "notifications": {
     "title": "Obavještenja",
