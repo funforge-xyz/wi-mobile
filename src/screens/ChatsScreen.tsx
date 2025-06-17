@@ -12,7 +12,7 @@ import ConnectionItem from '../components/ConnectionItem';
 import ChatsEmptyState from '../components/ChatsEmptyState';
 import ChatsSkeleton from '../components/ChatsSkeleton';
 import RequestsSkeleton from '../components/RequestsSkeleton';
-import ConfirmationModal from '../components/ConfirmationModal';
+import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal';
 import { chatsStyles } from '../styles/ChatsStyles';
 import {
   ConnectionRequest,
@@ -226,19 +226,16 @@ export default function ChatsScreen({ navigation }: any) {
         }
       />
 
-      <ConfirmationModal
+      <BlockUserConfirmationModal
         visible={showBlockModal}
         title={t('chats.blockUser', 'Block User')}
         message={t('chats.blockUserConfirmation', {
           user: selectedConnection?.otherUserName || t('chats.thisUser', 'this user'),
           defaultValue: `Are you sure you want to block ${selectedConnection?.otherUserName || 'this user'}? They will no longer be able to message you.`
         })}
-        confirmText={t('chats.block', 'Block')}
-        cancelText={t('common.cancel', 'Cancel')}
         onConfirm={handleConfirmBlock}
         onCancel={handleCancelBlock}
         currentTheme={currentTheme}
-        isDestructive={true}
       />
     </SafeAreaView>
   );
