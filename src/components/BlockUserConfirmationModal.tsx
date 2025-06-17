@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { View, Text, Modal, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '../config/constants';
-
+import { COLORS } from '../config/constants';
 import { useTranslation } from 'react-i18next';
+import { styles } from '../styles/BlockUserConfirmationModalStyles';
 
 interface BlockUserConfirmationModalProps {
   visible: boolean;
@@ -58,11 +57,11 @@ export default function BlockUserConfirmationModal({
               color={COLORS.error} 
             />
           </View>
-          
+
           <Text style={[styles.title, { color: currentTheme.text }]}>
             {t('userProfile.blockUser')}
           </Text>
-          
+
           <Text style={[styles.message, { color: currentTheme.textSecondary }]}>
             {t('userProfile.blockUserConfirmation')}
           </Text>
@@ -78,11 +77,7 @@ export default function BlockUserConfirmationModal({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.button,
-                styles.confirmButton,
-                { backgroundColor: COLORS.error }
-              ]}
+              style={[styles.button, styles.confirmButton, { backgroundColor: COLORS.error }]}
               onPress={onConfirm}
             >
               <Text style={styles.confirmButtonText}>
@@ -95,71 +90,3 @@ export default function BlockUserConfirmationModal({
     </Modal>
   );
 }
-
-const styles = {
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-  },
-  confirmationModal: {
-    width: '100%',
-    maxWidth: 320,
-    padding: SPACING.xl,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  iconContainer: {
-    marginBottom: SPACING.md,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: FONTS.bold,
-    marginBottom: SPACING.sm,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: SPACING.xl,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    gap: SPACING.md,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    borderWidth: 1,
-  },
-  confirmButton: {
-    // backgroundColor is set dynamically
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-    color: 'white',
-  },
-};
