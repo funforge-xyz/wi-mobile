@@ -507,33 +507,7 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
-  const filterPostsByLocation = (posts: any[], userLocation: { latitude: number; longitude: number } | null, radiusKm: number) => {
-    if (!userLocation || radiusKm === 0) {
-      return posts;
-    }
-
-    return posts.filter(post => {
-      // If post doesn't have location, ignore it
-      if (!post.location?.latitude || !post.location?.longitude) {
-        return false;
-      }
-
-      // If post author doesn't have location, ignore it
-      if (!post.authorLocation?.latitude || !post.authorLocation?.longitude) {
-        return false;
-      }
-
-      // Calculate distance between current user and post author
-      const distance = calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        post.authorLocation.latitude,
-        post.authorLocation.longitude
-      );
-
-      return distance <= radiusKm;
-    });
-  };
+  
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -804,8 +778,8 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     paddingHorizontal: SPACING.md,
   },
   emptyTitle: {
