@@ -231,7 +231,9 @@
     "newMessageNotifications": "Obavještenja o novim porukama",
     "likeNotifications": "Obavještenja o lajkovima", 
     "commentNotifications": "Obavještenja o komentarima",
-    "connectionNotifications": "Zahtjevi za nova povezivanja"
+    "connectionNotifications": "Zahtjevi za nova povezivanja",
+    "openSettings": "Otvori Podešavanja",
+    "enableNotificationsInDeviceSettings": "Molimo omogućite obavještenja u postavkama vašeg uređaja da biste primali važna ažuriranja"
   },
   "notifications": {
     "title": "Obavještenja",

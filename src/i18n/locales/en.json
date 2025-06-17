@@ -231,7 +231,9 @@
     "newMessageNotifications": "New message alerts",
     "likeNotifications": "Post like notifications",
     "commentNotifications": "Comment notifications",
-    "connectionNotifications": "New connection requests"
+    "connectionNotifications": "New connection requests",
+    "openSettings": "Open Settings",
+    "enableNotificationsInDeviceSettings": "Please enable notifications in your device settings to receive important updates"
   },
   "notifications": {
     "title": "Notifications",
