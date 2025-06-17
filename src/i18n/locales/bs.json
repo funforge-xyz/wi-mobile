@@ -233,7 +233,8 @@
     "commentNotifications": "Obavještenja o komentarima",
     "connectionNotifications": "Zahtjevi za nova povezivanja",
     "openSettings": "Otvori Podešavanja",
-    "enableNotificationsInDeviceSettings": "Molimo omogućite obavještenja u postavkama vašeg uređaja da biste primali važna ažuriranja"
+    "enableNotificationsInDeviceSettings": "Molimo omogućite obavještenja u postavkama vašeg uređaja da biste primali važna ažuriranja",
+    "permissionRequired": "Potrebna je dozvola"
   },
   "notifications": {
     "title": "Obavještenja",

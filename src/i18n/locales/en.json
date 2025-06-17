@@ -233,7 +233,8 @@
     "commentNotifications": "Comment notifications",
     "connectionNotifications": "New connection requests",
     "openSettings": "Open Settings",
-    "enableNotificationsInDeviceSettings": "Please enable notifications in your device settings to receive important updates"
+    "enableNotificationsInDeviceSettings": "Please enable notifications in your device settings to receive important updates",
+    "permissionRequired": "Permission Required"
   },
   "notifications": {
     "title": "Notifications",
