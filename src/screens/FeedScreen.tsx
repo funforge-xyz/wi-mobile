@@ -147,7 +147,7 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
 
   const loadPosts = async () => {
-    let timeout: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout | number;
     
     try {
       setLoading(true);
