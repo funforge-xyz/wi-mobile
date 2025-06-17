@@ -9,10 +9,10 @@ import { SPACING } from '../config/constants';
 import SkeletonLoader from './SkeletonLoader';
 
 interface UserAvatarProps {
-  photoURL: string;
+  photoURL?: string;
   isOnline?: boolean;
   size?: number;
-  currentTheme: any;
+  currentTheme?: any;
   style?: any;
 }
 
@@ -23,6 +23,11 @@ export default function UserAvatar({
   currentTheme,
   style,
 }: UserAvatarProps) {
+  // Default theme colors if currentTheme is not provided
+  const defaultTheme = {
+    border: '#E5E5EA',
+    textSecondary: '#8E8E93',
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -62,8 +67,8 @@ export default function UserAvatar({
           }}
         />
       ) : (
-        <View style={[avatarStyle, styles.avatarPlaceholder, { backgroundColor: currentTheme.border }]}>
-          <Ionicons name="person" size={size * 0.5} color={currentTheme.textSecondary} />
+        <View style={[avatarStyle, styles.avatarPlaceholder, { backgroundColor: currentTheme?.border || defaultTheme.border }]}>
+          <Ionicons name="person" size={size * 0.5} color={currentTheme?.textSecondary || defaultTheme.textSecondary} />
         </View>
       )}
       {isOnline && (
