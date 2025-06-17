@@ -147,7 +147,7 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
 
   const loadPosts = async () => {
-    let timeout: NodeJS.Timeout | number;
+    let timeout: NodeJS.Timeout | number | undefined;
     
     try {
       setLoading(true);
@@ -160,7 +160,7 @@ export default function FeedScreen({ navigation }: any) {
 
       const connectionPosts = await loadConnectionPosts(userRadius, currentUserLocation);
       setPosts(connectionPosts);
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     } catch (error) {
       console.error('Error loading posts:', error);
       if (timeout) clearTimeout(timeout);
