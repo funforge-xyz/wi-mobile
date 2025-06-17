@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/auth';
 import { storageService } from '../services/storage';
-import { useTranslation } from 'react-i18next';
 import { validatePassword, getErrorMessage } from '../utils/loginUtils';
 import { styles } from '../styles/LoginStyles';
 import LoginHeader from '../components/LoginHeader';
@@ -32,9 +31,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-    const { t } = useTranslation();
-
-  
 
   const handleEmailAuth = async () => {
     if (!email.trim() || !password.trim()) {

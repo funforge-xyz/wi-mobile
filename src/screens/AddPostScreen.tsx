@@ -6,11 +6,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useAppSelector } from '../hooks/redux';
-import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from '../hooks/usePostActions';
 import { compressImage } from '../utils/imageUtils';
-import { createPost, showDiscardAlert, PostData } from '../utils/postUtils';
+import { createPost, PostData } from '../utils/postUtils';
 import { addPostStyles, lightTheme, darkTheme } from '../styles/AddPostStyles';
 import AddPostHeader from '../components/AddPostHeader';
 import AddPostForm from '../components/AddPostForm';
@@ -27,7 +26,6 @@ export default function AddPostScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { addNewPost } = usePostActions();
 
@@ -60,34 +58,6 @@ export default function AddPostScreen() {
     setIsPrivate(false);
     setAllowComments(true);
     setShowLikeCount(true);
-  };
-
-  const handleImagePicker = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access the photo library is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const asset = result.assets[0];
-
-      try {
-        const compressedUri = await compressImage(asset.uri);
-        setSelectedImage(compressedUri);
-      } catch (error) {
-        console.error('Image processing error:', error);
-        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please select a smaller image.');
-      }
-    }
   };
 
   const handleCameraCapture = async () => {

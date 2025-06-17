@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector } from '../hooks/redux';
-import { authService } from '../services/auth';
 import NearbySkeleton from '../components/NearbySkeleton';
 import NearbyHeader from '../components/NearbyHeader';
 import NearbyUserItem from '../components/NearbyUserItem';
