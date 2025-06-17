@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -76,7 +75,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        
+
         setProfile({
           id: userId,
           firstName: userData.firstName || firstName,
@@ -102,42 +101,19 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
   const handleConfirmBlock = async () => {
     try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
+      if (!profile) return;
 
-      if (!currentUser) return;
-
-      const firestore = getFirestore();
-
-      // Add to blocked users
-      await addDoc(collection(firestore, 'blockedUsers'), {
-        blockerUserId: currentUser.uid,
-        blockedUserId: userId,
-        createdAt: new Date(),
-      });
-
-      // Remove from connections
-      const connectionsQuery = query(
-        collection(firestore, 'connections'),
-        where('participants', 'array-contains', currentUser.uid)
-      );
-      const connectionsSnapshot = await getDocs(connectionsQuery);
-      
-      for (const connectionDoc of connectionsSnapshot.docs) {
-        const data = connectionDoc.data();
-        if (data.participants.includes(userId)) {
-          await connectionDoc.ref.delete();
-        }
-      }
+      const { blockUser } = await import('../utils/chatsUtils');
+      await blockUser(profile.id);
 
       Alert.alert(t('common.done'), t('userProfile.userBlocked'));
       navigation.goBack();
     } catch (error) {
       console.error('Error blocking user:', error);
-      Alert.alert(t('common.error'), t('userProfile.failedToBlock'));
+      Alert.alert('Error', t('userProfile.failedToBlock'));
+    } finally {
+      setShowBlockModal(false);
     }
-    setShowBlockModal(false);
   };
 
   const handleCancelBlock = () => {
@@ -182,7 +158,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
               ? `${profile.firstName} ${profile.lastName}` 
               : t('userProfile.anonymousUser')}
           </Text>
-          
+
           {profile.bio ? (
             <Text style={[styles.bio, { color: currentTheme.textSecondary }]}>
               {profile.bio}

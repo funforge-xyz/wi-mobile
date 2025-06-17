@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, RefreshControl, AppState, ActivityIndicator } from 'react-native';
+import { FlatList, RefreshControl, AppState, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../config/constants';
@@ -22,8 +22,8 @@ import {
   handleReplyToRequest,
   handleDeclineRequest,
   handleStartChat,
-  handleBlockUser,
   setupRealtimeListeners,
+  blockUser,
 } from '../utils/chatsUtils';
 
 export default function ChatsScreen({ navigation }: any) {
@@ -123,13 +123,14 @@ export default function ChatsScreen({ navigation }: any) {
     setShowBlockModal(true);
   };
 
-  const handleConfirmBlock = () => {
+  const handleConfirmBlock = async () => {
     if (selectedConnection) {
-      // Create a wrapper function that matches the expected signature  
-      const translateWrapper = (key: string, fallback?: string) => {
-        return fallback ? t(key, fallback) : t(key);
-      };
-      handleBlockUser(selectedConnection, translateWrapper);
+      try {
+        await blockUser(selectedConnection.userId, selectedConnection.id);
+        Alert.alert(t('common.done'), t('userProfile.userBlocked'));
+      } catch (error) {
+        Alert.alert('Error', t('userProfile.failedToBlock'));
+      }
     }
     setShowBlockModal(false);
     setSelectedConnection(null);

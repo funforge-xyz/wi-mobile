@@ -110,48 +110,35 @@ export const handleStartChat = (connection: Connection, navigation: any) => {
   });
 };
 
-export const handleBlockUser = async (connection: Connection, t: (key: string, fallback?: string) => string) => {
-  Alert.alert(
-    t('chats.blockUser', 'Block User'),
-    t('chats.blockUserMessage', 'Are you sure you want to block {{user}}? They will be removed from your connections.', { user: connection.firstName || t('profile.anonymousUser') }),
-    [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Block',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const { getAuth } = await import('../services/firebase');
-            const auth = getAuth();
-            const currentUser = auth.currentUser;
+export const blockUser = async (userId: string, connectionId?: string) => {
+  try {
+    const { getAuth } = await import('../services/firebase');
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
 
-            if (!currentUser) return;
+    if (!currentUser) return;
 
-            const firestore = getFirestore();
+    const firestore = getFirestore();
 
-            // Add to blocked users
-            await addDoc(collection(firestore, 'blockedUsers'), {
-              blockerUserId: currentUser.uid,
-              blockedUserId: connection.userId,
-              blockedAt: new Date()
-            });
+    // Add to blocked users
+    await addDoc(collection(firestore, 'blockedUsers'), {
+      blockerUserId: currentUser.uid,
+      blockedUserId: userId,
+      blockedAt: new Date()
+    });
 
-            // Update connection status
-            await updateDoc(doc(firestore, 'connections', connection.id), {
-              status: 'blocked',
-              blockedAt: new Date(),
-              blockedBy: currentUser.uid
-            });
-
-            Alert.alert(t('common.done'), t('chats.userBlocked', 'User has been blocked'));
-          } catch (error) {
-            console.error('Error blocking user:', error);
-            Alert.alert('Error', 'Failed to block user');
-          }
-        }
-      }
-    ]
-  );
+    // Update connection status if connectionId is provided
+    if (connectionId) {
+      await updateDoc(doc(firestore, 'connections', connectionId), {
+        status: 'blocked',
+        blockedAt: new Date(),
+        blockedBy: currentUser.uid
+      });
+    }
+  } catch (error) {
+    console.error('Error blocking user:', error);
+    throw error;
+  }
 };
 
 export const setupRealtimeListeners = async (
