@@ -22,11 +22,8 @@ import PostItem from '../components/PostItem';
 import EmptyFeedState from '../components/EmptyFeedState';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Dimensions, Image, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import SkeletonLoader from '../components/SkeletonLoader';
 
-const { width } = Dimensions.get('window');
+
 
 // Calculate distance between two coordinates using Haversine formula
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -483,80 +480,6 @@ const darkTheme = {
   border: '#333333',
 };
 
-const AvatarImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [source?.uri]);
-
-  return (
-    <View style={[style, { position: 'relative' }]}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={style?.width || 40}
-          height={style?.height || 40}
-          borderRadius={style?.borderRadius || 20}
-          style={{ position: 'absolute' }}
-        />
-      )}
-      <Image
-        source={source}
-        style={[style, { opacity: loading || error ? 0 : 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        {...props}
-      />
-    </View>
-  );
-};
-
-const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [source?.uri]);
-
-  return (
-    <View style={[style, { position: 'relative' }]}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={style?.width || width}
-          height={style?.height || 300}
-          borderRadius={style?.borderRadius || 0}
-          style={{ position: 'absolute' }}
-        />
-      )}
-      <Image
-        source={source}
-        style={[style, { opacity: loading || error ? 0 : 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        {...props}
-      />
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -573,125 +496,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: FONTS.bold,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  postContainer: {
-    marginBottom: SPACING.sm,
-    paddingVertical: SPACING.md,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginRight: SPACING.sm,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#4CAF50',
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  usernameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  username: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-  },
-  connectionPill: {
-    marginLeft: SPACING.sm,
-    paddingHorizontal: SPACING.xs,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  connectionPillText: {
-    fontSize: 10,
-    fontFamily: FONTS.medium,
-    color: '#FFFFFF',
-  },
-  timestamp: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-  },
-  postContent: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    lineHeight: 24,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  mediaContainer: {
-    marginBottom: SPACING.sm,
-  },
-  postImage: {
-    width: width,
-    height: 300,
-  },
-  postActions: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.sm,
-    borderTopWidth: 1,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: SPACING.lg,
-  },
-  actionText: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    marginLeft: SPACING.xs,
-  },
+  
   emptyContainer: {
     flex: 1,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    paddingHorizontal: SPACING.md,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: FONTS.bold,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    fontFamily: FONTS.regular,
-    textAlign: 'center',
-    lineHeight: 24,
   },
 });
