@@ -12,7 +12,6 @@ import { styles } from '../styles/UserProfileStyles';
 import { 
   loadUserProfileData, 
   handleBlockUserAction, 
-  getTheme,
   UserProfile
 } from '../utils/userProfileUtils';
 
