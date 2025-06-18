@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ScrollView, ActivityIndicator } from 'react-native';
+import { ScrollView, ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
@@ -8,13 +8,29 @@ import UserProfileHeader from '../components/UserProfileHeader';
 import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserProfileActions from '../components/UserProfileActions';
 import { useTranslation } from 'react-i18next';
-import { lightTheme, darkTheme, styles } from '../styles/UserProfileStyles';
+import { styles } from '../styles/UserProfileStyles';
 import { 
   loadUserProfileData, 
   handleBlockUserAction, 
   getTheme,
   UserProfile
 } from '../utils/userProfileUtils';
+
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: COLORS.darkBackground,
+  surface: COLORS.darkSurface,
+  text: COLORS.darkText,
+  textSecondary: COLORS.darkTextSecondary,
+  border: COLORS.darkBorder,
+};
 
 interface UserProfileProps {
   route: {
@@ -45,8 +61,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const [showBlockModal, setShowBlockModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
-
-  const currentTheme = getTheme(isDarkMode);
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
     loadUserProfile();
@@ -89,7 +104,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.background }]}>
+        <View style={[styles.loadingContainer]}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       </SafeAreaView>

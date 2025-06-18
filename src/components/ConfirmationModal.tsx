@@ -1,4 +1,3 @@
-
 import { View, Text, Modal, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -64,11 +63,11 @@ export default function ConfirmationModal({
               color={isDestructive ? COLORS.error : COLORS.primary} 
             />
           </View>
-          
+
           <Text style={[styles.title, { color: currentTheme.text }]}>
             {title}
           </Text>
-          
+
           <Text style={[styles.message, { color: currentTheme.textSecondary }]}>
             {message}
           </Text>

@@ -1,7 +1,10 @@
-
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '../config/constants';
+import { useTranslation } from 'react-i18next';
+import { COLORS } from '../config/constants';
+
+import { FONTS, SPACING } from '../config/constants';
 import { Notification } from '../utils/notificationsUtils';
 
 interface NotificationItemProps {

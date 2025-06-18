@@ -1,4 +1,3 @@
-
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -76,5 +75,9 @@ const styles = {
     fontFamily: FONTS.regular,
     marginLeft: SPACING.xs,
     textAlign: 'center' as const,
+  },
+    emptyStateText: {
+    fontSize: 16,
+    fontFamily: FONTS.regular,
   },
 };

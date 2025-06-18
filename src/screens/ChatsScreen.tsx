@@ -37,13 +37,23 @@ export default function ChatsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = {
-    background: isDarkMode ? COLORS.darkBackground : COLORS.background,
-    surface: isDarkMode ? COLORS.darkSurface : COLORS.surface,
-    text: isDarkMode ? COLORS.darkText : COLORS.text,
-    textSecondary: isDarkMode ? COLORS.darkTextSecondary : COLORS.textSecondary,
-    border: isDarkMode ? COLORS.darkBorder : COLORS.border,
+  const lightTheme = {
+    background: COLORS.background,
+    surface: COLORS.surface,
+    text: COLORS.text,
+    textSecondary: COLORS.textSecondary,
+    border: COLORS.border,
   };
+
+  const darkTheme = {
+    background: COLORS.darkBackground,
+    surface: COLORS.darkSurface,
+    text: COLORS.darkText,
+    textSecondary: COLORS.darkTextSecondary,
+    border: COLORS.darkBorder,
+  };
+
+  const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   // Update lastSeen when screen comes into focus
   useFocusEffect(

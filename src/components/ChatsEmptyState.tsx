@@ -1,13 +1,13 @@
-
-;
+import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FONTS, SPACING } from '../config/constants';
+import { useTranslation } from 'react-i18next';
+import { COLORS } from '../config/constants';
 
 interface ChatsEmptyStateProps {
   showRequests: boolean;
   currentTheme: any;
-  t: (key: string) => string;
+  t: (key: string, options?: any) => string;
 }
 
 export default function ChatsEmptyState({
@@ -19,14 +19,14 @@ export default function ChatsEmptyState({
     if (showRequests) {
       return {
         icon: 'mail-outline',
-        title: t('chats.noRequests', 'No Requests'),
-        subtitle: t('chats.noRequestsSubtitle', 'No connection requests at the moment.')
+        title: t('chats.noRequests', { defaultValue: 'No Requests' }),
+        subtitle: t('chats.noRequestsSubtitle', { defaultValue: 'No connection requests at the moment.' })
       };
     } else {
       return {
         icon: 'people-outline',
-        title: t('chats.noConnections', 'No Connections'),
-        subtitle: t('chats.noConnectionsSubtitle', 'Start messaging People nearby to build connections.')
+        title: t('chats.noConnections', { defaultValue: 'No Connections' }),
+        subtitle: t('chats.noConnectionsSubtitle', { defaultValue: 'Start messaging People nearby to build connections.' })
       };
     }
   };
