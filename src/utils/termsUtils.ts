@@ -1,21 +1,22 @@
+import { COLORS } from '../config/constants';
+
+const lightTheme = {
+  background: COLORS.background,
+  surface: COLORS.surface,
+  text: COLORS.text,
+  textSecondary: COLORS.textSecondary,
+  border: COLORS.border,
+};
+
+const darkTheme = {
+  background: COLORS.darkBackground,
+  surface: COLORS.darkSurface,
+  text: COLORS.darkText,
+  textSecondary: COLORS.darkTextSecondary,
+  border: COLORS.darkBorder,
+};
 
 export const getTheme = (isDarkMode: boolean) => {
-  const lightTheme = {
-    background: '#FFFFFF',
-    surface: '#F5F5F5',
-    text: '#000000',
-    textSecondary: '#666666',
-    border: '#E0E0E0',
-  };
-
-  const darkTheme = {
-    background: '#121212',
-    surface: '#1E1E1E',
-    text: '#FFFFFF',
-    textSecondary: '#B0B0B0',
-    border: '#333333',
-  };
-
   return isDarkMode ? darkTheme : lightTheme;
 };
 

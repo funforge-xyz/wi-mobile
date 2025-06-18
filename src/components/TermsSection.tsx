@@ -1,5 +1,6 @@
-
-import { Text } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
+import { SPACING, COLORS, FONTS } from '../config/constants';
 
 interface TermsSectionProps {
   title: string;
