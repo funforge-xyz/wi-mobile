@@ -100,7 +100,6 @@ export default function UserPostsScreen({ navigation }: any) {
         onPress={() => handlePostPress(item)}
         onLike={handleLike}
         formatTimeAgo={(date) => formatTimeAgo(date, t)}
-        t={t}
       />
     );
   };

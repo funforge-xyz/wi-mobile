@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../config/constants';
 import AvatarImage from './AvatarImage';
 import SkeletonLoader from './SkeletonLoader';
+import { useTranslation } from 'react-i18next';
 
 const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,6 @@ interface UserPostItemProps {
   onPress: () => void;
   onLike: (postId: string) => void;
   formatTimeAgo: (date: string | Date) => string;
-  t: (key: string, fallback?: string) => string;
 }
 
 export default function UserPostItem({ 
@@ -82,8 +82,9 @@ export default function UserPostItem({
   onPress, 
   onLike, 
   formatTimeAgo, 
-  t 
 }: UserPostItemProps) {
+  const { t } = useTranslation();
+
   return (
     <TouchableOpacity
       style={[styles.postItem, { backgroundColor: currentTheme.surface }]}
