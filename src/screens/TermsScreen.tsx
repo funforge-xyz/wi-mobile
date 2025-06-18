@@ -1,138 +1,44 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../hooks/redux';
+import { getTheme, getTermsSections, getLastUpdatedText } from '../utils/termsUtils';
+import { styles } from '../styles/TermsStyles';
+import TermsHeader from '../components/TermsHeader';
+import TermsSection from '../components/TermsSection';
 
 export default function TermsScreen() {
-  const navigation = useNavigation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
+  const termsSections = getTermsSections(t);
+  const lastUpdatedText = getLastUpdatedText(t);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: currentTheme.text }]}>{t('terms.title')}</Text>
-      </View>
+      <TermsHeader currentTheme={currentTheme} styles={styles} />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.acceptanceTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.acceptanceText')}
-        </Text>
+        {termsSections.map((section, index) => (
+          <TermsSection
+            key={index}
+            title={section.title}
+            content={section.content}
+            currentTheme={currentTheme}
+            styles={styles}
+          />
+        ))}
 
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.privacyTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.privacyText')}
-        </Text>
-
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.conductTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.conductText')}
-        </Text>
-
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.contentTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.contentText')}
-        </Text>
-
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.securityTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.securityText')}
-        </Text>
-
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.liabilityTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.liabilityText')}
-        </Text>
-
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>{t('terms.changesTitle')}</Text>
-        <Text style={[styles.sectionText, { color: currentTheme.textSecondary }]}>
-          {t('terms.changesText')}
-        </Text>
-
-        <Text style={[styles.lastUpdated, { color: currentTheme.textSecondary }]}>
-          {t('terms.lastUpdated', { date: new Date().toLocaleDateString() })}
-        </Text>
+        <TermsSection
+          title=""
+          content={lastUpdatedText}
+          currentTheme={currentTheme}
+          styles={styles}
+          isLastUpdated={true}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
-
-const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  border: '#333333',
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-  },
-  backButton: {
-    marginRight: SPACING.md,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: FONTS.bold,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: FONTS.bold,
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.sm,
-  },
-  sectionText: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    lineHeight: 20,
-    marginBottom: SPACING.md,
-  },
-  lastUpdated: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-    textAlign: 'center',
-    marginTop: SPACING.xl,
-    marginBottom: SPACING.lg,
-    fontStyle: 'italic',
-  },
-});
