@@ -1,17 +1,19 @@
 
 import { StyleSheet } from 'react-native';
-import { FONTS, SPACING } from '../config/constants';
+import { COLORS, FONTS, SPACING } from '../config/constants';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.md,
     borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backButton: {
     marginRight: SPACING.md,
@@ -19,30 +21,33 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: FONTS.bold,
+    color: COLORS.text,
   },
   content: {
     flex: 1,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
+  },
+  section: {
+    marginBottom: SPACING.lg,
   },
   sectionTitle: {
     fontSize: 18,
     fontFamily: FONTS.bold,
-    marginTop: SPACING.lg,
+    color: COLORS.text,
     marginBottom: SPACING.sm,
   },
-  sectionText: {
-    fontSize: 14,
+  sectionContent: {
+    fontSize: 16,
     fontFamily: FONTS.regular,
-    lineHeight: 20,
-    marginBottom: SPACING.md,
+    color: COLORS.textSecondary,
+    lineHeight: 24,
   },
   lastUpdated: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: FONTS.regular,
-    textAlign: 'center',
-    marginTop: SPACING.xl,
-    marginBottom: SPACING.lg,
+    color: COLORS.textSecondary,
     fontStyle: 'italic',
+    marginTop: SPACING.lg,
+    textAlign: 'center',
   },
 });
