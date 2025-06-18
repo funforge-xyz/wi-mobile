@@ -243,19 +243,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           )}
 
           <LoginButtons 
-            email={email}
-            password={password}
-            confirmPassword={confirmPassword}
-            firstName={firstName}
-            lastName={lastName}
-            bio={bio}
-            profileImage={profileImage}
-            acceptTerms={acceptTerms}
             isLoading={isLoading}
             isSignUp={isSignUp}
             onEmailAuth={handleEmailAuth}
             onGoogleSignIn={handleGoogleSignIn}
-            onToggleMode={() => setIsSignUp(!isSignUp)}
+            onSwitchMode={() => setIsSignUp(!isSignUp)}
           />
         </View>
       </KeyboardAwareScrollView>
