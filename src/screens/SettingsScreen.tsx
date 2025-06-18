@@ -28,6 +28,10 @@ import SettingsSection from '../components/SettingsSection';
 import SettingsToggleRow from '../components/SettingsToggleRow';
 import SettingsActionRow from '../components/SettingsActionRow';
 import PushNotificationModal from '../components/PushNotificationModal';
+import EditProfileModal from '../components/EditProfileModal';
+import LanguageSelectionModal from '../components/LanguageSelectionModal';
+import RadiusSelectionModal from '../components/RadiusSelectionModal';
+import ProfileImage from '../components/ProfileImage';
 import { styles, modalStyles, lightTheme, darkTheme } from '../styles/SettingsStyles';
 import {
   UserProfile,
@@ -340,268 +344,40 @@ export default function SettingsScreen() {
       </ScrollView>
 
       {/* Edit Profile Modal */}
-      <Modal visible={isEditingProfile} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={handleCancelEdit}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.editProfile')}</Text>
-            <TouchableOpacity onPress={handleSaveProfile} disabled={isLoading}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color={COLORS.primary} />
-              ) : (
-                <Text style={styles.modalSave}>{t('common.save')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <KeyboardAwareScrollView style={styles.modalContent}>
-            <View style={[styles.modalSection, styles.modalImageContainer]}>
-              <View style={modalStyles.avatarContainer}>
-                <TouchableOpacity onPress={() => showImagePickerOptions(
-                  () => handleCameraCapture(editedProfile, setEditedProfile, setIsLoading, t),
-                  () => handleImagePicker(editedProfile, setEditedProfile, setIsLoading, t),
-                  t
-                )}>
-                  {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' ? (
-                    <ProfileImage
-                      uri={editedProfile.thumbnailURL || editedProfile.photoURL}
-                      style={modalStyles.modalAvatar}
-                    />
-                  ) : (
-                    <View style={[modalStyles.modalAvatar, modalStyles.placeholderModalAvatar, { backgroundColor: currentTheme.surface }]}>
-                      <Ionicons name="person-add" size={30} color={currentTheme.textSecondary} />
-                    </View>
-                  )}
-                </TouchableOpacity>
-                {editedProfile.photoURL && editedProfile.photoURL.trim() !== '' && (
-                  <TouchableOpacity
-                    style={modalStyles.deleteImageButton}
-                    onPress={handleRemoveImage}
-                  >
-                    <Ionicons name="trash" size={16} color="white" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.firstName')}</Text>
-              <View style={[modalStyles.inputContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="person-outline" size={20} color={currentTheme.textSecondary} />
-                <TextInput
-                  style={[modalStyles.input, { color: currentTheme.text }]}
-                  value={editedProfile.firstName}
-                  onChangeText={(text) => setEditedProfile({ ...editedProfile, firstName: text })}
-                  placeholder={t('settings.enterFirstName')}
-                  placeholderTextColor={currentTheme.textSecondary}
-                />
-              </View>
-            </View>
-
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.lastName')}</Text>
-              <View style={[modalStyles.inputContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="person-outline" size={20} color={currentTheme.textSecondary} />
-                <TextInput
-                  style={[modalStyles.input, { color: currentTheme.text }]}
-                  value={editedProfile.lastName}
-                  onChangeText={(text) => setEditedProfile({ ...editedProfile, lastName: text })}
-                  placeholder={t('settings.enterLastName')}
-                  placeholderTextColor={currentTheme.textSecondary}
-                />
-              </View>
-            </View>
-
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.email')}</Text>
-              <View style={[modalStyles.inputContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="mail-outline" size={20} color={currentTheme.textSecondary} />
-                <View style={[modalStyles.emailDisplayContainer]}>
-                  <Text style={[modalStyles.emailDisplayText, { color: currentTheme.textSecondary }]}>
-                    {profile?.email || ''}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.bio')}</Text>
-              <View style={[modalStyles.inputContainer, modalStyles.textAreaContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="document-text-outline" size={20} color={currentTheme.textSecondary} style={modalStyles.textAreaIcon} />
-                <TextInput
-                  style={[modalStyles.textArea, { color: currentTheme.text }]}
-                  value={editedProfile.bio}
-                  onChangeText={(text) => setEditedProfile({ ...editedProfile, bio: text })}
-                  placeholder={t('settings.tellUsAboutYourself')}
-                  placeholderTextColor={currentTheme.textSecondary}
-                  multiline
-                  numberOfLines={4}
-                />
-              </View>
-            </View>
-          </KeyboardAwareScrollView>
-        </SafeAreaView>
-      </Modal>
+      <EditProfileModal
+        visible={isEditingProfile}
+        onClose={handleCancelEdit}
+        onSave={handleSaveProfile}
+        currentTheme={currentTheme}
+        isLoading={isLoading}
+        editedProfile={editedProfile}
+        setEditedProfile={setEditedProfile}
+        onImagePicker={() => showImagePickerOptions(
+          () => handleCameraCapture(editedProfile, setEditedProfile, setIsLoading, t),
+          () => handleImagePicker(editedProfile, setEditedProfile, setIsLoading, t),
+          t
+        )}
+        onRemoveImage={handleRemoveImage}
+        profile={profile}
+      />
 
       {/* Language Selection Modal */}
-      <Modal 
-        visible={showLanguageModal} 
-        animationType="slide" 
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowLanguageModal(false)}
-      >
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity 
-              onPress={() => setShowLanguageModal(false)}
-              style={modalStyles.modalHeaderButton}
-            >
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.changeLanguage')}</Text>
-            <View style={modalStyles.modalHeaderButton} />
-          </View>
-
-          <View style={modalStyles.radiusOptionsContainer}>
-            <Text style={[modalStyles.radiusDescription, { color: currentTheme.textSecondary }]}>
-              {t('settings.selectPreferredLanguage')}
-            </Text>
-
-            {[
-              { code: 'en', name: 'English', nativeName: 'English' },
-              { code: 'bs', name: 'Bosnian', nativeName: 'Bosanski' }
-            ].map((language) => (
-              <TouchableOpacity
-                key={language.code}
-                style={[
-                  modalStyles.radiusOption,
-                  {
-                    backgroundColor: i18n.language === language.code ? `${COLORS.primary}15` : currentTheme.surface,
-                    borderColor: i18n.language === language.code ? COLORS.primary : currentTheme.border,
-                    borderWidth: i18n.language === language.code ? 2 : 1,
-                  }
-                ]}
-                onPress={() => changeLanguage(language.code, i18n, setShowLanguageModal)}
-                activeOpacity={0.7}
-              >
-                <View style={modalStyles.radiusOptionContent}>
-                  <View style={modalStyles.radiusOptionLeft}>
-                    <Text style={[
-                      modalStyles.radiusOptionText,
-                      {
-                        color: i18n.language === language.code ? COLORS.primary : currentTheme.text,
-                        fontFamily: 'System',
-                        fontWeight: 'bold',
-                      }
-                    ]}>
-                      {language.nativeName}
-                    </Text>
-                    <Text style={[
-                      modalStyles.radiusOptionDescription,
-                      { color: currentTheme.textSecondary }
-                    ]}>
-                      {language.name}
-                    </Text>
-                  </View>
-
-                  {i18n.language === language.code && (
-                    <View style={modalStyles.radiusSelectedIcon}>
-                      <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.primary} />
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </SafeAreaView>
-      </Modal>
+      <LanguageSelectionModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        currentTheme={currentTheme}
+        onLanguageChange={(code) => changeLanguage(code, i18n, setShowLanguageModal)}
+        currentLanguage={i18n.language}
+      />
 
       {/* Radius Selection Modal */}
-      <Modal 
-        visible={showRadiusModal} 
-        animationType="slide" 
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowRadiusModal(false)}
-      >
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity 
-              onPress={() => setShowRadiusModal(false)}
-              style={modalStyles.modalHeaderButton}
-            >
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.trackingRadius')}</Text>
-            <View style={modalStyles.modalHeaderButton} />
-          </View>
-
-          <View style={modalStyles.radiusOptionsContainer}>
-            <Text style={[modalStyles.radiusDescription, { color: currentTheme.textSecondary }]}>
-              {t('settings.chooseConnectDistance')}
-            </Text>
-
-            {[1, 5, 10].map((radius) => (
-              <TouchableOpacity
-                key={radius}
-                style={[
-                  modalStyles.radiusOption,
-                  {
-                    backgroundColor: trackingRadius === radius ? `${COLORS.primary}15` : currentTheme.surface,
-                    borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
-                    borderWidth: trackingRadius === radius ? 2 : 1,
-                  }
-                ]}
-                onPress={() => {
-                  handleTrackingRadiusChange(radius, setTrackingRadius, t);
-                  setShowRadiusModal(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={modalStyles.radiusOptionContent}>
-                  <View style={modalStyles.radiusOptionLeft}>
-                    <Text style={[
-                      modalStyles.radiusOptionText,
-                      {
-                        color: trackingRadius === radius ? COLORS.primary : currentTheme.text,
-                        fontFamily: 'System',
-                        fontWeight: 'bold',
-                      }
-                    ]}>
-                      {radius}km {t('settings.radius')}
-                    </Text>
-                    <Text style={[
-                      modalStyles.radiusOptionDescription,
-                      { color: currentTheme.textSecondary }
-                    ]}>
-                      {t('settings.connectWithin')} {radius} {t('settings.kilometer', { count: radius })}
-                    </Text>
-                  </View>
-
-                  {trackingRadius === radius && (
-                    <View style={modalStyles.radiusSelectedIcon}>
-                      <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.primary} />
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </SafeAreaView>
-      </Modal>
+      <RadiusSelectionModal
+        visible={showRadiusModal}
+        onClose={() => setShowRadiusModal(false)}
+        currentTheme={currentTheme}
+        trackingRadius={trackingRadius}
+        onRadiusChange={(radius) => handleTrackingRadiusChange(radius, setTrackingRadius, t)}
+      />
 
       {/* Change Password Modal */}
       <Modal visible={showChangePasswordModal} animationType="slide" presentationStyle="pageSheet">
@@ -779,42 +555,3 @@ export default function SettingsScreen() {
   );
 }
 
-const ProfileImage = React.memo(({ uri, style, ...props }: { uri: string; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
-
-  const imageWidth = typeof style?.width === 'number' ? style.width : 100;
-  const imageHeight = typeof style?.height === 'number' ? style.height : 100;
-
-  React.useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [uri]);
-
-  return (
-    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={imageWidth}
-          height={imageHeight}
-          borderRadius={style?.borderRadius || 50}
-          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
-        />
-      )}
-      <Image
-        source={{ uri, cache: 'reload' }}
-        style={[style, { opacity: loading ? 0 : 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        {...props}
-      />
-    </View>
-  );
-});
