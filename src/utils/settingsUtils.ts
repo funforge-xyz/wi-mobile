@@ -155,35 +155,17 @@ export const handleToggleLocationTracking = async (
       const success = await locationService.startLocationTracking();
       if (success) {
         setLocationTrackingEnabled(true);
-        Alert.alert(t('common.success'), t('settings.locationTrackingEnabledSuccessfully'));
       } else {
-        Alert.alert(
-          t('settings.permissionRequired'),
-          t('settings.enableLocationPermissionsInDeviceSettings'),
-          [
-            {
-              text: t('common.cancel'),
-              style: 'cancel',
-            },
-            {
-              text: t('settings.openSettings'),
-              onPress: () => {
-                if (Platform.OS === 'ios') {
-                  Linking.openURL('app-settings:');
-                }
-              },
-            },
-          ]
-        );
+        // Permission not granted, but don't show alert
+        setLocationTrackingEnabled(false);
       }
     } else {
       await locationService.stopLocationTracking();
       setLocationTrackingEnabled(false);
-      Alert.alert(t('settings.disabled'), t('settings.locationTrackingDisabled'));
     }
   } catch (error) {
     console.error('Error toggling location tracking:', error);
-    Alert.alert(t('common.error'), t('settings.failedToUpdateLocationTrackingSettings'));
+    setLocationTrackingEnabled(!value); // Revert to previous state
   } finally {
     setIsLoading(false);
   }
@@ -212,11 +194,9 @@ export const handleTrackingRadiusChange = async (
         trackingRadiusUpdatedAt: new Date()
       });
     }
-
-    Alert.alert(t('settings.settingsUpdated'), `${t('settings.trackingRadiusSetTo')} ${radius}km`);
   } catch (error) {
     console.error('Error updating tracking radius:', error);
-    Alert.alert(t('common.error'), t('settings.failedToUpdateTrackingRadius'));
+    // Silently handle error without showing alert
   }
 };
 
