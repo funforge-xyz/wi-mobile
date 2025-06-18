@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { FlatList } from 'react-native';
 import { SPACING } from '../config/constants';
 import ChatMessage from './ChatMessage';
@@ -34,7 +34,7 @@ export default function ChatMessagesList({
     />
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });

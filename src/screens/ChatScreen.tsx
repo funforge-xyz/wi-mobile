@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, ActivityIndicator, AppState, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, ActivityIndicator, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../config/constants';
@@ -88,7 +88,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
   // Mark messages as read when screen comes into focus
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       if (chatRoomId) {
         const timer = setTimeout(() => {
           markMessagesAsRead(chatRoomId, userId, getCurrentUserId());

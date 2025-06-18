@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { fetchUserProfile } from '../store/userSlice';
 import { useTranslation } from 'react-i18next';
 import { styles, lightTheme, darkTheme } from '../styles/ProfileStyles';
 import { handleSignOut, onRefresh, loadProfile } from '../utils/profileUtils';

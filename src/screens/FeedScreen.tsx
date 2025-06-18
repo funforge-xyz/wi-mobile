@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -55,7 +55,7 @@ export default function FeedScreen({ navigation }: any) {
 
   // Force NotificationBell to re-render when screen comes into focus
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       setNotificationKey(prev => prev + 1);
     }, [])
   );

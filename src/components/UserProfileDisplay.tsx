@@ -1,4 +1,4 @@
-import React from 'react';
+;
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,7 @@ export default function UserProfileDisplay({ profile, posts, currentTheme, style
   return (
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
       <View style={styles.profileRow}>
-        {(profile?.thumbnailURL || profile?.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
+        {(profile?.thumbnailURL || profile?.photoURL) && (profile?.thumbnailURL || profile?.photoURL)?.trim() !== '' ? (
           <AvatarImage
             source={{ 
               uri: profile.thumbnailURL || profile.photoURL,

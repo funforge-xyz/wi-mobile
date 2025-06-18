@@ -1,8 +1,6 @@
 
-import React from 'react';
 import { TouchableOpacity, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../config/constants';
 import { styles } from '../styles/LoginStyles';
 
 interface LoginTermsCheckboxProps {

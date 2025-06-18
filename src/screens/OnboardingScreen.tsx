@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { onboardingData, getNextButtonText } from '../utils/onboardingUtils';
 import { styles } from '../styles/OnboardingStyles';

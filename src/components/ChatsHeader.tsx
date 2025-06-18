@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { View, Text } from 'react-native';
 import { FONTS, SPACING } from '../config/constants';
 import NotificationBell from './NotificationBell';

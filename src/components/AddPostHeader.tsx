@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { addPostStyles } from '../styles/AddPostStyles';
 import { useTranslation } from 'react-i18next';

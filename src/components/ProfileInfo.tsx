@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../styles/ProfileStyles';
@@ -18,7 +18,7 @@ const ProfileImage = ({ uri, style, ...props }: ProfileImageProps) => {
   const imageWidth = typeof style?.width === 'number' ? style.width : 120;
   const imageHeight = typeof style?.height === 'number' ? style.height : 120;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (uri && uri.trim() !== '') {
       setLoading(true);
       setError(false);

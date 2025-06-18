@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { View, Text } from 'react-native';
 import NotificationBell from './NotificationBell';
 import { styles } from '../styles/NearbyStyles';

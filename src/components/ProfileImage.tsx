@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, useState, useEffect } from 'react';
 import { View, Image } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 
@@ -8,14 +8,14 @@ interface ProfileImageProps {
   [key: string]: any;
 }
 
-const ProfileImage = React.memo(({ uri, style, ...props }: ProfileImageProps) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+const ProfileImage = memo(({ uri, style, ...props }: ProfileImageProps) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const imageWidth = typeof style?.width === 'number' ? style.width : 100;
   const imageHeight = typeof style?.height === 'number' ? style.height : 100;
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
   }, [uri]);

@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  View,
   ScrollView,
   Alert,
-  Modal,
-  TextInput,
-  ActivityIndicator,
-  Image,
-  TouchableOpacity,
-  Text,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,12 +9,9 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../config/constants';
-import { Ionicons } from '@expo/vector-icons';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { fetchUserProfile, updateProfile } from '../store/userSlice';
 import { authService } from '../services/auth';
 import { storageService, Settings } from '../services/storage';
-import SkeletonLoader from '../components/SkeletonLoader';
 import SettingsSkeleton from '../components/SettingsSkeleton';
 import SettingsHeader from '../components/SettingsHeader';
 import SettingsSection from '../components/SettingsSection';
@@ -33,8 +23,7 @@ import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import RadiusSelectionModal from '../components/RadiusSelectionModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DeleteAccountModal from '../components/DeleteAccountModal';
-import ProfileImage from '../components/ProfileImage';
-import { styles, modalStyles, lightTheme, darkTheme } from '../styles/SettingsStyles';
+import { styles, lightTheme, darkTheme } from '../styles/SettingsStyles';
 import {
   UserProfile,
   loadSettings,

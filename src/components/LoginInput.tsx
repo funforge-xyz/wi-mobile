@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { View, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
