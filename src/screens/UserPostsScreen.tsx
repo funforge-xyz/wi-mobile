@@ -5,7 +5,7 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { fetchUserProfile, fetchUserPosts, updatePostLike } from '../store/userSlice';
 import { useTranslation } from 'react-i18next';
 import UserPostsHeader from '../components/UserPostsHeader';
-import UserProfileHeader from '../components/UserProfileHeader';
+import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserPostItem from '../components/UserPostItem';
 import UserPostsEmptyState from '../components/UserPostsEmptyState';
 import UserPostsSkeleton from '../components/UserPostsSkeleton';
@@ -105,7 +105,7 @@ export default function UserPostsScreen({ navigation }: any) {
   };
 
   const renderProfileHeader = () => (
-    <UserProfileHeader
+    <UserProfileDisplay
       profile={profile}
       posts={posts}
       currentTheme={currentTheme}
