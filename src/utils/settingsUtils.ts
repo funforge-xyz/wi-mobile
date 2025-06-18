@@ -455,8 +455,6 @@ export const handleCameraCapture = async (
   setIsLoading(false);
 };
 
-export const showImagePickerOptions = showImageOptions;
-
 export const getCurrentLanguageName = (language: string) => {
   return language === 'bs' ? 'Bosanski' : 'English';
 };
