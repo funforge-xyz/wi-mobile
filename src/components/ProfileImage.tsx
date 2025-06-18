@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { View, Image, ActivityIndicator } from 'react-native';
+import { View, Image } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 
 interface ProfileImageProps {
@@ -50,49 +49,3 @@ const ProfileImage = React.memo(({ uri, style, ...props }: ProfileImageProps) =>
 });
 
 export default ProfileImage;
-import React, { useState, useEffect } from 'react';
-import { View, Image } from 'react-native';
-import SkeletonLoader from './SkeletonLoader';
-
-interface ProfileImageProps {
-  uri: string;
-  style: any;
-  [key: string]: any;
-}
-
-export default function ProfileImage({ uri, style, ...props }: ProfileImageProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [uri]);
-
-  return (
-    <View style={style}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={style?.width || 120}
-          height={style?.height || 120}
-          borderRadius={style?.borderRadius || 60}
-          style={{ position: 'absolute' }}
-        />
-      )}
-      <Image
-        source={{ uri }}
-        style={[style, { opacity: 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        {...props}
-      />
-    </View>
-  );
-}
