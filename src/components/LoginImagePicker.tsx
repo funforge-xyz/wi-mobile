@@ -1,6 +1,7 @@
 
 import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../config/constants';
 import { styles } from '../styles/LoginStyles';
@@ -11,21 +12,23 @@ interface LoginImagePickerProps {
 }
 
 export default function LoginImagePicker({ profileImage, setProfileImage }: LoginImagePickerProps) {
+  const { t } = useTranslation();
+
   const showImagePickerOptions = () => {
     Alert.alert(
-      'Select Image',
-      'Choose how you want to add a photo',
+      t('addPost.selectPhoto'),
+      t('addPost.useCameraToAdd'),
       [
         {
-          text: 'Camera',
+          text: t('addPost.takePhoto'),
           onPress: handleCameraCapture,
         },
         {
-          text: 'Photo Library',
+          text: t('chat.gallery'),
           onPress: handleImagePicker,
         },
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
       ]
@@ -36,7 +39,7 @@ export default function LoginImagePicker({ profileImage, setProfileImage }: Logi
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+      Alert.alert(t('settings.permissionRequired'), 'Permission to access camera roll is required!');
       return;
     }
 
@@ -64,7 +67,7 @@ export default function LoginImagePicker({ profileImage, setProfileImage }: Logi
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access the camera is required!');
+      Alert.alert(t('settings.permissionRequired'), 'Permission to access the camera is required!');
       return;
     }
 
@@ -90,7 +93,7 @@ export default function LoginImagePicker({ profileImage, setProfileImage }: Logi
       <View style={styles.imagePickerContent}>
         <Ionicons name="camera-outline" size={20} color={COLORS.textSecondary} />
         <Text style={[styles.imagePickerText, { color: COLORS.textSecondary }]}>
-          {profileImage ? 'Change Profile Picture' : 'Add Profile Picture (optional)'}
+          {profileImage ? t('addPost.changePhoto') : t('addPost.takePhotoOptional')}
         </Text>
       </View>
       {profileImage && (

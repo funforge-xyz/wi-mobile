@@ -1,64 +1,9 @@
 
-import { useState, useEffect } from 'react';
-import { View, Text, Image } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../styles/ProfileStyles';
-import SkeletonLoader from './SkeletonLoader';
-
-interface ProfileImageProps {
-  uri: string;
-  style: any;
-  [key: string]: any;
-}
-
-const ProfileImage = ({ uri, style, ...props }: ProfileImageProps) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const imageWidth = typeof style?.width === 'number' ? style.width : 120;
-  const imageHeight = typeof style?.height === 'number' ? style.height : 120;
-
-  useEffect(() => {
-    if (uri && uri.trim() !== '') {
-      setLoading(true);
-      setError(false);
-    } else {
-      setLoading(false);
-      setError(true);
-    }
-  }, [uri]);
-
-  if (!uri || uri.trim() === '' || error) {
-    return null;
-  }
-
-  return (
-    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={imageWidth}
-          height={imageHeight}
-          borderRadius={style?.borderRadius || 60}
-          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
-        />
-      )}
-      <Image
-        source={{ uri, cache: 'reload' }}
-        style={[style, { opacity: loading ? 0 : 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        {...props}
-      />
-    </View>
-  );
-};
+import ProfileImage from './ProfileImage';
 
 interface ProfileInfoProps {
   profile: any;
@@ -69,16 +14,15 @@ interface ProfileInfoProps {
 export default function ProfileInfo({ profile, currentTheme, t }: ProfileInfoProps) {
   return (
     <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
-      {(profile?.thumbnailURL || profile?.photoURL) && (profile.thumbnailURL || profile.photoURL).trim() !== '' ? (
-        <ProfileImage
-          uri={profile.thumbnailURL || profile.photoURL}
-          style={styles.avatar}
-        />
-      ) : (
-        <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: currentTheme.surface }]}>
-          <Ionicons name="person-add" size={40} color={currentTheme.textSecondary} />
-        </View>
-      )}
+      <ProfileImage
+        uri={profile?.thumbnailURL || profile?.photoURL}
+        style={styles.avatar}
+        showPlaceholder={true}
+        placeholderIcon="person-add"
+        placeholderSize={40}
+        placeholderBackgroundColor={currentTheme.surface}
+        placeholderIconColor={currentTheme.textSecondary}
+      />
 
       <Text style={[styles.displayName, { color: currentTheme.text }]}>
         {profile?.firstName && profile?.lastName

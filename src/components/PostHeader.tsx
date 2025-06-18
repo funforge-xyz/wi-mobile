@@ -64,7 +64,7 @@ export default function PostHeader({
             <Text style={[styles.username, { color: currentTheme.text }]}>{authorName}</Text>
             {isFromConnection && (
               <View style={[styles.connectionPill, { backgroundColor: COLORS.primary }]}>
-                <Text style={styles.connectionPillText}>Connection</Text>
+                <Text style={styles.connectionPillText}>{t('profile.connections')}</Text>
               </View>
             )}
           </View>

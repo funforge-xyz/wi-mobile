@@ -1,6 +1,7 @@
 
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../config/constants';
 import { styles } from '../styles/LoginStyles';
 
@@ -19,6 +20,8 @@ export default function LoginButtons({
   onGoogleSignIn,
   onSwitchMode,
 }: LoginButtonsProps) {
+  const { t } = useTranslation();
+
   return (
     <>
       <TouchableOpacity
@@ -30,14 +33,14 @@ export default function LoginButtons({
           <ActivityIndicator color="white" />
         ) : (
           <Text style={styles.primaryButtonText}>
-            {isSignUp ? 'Sign Up' : 'Sign In'}
+            {isSignUp ? t('auth.signUp') : t('auth.login')}
           </Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>or</Text>
+        <Text style={styles.dividerText}>{t('auth.or')}</Text>
         <View style={styles.dividerLine} />
       </View>
 
@@ -47,7 +50,7 @@ export default function LoginButtons({
         disabled={isLoading}
       >
         <Ionicons name="logo-google" size={20} color={COLORS.text} />
-        <Text style={styles.socialButtonText}>Continue with Google</Text>
+        <Text style={styles.socialButtonText}>{t('auth.loginWithGoogle')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -55,7 +58,7 @@ export default function LoginButtons({
         onPress={onSwitchMode}
       >
         <Text style={styles.switchButtonText}>
-          {isSignUp ? 'Already have an account? Sign In' : 'Don\'t have an account? Sign Up'}
+          {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
         </Text>
       </TouchableOpacity>
     </>

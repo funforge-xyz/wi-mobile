@@ -1,6 +1,7 @@
 
 import { TouchableOpacity, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/LoginStyles';
 
 interface LoginTermsCheckboxProps {
@@ -14,6 +15,8 @@ export default function LoginTermsCheckbox({
   setAcceptTerms, 
   onTermsPress 
 }: LoginTermsCheckboxProps) {
+  const { t } = useTranslation();
+
   return (
     <TouchableOpacity 
       style={styles.termsContainer} 
@@ -28,7 +31,7 @@ export default function LoginTermsCheckbox({
           style={styles.termsLink}
           onPress={onTermsPress}
         >
-          Terms and Conditions
+          {t('common.terms')}
         </Text>
       </Text>
     </TouchableOpacity>
