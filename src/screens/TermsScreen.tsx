@@ -2,7 +2,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../hooks/redux';
-import { getTheme, getTermsSections, getLastUpdatedText } from '../utils/termsUtils';
+import { getTheme } from '../utils/termsUtils';
 import { styles } from '../styles/TermsStyles';
 import TermsHeader from '../components/TermsHeader';
 import TermsSection from '../components/TermsSection';
@@ -12,8 +12,39 @@ export default function TermsScreen() {
   const { t } = useTranslation();
 
   const currentTheme = getTheme(isDarkMode);
-  const termsSections = getTermsSections(t);
-  const lastUpdatedText = getLastUpdatedText(t);
+
+  const termsSections = [
+    {
+      title: t('terms.acceptanceTitle'),
+      content: t('terms.acceptanceText')
+    },
+    {
+      title: t('terms.privacyTitle'),
+      content: t('terms.privacyText')
+    },
+    {
+      title: t('terms.conductTitle'),
+      content: t('terms.conductText')
+    },
+    {
+      title: t('terms.contentTitle'),
+      content: t('terms.contentText')
+    },
+    {
+      title: t('terms.securityTitle'),
+      content: t('terms.securityText')
+    },
+    {
+      title: t('terms.liabilityTitle'),
+      content: t('terms.liabilityText')
+    },
+    {
+      title: t('terms.changesTitle'),
+      content: t('terms.changesText')
+    }
+  ];
+
+  const lastUpdatedText = t('terms.lastUpdated', { date: 'January 15, 2024' });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
