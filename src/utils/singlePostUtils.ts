@@ -1,4 +1,3 @@
-
 import { Alert } from 'react-native';
 import { 
   doc, 
@@ -14,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { authService } from '../services/auth';
+import { TFunction } from 'react-i18next';
 
 interface Post {
   id: string;
@@ -128,7 +128,7 @@ export const loadLikes = async (postId: string): Promise<Like[]> => {
 
       // Get author information
       const authorDoc = await getDoc(doc(firestore, 'users', likeData.authorId));
-      const authorData = authorDoc.exists() ? authorDoc.data() : {};
+      const authorData = authorDoc.exists() ? authorData.data() : {};
 
       likesList.push({
         id: likeDoc.id,
@@ -265,10 +265,7 @@ export const deleteComment = async (postId: string, commentId: string) => {
   }
 };
 
-export const showDeletePostAlert = (
-  onConfirm: () => void,
-  t: (key: string, fallback?: string) => string
-) => {
+export const showDeletePostAlert = (onConfirm: () => void, t: TFunction) => {
   Alert.alert(
     t('singlePost.deletePost'),
     t('singlePost.deletePostConfirmation'),
@@ -283,10 +280,7 @@ export const showDeletePostAlert = (
   );
 };
 
-export const showDeleteCommentAlert = (
-  onConfirm: () => void,
-  t: (key: string, fallback?: string) => string
-) => {
+export const showDeleteCommentAlert = (onConfirm: () => void, t: TFunction) => {
   Alert.alert(
     t('singlePost.deleteComment'),
     t('singlePost.deleteCommentConfirmation'),
