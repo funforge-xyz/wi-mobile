@@ -31,6 +31,8 @@ import PushNotificationModal from '../components/PushNotificationModal';
 import EditProfileModal from '../components/EditProfileModal';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import RadiusSelectionModal from '../components/RadiusSelectionModal';
+import ChangePasswordModal from '../components/ChangePasswordModal';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 import ProfileImage from '../components/ProfileImage';
 import { styles, modalStyles, lightTheme, darkTheme } from '../styles/SettingsStyles';
 import {
@@ -67,9 +69,7 @@ export default function SettingsScreen() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
   const [showSettingsOption, setShowSettingsOption] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
@@ -380,169 +380,22 @@ export default function SettingsScreen() {
       />
 
       {/* Change Password Modal */}
-      <Modal visible={showChangePasswordModal} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={() => {
-              setCurrentPassword('');
-              setNewPassword('');
-              setConfirmPassword('');
-              setShowChangePasswordModal(false);
-            }}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.changePassword')}</Text>
-            <TouchableOpacity onPress={() => handleChangePassword(
-              currentPassword,
-              newPassword,
-              confirmPassword,
-              setCurrentPassword,
-              setNewPassword,
-              setConfirmPassword,
-              setShowChangePasswordModal,
-              setIsLoading,
-              t
-            )} disabled={isLoading}>
-              {isLoading ? (
-                <ActivityIndicator size="small" color={COLORS.primary} />
-              ) : (
-                <Text style={styles.modalSave}>{t('common.save')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <KeyboardAwareScrollView style={styles.modalContent}>
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.currentPassword')}</Text>
-              <View style={[modalStyles.inputContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
-                <TextInput
-                  style={[modalStyles.input, { color: currentTheme.text }]}
-                  placeholder={t('settings.enterCurrentPassword')}
-                  placeholderTextColor={currentTheme.textSecondary}
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  secureTextEntry
-                />
-              </View>
-            </View>
-
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.newPassword')}</Text>
-              <View style={[modalStyles.inputContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
-                <TextInput
-                  style={[modalStyles.input, { color: currentTheme.text }]}
-                  placeholder={t('settings.enterNewPassword')}
-                  placeholderTextColor={currentTheme.textSecondary}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry
-                />
-              </View>
-            </View>
-
-            <View style={styles.modalSection}>
-              <Text style={[modalStyles.inputLabel, { color: currentTheme.text }]}>{t('settings.confirmNewPassword')}</Text>
-              <View style={[modalStyles.inputContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}>
-                <Ionicons name="lock-closed-outline" size={20} color={currentTheme.textSecondary} />
-                <TextInput
-                  style={[modalStyles.input, { color: currentTheme.text }]}
-                  placeholder={t('settings.confirmNewPassword')}
-                  placeholderTextColor={currentTheme.textSecondary}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                />
-              </View>
-            </View>
-
-            <View style={modalStyles.passwordRequirements}>
-              <Text style={[modalStyles.requirementsTitle, { color: currentTheme.text }]}>{t('settings.passwordRequirements')}:</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeast')} 8 {t('settings.charactersLong')}</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.uppercaseLetter')} (A-Z)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.lowercaseLetter')} (a-z)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.number')} (0-9)</Text>
-              <Text style={[modalStyles.requirementItem, { color: currentTheme.textSecondary }]}>• {t('settings.atLeastOne')} {t('settings.specialCharacter')} (!@#$%^&*)</Text>
-            </View>
-          </KeyboardAwareScrollView>
-        </SafeAreaView>
-      </Modal>
+      <ChangePasswordModal
+        visible={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+        currentTheme={currentTheme}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+      />
 
       {/* Delete Account Modal */}
-      <Modal visible={showDeleteAccountModal} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={() => setShowDeleteAccountModal(false)}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.deleteAccount')}</Text>
-            <View style={{ width: 60 }} />
-          </View>
-
-          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-            <View style={modalStyles.warningSection}>
-              <View style={[modalStyles.warningIconContainer, { backgroundColor: `${COLORS.error}15` }]}>
-                <Ionicons name="warning" size={48} color={COLORS.error} />
-              </View>
-              <Text style={[modalStyles.warningTitle, { color: COLORS.error }]}>{t('settings.thisActionIsPermanent')}</Text>
-              <Text style={[modalStyles.warningText, { color: currentTheme.text }]}>
-                {t('settings.deletingAccountRemovesData')}
-              </Text>
-
-              <View style={[modalStyles.listContainer, { backgroundColor: currentTheme.surface }]}>
-                <View style={modalStyles.listItem}>
-                  <Ionicons name="person-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourProfileInfo')}</Text>
-                </View>
-                <View style={modalStyles.listItem}>
-                  <Ionicons name="document-text-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourPostsAndComments')}</Text>
-                </View>
-                <View style={modalStyles.listItem}>
-                  <Ionicons name="chatbubbles-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourChatHistory')}</Text>
-                </View>
-                <View style={[modalStyles.listItem, { borderBottomWidth: 0 }]}>
-                  <Ionicons name="people-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourConnectionsAndFollowers')}</Text>
-                </View>
-              </View>
-
-              <View style={[modalStyles.cautionBox, { backgroundColor: `${COLORS.error}08`, borderColor: `${COLORS.error}40` }]}>
-                <Ionicons name="alert-circle-outline" size={20} color={COLORS.error} />
-                <Text style={[modalStyles.cautionText, { color: currentTheme.text }]}>
-                  {t('settings.thisActionCannotBeUndone')}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[modalStyles.deleteButton, { opacity: isLoading ? 0.7 : 1 }]}
-              onPress={() => handleDeleteAccount(setShowDeleteAccountModal, setIsLoading, t)}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <Ionicons name="trash-outline" size={20} color="white" />
-                  <Text style={modalStyles.deleteButtonText}>{t('settings.deleteMyAccount')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+      <DeleteAccountModal
+        visible={showDeleteAccountModal}
+        onClose={() => setShowDeleteAccountModal(false)}
+        currentTheme={currentTheme}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+      />
 
       {/* Push Notification Permission Modal */}
       <PushNotificationModal

@@ -2,12 +2,13 @@ import { Alert, Platform, Linking, ActionSheetIOS } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authService } from '../services/auth';
 import { storageService, Settings } from '../services/storage';
+import { authService } from '../services/auth';
 import { locationService } from '../services/locationService';
 import { initializeNotifications } from '../services/notifications';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
+import { launchCamera, launchImagePicker, showImagePickerOptions as showImageOptions } from './modalUtils';
 
 export interface UserProfile {
   id: string;
@@ -424,39 +425,16 @@ export const handleImagePicker = async (
   setIsLoading: (loading: boolean) => void,
   t: (key: string) => string
 ) => {
-  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-  if (permissionResult.granted === false) {
-    Alert.alert(t('settings.permissionRequired'), t('settings.cameraRollAccessRequired'));
-    return;
+  setIsLoading(true);
+  const imageUri = await launchImagePicker(t);
+  if (imageUri) {
+    setEditedProfile({
+      ...editedProfile,
+      photoURL: imageUri,
+      thumbnailURL: imageUri,
+    });
   }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    const asset = result.assets[0];
-
-    try {
-      setIsLoading(true);
-      const compressedUri = await compressImage(asset.uri);
-
-      setEditedProfile({
-        ...editedProfile,
-        photoURL: compressedUri,
-        thumbnailURL: '',
-      });
-    } catch (error) {
-      console.error('Error processing image:', error);
-      Alert.alert(t('settings.imageTooLarge'), t('settings.unableToCompressImage'));
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  setIsLoading(false);
 };
 
 export const handleCameraCapture = async (
@@ -465,39 +443,19 @@ export const handleCameraCapture = async (
   setIsLoading: (loading: boolean) => void,
   t: (key: string) => string
 ) => {
-  const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-  if (permissionResult.granted === false) {
-    Alert.alert(t('settings.permissionRequired'), t('settings.cameraAccessRequired'));
-    return;
+  setIsLoading(true);
+  const imageUri = await launchCamera(t);
+  if (imageUri) {
+    setEditedProfile({
+      ...editedProfile,
+      photoURL: imageUri,
+      thumbnailURL: imageUri,
+    });
   }
-
-  const result = await ImagePicker.launchCameraAsync({
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    const asset = result.assets[0];
-
-    try {
-      setIsLoading(true);
-      const compressedUri = await compressImage(asset.uri);
-
-      setEditedProfile({
-        ...editedProfile,
-        photoURL: compressedUri,
-        thumbnailURL: '',
-      });
-    } catch (error) {
-      console.error('Error processing image:', error);
-      Alert.alert(t('settings.imageTooLarge'), t('settings.unableToCompressImage'));
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  setIsLoading(false);
 };
+
+export const showImagePickerOptions = showImageOptions;
 
 export const getCurrentLanguageName = (language: string) => {
   return language === 'bs' ? 'Bosanski' : 'English';
