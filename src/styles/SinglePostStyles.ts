@@ -1,6 +1,6 @@
 
 import { StyleSheet } from 'react-native';
-import { FONTS, SPACING } from '../config/constants';
+import { FONTS } from '../config/constants';
 
 export const singlePostStyles = StyleSheet.create({
   container: {

@@ -21,7 +21,7 @@ export const chatImagesStyles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 18,
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.bold,
     textAlign: 'center',
   },
   headerRight: {

@@ -1,6 +1,5 @@
 
 import { StyleSheet } from 'react-native';
-import { SPACING } from '../config/constants';
 
 export const chatStyles = StyleSheet.create({
   container: {

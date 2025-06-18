@@ -5,9 +5,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '../config/constants';
-import { useTranslation } from 'react-i18next';
+import { SPACING } from '../config/constants';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
