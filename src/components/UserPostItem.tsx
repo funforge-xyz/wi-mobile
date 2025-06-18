@@ -1,53 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../config/constants';
 import AvatarImage from './AvatarImage';
-import SkeletonLoader from './SkeletonLoader';
+import PostMedia from './PostMedia';
 import { useTranslation } from 'react-i18next';
-
-const PostImage = ({ source, style, ...props }: { source: any; style: any; [key: string]: any }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const { width } = Dimensions.get('window');
-  const imageWidth = width - (SPACING.md * 4);
-  const imageHeight = typeof style?.height === 'number' ? style.height : 200;
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [source?.uri]);
-
-  return (
-    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
-      {loading && !error && (
-        <SkeletonLoader
-          width={imageWidth}
-          height={imageHeight}
-          borderRadius={style?.borderRadius || 8}
-          style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
-        />
-      )}
-      <Image
-        source={source}
-        style={[style, { opacity: loading ? 0 : 1 }]}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(false);
-        }}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        resizeMode='cover'
-        {...props}
-      />
-    </View>
-  );
-};
 
 interface UserPost {
   id: string;
@@ -128,12 +86,10 @@ export default function UserPostItem({
       ) : null}
 
       {item.mediaURL && (
-        <View style={{ marginBottom: SPACING.sm }}>
-          <PostImage
-            source={{ uri: item.mediaURL }}
-            style={styles.postMedia}
-          />
-        </View>
+        <PostMedia
+          mediaURL={item.mediaURL}
+          style={styles.postMedia}
+        />
       )}
 
       <View style={styles.postStats}>
