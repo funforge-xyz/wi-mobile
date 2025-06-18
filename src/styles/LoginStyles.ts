@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
@@ -202,5 +201,11 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.regular,
     minHeight: 60,
+  },
+  languageButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    padding: 8,
   },
 });

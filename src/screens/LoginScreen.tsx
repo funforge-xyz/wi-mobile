@@ -13,6 +13,9 @@ import LoginInput from '../components/LoginInput';
 import LoginImagePicker from '../components/LoginImagePicker';
 import LoginTermsCheckbox from '../components/LoginTermsCheckbox';
 import LoginButtons from '../components/LoginButtons';
+import LanguageSelectionModal from '../components/LanguageSelectionModal';
+import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '../hooks/redux';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -31,6 +34,17 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const { t, i18n } = useTranslation();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  const handleLanguagePress = () => {
+    setShowLanguageModal(true);
+  };
+
+  const handleLanguageChange = (code: string) => {
+    i18n.changeLanguage(code);
+    setShowLanguageModal(false);
+  };
 
   const handleEmailAuth = async () => {
     if (!email.trim() || !password.trim()) {
@@ -147,7 +161,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         extraScrollHeight={100}
         keyboardShouldPersistTaps="handled"
       >
-        <LoginHeader isSignUp={isSignUp} />
+        <LoginHeader 
+        currentTheme={styles} 
+        styles={styles} 
+        onLanguagePress={handleLanguagePress}
+      />
 
         <View style={styles.form}>
           <LoginErrorMessage errorMessage={errorMessage} />
@@ -224,25 +242,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             />
           )}
 
-          <LoginButtons
-            isSignUp={isSignUp}
-            isLoading={isLoading}
-            onEmailAuth={handleEmailAuth}
-            onGoogleSignIn={handleGoogleSignIn}
-            onSwitchMode={() => {
-              setIsSignUp(!isSignUp);
-              setErrorMessage('');
-              setFirstName('');
-              setLastName('');
-              setConfirmPassword('');
-              setBio('');
-              setProfileImage('');
-              setAcceptTerms(false);
-            }}
-          />
-        </View>
-      </KeyboardAwareScrollView>
+          <LoginButtons currentTheme={styles} styles={styles} />
+
+      <LanguageSelectionModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        currentTheme={styles}
+        onLanguageChange={handleLanguageChange}
+        currentLanguage={i18n.language}
+      />
     </SafeAreaView>
   );
 }
-

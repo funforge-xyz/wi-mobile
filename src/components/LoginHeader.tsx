@@ -1,23 +1,31 @@
-
-import { View, Text } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { styles } from '../styles/LoginStyles';
 
 interface LoginHeaderProps {
-  isSignUp: boolean;
+  currentTheme: any;
+  styles: any;
+  onLanguagePress?: () => void;
 }
 
-export default function LoginHeader({ isSignUp }: LoginHeaderProps) {
+export default function LoginHeader({ currentTheme, styles, onLanguagePress }: LoginHeaderProps) {
   const { t } = useTranslation();
 
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>
-        {isSignUp ? t('auth.createAccount') : t('auth.welcome')}
+      <Text style={[styles.title, { color: currentTheme.text }]}>
+        {t('auth.welcome')}
       </Text>
-      <Text style={styles.subtitle}>
-        {isSignUp ? t('auth.getStarted') : 'Sign in to continue'}
-      </Text>
+      {onLanguagePress && (
+        <TouchableOpacity 
+          style={styles.languageButton} 
+          onPress={onLanguagePress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="language" size={24} color={currentTheme.textSecondary} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
