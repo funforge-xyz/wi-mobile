@@ -116,16 +116,9 @@ export const fetchUserProfile = createAsyncThunk(
 // Async thunk for fetching user posts
 export const fetchUserPosts = createAsyncThunk(
   'user/fetchPosts',
-  async (userId: string, { rejectWithValue, getState }) => {
+  async (userId: string, { rejectWithValue }) => {
     try {
       console.log('Fetching posts for user:', userId);
-
-      // Check if we're already loading to prevent infinite loops
-      const state = getState() as any;
-      if (state.user.postsLoading) {
-        console.log('Already loading user posts, skipping...');
-        return rejectWithValue('Already loading');
-      }
 
       // Add timeout protection
       const timeoutPromise = new Promise((_, reject) => {

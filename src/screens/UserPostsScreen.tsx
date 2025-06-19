@@ -42,28 +42,22 @@ export default function UserPostsScreen({ navigation }: any) {
   // Track if we've already attempted to load data to prevent multiple calls
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
-  // Memoize should load check
-  const shouldLoadData = useMemo(() => {
-    console.log('Should load data check:', {
-      hasAttemptedLoad,
-      profile: !!profile,
-      postsLength: posts.length,
-      loading,
-      postsLoading
-    });
-    
-    return !hasAttemptedLoad && 
-           (!profile || posts.length === 0 || 
-           (profile && profile.lastUpdated && Date.now() - profile.lastUpdated > 300000));
-  }, [profile, posts.length, hasAttemptedLoad]);
+  // Simplified load check
+  console.log('UserPostsScreen state:', {
+    hasAttemptedLoad,
+    profile: !!profile,
+    postsLength: posts.length,
+    loading,
+    postsLoading
+  });
 
-  // Load data only once when component mounts or when explicitly refreshed
+  // Load data when component mounts
   useEffect(() => {
-    if (shouldLoadData && !loading && !postsLoading) {
+    if (!hasAttemptedLoad) {
       setHasAttemptedLoad(true);
       loadInitialData();
     }
-  }, [shouldLoadData, loading, postsLoading]);
+  }, [hasAttemptedLoad]);
 
   const loadInitialData = useCallback(async () => {
     try {
