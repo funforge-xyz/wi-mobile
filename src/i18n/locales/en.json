@@ -228,6 +228,7 @@
     "chooseConnectDistance": "Choose the distance within which you want to connect with people",
     "radius": "radius",
     "kilometer": "kilometer",
+    "kilometer_plural": "kilometers",
     "success": "Success",
     "pushNotificationsEnabledSuccessfully": "Push notifications enabled successfully",
     "pushNotificationsDisabled": "Push notifications have been disabled",

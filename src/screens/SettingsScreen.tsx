@@ -269,7 +269,7 @@ export default function SettingsScreen() {
           <SettingsActionRow
             icon="navigate"
             title={t('settings.trackingRadius')}
-            description={`${t('settings.connectWithin')} ${trackingRadius}km`}
+            description={`${t('settings.connectWithin')} ${trackingRadius} ${trackingRadius === 1 ? t('settings.kilometer') : t('settings.kilometer_plural')}`}
             value={`${trackingRadius}km`}
             onPress={showRadiusOptions}
             currentTheme={currentTheme}

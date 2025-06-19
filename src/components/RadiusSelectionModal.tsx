@@ -87,7 +87,7 @@ export default function RadiusSelectionModal({
                     modalStyles.radiusOptionDescription,
                     { color: currentTheme.textSecondary }
                   ]}>
-                    {t('settings.connectWithin')} {radius} {t('settings.kilometer', { count: radius })}
+                    {t('settings.connectWithin')} {radius} {radius === 1 ? t('settings.kilometer') : t('settings.kilometer_plural')}
                   </Text>
                 </View>
 

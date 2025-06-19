@@ -228,6 +228,7 @@
     "chooseConnectDistance": "Odaberite udaljenost u okviru koje se želite povezati sa ljudima",
     "radius": "radius",
     "kilometer": "kilometar",
+    "kilometer_plural": "kilometara",
     "success": "Uspeh",
     "pushNotificationsEnabledSuccessfully": "Push obavještenja su uspješno omogućena",
     "pushNotificationsDisabled": "Push obavještenja su onemogućena",
