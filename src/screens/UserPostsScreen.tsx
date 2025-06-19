@@ -155,7 +155,8 @@ export default function UserPostsScreen({ navigation }: any) {
     hasProfile: !!profile,
     postsCount: posts.length,
     hasAttemptedLoad,
-    refreshing
+    refreshing,
+    firstPostId: posts.length > 0 ? posts[0].id : 'none'
   });
 
   return (

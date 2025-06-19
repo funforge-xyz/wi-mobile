@@ -113,10 +113,6 @@ export const fetchUserProfile = createAsyncThunk(
   }
 );
 
-// Track last fetch time to prevent rapid successive calls
-let lastFetchTime = 0;
-const MIN_FETCH_INTERVAL = 2000; // 2 seconds minimum between calls
-
 // Async thunk for fetching user posts
 export const fetchUserPosts = createAsyncThunk(
   'user/fetchPosts',
@@ -130,14 +126,6 @@ export const fetchUserPosts = createAsyncThunk(
         console.log('Already loading user posts, skipping...');
         return rejectWithValue('Already loading');
       }
-
-      // Check if we've made a request too recently
-      const now = Date.now();
-      if (now - lastFetchTime < MIN_FETCH_INTERVAL) {
-        console.log('Too soon since last fetch, skipping...');
-        return rejectWithValue('Too soon');
-      }
-      lastFetchTime = now;
 
       // Add timeout protection
       const timeoutPromise = new Promise((_, reject) => {
@@ -316,6 +304,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserPosts.fulfilled, (state, action) => {
         state.postsLoading = false;
+        console.log('Storing posts in state:', action.payload.length, 'posts');
         state.posts = action.payload;
         state.lastPostsFetch = Date.now();
       })
@@ -323,8 +312,10 @@ const userSlice = createSlice({
         state.postsLoading = false;
         const errorMessage = action.payload as string;
 
-        // Don't set error for index-related issues or "already loading"
-        if (!errorMessage.includes('Index not ready') && !errorMessage.includes('Already loading')) {
+        // Don't set error for index-related issues, "already loading", or "too soon"
+        if (!errorMessage.includes('Index not ready') && 
+            !errorMessage.includes('Already loading') && 
+            !errorMessage.includes('Too soon')) {
           state.error = errorMessage;
         }
       });
