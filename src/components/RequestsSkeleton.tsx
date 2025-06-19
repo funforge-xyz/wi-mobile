@@ -65,13 +65,7 @@ export default function RequestsSkeleton({ count = 3 }: RequestsSkeletonProps) {
   );
 }
 
-const lightTheme = {
-  surface: '#FFFFFF',
-};
-
-const darkTheme = {
-  surface: '#1E1E1E',
-};
+import { getTheme } from '../theme';
 
 const styles = StyleSheet.create({
   container: {

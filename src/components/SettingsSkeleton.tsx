@@ -76,17 +76,7 @@ export default function SettingsSkeleton() {
   );
 }
 
-const lightTheme = {
-  background: '#FFFFFF',
-  surface: '#F8F9FA',
-  border: '#E5E5E5',
-};
-
-const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  border: '#333333',
-};
+import { getTheme } from '../theme';
 
 const styles = StyleSheet.create({
   container: {

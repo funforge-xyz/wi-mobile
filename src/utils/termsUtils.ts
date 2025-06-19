@@ -1,24 +1,6 @@
-import { COLORS } from '../config/constants';
+import { getTheme } from '../theme';
 
-const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
-
-const darkTheme = {
-  background: COLORS.darkBackground,
-  surface: COLORS.darkSurface,
-  text: COLORS.darkText,
-  textSecondary: COLORS.darkTextSecondary,
-  border: COLORS.darkBorder,
-};
-
-export const getTheme = (isDarkMode: boolean) => {
-  return isDarkMode ? darkTheme : lightTheme;
-};
+export { getTheme };
 
 export const getTermsSections = (t: (key: string, options?: any) => string) => [
   {

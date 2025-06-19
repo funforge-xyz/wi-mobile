@@ -1,24 +1,10 @@
-
 import { StyleSheet, Dimensions } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 const { width } = Dimensions.get('window');
 
-export const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
-
-export const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  border: '#333333',
-};
+export { getTheme };
 
 export const styles = StyleSheet.create({
   container: {

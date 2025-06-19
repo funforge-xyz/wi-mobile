@@ -160,13 +160,7 @@ export default function UserPostsSkeleton({ count = 3 }: UserPostsSkeletonProps)
   );
 }
 
-const lightTheme = {
-  surface: '#FFFFFF',
-};
-
-const darkTheme = {
-  surface: '#1E1E1E',
-};
+import { getTheme } from '../theme';
 
 const styles = StyleSheet.create({
   container: {
