@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 
 export interface UserProfile {
@@ -119,7 +119,6 @@ export const fetchUserPosts = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       console.log('Fetching posts for user:', userId);
-      const { getFirestore, collection, query, where, orderBy, getDocs, doc, getDoc, limit } = await import('../services/firebase');
       const firestore = getFirestore();
 
       // Get current user data once
@@ -139,7 +138,7 @@ export const fetchUserPosts = createAsyncThunk(
       console.log('Found', postsSnapshot.size, 'posts');
 
       // Batch all subcollection queries
-      const postIds = postsSnapshot.docs.map(doc => doc.id);
+      const postIds = postsSnapshot.docs.map(postDoc => postDoc.id);
 
       // Create batched queries for likes and comments
       const likesPromises = postIds.map(postId => 
