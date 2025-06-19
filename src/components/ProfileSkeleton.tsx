@@ -1,13 +1,14 @@
-
 import { View, StyleSheet } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
 
+import { getTheme } from '../theme';
+
 export default function ProfileSkeleton() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -26,14 +27,14 @@ export default function ProfileSkeleton() {
           borderRadius={60}
           style={styles.avatar}
         />
-        
+
         <SkeletonLoader
           width={180}
           height={24}
           borderRadius={12}
           style={styles.displayName}
         />
-        
+
         <SkeletonLoader
           width={220}
           height={16}
@@ -92,17 +93,7 @@ export default function ProfileSkeleton() {
   );
 }
 
-const lightTheme = {
-  background: '#FFFFFF',
-  surface: '#F8F9FA',
-  border: '#E5E5E5',
-};
 
-const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  border: '#333333',
-};
 
 const styles = StyleSheet.create({
   container: {

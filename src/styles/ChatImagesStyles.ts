@@ -1,6 +1,6 @@
-
 import { StyleSheet } from 'react-native';
 import { SPACING, FONTS } from '../config/constants';
+import { getTheme } from '../theme';
 
 export const chatImagesStyles = StyleSheet.create({
   container: {

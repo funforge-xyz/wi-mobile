@@ -10,6 +10,7 @@ import { faqData, handleReportBug, handleFeatureRequest } from '../utils/helpSup
 import HelpSupportActionItem from '../components/HelpSupportActionItem';
 import HelpSupportFAQItem from '../components/HelpSupportFAQItem';
 import HelpSupportContactModal from '../components/HelpSupportContactModal';
+import { getTheme } from '../theme';
 
 interface HelpSupportScreenProps {
   navigation: any;
@@ -37,7 +38,7 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const handleFAQPress = (id: string) => {
     setExpandedFAQ(expandedFAQ === id ? null : id);

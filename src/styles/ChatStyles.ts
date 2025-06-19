@@ -1,13 +1,22 @@
+import { StyleSheet, Dimensions } from 'react-native';
+import { COLORS, FONTS, SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
-import { StyleSheet } from 'react-native';
+const { width } = Dimensions.get('window');
 
-export const chatStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+export { getTheme };
+
+export const createChatStyles = (isDarkMode: boolean) => {
+  const theme = getTheme(isDarkMode);
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+};

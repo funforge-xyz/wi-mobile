@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 

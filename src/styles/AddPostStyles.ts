@@ -1,22 +1,7 @@
 
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
-
-export const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
-
-export const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  border: '#333333',
-};
+import { getTheme } from '../theme';
 
 export const addPostStyles = StyleSheet.create({
   container: {
