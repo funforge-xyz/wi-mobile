@@ -39,16 +39,20 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const currentTheme = useMemo(() => getTheme(isDarkMode), [isDarkMode]);
 
+  // Track if we've already attempted to load data to prevent multiple calls
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
+
   // Memoize should load check
   const shouldLoadData = useMemo(() => {
-    return !profile || 
-           posts.length === 0 || 
-           (profile && profile.lastUpdated && Date.now() - profile.lastUpdated > 300000);
-  }, [profile, posts.length]);
+    return !hasAttemptedLoad && 
+           (!profile || posts.length === 0 || 
+           (profile && profile.lastUpdated && Date.now() - profile.lastUpdated > 300000));
+  }, [profile, posts.length, hasAttemptedLoad]);
 
   // Load data only once when component mounts or when explicitly refreshed
   useEffect(() => {
     if (shouldLoadData && !loading && !postsLoading) {
+      setHasAttemptedLoad(true);
       loadInitialData();
     }
   }, [shouldLoadData, loading, postsLoading]);
@@ -73,6 +77,7 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    setHasAttemptedLoad(false); // Reset the flag to allow refresh
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
@@ -90,6 +95,7 @@ export default function UserPostsScreen({ navigation }: any) {
       Alert.alert('Error', 'Failed to refresh data');
     } finally {
       setRefreshing(false);
+      setHasAttemptedLoad(true); // Set back to true after refresh
     }
   }, [dispatch]);
 

@@ -127,10 +127,17 @@ export const fetchUserPosts = createAsyncThunk(
         return rejectWithValue('Already loading');
       }
 
+      // Add timeout protection
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 15000);
+      });
+
       const firestore = getFirestore();
 
-      // Get current user data once
-      const userDoc = await getDoc(doc(firestore, 'users', userId));
+      // Wrap the main operation in a timeout
+      const fetchOperation = async () => {
+        // Get current user data once
+        const userDoc = await getDoc(doc(firestore, 'users', userId));
       const currentUserData = userDoc.exists() ? userDoc.data() : {};
 
       // Get user's posts with limit for better performance
@@ -202,8 +209,12 @@ export const fetchUserPosts = createAsyncThunk(
       });
 
       // Posts are already ordered by the query, no need to sort again
-      console.log('Returning', userPosts.length, 'posts');
-      return userPosts;
+        console.log('Returning', userPosts.length, 'posts');
+        return userPosts;
+      };
+
+      // Race between the fetch operation and timeout
+      return await Promise.race([fetchOperation(), timeoutPromise]);
     } catch (error: any) {
       console.error('Error fetching user posts:', error);
 
