@@ -273,9 +273,7 @@ export default function SettingsScreen() {
             onPress={showRadiusOptions}
             currentTheme={currentTheme}
           />
-        </SettingsSection>
 
-        <SettingsSection title={t('settings.matching')} currentTheme={currentTheme}>
           <SettingsToggleRow
             icon="wifi"
             title={t('settings.sameNetworkMatching')}

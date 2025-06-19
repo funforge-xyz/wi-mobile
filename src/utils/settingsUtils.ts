@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageService, Settings } from '../services/storage';
+import { settingsService } from '../services/settings';
 import { authService } from '../services/auth';
 import { locationService } from '../services/locationService';
 import { initializeNotifications } from '../services/notifications';
@@ -28,7 +29,7 @@ export const loadSettings = async (
 ) => {
   try {
     const settings = new Settings();
-    const pushEnabled = await settings.getPushNotifications();
+    const pushEnabled = await settingsService.getPushNotifications();
     let savedRadiusInMeters = await settings.getTrackingRadius();
 
     try {
@@ -171,6 +172,38 @@ export const handleToggleLocationTracking = async (
   } catch (error) {
     console.error('Error toggling location tracking:', error);
     setLocationTrackingEnabled(!value); // Revert to previous state
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+export const handleToggleSameNetworkMatching = async (
+  value: boolean,
+  setSameNetworkMatchingEnabled: (value: boolean) => void,
+  setIsLoading: (loading: boolean) => void,
+  t: (key: string) => string
+) => {
+  setIsLoading(true);
+  try {
+    await settingsService.setSameNetworkMatching(value);
+    setSameNetworkMatchingEnabled(value);
+
+    // Also update Firebase if user is logged in
+    const { getAuth } = await import('../services/firebase');
+    const auth = getAuth();
+    const currentUser = auth.currentUser || await authService.getCurrentUser();
+
+    if (currentUser) {
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', currentUser.uid);
+      await updateDoc(userDocRef, {
+        sameNetworkMatching: value,
+        sameNetworkMatchingUpdatedAt: new Date()
+      });
+    }
+  } catch (error) {
+    console.error('Error updating same network matching:', error);
+    setSameNetworkMatchingEnabled(!value); // Revert on error
   } finally {
     setIsLoading(false);
   }
