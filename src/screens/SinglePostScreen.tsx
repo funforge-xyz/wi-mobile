@@ -84,7 +84,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   useEffect(() => {
     loadPostData();

@@ -16,21 +16,7 @@ interface HelpSupportScreenProps {
   navigation: any;
 }
 
-const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
 
-const darkTheme = {
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  border: '#333333',
-};
 
 export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps) {
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);

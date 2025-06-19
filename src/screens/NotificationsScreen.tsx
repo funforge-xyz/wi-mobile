@@ -9,7 +9,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
-import { styles, lightTheme, darkTheme } from '../styles/NotificationsStyles';
+import { styles } from '../styles/NotificationsStyles';
+import { getTheme } from '../theme';
 import { 
   Notification, 
   loadNotifications, 
@@ -28,7 +29,7 @@ export default function NotificationsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   useEffect(() => {
     const setupAuthListener = async () => {

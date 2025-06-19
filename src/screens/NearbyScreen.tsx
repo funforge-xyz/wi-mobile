@@ -11,7 +11,8 @@ import NearbyHeader from '../components/NearbyHeader';
 import NearbyUserItem from '../components/NearbyUserItem';
 import NearbyEmptyState from '../components/NearbyEmptyState';
 import { useTranslation } from 'react-i18next';
-import { styles, lightTheme, darkTheme } from '../styles/NearbyStyles';
+import { styles } from '../styles/NearbyStyles';
+import { getTheme } from '../theme';
 import { NearbyUser, loadNearbyUsers, handleMessageUser } from '../utils/nearbyUtils';
 
 export default function NearbyScreen({ navigation }: any) {
@@ -21,7 +22,7 @@ export default function NearbyScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   useEffect(() => {
     loadData();

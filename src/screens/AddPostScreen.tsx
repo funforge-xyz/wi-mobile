@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { usePostActions } from '../hooks/usePostActions';
 import { compressImage } from '../utils/imageUtils';
 import { createPost, PostData } from '../utils/postUtils';
-import { addPostStyles, lightTheme, darkTheme } from '../styles/AddPostStyles';
+import { addPostStyles } from '../styles/AddPostStyles';
+import { getTheme } from '../theme';
 import AddPostHeader from '../components/AddPostHeader';
 import AddPostForm from '../components/AddPostForm';
 import SuccessModal from '../components/SuccessModal';
@@ -29,7 +30,7 @@ export default function AddPostScreen() {
   const { t } = useTranslation();
   const { addNewPost } = usePostActions();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
   const canPost = Boolean(content.trim() || selectedImage);
 
   const showSuccessModalWithAnimation = () => {

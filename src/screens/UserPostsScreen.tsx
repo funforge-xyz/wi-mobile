@@ -9,7 +9,8 @@ import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserPostItem from '../components/UserPostItem';
 import UserPostsEmptyState from '../components/UserPostsEmptyState';
 import UserPostsSkeleton from '../components/UserPostsSkeleton';
-import { lightTheme, darkTheme, styles } from '../styles/UserPostsStyles';
+import { styles } from '../styles/UserPostsStyles';
+import { getTheme } from '../theme';
 import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
 
 interface UserPost {
@@ -36,7 +37,7 @@ export default function UserPostsScreen({ navigation }: any) {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   // Load data only once when component mounts or when explicitly refreshed
   useEffect(() => {

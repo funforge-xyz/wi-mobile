@@ -16,6 +16,7 @@ import LoginButtons from '../components/LoginButtons';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../hooks/redux';
+import { getTheme } from '../theme';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -36,6 +37,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const { t, i18n } = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const currentTheme = getTheme(isDarkMode);
 
   const handleLanguagePress = () => {
     setShowLanguageModal(true);
@@ -162,7 +165,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         keyboardShouldPersistTaps="handled"
       >
         <LoginHeader 
-        currentTheme={styles} 
+        currentTheme={currentTheme} 
         styles={styles} 
         onLanguagePress={handleLanguagePress}
       />
@@ -255,7 +258,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       <LanguageSelectionModal
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
-        currentTheme={styles}
+        currentTheme={currentTheme}
         onLanguageChange={handleLanguageChange}
         currentLanguage={i18n.language}
       />

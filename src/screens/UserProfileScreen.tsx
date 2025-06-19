@@ -9,27 +9,14 @@ import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserProfileActions from '../components/UserProfileActions';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/UserProfileStyles';
+import { getTheme } from '../theme';
 import { 
   loadUserProfileData, 
   handleBlockUserAction, 
   UserProfile
 } from '../utils/userProfileUtils';
 
-const lightTheme = {
-  background: COLORS.background,
-  surface: COLORS.surface,
-  text: COLORS.text,
-  textSecondary: COLORS.textSecondary,
-  border: COLORS.border,
-};
 
-const darkTheme = {
-  background: COLORS.darkBackground,
-  surface: COLORS.darkSurface,
-  text: COLORS.darkText,
-  textSecondary: COLORS.darkTextSecondary,
-  border: COLORS.darkBorder,
-};
 
 interface UserProfileProps {
   route: {
@@ -60,7 +47,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const [showBlockModal, setShowBlockModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   useEffect(() => {
     loadUserProfile();

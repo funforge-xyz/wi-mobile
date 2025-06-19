@@ -23,7 +23,8 @@ import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import RadiusSelectionModal from '../components/RadiusSelectionModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DeleteAccountModal from '../components/DeleteAccountModal';
-import { styles, lightTheme, darkTheme } from '../styles/SettingsStyles';
+import { styles } from '../styles/SettingsStyles';
+import { getTheme } from '../theme';
 import {
   UserProfile,
   loadSettings,
@@ -72,7 +73,7 @@ export default function SettingsScreen() {
   });
 
   const settings = new Settings();
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   if (loading) {
     return <SettingsSkeleton />;

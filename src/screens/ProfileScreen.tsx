@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
-import { styles, lightTheme, darkTheme } from '../styles/ProfileStyles';
+import { styles } from '../styles/ProfileStyles';
+import { getTheme } from '../theme';
 import { handleSignOut, onRefresh, loadProfile } from '../utils/profileUtils';
 import ProfileHeader from '../components/ProfileHeader';
 import ProfileInfo from '../components/ProfileInfo';
@@ -19,7 +20,7 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   useEffect(() => {
     if (!profile || (profile && Date.now() - profile.lastUpdated > 300000)) {
