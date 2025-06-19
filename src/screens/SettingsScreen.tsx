@@ -277,7 +277,7 @@ export default function SettingsScreen() {
           <SettingsToggleRow
             icon="wifi"
             title={t('settings.sameNetworkMatching')}
-            description={t('settings.prioritizeSameWiFi')}
+            description={sameNetworkMatchingEnabled ? t('settings.sameNetworkMatchingEnabled') : t('settings.sameNetworkMatchingDisabled')}
             value={sameNetworkMatchingEnabled}
             onValueChange={(value) => handleToggleSameNetworkMatching(value, setSameNetworkMatchingEnabled, setIsLoading, t)}
             disabled={isLoading}
