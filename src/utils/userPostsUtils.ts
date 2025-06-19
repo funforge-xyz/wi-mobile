@@ -87,8 +87,12 @@ export const loadUserPostsData = async (dispatch: any, currentUser: any, fetchUs
     if (currentUser) {
       console.log('Loading posts for user:', currentUser.uid);
       const { fetchUserProfile, fetchUserPosts } = await import('../store/userSlice');
-      const profileResult = await dispatch(fetchUserProfile(currentUser.uid));
-      const postsResult = await dispatch(fetchUserPosts(currentUser.uid));
+      
+      // Load in parallel for better performance
+      const [profileResult, postsResult] = await Promise.all([
+        dispatch(fetchUserProfile(currentUser.uid)),
+        dispatch(fetchUserPosts(currentUser.uid))
+      ]);
       
       console.log('Profile result:', profileResult);
       console.log('Posts result:', postsResult);
@@ -101,6 +105,8 @@ export const loadUserPostsData = async (dispatch: any, currentUser: any, fetchUs
 export const refreshUserPostsData = async (dispatch: any, currentUser: any) => {
   if (currentUser) {
     const { fetchUserProfile, fetchUserPosts } = await import('../store/userSlice');
+    
+    // Refresh in parallel for better performance
     await Promise.all([
       dispatch(fetchUserProfile(currentUser.uid)).unwrap(),
       dispatch(fetchUserPosts(currentUser.uid)).unwrap()

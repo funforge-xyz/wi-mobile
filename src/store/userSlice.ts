@@ -1,4 +1,3 @@
-
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
@@ -120,49 +119,56 @@ export const fetchUserPosts = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       console.log('Fetching posts for user:', userId);
+      const { getFirestore, collection, query, where, orderBy, getDocs, doc, getDoc, limit } = await import('../services/firebase');
       const firestore = getFirestore();
-      
-      // Get current user's profile data
-      const userDocRef = doc(firestore, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
-      let currentUserData: any = {};
 
-      if (userDoc.exists()) {
-        currentUserData = userDoc.data();
-        console.log('User data found:', currentUserData);
-      } else {
-        console.log('No user document found for:', userId);
-      }
+      // Get current user data once
+      const userDoc = await getDoc(doc(firestore, 'users', userId));
+      const currentUserData = userDoc.exists() ? userDoc.data() : {};
 
-      // Get user's posts
+      // Get user's posts with limit for better performance
       const postsCollection = collection(firestore, 'posts');
-      const userPostsQuery = query(
+      const postsQuery = query(
         postsCollection,
-        where('authorId', '==', userId)
+        where('authorId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(50) // Limit to 50 most recent posts
       );
-      const postsSnapshot = await getDocs(userPostsQuery);
-      
-      console.log('Found', postsSnapshot.size, 'posts for user');
+
+      const postsSnapshot = await getDocs(postsQuery);
+      console.log('Found', postsSnapshot.size, 'posts');
+
+      // Batch all subcollection queries
+      const postIds = postsSnapshot.docs.map(doc => doc.id);
+
+      // Create batched queries for likes and comments
+      const likesPromises = postIds.map(postId => 
+        getDocs(collection(firestore, 'posts', postId, 'likes'))
+      );
+      const commentsPromises = postIds.map(postId => 
+        getDocs(collection(firestore, 'posts', postId, 'comments'))
+      );
+
+      // Execute all queries in parallel
+      const [likesResults, commentsResults] = await Promise.all([
+        Promise.all(likesPromises),
+        Promise.all(commentsPromises)
+      ]);
 
       const userPosts: UserPost[] = [];
 
-      for (const postDoc of postsSnapshot.docs) {
+      postsSnapshot.docs.forEach((postDoc, index) => {
         const postData = postDoc.data();
+        const likesSnapshot = likesResults[index];
+        const commentsSnapshot = commentsResults[index];
 
-        // Get likes count and check if user liked
-        const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
-        const likesSnapshot = await getDocs(likesCollection);
-
+        // Check if user liked this post
         let isLikedByUser = false;
         likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().authorId === userId) {
             isLikedByUser = true;
           }
         });
-
-        // Get comments count
-        const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-        const commentsSnapshot = await getDocs(commentsCollection);
 
         userPosts.push({
           id: postDoc.id,
@@ -186,11 +192,11 @@ export const fetchUserPosts = createAsyncThunk(
           isPrivate: postData.isPrivate || false,
           isLikedByUser: isLikedByUser,
         });
-      }
+      });
 
-      const sortedPosts = userPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      console.log('Returning', sortedPosts.length, 'sorted posts');
-      return sortedPosts;
+      // Posts are already ordered by the query, no need to sort again
+      console.log('Returning', userPosts.length, 'posts');
+      return userPosts;
     } catch (error) {
       console.error('Error fetching user posts:', error);
       return rejectWithValue('Failed to fetch user posts');
@@ -258,7 +264,8 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.profile = action.payload;
+        state.profile = { ...action.payload, lastUpdated: Date.now() };
+        state.error = null;
         state.lastProfileFetch = Date.now();
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {

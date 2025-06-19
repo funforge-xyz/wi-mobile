@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlatList, RefreshControl, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -37,62 +37,75 @@ export default function UserPostsScreen({ navigation }: any) {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
-  const currentTheme = getTheme(isDarkMode);
+  const currentTheme = useMemo(() => getTheme(isDarkMode), [isDarkMode]);
+
+  // Memoize should load check
+  const shouldLoadData = useMemo(() => {
+    return !profile || 
+           posts.length === 0 || 
+           (profile && profile.lastUpdated && Date.now() - profile.lastUpdated > 300000);
+  }, [profile, posts.length]);
 
   // Load data only once when component mounts or when explicitly refreshed
   useEffect(() => {
-    // Only load if we don't have data or if it's been more than 5 minutes
-    const shouldLoad = !profile || 
-                      posts.length === 0 || 
-                      (profile && Date.now() - profile.lastUpdated > 300000);
-
-    if (shouldLoad) {
+    if (shouldLoadData && !loading && !postsLoading) {
       loadInitialData();
     }
-  }, []);
+  }, [shouldLoadData, loading, postsLoading]);
 
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
-      await loadUserPostsData(dispatch, currentUser, fetchUserProfile, fetchUserPosts);
+      if (currentUser) {
+        // Load profile and posts in parallel for better performance
+        await Promise.all([
+          dispatch(fetchUserProfile(currentUser.uid)),
+          dispatch(fetchUserPosts(currentUser.uid))
+        ]);
+      }
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
-  };
+  }, [dispatch]);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
-      await refreshUserPostsData(dispatch, currentUser);
+      if (currentUser) {
+        // Refresh profile and posts in parallel
+        await Promise.all([
+          dispatch(fetchUserProfile(currentUser.uid)).unwrap(),
+          dispatch(fetchUserPosts(currentUser.uid)).unwrap()
+        ]);
+      }
     } catch (error) {
       console.error('Error refreshing data:', error);
       Alert.alert('Error', 'Failed to refresh data');
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [dispatch]);
 
-  const handleLike = async (postId: string) => {
+  const handleLike = useCallback(async (postId: string) => {
     await handlePostLike(postId, posts, (data) => dispatch(updatePostLike(data)));
-  };
+  }, [posts, dispatch]);
 
-  const handlePostPress = (post: UserPost) => {
+  const handlePostPress = useCallback((post: UserPost) => {
     navigation.navigate('SinglePost', { postId: post.id, isOwnPost: true });
-  };
+  }, [navigation]);
 
-  const handleSettingsPress = () => {
+  const handleSettingsPress = useCallback(() => {
     navigation.navigate('ProfileSettings');
-  };
+  }, [navigation]);
 
-  const renderPostItem = ({ item }: { item: UserPost }) => {
-    console.log('Rendering post item:', item.id, item.content);
+  const renderPostItem = useCallback(({ item }: { item: UserPost }) => {
     return (
       <UserPostItem
         item={item}
@@ -103,23 +116,23 @@ export default function UserPostsScreen({ navigation }: any) {
         formatTimeAgo={(date) => formatTimeAgo(date, t)}
       />
     );
-  };
+  }, [currentTheme, handlePostPress, handleLike, t]);
 
-  const renderProfileHeader = () => (
+  const renderProfileHeader = useCallback(() => (
     <UserProfileDisplay
       profile={profile}
       posts={posts}
       currentTheme={currentTheme}
       styles={styles}
     />
-  );
+  ), [profile, posts, currentTheme]);
 
-  const renderEmptyState = () => (
+  const renderEmptyState = useCallback(() => (
     <UserPostsEmptyState
       currentTheme={currentTheme}
       styles={styles}
     />
-  );
+  ), [currentTheme]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -133,7 +146,6 @@ export default function UserPostsScreen({ navigation }: any) {
         <UserPostsSkeleton count={5} />
       ) : (
         <>
-          {console.log('Posts array in render:', posts.length, posts)}
           <FlatList
             data={posts}
             keyExtractor={(item) => item.id}
@@ -145,6 +157,15 @@ export default function UserPostsScreen({ navigation }: any) {
             ListEmptyComponent={renderEmptyState}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={10}
+            getItemLayout={(data, index) => ({
+              length: 200, // Approximate item height
+              offset: 200 * index,
+              index,
+            })}
           />
         </>
       )}
