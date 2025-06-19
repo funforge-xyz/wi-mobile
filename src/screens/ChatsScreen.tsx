@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { FlatList, RefreshControl, AppState, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
 import ChatsHeader from '../components/ChatsHeader';
@@ -13,7 +12,7 @@ import ChatsEmptyState from '../components/ChatsEmptyState';
 import ChatsSkeleton from '../components/ChatsSkeleton';
 import RequestsSkeleton from '../components/RequestsSkeleton';
 import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal';
-import { chatsStyles } from '../styles/ChatsStyles';
+import { createChatsStyles, getTheme } from '../styles/ChatsStyles';
 import {
   ConnectionRequest,
   Connection,
@@ -37,23 +36,9 @@ export default function ChatsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const lightTheme = {
-    background: COLORS.background,
-    surface: COLORS.surface,
-    text: COLORS.text,
-    textSecondary: COLORS.textSecondary,
-    border: COLORS.border,
-  };
+  const chatsStyles = createChatsStyles(isDarkMode);
 
-  const darkTheme = {
-    background: COLORS.darkBackground,
-    surface: COLORS.darkSurface,
-    text: COLORS.darkText,
-    textSecondary: COLORS.darkTextSecondary,
-    border: COLORS.darkBorder,
-  };
-
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   // Update lastSeen when screen comes into focus
   useFocusEffect(

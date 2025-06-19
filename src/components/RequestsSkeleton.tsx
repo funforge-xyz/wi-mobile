@@ -2,6 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 interface RequestsSkeletonProps {
   count?: number;
@@ -10,7 +11,7 @@ interface RequestsSkeletonProps {
 export default function RequestsSkeleton({ count = 3 }: RequestsSkeletonProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const renderSkeletonRequest = (index: number) => (
     <View key={index} style={[styles.requestContainer, { backgroundColor: currentTheme.surface }]}>
@@ -64,8 +65,6 @@ export default function RequestsSkeleton({ count = 3 }: RequestsSkeletonProps) {
     </View>
   );
 }
-
-import { getTheme } from '../theme';
 
 const styles = StyleSheet.create({
   container: {

@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 interface ChatsSkeletonProps {
   count?: number;
@@ -11,7 +12,7 @@ interface ChatsSkeletonProps {
 export default function ChatsSkeleton({ count = 5 }: ChatsSkeletonProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const renderSkeletonChat = (index: number) => (
     <View key={index} style={[styles.chatContainer, { backgroundColor: currentTheme.surface }]}>
@@ -65,14 +66,6 @@ export default function ChatsSkeleton({ count = 5 }: ChatsSkeletonProps) {
     </View>
   );
 }
-
-const lightTheme = {
-  surface: '#FFFFFF',
-};
-
-const darkTheme = {
-  surface: '#1E1E1E',
-};
 
 const styles = StyleSheet.create({
   container: {

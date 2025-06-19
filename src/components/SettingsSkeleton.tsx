@@ -3,11 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 export default function SettingsSkeleton() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const renderSection = (itemCount: number, index: number) => (
     <View key={index} style={[styles.section, { backgroundColor: currentTheme.surface }]}>
@@ -75,8 +76,6 @@ export default function SettingsSkeleton() {
     </View>
   );
 }
-
-import { getTheme } from '../theme';
 
 const styles = StyleSheet.create({
   container: {

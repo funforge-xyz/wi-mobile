@@ -11,12 +11,16 @@ export const COLORS = {
   error: '#FF3B30',
   success: '#34C759',
   warning: '#FF9500',
+  shimmer: '#F5F5F5',
   // Dark theme colors
   darkBackground: '#121212',
   darkSurface: '#1E1E1E',
   darkText: '#FFFFFF',
   darkTextSecondary: '#B0B0B0',
   darkBorder: '#333333',
+  darkShimmer: '#3A3A3A',
+  skeleton: '#E1E9EE',
+  darkSkeleton: '#2A2A2A',
 };
 
 export const FONTS = {

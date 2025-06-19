@@ -21,7 +21,8 @@ import {
   handleLikePost,
   loadConnectionPosts 
 } from '../utils/feedUtils';
-import { lightTheme, darkTheme, feedStyles } from '../styles/FeedStyles';
+import { feedStyles } from '../styles/FeedStyles';
+import { getTheme } from '../theme';
 
 interface ConnectionPost {
   id: string;
@@ -51,7 +52,7 @@ export default function FeedScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   // Force NotificationBell to re-render when screen comes into focus
   useFocusEffect(

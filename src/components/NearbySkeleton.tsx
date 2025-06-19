@@ -2,6 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 interface NearbySkeletonProps {
   count?: number;
@@ -10,7 +11,7 @@ interface NearbySkeletonProps {
 export default function NearbySkeleton({ count = 5 }: NearbySkeletonProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const renderSkeletonPerson = (index: number) => (
     <View key={index} style={[styles.personContainer, { backgroundColor: currentTheme.surface }]}>
@@ -56,14 +57,6 @@ export default function NearbySkeleton({ count = 5 }: NearbySkeletonProps) {
     </View>
   );
 }
-
-const lightTheme = {
-  surface: '#FFFFFF',
-};
-
-const darkTheme = {
-  surface: '#1E1E1E',
-};
 
 const styles = StyleSheet.create({
   container: {

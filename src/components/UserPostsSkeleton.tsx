@@ -3,6 +3,7 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 const { width } = Dimensions.get('window');
 
@@ -13,7 +14,7 @@ interface UserPostsSkeletonProps {
 export default function UserPostsSkeleton({ count = 3 }: UserPostsSkeletonProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const renderSkeletonPost = (index: number) => (
     <View key={index} style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
@@ -159,8 +160,6 @@ export default function UserPostsSkeleton({ count = 3 }: UserPostsSkeletonProps)
     </View>
   );
 }
-
-import { getTheme } from '../theme';
 
 const styles = StyleSheet.create({
   container: {

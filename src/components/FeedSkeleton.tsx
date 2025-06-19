@@ -3,6 +3,7 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
+import { getTheme } from '../theme';
 
 const { width } = Dimensions.get('window');
 
@@ -13,7 +14,7 @@ interface FeedSkeletonProps {
 export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
+  const currentTheme = getTheme(isDarkMode);
 
   const renderSkeletonPost = (index: number) => (
     <View key={index} style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
@@ -107,14 +108,6 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
     </View>
   );
 }
-
-const lightTheme = {
-  surface: '#FFFFFF',
-};
-
-const darkTheme = {
-  surface: '#1E1E1E',
-};
 
 const styles = StyleSheet.create({
   container: {

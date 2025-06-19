@@ -15,6 +15,8 @@ export interface Theme {
   error: string;
   success: string;
   warning: string;
+  shimmer: string;
+  skeleton: string;
 }
 
 export const lightTheme: Theme = {
@@ -31,6 +33,8 @@ export const lightTheme: Theme = {
   error: COLORS.error,
   success: COLORS.success,
   warning: COLORS.warning,
+  shimmer: COLORS.shimmer,
+  skeleton: COLORS.skeleton
 };
 
 export const darkTheme: Theme = {
@@ -47,6 +51,8 @@ export const darkTheme: Theme = {
   error: COLORS.error,
   success: COLORS.success,
   warning: COLORS.warning,
+  shimmer: COLORS.darkShimmer,
+  skeleton: COLORS.darkSkeleton
 };
 
 export const getTheme = (isDarkMode: boolean): Theme => {
