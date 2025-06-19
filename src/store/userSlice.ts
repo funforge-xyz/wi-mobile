@@ -116,9 +116,17 @@ export const fetchUserProfile = createAsyncThunk(
 // Async thunk for fetching user posts
 export const fetchUserPosts = createAsyncThunk(
   'user/fetchPosts',
-  async (userId: string, { rejectWithValue }) => {
+  async (userId: string, { rejectWithValue, getState }) => {
     try {
       console.log('Fetching posts for user:', userId);
+
+      // Check if we're already loading to prevent infinite loops
+      const state = getState() as any;
+      if (state.user.postsLoading) {
+        console.log('Already loading user posts, skipping...');
+        return rejectWithValue('Already loading');
+      }
+
       const firestore = getFirestore();
 
       // Get current user data once
@@ -196,9 +204,16 @@ export const fetchUserPosts = createAsyncThunk(
       // Posts are already ordered by the query, no need to sort again
       console.log('Returning', userPosts.length, 'posts');
       return userPosts;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching user posts:', error);
-      return rejectWithValue('Failed to fetch user posts');
+
+      // Handle specific Firebase errors
+      if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+        console.error('Index not ready yet, retrying in a moment...');
+        return rejectWithValue('Index not ready');
+      }
+
+      return rejectWithValue(error?.message || 'Failed to fetch user posts');
     }
   }
 );
@@ -283,7 +298,12 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserPosts.rejected, (state, action) => {
         state.postsLoading = false;
-        state.error = action.payload as string;
+        const errorMessage = action.payload as string;
+
+        // Don't set error for index-related issues or "already loading"
+        if (!errorMessage.includes('Index not ready') && !errorMessage.includes('Already loading')) {
+          state.error = errorMessage;
+        }
       });
   },
 });
