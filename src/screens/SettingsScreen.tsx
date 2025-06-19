@@ -30,6 +30,7 @@ import {
   loadUserData,
   handleTogglePushNotifications,
   handleToggleLocationTracking,
+  handleToggleSameNetworkMatching,
   handleTrackingRadiusChange,
   handleChangePassword,
   handleDeleteAccount,
@@ -51,6 +52,7 @@ export default function SettingsScreen() {
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [trackingRadius, setTrackingRadius] = useState(1);
   const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
+  const [sameNetworkMatchingEnabled, setSameNetworkMatchingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showRadiusModal, setShowRadiusModal] = useState(false);
@@ -77,7 +79,7 @@ export default function SettingsScreen() {
   }
 
   useEffect(() => {
-    loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled);
+    loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled, setSameNetworkMatchingEnabled);
     loadUserData(setEditedProfile, setIsLoading);
   }, []);
 
@@ -269,6 +271,18 @@ export default function SettingsScreen() {
             description={`${t('settings.connectWithin')} ${trackingRadius}km`}
             value={`${trackingRadius}km`}
             onPress={showRadiusOptions}
+            currentTheme={currentTheme}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('settings.matching')} currentTheme={currentTheme}>
+          <SettingsToggleRow
+            icon="wifi"
+            title={t('settings.sameNetworkMatching')}
+            description={t('settings.prioritizeSameWiFi')}
+            value={sameNetworkMatchingEnabled}
+            onValueChange={(value) => handleToggleSameNetworkMatching(value, setSameNetworkMatchingEnabled, setIsLoading, t)}
+            disabled={isLoading}
             currentTheme={currentTheme}
           />
         </SettingsSection>

@@ -214,15 +214,36 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const firestore = getFirestore();
     const userRef = doc(firestore, 'users', currentUser.uid);
 
-    await updateDoc(userRef, {
+    // Get WiFi network info
+    const { wifiService } = await import('./wifiService');
+    const wifiInfo = await wifiService.getCurrentWifiInfo();
+
+    const updateData: any = {
       location: {
         latitude,
         longitude,
       },
       lastUpdatedLocation: new Date(),
-    });
+    };
 
-    console.log('User location updated in Firestore:', { latitude, longitude });
+    // Only add network info if WiFi is connected and we have a network ID
+    if (wifiInfo.isConnected && wifiInfo.networkId) {
+      updateData.currentNetworkId = wifiInfo.networkId;
+      updateData.currentNetworkSSID = wifiInfo.ssid;
+    } else {
+      // Clear network info if not connected to WiFi
+      updateData.currentNetworkId = null;
+      updateData.currentNetworkSSID = null;
+    }
+
+    await updateDoc(userRef, updateData);
+
+    console.log('User location and network updated in Firestore:', { 
+      latitude, 
+      longitude, 
+      networkId: wifiInfo.networkId,
+      ssid: wifiInfo.ssid 
+    });
   } catch (error) {
     console.error('Error updating user location in Firestore:', error);
   }
