@@ -44,6 +44,14 @@ export default function UserPostsScreen({ navigation }: any) {
 
   // Memoize should load check
   const shouldLoadData = useMemo(() => {
+    console.log('Should load data check:', {
+      hasAttemptedLoad,
+      profile: !!profile,
+      postsLength: posts.length,
+      loading,
+      postsLoading
+    });
+    
     return !hasAttemptedLoad && 
            (!profile || posts.length === 0 || 
            (profile && profile.lastUpdated && Date.now() - profile.lastUpdated > 300000));
@@ -112,6 +120,7 @@ export default function UserPostsScreen({ navigation }: any) {
   }, [navigation]);
 
   const renderPostItem = useCallback(({ item }: { item: UserPost }) => {
+    console.log('Rendering post item:', item.id, item.content.substring(0, 50));
     return (
       <UserPostItem
         item={item}
@@ -140,6 +149,15 @@ export default function UserPostsScreen({ navigation }: any) {
     />
   ), [currentTheme]);
 
+  console.log('UserPostsScreen render:', {
+    loading,
+    postsLoading,
+    hasProfile: !!profile,
+    postsCount: posts.length,
+    hasAttemptedLoad,
+    refreshing
+  });
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <UserPostsHeader
@@ -148,32 +166,25 @@ export default function UserPostsScreen({ navigation }: any) {
         onSettingsPress={handleSettingsPress}
       />
 
-      {(loading || postsLoading) ? (
+      {loading && !profile ? (
         <UserPostsSkeleton count={5} />
       ) : (
-        <>
-          <FlatList
-            data={posts}
-            keyExtractor={(item) => item.id}
-            renderItem={renderPostItem}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListHeaderComponent={renderProfileHeader}
-            ListEmptyComponent={renderEmptyState}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-            initialNumToRender={10}
-            getItemLayout={(data, index) => ({
-              length: 200, // Approximate item height
-              offset: 200 * index,
-              index,
-            })}
-          />
-        </>
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id}
+          renderItem={renderPostItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing || postsLoading} onRefresh={onRefresh} />
+          }
+          ListHeaderComponent={renderProfileHeader}
+          ListEmptyComponent={postsLoading ? null : renderEmptyState}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          removeClippedSubviews={false}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={10}
+        />
       )}
     </SafeAreaView>
   );
