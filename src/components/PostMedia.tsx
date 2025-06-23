@@ -38,7 +38,7 @@ export default function PostMedia({ mediaURL, style }: PostMediaProps) {
         <Image
           source={{ uri: mediaURL }}
           style={[styles.image, { opacity: loading || error ? 0 : 1 }]}
-          resizeMode="cover"
+          resizeMode="contain"
           onLoadStart={() => {
             setLoading(true);
             setError(false);
