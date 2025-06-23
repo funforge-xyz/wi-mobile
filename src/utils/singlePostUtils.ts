@@ -128,7 +128,7 @@ export const loadLikes = async (postId: string): Promise<Like[]> => {
 
       // Get author information
       const authorDoc = await getDoc(doc(firestore, 'users', likeData.authorId));
-      const authorData = authorDoc.exists() ? authorData.data() : {};
+      const authorData = authorDoc.exists() ? authorDoc.data() : {};
 
       likesList.push({
         id: likeDoc.id,
