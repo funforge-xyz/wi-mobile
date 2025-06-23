@@ -60,21 +60,21 @@ export const fetchUserProfile = createAsyncThunk(
     try {
       const firestore = getFirestore();
       const userDocRef = doc(firestore, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
 
-      // Get user's post count
-      const postsCollection = collection(firestore, 'posts');
-      const userPostsQuery = query(postsCollection, where('authorId', '==', userId));
-      const userPostsSnapshot = await getDocs(userPostsQuery);
+      // Get user's profile, post count, and connections count in parallel
+      const [userDoc, userPostsSnapshot, connectionsSnapshot] = await Promise.all([
+        getDoc(userDocRef),
+        getDocs(query(collection(firestore, 'posts'), where('authorId', '==', userId))),
+        getDocs(
+          query(
+            collection(firestore, 'connections'),
+            where('participants', 'array-contains', userId),
+            where('status', '==', 'active')
+          )
+        ),
+      ]);
+
       const postsCount = userPostsSnapshot.size;
-
-      // Get user's connections count
-      const connectionsQuery = query(
-        collection(firestore, 'connections'),
-        where('participants', 'array-contains', userId),
-        where('status', '==', 'active')
-      );
-      const connectionsSnapshot = await getDocs(connectionsQuery);
       const connectionsCount = connectionsSnapshot.size;
 
       if (userDoc.exists()) {
@@ -114,6 +114,13 @@ export const fetchUserProfile = createAsyncThunk(
   }
 );
 
+// Helper for formatting Firestore date fields
+const formatFirestoreDate = (date: any): string => {
+  if (date?.toDate) return date.toDate().toISOString();
+  if (date instanceof Date) return date.toISOString();
+  return new Date().toISOString();
+};
+
 // Async thunk for fetching user posts
 export const fetchUserPosts = createAsyncThunk(
   'user/fetchPosts',
@@ -121,7 +128,7 @@ export const fetchUserPosts = createAsyncThunk(
     try {
       console.log('Fetching posts for user:', userId);
       const firestore = getFirestore();
-      
+
       // Get current user's profile data
       const userDocRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userDocRef);
@@ -141,54 +148,55 @@ export const fetchUserPosts = createAsyncThunk(
         where('authorId', '==', userId)
       );
       const postsSnapshot = await getDocs(userPostsQuery);
-      
+
       console.log('Found', postsSnapshot.size, 'posts for user');
 
-      const userPosts: UserPost[] = [];
+      const userPosts: UserPost[] = await Promise.all(
+        postsSnapshot.docs.map(async (postDoc) => {
+          const postData = postDoc.data();
 
-      for (const postDoc of postsSnapshot.docs) {
-        const postData = postDoc.data();
+          // Get likes count and check if user liked
+          const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
+          const likesSnapshot = await getDocs(likesCollection);
 
-        // Get likes count and check if user liked
-        const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
-        const likesSnapshot = await getDocs(likesCollection);
+          let isLikedByUser = false;
+          likesSnapshot.forEach((likeDoc) => {
+            if (likeDoc.data().authorId === userId) {
+              isLikedByUser = true;
+            }
+          });
 
-        let isLikedByUser = false;
-        likesSnapshot.forEach((likeDoc) => {
-          if (likeDoc.data().authorId === userId) {
-            isLikedByUser = true;
-          }
-        });
+          // Get comments count
+          const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
+          const commentsSnapshot = await getDocs(commentsCollection);
 
-        // Get comments count
-        const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-        const commentsSnapshot = await getDocs(commentsCollection);
+          return {
+            id: postDoc.id,
+            authorId: postData.authorId,
+            authorName:
+              currentUserData.firstName && currentUserData.lastName
+                ? `${currentUserData.firstName} ${currentUserData.lastName}`
+                : 'You',
+            authorPhotoURL:
+              currentUserData.thumbnailURL || currentUserData.photoURL || '',
+            content: postData.content || '',
+            mediaURL: postData.mediaURL || '',
+            mediaType: postData.mediaType || 'image',
+            createdAt: formatFirestoreDate(postData.createdAt),
+            likesCount: postData.likesCount ?? likesSnapshot.size,
+            commentsCount: postData.commentsCount ?? commentsSnapshot.size,
+            showLikeCount: postData.showLikeCount !== false,
+            allowComments: postData.allowComments !== false,
+            isPrivate: postData.isPrivate || false,
+            isLikedByUser,
+          };
+        })
+      );
 
-        userPosts.push({
-          id: postDoc.id,
-          authorId: postData.authorId,
-          authorName: currentUserData.firstName && currentUserData.lastName 
-            ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-            : 'You',
-          authorPhotoURL: currentUserData.thumbnailURL || currentUserData.photoURL || '',
-          content: postData.content || '',
-          mediaURL: postData.mediaURL || '',
-          mediaType: postData.mediaType || 'image',
-          createdAt: postData.createdAt?.toDate ? 
-                     postData.createdAt.toDate().toISOString() : 
-                     (postData.createdAt instanceof Date ? 
-                      postData.createdAt.toISOString() : 
-                      new Date().toISOString()),
-          likesCount: likesSnapshot.size,
-          commentsCount: commentsSnapshot.size,
-          showLikeCount: postData.showLikeCount !== false,
-          allowComments: postData.allowComments !== false,
-          isPrivate: postData.isPrivate || false,
-          isLikedByUser: isLikedByUser,
-        });
-      }
+      const sortedPosts = userPosts.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
 
-      const sortedPosts = userPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       console.log('Returning', sortedPosts.length, 'sorted posts');
       return sortedPosts;
     } catch (error) {

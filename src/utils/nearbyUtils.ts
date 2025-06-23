@@ -16,34 +16,43 @@ export const loadNearbyUsers = async (currentUserId: string): Promise<NearbyUser
   try {
     const firestore = getFirestore();
 
+    // Run all Firestore queries in parallel
+    const [blockedUsersSnapshot, blockedByUsersSnapshot, connectionsSnapshot, usersSnapshot] =
+      await Promise.all([
+        getDocs(
+          query(
+            collection(firestore, 'blockedUsers'),
+            where('blockerUserId', '==', currentUserId)
+          )
+        ),
+        getDocs(
+          query(
+            collection(firestore, 'blockedUsers'),
+            where('blockedUserId', '==', currentUserId)
+          )
+        ),
+        getDocs(
+          query(
+            collection(firestore, 'connections'),
+            where('participants', 'array-contains', currentUserId),
+            where('status', '==', 'active')
+          )
+        ),
+        getDocs(collection(firestore, 'users')),
+      ]);
+
     // Get blocked users
-    const blockedUsersQuery = query(
-      collection(firestore, 'blockedUsers'),
-      where('blockerUserId', '==', currentUserId)
-    );
-    const blockedUsersSnapshot = await getDocs(blockedUsersQuery);
-    const blockedUserIds = new Set();
+    const blockedUserIds = new Set<string>();
     blockedUsersSnapshot.forEach((doc) => {
       blockedUserIds.add(doc.data().blockedUserId);
     });
 
     // Get users who blocked current user
-    const blockedByUsersQuery = query(
-      collection(firestore, 'blockedUsers'),
-      where('blockedUserId', '==', currentUserId)
-    );
-    const blockedByUsersSnapshot = await getDocs(blockedByUsersQuery);
     blockedByUsersSnapshot.forEach((doc) => {
       blockedUserIds.add(doc.data().blockerUserId);
     });
 
     // Get connected users
-    const connectionsQuery = query(
-      collection(firestore, 'connections'),
-      where('participants', 'array-contains', currentUserId),
-      where('status', '==', 'active')
-    );
-    const connectionsSnapshot = await getDocs(connectionsQuery);
     const connectedUserIds = new Set<string>();
     connectionsSnapshot.forEach((doc) => {
       const connectionData = doc.data();
@@ -55,22 +64,21 @@ export const loadNearbyUsers = async (currentUserId: string): Promise<NearbyUser
       }
     });
 
-    const usersCollection = collection(firestore, 'users');
-    const usersSnapshot = await getDocs(usersCollection);
-
+    const now = Date.now();
     const users: NearbyUser[] = [];
 
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
-      // Exclude current user, blocked users, and connected users
-      if (doc.id !== currentUserId && 
-          !blockedUserIds.has(doc.id) && 
-          !connectedUserIds.has(doc.id)) {
 
+      // Exclude current user, blocked users, and connected users
+      if (
+        doc.id !== currentUserId &&
+        !blockedUserIds.has(doc.id) &&
+        !connectedUserIds.has(doc.id)
+      ) {
         // Check if user is online (last seen within 2 minutes)
-        const isOnline = userData.lastSeen && 
-          userData.lastSeen.toDate && 
-          (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+        const lastSeen = userData.lastSeen?.toDate?.();
+        const isOnline = lastSeen && now - lastSeen.getTime() < 2 * 60 * 1000;
 
         users.push({
           id: doc.id,
@@ -79,7 +87,7 @@ export const loadNearbyUsers = async (currentUserId: string): Promise<NearbyUser
           email: userData.email || '',
           photoURL: userData.thumbnailURL || userData.photoURL || '',
           bio: userData.bio || '',
-          isOnline: isOnline || false,
+          isOnline: Boolean(isOnline),
         });
       }
     });
@@ -90,6 +98,7 @@ export const loadNearbyUsers = async (currentUserId: string): Promise<NearbyUser
     throw error;
   }
 };
+
 
 export const formatLastSeen = (timestamp: any, t: (key: string, options?: any) => string) => {
   if (!timestamp) return 'Unknown';

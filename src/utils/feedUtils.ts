@@ -107,7 +107,10 @@ export const handleLikePost = async (postId: string, liked: boolean, posts: any[
   }
 };
 
-export const loadConnectionPosts = async (userRadius: number | null, currentUserLocation: any) => {
+export const loadConnectionPosts = async (
+  userRadius: number | null,
+  currentUserLocation: any
+) => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -121,6 +124,7 @@ export const loadConnectionPosts = async (userRadius: number | null, currentUser
     updateUserLastSeen();
 
     const firestore = getFirestore();
+    const now = Date.now();
 
     // Get user's connections
     const connectionsQuery = query(
@@ -142,116 +146,106 @@ export const loadConnectionPosts = async (userRadius: number | null, currentUser
       }
     });
 
-    // Get all public posts (not just from connections)
-    const postsCollection = collection(firestore, 'posts');
-    const postsQuery = query(
-      postsCollection,
-      orderBy('createdAt', 'desc'),
-      limit(50)
+    // Get latest 50 posts
+    const postsSnapshot = await getDocs(
+      query(collection(firestore, 'posts'), orderBy('createdAt', 'desc'), limit(50))
     );
 
-    console.log('Fetching posts from Firestore...');
-    const postsSnapshot = await getDocs(postsQuery);
     console.log('Posts fetched:', postsSnapshot.size);
+
+    const posts = postsSnapshot.docs.filter((postDoc) => {
+      const postData = postDoc.data();
+      return (
+        postData.authorId !== currentUser.uid &&
+        postData.isPrivate !== true
+      );
+    });
+
+    const authorIds = Array.from(new Set(posts.map((doc) => doc.data().authorId)));
+
+    // Batch fetch all authors
+    const authorDocs = await Promise.all(
+      authorIds.map((authorId) => getDoc(doc(firestore, 'users', authorId)))
+    );
+    const authorDataMap = new Map<string, any>();
+    authorDocs.forEach((snap) => {
+      if (snap.exists()) {
+        authorDataMap.set(snap.id, snap.data());
+      }
+    });
 
     const connectionPosts: any[] = [];
 
-    for (const postDoc of postsSnapshot.docs) {
+    for (const postDoc of posts) {
       const postData = postDoc.data();
+      const authorId = postData.authorId;
+      const authorData = authorDataMap.get(authorId) || {};
 
-      // Skip current user's own posts
-      if (postData.authorId === currentUser.uid) {
-        continue;
-      }
-
-      // Skip private posts
-      if (postData.isPrivate === true) {
-        continue;
-      }
-
-      // Get author information
-      const authorDoc = await getDoc(doc(firestore, 'users', postData.authorId));
-      const authorData = authorDoc.exists() ? authorDoc.data() : {};
-
-      // Check if author has location data (always required)
       const authorLat = authorData.location?.latitude;
       const authorLon = authorData.location?.longitude;
 
-      // Skip post if author doesn't have location data
-      if (!authorLat || !authorLon) {
-        continue;
-      }
+      // Skip if no author location
+      if (!authorLat || !authorLon) continue;
 
-      // Location-based filtering (if radius is set)
+      // Distance filter (if applicable)
       if (userRadius && currentUserLocation) {
-        // Calculate distance between current user and post author
         const distance = calculateDistance(
           currentUserLocation.latitude,
           currentUserLocation.longitude,
           authorLat,
           authorLon
         );
-
-        // Skip post if author is outside the radius
-        if (distance > userRadius) {
-          continue;
-        }
+        if (distance > userRadius) continue;
       }
 
-      // Get likes count and check if user liked
-      const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
-      const likesSnapshot = await getDocs(likesCollection);
+      // Get likes & comments in parallel
+      const [likesSnapshot, commentsSnapshot] = await Promise.all([
+        getDocs(collection(firestore, 'posts', postDoc.id, 'likes')),
+        getDocs(collection(firestore, 'posts', postDoc.id, 'comments')),
+      ]);
 
-      let isLikedByUser = false;
-      likesSnapshot.forEach((likeDoc) => {
-        if (likeDoc.data().authorId === currentUser.uid) {
-          isLikedByUser = true;
-        }
-      });
+      const isLikedByUser = likesSnapshot.docs.some(
+        (likeDoc) => likeDoc.data().authorId === currentUser.uid
+      );
 
-      // Get comments count
-      const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-      const commentsSnapshot = await getDocs(commentsCollection);
+      // Online status
+      const isOnline =
+        authorData.lastSeen?.toDate &&
+        now - authorData.lastSeen.toDate().getTime() < 2 * 60 * 1000;
 
-      // Check if user is online (last seen within 2 minutes to be more accurate)
-      const isOnline = authorData.lastSeen && 
-        authorData.lastSeen.toDate && 
-        (new Date().getTime() - authorData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
-
-      const postInfo = {
+      connectionPosts.push({
         id: postDoc.id,
-        authorId: postData.authorId,
-        authorName: authorData.firstName && authorData.lastName 
-          ? `${authorData.firstName} ${authorData.lastName}` 
-          : 'Anonymous User',
+        authorId,
+        authorName:
+          authorData.firstName && authorData.lastName
+            ? `${authorData.firstName} ${authorData.lastName}`
+            : 'Anonymous User',
         authorPhotoURL: authorData.thumbnailURL || authorData.photoURL || '',
         content: postData.content || '',
         mediaURL: postData.mediaURL || '',
         mediaType: postData.mediaType || 'image',
         createdAt: postData.createdAt?.toDate() || new Date(),
-        likesCount: likesSnapshot.size,
-        commentsCount: commentsSnapshot.size,
+        likesCount: postData.likesCount ?? likesSnapshot.size,
+        commentsCount: postData.commentsCount ?? commentsSnapshot.size,
         showLikeCount: postData.showLikeCount !== false,
         allowComments: postData.allowComments !== false,
-        isLikedByUser: isLikedByUser,
-        isAuthorOnline: isOnline || false,
-        isFromConnection: connectedUserIds.has(postData.authorId),
-      };
+        isLikedByUser,
+        isAuthorOnline: Boolean(isOnline),
+        isFromConnection: connectedUserIds.has(authorId),
+      });
 
-      connectionPosts.push(postInfo);
-
-      // Limit to 20 posts for performance
-      if (connectionPosts.length >= 20) {
-        break;
-      }
+      // Limit to 20 posts
+      if (connectionPosts.length >= 20) break;
     }
 
     return connectionPosts;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error loading connection posts:', error);
-    // Don't show alert if it's just a timeout or network issue
     if (error.code !== 'cancelled' && error.code !== 'timeout') {
-      Alert.alert('Error', 'Failed to load posts. Please check your connection and try again.');
+      Alert.alert(
+        'Error',
+        'Failed to load posts. Please check your connection and try again.'
+      );
     }
     return [];
   }
