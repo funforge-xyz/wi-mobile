@@ -38,7 +38,7 @@ export default function PostMedia({ mediaURL, style }: PostMediaProps) {
         <Image
           source={{ uri: mediaURL }}
           style={[styles.image, { opacity: loading || error ? 0 : 1 }]}
-          resizeMode="contain"
+          resizeMode="cover"
           onLoadStart={() => {
             setLoading(true);
             setError(false);
@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 300,
+    minHeight: 200,
   },
   image: {
     width: '100%',
-    height: '100%',
+    aspectRatio: 1,
   }
 });
