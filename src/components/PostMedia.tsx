@@ -61,6 +61,8 @@ const styles = StyleSheet.create({
   postImage: {
     width: '100%',
     minHeight: 200,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
