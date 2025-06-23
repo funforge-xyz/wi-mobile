@@ -73,6 +73,7 @@ export const styles = StyleSheet.create({
     padding: SPACING.md,
     marginVertical: SPACING.xs,
     borderRadius: 12,
+    overflow: 'hidden',
   },
   postHeader: {
     flexDirection: 'row',
@@ -127,6 +128,7 @@ export const styles = StyleSheet.create({
     height: 200,
     marginTop: SPACING.sm,
     borderRadius: 8,
+    alignSelf: 'stretch',
   },
   postStats: {
     flexDirection: 'row',
