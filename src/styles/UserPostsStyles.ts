@@ -129,6 +129,7 @@ export const styles = StyleSheet.create({
     marginTop: SPACING.sm,
     borderRadius: 8,
     alignSelf: 'stretch',
+    overflow: 'hidden',
   },
   postStats: {
     flexDirection: 'row',

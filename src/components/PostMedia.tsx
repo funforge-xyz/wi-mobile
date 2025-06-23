@@ -30,7 +30,7 @@ export default function PostMedia({ mediaURL, style }: PostMediaProps) {
       <View style={[styles.postImage, { position: 'relative' }]}>
         {loading && !error && (
           <SkeletonLoader
-            width={width}
+            width="100%"
             height={300}
             borderRadius={0}
             style={{ position: 'absolute' }}
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   postImage: {
-    width: width,
+    width: '100%',
     height: 300,
   },
 });
