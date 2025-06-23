@@ -23,7 +23,7 @@ import SinglePostDisplay from '../components/SinglePostDisplay';
 import CommentsList from '../components/CommentsList';
 import CommentInput from '../components/CommentInput';
 import EditPostModal from '../components/EditPostModal';
-import { singlePostStyles } from '../styles/SinglePostStyles';
+import { createSinglePostStyles } from '../styles/SinglePostStyles';
 import {
   loadPost,
   loadComments,
@@ -85,6 +85,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const { t } = useTranslation();
 
   const currentTheme = getTheme(isDarkMode);
+  const singlePostStyles = createSinglePostStyles(isDarkMode);
 
   useEffect(() => {
     loadPostData();

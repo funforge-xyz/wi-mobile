@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -38,7 +37,7 @@ export default function PostMedia({ mediaURL, style }: PostMediaProps) {
         )}
         <Image
           source={{ uri: mediaURL }}
-          style={[styles.postImage, { opacity: loading || error ? 0 : 1 }]}
+          style={[styles.image, { opacity: loading || error ? 0 : 1 }]}
           resizeMode="cover"
           onLoadStart={() => {
             setLoading(true);
@@ -63,4 +62,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
   },
+  image: {
+    width: '100%',
+    height: 300,
+  }
 });
