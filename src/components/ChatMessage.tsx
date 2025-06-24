@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
 interface Message {
@@ -42,7 +42,7 @@ export default function ChatMessage({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   messageContainer: {
     maxWidth: '80%',
     marginVertical: SPACING.xs,
@@ -50,11 +50,11 @@ const styles = {
     borderRadius: 16,
   },
   myMessage: {
-    alignSelf: 'flex-end' as const,
+    alignSelf: 'flex-end',
     backgroundColor: COLORS.primary,
   },
   otherMessage: {
-    alignSelf: 'flex-start' as const,
+    alignSelf: 'flex-start',
   },
   messageText: {
     fontSize: 16,
@@ -65,4 +65,4 @@ const styles = {
     fontSize: 12,
     fontFamily: FONTS.regular,
   },
-};
+});
