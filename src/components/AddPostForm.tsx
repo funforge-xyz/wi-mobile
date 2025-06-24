@@ -10,7 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING } from '../config/constants';
+import { COLORS } from '../config/constants';
 import { addPostStyles } from '../styles/AddPostStyles';
 import { useTranslation } from 'react-i18next';
 
