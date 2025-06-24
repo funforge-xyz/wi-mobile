@@ -24,6 +24,7 @@ import CommentsList from '../components/CommentsList';
 import CommentInput from '../components/CommentInput';
 import EditPostModal from '../components/EditPostModal';
 import SinglePostSkeleton from '../components/SinglePostSkeleton';
+import DeletePostConfirmationModal from '../components/DeletePostConfirmationModal';
 import { createSinglePostStyles } from '../styles/SinglePostStyles';
 import { getTheme } from '../theme';
 import {
@@ -35,7 +36,6 @@ import {
   updatePost,
   deletePost,
   deleteComment,
-  showDeletePostAlert,
   showDeleteCommentAlert,
 } from '../utils/singlePostUtils';
 
@@ -82,6 +82,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [editedPrivacy, setEditedPrivacy] = useState(false);
   const [editedAllowComments, setEditedAllowComments] = useState(true);
   const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const { t } = useTranslation();
@@ -227,15 +228,18 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleDeletePost = () => {
-    showDeletePostAlert(async () => {
-      try {
-        await deletePost(postId);
-        Alert.alert(t('singlePost.success'), t('singlePost.postDeleted'));
-        navigation.goBack();
-      } catch (error) {
-        Alert.alert(t('common.error'), t('singlePost.failedToDelete'));
-      }
-    }, t);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePost = async () => {
+    setShowDeleteModal(false);
+    try {
+      await deletePost(postId);
+      Alert.alert(t('singlePost.success'), t('singlePost.postDeleted'));
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert(t('common.error'), t('singlePost.failedToDelete'));
+    }
   };
 
   const handleDeleteComment = (commentId: string, commentAuthorId: string) => {
@@ -331,6 +335,14 @@ export default function SinglePostScreen({ route, navigation }: any) {
         onSave={handleSaveEdit}
         onCancel={() => setIsEditing(false)}
         onDelete={handleDeletePost}
+        currentTheme={currentTheme}
+      />
+
+      {/* Delete Post Confirmation Modal */}
+      <DeletePostConfirmationModal
+        visible={showDeleteModal}
+        onConfirm={confirmDeletePost}
+        onCancel={() => setShowDeleteModal(false)}
         currentTheme={currentTheme}
       />
     </SafeAreaView>
