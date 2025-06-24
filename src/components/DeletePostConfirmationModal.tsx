@@ -68,16 +68,16 @@ export default function DeletePostConfirmationModal({
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton, { borderColor: currentTheme.border }]}
+              style={[styles.cancelButton, { borderColor: currentTheme.border }]}
               onPress={onCancel}
             >
-              <Text style={[styles.cancelButtonText, { color: currentTheme.textSecondary }]}>
+              <Text style={[styles.cancelButtonText, { color: currentTheme.text }]}>
                 {t('common.cancel')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, styles.confirmButton, { backgroundColor: COLORS.error }]}
+              style={[styles.confirmButton, { backgroundColor: COLORS.error }]}
               onPress={onConfirm}
             >
               <Text style={styles.confirmButtonText}>

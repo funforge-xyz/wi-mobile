@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
@@ -11,34 +10,26 @@ export const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   confirmationModal: {
-    width: '100%',
-    maxWidth: 320,
+    borderRadius: 16,
     padding: SPACING.xl,
-    borderRadius: 20,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
+    maxWidth: 320,
+    width: '100%',
   },
   iconContainer: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   title: {
     fontSize: 20,
     fontFamily: FONTS.bold,
-    marginBottom: SPACING.sm,
     textAlign: 'center',
+    marginBottom: SPACING.sm,
   },
   message: {
     fontSize: 16,
     fontFamily: FONTS.regular,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
     marginBottom: SPACING.xl,
   },
   buttonContainer: {
@@ -46,26 +37,28 @@ export const styles = StyleSheet.create({
     width: '100%',
     gap: SPACING.md,
   },
-  button: {
+  cancelButton: {
     flex: 1,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.lg,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButton: {
+    borderRadius: 8,
     borderWidth: 1,
-  },
-  confirmButton: {
-    backgroundColor: COLORS.error,
+    alignItems: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
     fontFamily: FONTS.medium,
   },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   confirmButtonText: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: 'white',
+    color: '#FFFFFF',
   },
 });
