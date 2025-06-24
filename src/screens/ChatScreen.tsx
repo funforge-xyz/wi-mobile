@@ -22,15 +22,16 @@ import {
 } from '../utils/chatUtils';
 import { useTranslation } from 'react-i18next';
 
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigation';
+
+type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
+type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
+
 interface ChatScreenProps {
-  route: {
-    params: {
-      userId: string;
-      userName: string;
-      userPhotoURL?: string;
-    };
-  };
-  navigation: any;
+  route: ChatScreenRouteProp;
+  navigation: ChatScreenNavigationProp;
 }
 
 export default function ChatScreen({ route, navigation }: ChatScreenProps) {

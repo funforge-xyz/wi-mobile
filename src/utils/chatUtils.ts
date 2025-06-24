@@ -11,6 +11,8 @@ export interface Message {
   text: string;
   createdAt: Date;
   isFirstMessage?: boolean;
+  read?: boolean;
+  readAt?: Date;
 }
 
 export const createChatRoomId = (userId1: string, userId2: string): string => {
@@ -35,7 +37,7 @@ export const setupMessageListener = (
   chatRoomId: string,
   onMessagesUpdate: (messages: Message[]) => void,
   onLoadingComplete: () => void
-) => {
+): (() => void) => {
   const firestore = getFirestore();
 
   const messagesQuery = query(
@@ -66,7 +68,7 @@ export const setupMessageListener = (
 export const setupOnlineStatusListener = (
   userId: string,
   onStatusUpdate: (isOnline: boolean) => void
-) => {
+): (() => void) => {
   const firestore = getFirestore();
   const userRef = doc(firestore, 'users', userId);
 
@@ -250,7 +252,7 @@ export const sendChatMessage = async (
   }
 };
 
-export const formatTimeAgo = (date: Date, t: (key: string, options?: any) => string) => {
+export const formatTimeAgo = (date: Date, t: (key: string, options?: { count?: number }) => string): string => {
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
