@@ -32,7 +32,7 @@ interface UserPost {
 
 export default function UserPostsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const { profile, posts = [], loading: postsLoading } = useAppSelector((state) => state.user);
+  const { profile, posts = [], postsLoading } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
@@ -129,7 +129,7 @@ export default function UserPostsScreen({ navigation }: any) {
         onSettingsPress={handleSettingsPress}
       />
 
-      {(loading || postsLoading) ? (
+      {postsLoading ? (
         <UserPostsSkeleton count={5} />
       ) : (
         <>
