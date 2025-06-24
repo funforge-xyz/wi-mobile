@@ -13,6 +13,10 @@ import UserPostsSkeleton from '../components/UserPostsSkeleton';
 import { styles } from '../styles/UserPostsStyles';
 import { getTheme } from '../theme';
 import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
+import UserPostsSkeleton from '../components/UserPostsSkeleton';
+import { styles } from '../styles/UserPostsStyles';
+import { getTheme } from '../theme';
+import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
 
 interface UserPost {
   id: string;
