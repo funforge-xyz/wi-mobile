@@ -13,9 +13,10 @@ const { width } = Dimensions.get('window');
 interface PostMediaProps {
   mediaURL: string;
   style?: any;
+  showBorderRadius?: boolean;
 }
 
-export default function PostMedia({ mediaURL, style }: PostMediaProps) {
+export default function PostMedia({ mediaURL, style, showBorderRadius = true }: PostMediaProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -26,7 +27,7 @@ export default function PostMedia({ mediaURL, style }: PostMediaProps) {
 
   return (
     <View style={[styles.mediaContainer, style]}>
-      <View style={[styles.postImage, { position: 'relative' }]}>
+      <View style={[styles.postImage, { position: 'relative', borderRadius: showBorderRadius ? 8 : 0 }]}>
         {loading && !error && (
           <SkeletonLoader
             width="100%"
@@ -61,7 +62,6 @@ const styles = StyleSheet.create({
   postImage: {
     width: '100%',
     minHeight: 200,
-    borderRadius: 8,
     overflow: 'hidden',
   },
   image: {

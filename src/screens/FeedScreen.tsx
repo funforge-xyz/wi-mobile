@@ -224,6 +224,7 @@ export default function FeedScreen({ navigation }: any) {
             onLike={handleLike}
             currentTheme={currentTheme}
             navigation={navigation}
+            showImageBorderRadius={false}
           />
         )}
         refreshControl={

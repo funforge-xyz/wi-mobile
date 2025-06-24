@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   StyleSheet,
@@ -36,9 +35,10 @@ interface PostItemProps {
   onLike: (postId: string, liked: boolean) => void;
   currentTheme: any;
   navigation: any;
+  showImageBorderRadius?: boolean;
 }
 
-export default function PostItem({ post, onLike, currentTheme, navigation }: PostItemProps) {
+export default function PostItem({ post, onLike, currentTheme, navigation, showImageBorderRadius }: PostItemProps) {
   const [liked, setLiked] = useState(post.isLikedByUser);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -67,8 +67,12 @@ export default function PostItem({ post, onLike, currentTheme, navigation }: Pos
         <PostContent content={post.content} currentTheme={currentTheme} />
       )}
 
-      {post.mediaURL && post.mediaURL.trim() !== '' && (
-        <PostMedia mediaURL={post.mediaURL} />
+      {post.mediaURL && (
+        <PostMedia 
+          mediaURL={post.mediaURL} 
+          style={styles.media}
+          showBorderRadius={showImageBorderRadius}
+        />
       )}
 
       <PostActions

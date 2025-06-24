@@ -1,4 +1,3 @@
-
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
@@ -280,7 +279,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserPosts.fulfilled, (state, action) => {
         state.postsLoading = false;
-        state.posts = action.payload;
+        state.posts = Array.isArray(action.payload) ? action.payload : [];
         state.lastPostsFetch = Date.now();
       })
       .addCase(fetchUserPosts.rejected, (state, action) => {
