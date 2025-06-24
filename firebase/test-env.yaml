@@ -1,4 +1,0 @@
-NODE_ENV: test
-PGUSERNAME: postgres
-PGDATABASE: wiTestDb
-PGHOST: 35.241.143.153 
