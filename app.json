@@ -12,7 +12,7 @@
       "backgroundColor": "#6366F1",
       "dark": {
         "image": "./assets/images/welcome.png",
-        "resizeMode": "contain", 
+        "resizeMode": "contain",
         "backgroundColor": "#121212"
       }
     },
@@ -26,7 +26,10 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "WiChat needs access to your location to find nearby users and enable location-based features.",
         "NSLocationWhenInUseUsageDescription": "WiChat needs access to your location to find nearby users and enable location-based features.",
         "NSLocationAlwaysUsageDescription": "WiChat needs background location access to keep your location updated for nearby user discovery.",
-        "UIBackgroundModes": ["location", "background-processing"],
+        "UIBackgroundModes": [
+          "location",
+          "background-processing"
+        ],
         "NSCameraUsageDescription": "This app needs access to camera to take photos and videos",
         "NSMicrophoneUsageDescription": "This app needs access to microphone to record videos"
       }
@@ -62,9 +65,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "262d6739-ab83-497f-a5f4-b8852d594e76"
+        "projectId": "06dd1801-4178-4d3e-ad60-931f115a276c"
       }
     },
-    "owner": "wichatapp"
+    "owner": "fun-forge"
   }
 }
