@@ -1,4 +1,4 @@
-import { View, Text, Modal, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
@@ -101,7 +101,7 @@ export default function ConfirmationModal({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -167,4 +167,4 @@ const styles = {
     fontFamily: FONTS.medium,
     color: 'white',
   },
-};
+});
