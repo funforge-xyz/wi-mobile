@@ -231,8 +231,8 @@ export const setupRealtimeListeners = async (
               if (chatDoc.exists()) {
                 const chatData = chatDoc.data();
 
-                setConnections((prev: Connection[]) =>
-                  prev
+                setConnections((prev: Connection[]) => {
+                  const updated = prev
                     .map((conn): Connection =>
                       conn.id === connectionDoc.id
                         ? {
@@ -244,8 +244,9 @@ export const setupRealtimeListeners = async (
                     )
                     .sort((a, b) =>
                       (b.lastMessageTime?.getTime() || 0) - (a.lastMessageTime?.getTime() || 0)
-                    )
-                );
+                    );
+                  return updated;
+                });
               }
             });
 
@@ -257,11 +258,12 @@ export const setupRealtimeListeners = async (
 
             const unreadUnsubscribe = onSnapshot(unreadQuery, (unreadSnapshot) => {
               const unreadCount = unreadSnapshot.size;
-              setConnections((prev: Connection[]) =>
-                prev.map((conn): Connection =>
+              setConnections((prev: Connection[]) => {
+                const updated = prev.map((conn): Connection =>
                   conn.id === connectionDoc.id ? { ...conn, unreadCount } : conn
-                )
-              );
+                );
+                return updated;
+              });
             });
 
             chatListeners.set(connectionData?.chatId!, () => {
