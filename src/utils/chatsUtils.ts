@@ -145,7 +145,7 @@ export const setupRealtimeListeners = async (
   setConnectionRequests: (requests: ConnectionRequest[]) => void,
   setConnections: (connections: Connection[]) => void,
   setLoading: (loading: boolean) => void
-) => {
+): Promise<{ unsubscribeRequests: (() => void) | null; unsubscribeConnections: (() => void) | null }> => {
   try {
     const { getAuth } = await import('../services/firebase');
     const auth = getAuth();
@@ -199,24 +199,24 @@ export const setupRealtimeListeners = async (
       try {
         const connectionsMap = new Map();
 
-        const connectionPromises = snapshot.docs.map(async (connectionDoc) => {
+        const connectionPromises = snapshot.docs.map(async (connectionDoc): Promise<void> => {
           const connectionData = connectionDoc.data();
-          const otherUserId = connectionData.participants.find((id: string) => id !== currentUser.uid);
+          const otherUserId = connectionData.participants?.find((id: string) => id !== currentUser.uid);
           if (!otherUserId) return;
 
           const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
           const userData = userDoc.exists() ? userDoc.data() : {};
-          const isOnline = userData.lastSeen?.toDate && (now - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000);
+          const isOnline = userData?.lastSeen?.toDate && (now - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000);
 
           const baseConnection: Connection = {
             id: connectionDoc.id,
             userId: otherUserId,
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: userData.email || '',
-            photoURL: userData.thumbnailURL || userData.photoURL || '',
-            bio: userData.bio || '',
-            connectedAt: connectionData.connectedAt?.toDate() || new Date(),
+            firstName: userData?.firstName || '',
+            lastName: userData?.lastName || '',
+            email: userData?.email || '',
+            photoURL: userData?.thumbnailURL || userData?.photoURL || '',
+            bio: userData?.bio || '',
+            connectedAt: connectionData?.connectedAt?.toDate() || new Date(),
             lastMessage: '',
             lastMessageTime: undefined,
             isOnline,
@@ -224,7 +224,7 @@ export const setupRealtimeListeners = async (
           };
 
           // Real-time listener for chat if not already set
-          if (connectionData.chatId && !chatListeners.has(connectionData.chatId)) {
+          if (connectionData?.chatId && !chatListeners.has(connectionData.chatId)) {
             const chatDocRef = doc(firestore, 'chats', connectionData.chatId);
 
             const chatUnsubscribe = onSnapshot(chatDocRef, (chatDoc) => {
@@ -237,8 +237,8 @@ export const setupRealtimeListeners = async (
                       conn.id === connectionDoc.id
                         ? {
                             ...conn,
-                            lastMessage: chatData.lastMessage || '',
-                            lastMessageTime: chatData.lastMessageTime?.toDate(),
+                            lastMessage: chatData?.lastMessage || '',
+                            lastMessageTime: chatData?.lastMessageTime?.toDate(),
                           }
                         : conn
                     )
@@ -250,7 +250,7 @@ export const setupRealtimeListeners = async (
             });
 
             const unreadQuery = query(
-              collection(firestore, 'chats', connectionData.chatId, 'messages'),
+              collection(firestore, 'chats', connectionData?.chatId!, 'messages'),
               where('senderId', '==', otherUserId),
               where('read', '==', false)
             );
@@ -264,14 +264,14 @@ export const setupRealtimeListeners = async (
               );
             });
 
-            chatListeners.set(connectionData.chatId, () => {
+            chatListeners.set(connectionData?.chatId!, () => {
               chatUnsubscribe();
               unreadUnsubscribe();
             });
           }
 
           // Initial chat data (for mount)
-          if (connectionData.chatId) {
+          if (connectionData?.chatId) {
             try {
               const [chatDoc, unreadSnap] = await Promise.all([
                 getDoc(doc(firestore, 'chats', connectionData.chatId)),
@@ -286,8 +286,8 @@ export const setupRealtimeListeners = async (
 
               if (chatDoc.exists()) {
                 const chatData = chatDoc.data();
-                baseConnection.lastMessage = chatData.lastMessage || '';
-                baseConnection.lastMessageTime = chatData.lastMessageTime?.toDate();
+                baseConnection.lastMessage = chatData?.lastMessage || '';
+                baseConnection.lastMessageTime = chatData?.lastMessageTime?.toDate();
               }
 
               baseConnection.unreadCount = unreadSnap.size;
