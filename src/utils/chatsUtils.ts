@@ -82,7 +82,7 @@ export const handleReplyToRequest = (request: ConnectionRequest, navigation: any
 export const handleDeclineRequest = async (request: ConnectionRequest, t: (key: string, fallback?: string) => string) => {
   Alert.alert(
     t('chats.declineRequest', 'Decline Request'),
-    t('chats.declineRequestMessage', 'Are you sure you want to decline the request from {{user}}?', { user: request.firstName || t('profile.anonymousUser') }),
+    t('chats.declineRequestMessage', 'Are you sure you want to decline the request from {{user}}?').replace('{{user}}', request.firstName || t('profile.anonymousUser', 'Anonymous User')),
     [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -231,7 +231,7 @@ export const setupRealtimeListeners = async (
               if (chatDoc.exists()) {
                 const chatData = chatDoc.data();
 
-                setConnections((prev) =>
+                setConnections((prev: Connection[]) =>
                   prev
                     .map((conn) =>
                       conn.id === connectionDoc.id
@@ -243,7 +243,7 @@ export const setupRealtimeListeners = async (
                         : conn
                     )
                     .sort((a, b) =>
-                      b.lastMessageTime?.getTime?.() || 0 - a.lastMessageTime?.getTime?.() || 0
+                      (b.lastMessageTime?.getTime() || 0) - (a.lastMessageTime?.getTime() || 0)
                     )
                 );
               }
@@ -257,7 +257,7 @@ export const setupRealtimeListeners = async (
 
             const unreadUnsubscribe = onSnapshot(unreadQuery, (unreadSnapshot) => {
               const unreadCount = unreadSnapshot.size;
-              setConnections((prev) =>
+              setConnections((prev: Connection[]) =>
                 prev.map((conn) =>
                   conn.id === connectionDoc.id ? { ...conn, unreadCount } : conn
                 )
