@@ -228,6 +228,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleDeletePost = () => {
+    setIsEditing(false); // Close edit modal first
     setShowDeleteModal(true);
   };
 
