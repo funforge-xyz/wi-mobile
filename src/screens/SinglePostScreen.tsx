@@ -336,5 +336,3 @@ export default function SinglePostScreen({ route, navigation }: any) {
     </SafeAreaView>
   );
 }
-
-import { getTheme } from '../theme';
