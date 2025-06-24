@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FlatList, RefreshControl, Alert, Image } from 'react-native';
+import { FlatList, RefreshControl, Alert, Image, View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { fetchUserProfile, fetchUserPosts, updatePostLike } from '../store/userSlice';
 import { useTranslation } from 'react-i18next';
-import UserPostsHeader from '../components/UserPostsHeader';
+
 import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserPostItem from '../components/UserPostItem';
 import UserPostsEmptyState from '../components/UserPostsEmptyState';
@@ -123,11 +124,14 @@ export default function UserPostsScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <UserPostsHeader
-        currentTheme={currentTheme}
-        styles={styles}
-        onSettingsPress={handleSettingsPress}
-      />
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
+          {t('profile.myPosts')}
+        </Text>
+        <TouchableOpacity onPress={handleSettingsPress}>
+          <Ionicons name="settings-outline" size={24} color={currentTheme.text} />
+        </TouchableOpacity>
+      </View>
 
       {postsLoading ? (
         <UserPostsSkeleton count={5} />
