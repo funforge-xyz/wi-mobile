@@ -7,6 +7,7 @@ import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal
 import UserProfileHeader from '../components/UserProfileHeader';
 import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserProfileActions from '../components/UserProfileActions';
+import ProfileSkeleton from '../components/ProfileSkeleton';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/UserProfileStyles';
 import { getTheme } from '../theme';
@@ -90,9 +91,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={[styles.loadingContainer]}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
+        <ProfileSkeleton />
       </SafeAreaView>
     );
   }

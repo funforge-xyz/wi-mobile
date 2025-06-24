@@ -23,7 +23,9 @@ import SinglePostDisplay from '../components/SinglePostDisplay';
 import CommentsList from '../components/CommentsList';
 import CommentInput from '../components/CommentInput';
 import EditPostModal from '../components/EditPostModal';
+import SinglePostSkeleton from '../components/SinglePostSkeleton';
 import { createSinglePostStyles } from '../styles/SinglePostStyles';
+import { getTheme } from '../theme';
 import {
   loadPost,
   loadComments,
@@ -255,9 +257,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   if (loading) {
     return (
       <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={singlePostStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
+        <SinglePostSkeleton />
       </SafeAreaView>
     );
   }
