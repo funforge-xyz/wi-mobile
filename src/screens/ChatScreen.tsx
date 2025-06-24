@@ -9,7 +9,7 @@ import ChatStatusBanner from '../components/ChatStatusBanner';
 import ChatMessagesList from '../components/ChatMessagesList';
 import ChatEmptyState from '../components/ChatEmptyState';
 import ChatInput from '../components/ChatInput';
-import { chatStyles } from '../styles/ChatStyles';
+import { createChatStyles } from '../styles/ChatStyles';
 import {
   Message,
   createChatRoomId,
@@ -45,6 +45,8 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received'>('none');
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
+
+  const chatStyles = createChatStyles(isDarkMode);
 
   const currentTheme = {
     background: isDarkMode ? COLORS.darkBackground : COLORS.background,
