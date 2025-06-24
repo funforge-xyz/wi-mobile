@@ -233,7 +233,7 @@ export const setupRealtimeListeners = async (
 
                 setConnections((prev: Connection[]) =>
                   prev
-                    .map((conn) =>
+                    .map((conn): Connection =>
                       conn.id === connectionDoc.id
                         ? {
                             ...conn,
@@ -258,7 +258,7 @@ export const setupRealtimeListeners = async (
             const unreadUnsubscribe = onSnapshot(unreadQuery, (unreadSnapshot) => {
               const unreadCount = unreadSnapshot.size;
               setConnections((prev: Connection[]) =>
-                prev.map((conn) =>
+                prev.map((conn): Connection =>
                   conn.id === connectionDoc.id ? { ...conn, unreadCount } : conn
                 )
               );
