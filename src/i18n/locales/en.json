@@ -150,7 +150,12 @@
     "reAuthenticationRequired": "Re-authentication Required",
     "reAuthenticationMessage": "For security reasons, please sign out and sign back in before deleting your account.",
     "failedToDelete": "Failed to delete profile",
-    "yourProfile": "Your Profile"
+    "yourProfile": "Your Profile",
+    "account": "Account",
+    "session": "Session",
+    "manageSettings": "Manage your preferences",
+    "getHelp": "Get help and support",
+    "signOutDescription": "Sign out of your account"
   },
   "settings": {
     "title": "Settings",
@@ -186,7 +191,7 @@
     "prioritizeSameWiFi": "Prioritize users on same WiFi network",
     "sameNetworkMatchingEnabled": "Same network matching is enabled",
     "sameNetworkMatchingDisabled": "Same network matching is disabled",
-    "failedToUpdateSetting": "Failed to update setting",
+    "failedToUpdateSetting": "Failed toupdate setting",
     "pushNotifications": "Push Notifications",
     "receiveNotifications": "Receive push notifications",
     "account": "Account",
