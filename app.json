@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Wi Chat",
+    "name": "Wi Chat App",
     "slug": "wi-chat-app",
-    "version": "1.0.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app_icon.png",
     "userInterfaceStyle": "automatic",
