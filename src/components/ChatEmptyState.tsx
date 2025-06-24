@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
@@ -34,37 +34,37 @@ export default function ChatEmptyState({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: SPACING.xl,
   },
   emptyIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: SPACING.lg,
   },
   emptyTitle: {
     fontSize: 20,
     fontFamily: FONTS.bold,
     marginBottom: SPACING.sm,
-    textAlign: 'center' as const,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
     fontFamily: FONTS.regular,
-    textAlign: 'center' as const,
+    textAlign: 'center',
     lineHeight: 24,
     marginBottom: SPACING.lg,
   },
   emptyHint: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: 12,
@@ -74,10 +74,10 @@ const styles = {
     fontSize: 14,
     fontFamily: FONTS.regular,
     marginLeft: SPACING.xs,
-    textAlign: 'center' as const,
+    textAlign: 'center',
   },
-    emptyStateText: {
+  emptyStateText: {
     fontSize: 16,
     fontFamily: FONTS.regular,
   },
-};
+});
