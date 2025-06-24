@@ -200,27 +200,51 @@ export default function ChatsScreen({ navigation }: any) {
         currentTheme={currentTheme}
       />
 
-      <FlatList
-        data={showRequests ? connectionRequests : connections}
-        keyExtractor={(item) => item.id}
-        renderItem={showRequests ? renderRequestItem : renderConnectionItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={() => (
-          <ChatsEmptyState
-            showRequests={showRequests}
-            currentTheme={currentTheme}
-            t={t}
-          />
-        )}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          (showRequests ? connectionRequests : connections).length === 0
-            ? chatsStyles.emptyContainer
-            : chatsStyles.listContent
-        }
-      />
+      {showRequests ? (
+        <FlatList<ConnectionRequest>
+          data={connectionRequests}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRequestItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={() => (
+            <ChatsEmptyState
+              showRequests={showRequests}
+              currentTheme={currentTheme}
+              t={t}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            connectionRequests.length === 0
+              ? chatsStyles.emptyContainer
+              : chatsStyles.listContent
+          }
+        />
+      ) : (
+        <FlatList<Connection>
+          data={connections}
+          keyExtractor={(item) => item.id}
+          renderItem={renderConnectionItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={() => (
+            <ChatsEmptyState
+              showRequests={showRequests}
+              currentTheme={currentTheme}
+              t={t}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            connections.length === 0
+              ? chatsStyles.emptyContainer
+              : chatsStyles.listContent
+          }
+        />
+      )}
 
       <BlockUserConfirmationModal
         visible={showBlockModal}
