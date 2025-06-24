@@ -6,13 +6,13 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { fetchUserProfile, fetchUserPosts, updatePostLike } from '../store/userSlice';
 import { useTranslation } from 'react-i18next';
 
-import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserPostItem from '../components/UserPostItem';
 import UserPostsEmptyState from '../components/UserPostsEmptyState';
 import UserPostsSkeleton from '../components/UserPostsSkeleton';
 import { styles } from '../styles/UserPostsStyles';
 import { getTheme } from '../theme';
 import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
+import UserPostsProfileDisplay from '../components/UserPostsProfileDisplay';
 
 interface UserPost {
   id: string;
@@ -107,7 +107,7 @@ export default function UserPostsScreen({ navigation }: any) {
   };
 
   const renderProfileHeader = () => (
-    <UserProfileDisplay
+    <UserPostsProfileDisplay
       profile={profile}
       posts={posts}
       currentTheme={currentTheme}
