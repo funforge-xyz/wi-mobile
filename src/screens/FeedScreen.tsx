@@ -167,7 +167,7 @@ export default function FeedScreen({ navigation }: any) {
         userRadius, 
         currentUserLocation, 
         null, // lastTimestamp for initial load
-        5 // limit
+        10 // limit - fetch 10 posts initially
       );
       
       if (isRefresh) {
@@ -182,7 +182,7 @@ export default function FeedScreen({ navigation }: any) {
       }
       
       // Check if we have more posts
-      setHasMorePosts(connectionPosts.length === 5);
+      setHasMorePosts(connectionPosts.length === 10);
       
       if (timeout) clearTimeout(timeout);
     } catch (error) {
@@ -210,7 +210,7 @@ export default function FeedScreen({ navigation }: any) {
         userRadius,
         currentUserLocation,
         lastPostTimestamp,
-        5
+        10 // Load 10 more posts
       );
       
       console.log('Loaded more posts:', morePosts.length);
@@ -222,7 +222,7 @@ export default function FeedScreen({ navigation }: any) {
           return newPosts;
         });
         setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
-        setHasMorePosts(morePosts.length === 5);
+        setHasMorePosts(morePosts.length === 10);
       } else {
         console.log('No more posts to load');
         setHasMorePosts(false);

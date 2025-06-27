@@ -1,7 +1,7 @@
 
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc, startAfter } from 'firebase/firestore';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -107,24 +107,117 @@ export const handleLikePost = async (postId: string, liked: boolean, posts: any[
   }
 };
 
-// Helper function to calculate bounding box for radius
-const calculateBoundingBox = (latitude: number, longitude: number, radiusKm: number) => {
-  const latDelta = radiusKm / 111.32; // 1 degree lat ≈ 111.32 km
-  const lonDelta = radiusKm / (111.32 * Math.cos(latitude * Math.PI / 180));
-  
-  return {
-    minLat: latitude - latDelta,
-    maxLat: latitude + latDelta,
-    minLon: longitude - lonDelta,
-    maxLon: longitude + lonDelta
-  };
+// Helper function to get nearby users using Firestore geospatial queries
+const getNearbyUsers = async (
+  currentUserLocation: { latitude: number; longitude: number },
+  radiusKm: number,
+  currentUserId: string
+): Promise<string[]> => {
+  try {
+    const firestore = getFirestore();
+    
+    // Calculate bounding box for the radius
+    const latDelta = radiusKm / 111.32; // 1 degree lat ≈ 111.32 km
+    const lonDelta = radiusKm / (111.32 * Math.cos(currentUserLocation.latitude * Math.PI / 180));
+    
+    const bounds = {
+      minLat: currentUserLocation.latitude - latDelta,
+      maxLat: currentUserLocation.latitude + latDelta,
+      minLon: currentUserLocation.longitude - lonDelta,
+      maxLon: currentUserLocation.longitude + lonDelta
+    };
+
+    // Query users within bounding box
+    const usersQuery = query(
+      collection(firestore, 'users'),
+      where('location.latitude', '>=', bounds.minLat),
+      where('location.latitude', '<=', bounds.maxLat),
+      where('__name__', '!=', currentUserId) // Exclude current user
+    );
+
+    const usersSnapshot = await getDocs(usersQuery);
+    const nearbyUserIds: string[] = [];
+
+    usersSnapshot.forEach((userDoc) => {
+      const userData = userDoc.data();
+      const userLat = userData.location?.latitude;
+      const userLon = userData.location?.longitude;
+
+      if (userLat && userLon) {
+        // Apply longitude bounds check
+        if (userLon >= bounds.minLon && userLon <= bounds.maxLon) {
+          // Apply precise radius check using Haversine formula
+          const distance = calculateDistance(
+            currentUserLocation.latitude,
+            currentUserLocation.longitude,
+            userLat,
+            userLon
+          );
+          
+          if (distance <= radiusKm) {
+            nearbyUserIds.push(userDoc.id);
+          }
+        }
+      }
+    });
+
+    console.log(`Found ${nearbyUserIds.length} nearby users within ${radiusKm}km`);
+    return nearbyUserIds;
+  } catch (error) {
+    console.error('Error fetching nearby users:', error);
+    return [];
+  }
+};
+
+// Helper function to get posts in batches of 10
+const getPostsBatch = async (
+  userIds: string[],
+  batchStartIndex: number,
+  lastTimestamp: Date | null = null
+): Promise<any[]> => {
+  try {
+    const firestore = getFirestore();
+    const batchSize = 10;
+    const userBatch = userIds.slice(batchStartIndex, batchStartIndex + batchSize);
+    
+    if (userBatch.length === 0) {
+      return [];
+    }
+
+    // Build query constraints
+    const queryConstraints = [
+      where('authorId', 'in', userBatch),
+      where('isPrivate', '!=', true),
+      orderBy('createdAt', 'desc'),
+      limit(10)
+    ];
+
+    // Add timestamp filter for pagination
+    if (lastTimestamp) {
+      queryConstraints.splice(-1, 0, startAfter(lastTimestamp)); // Insert before limit
+    }
+
+    const postsQuery = query(collection(firestore, 'posts'), ...queryConstraints);
+    const postsSnapshot = await getDocs(postsQuery);
+    
+    const posts: any[] = [];
+    postsSnapshot.forEach(doc => {
+      posts.push({ id: doc.id, ...doc.data() });
+    });
+
+    console.log(`Fetched ${posts.length} posts from batch starting at index ${batchStartIndex}`);
+    return posts;
+  } catch (error) {
+    console.error('Error fetching posts batch:', error);
+    return [];
+  }
 };
 
 export const loadConnectionPosts = async (
   userRadius: number | null,
   currentUserLocation: any,
   lastTimestamp: Date | null = null,
-  limitCount: number = 50
+  limitCount: number = 10
 ) => {
   try {
     const auth = getAuth();
@@ -140,6 +233,29 @@ export const loadConnectionPosts = async (
 
     const firestore = getFirestore();
     const now = Date.now();
+
+    // Default radius if not set
+    const searchRadius = userRadius || 10; // Default 10km radius
+
+    // Get current user location if not provided
+    let userLocation = currentUserLocation;
+    if (!userLocation) {
+      const { locationService } = await import('../services/locationService');
+      userLocation = await locationService.getCurrentLocation();
+      
+      if (!userLocation) {
+        console.log('No user location available');
+        return [];
+      }
+    }
+
+    // Get all nearby users using geospatial query
+    const nearbyUserIds = await getNearbyUsers(userLocation, searchRadius, currentUser.uid);
+    
+    if (nearbyUserIds.length === 0) {
+      console.log('No nearby users found');
+      return [];
+    }
 
     // Get user's connections
     const connectionsQuery = query(
@@ -161,125 +277,51 @@ export const loadConnectionPosts = async (
       }
     });
 
-    // Calculate bounding box if location filtering is needed
-    let boundingBox = null;
-    if (userRadius && currentUserLocation) {
-      boundingBox = calculateBoundingBox(
-        currentUserLocation.latitude,
-        currentUserLocation.longitude,
-        userRadius
-      );
-    }
-
-    // Get eligible users first (those not current user, public posts, and within radius if applicable)
-    let usersQuery = query(
-      collection(firestore, 'users'),
-      where('__name__', '!=', currentUser.uid) // Exclude current user
-    );
-
-    // Add location bounds to users query if radius filtering is needed
-    if (boundingBox) {
-      usersQuery = query(
-        collection(firestore, 'users'),
-        where('__name__', '!=', currentUser.uid),
-        where('location.latitude', '>=', boundingBox.minLat),
-        where('location.latitude', '<=', boundingBox.maxLat)
-      );
-    }
-
-    const usersSnapshot = await getDocs(usersQuery);
-    console.log('Users fetched:', usersSnapshot.size);
-
-    // Filter eligible users by longitude bounds and radius if needed
-    const eligibleUsers = new Map<string, any>();
-    usersSnapshot.forEach((userDoc) => {
-      const userData = userDoc.data();
-      const userLat = userData.location?.latitude;
-      const userLon = userData.location?.longitude;
-
-      // Skip users without location
-      if (!userLat || !userLon) return;
-
-      // Apply longitude bounds if location filtering is active
-      if (boundingBox) {
-        if (userLon < boundingBox.minLon || userLon > boundingBox.maxLon) return;
-
-        // Apply precise radius check
-        const distance = calculateDistance(
-          currentUserLocation.latitude,
-          currentUserLocation.longitude,
-          userLat,
-          userLon
-        );
-        if (distance > userRadius) return;
-      }
-
-      eligibleUsers.set(userDoc.id, userData);
-    });
-
-    console.log('Eligible users after location filtering:', eligibleUsers.size);
-
-    if (eligibleUsers.size === 0) {
-      return [];
-    }
-
-    // Get posts from eligible users
-    const eligibleUserIds = Array.from(eligibleUsers.keys());
-    
-    // Build posts query
-    let postsQuery;
-    const baseConstraints = [
-      where('authorId', 'in', eligibleUserIds.slice(0, 10)), // Firestore 'in' limit is 10
-      where('isPrivate', '!=', true),
-      orderBy('createdAt', 'desc')
-    ];
-
-    if (lastTimestamp) {
-      baseConstraints.push(where('createdAt', '<', lastTimestamp));
-    }
-
-    baseConstraints.push(limit(limitCount));
-
-    postsQuery = query(collection(firestore, 'posts'), ...baseConstraints);
-
-    // If we have more than 10 eligible users, we need multiple queries
+    // Fetch posts in batches of 10 users at a time
     const allPosts: any[] = [];
-    const batchSize = 10;
-    
-    for (let i = 0; i < eligibleUserIds.length; i += batchSize) {
-      const batch = eligibleUserIds.slice(i, i + batchSize);
-      
-      const batchConstraints = [
-        where('authorId', 'in', batch),
-        where('isPrivate', '!=', true),
-        orderBy('createdAt', 'desc')
-      ];
+    const batchSize = 10; // Firestore 'in' query limit
+    let totalFetched = 0;
 
-      if (lastTimestamp) {
-        batchConstraints.push(where('createdAt', '<', lastTimestamp));
+    for (let i = 0; i < nearbyUserIds.length && totalFetched < limitCount; i += batchSize) {
+      const batchPosts = await getPostsBatch(nearbyUserIds, i, lastTimestamp);
+      allPosts.push(...batchPosts);
+      totalFetched += batchPosts.length;
+      
+      // Stop if we have enough posts
+      if (totalFetched >= limitCount) {
+        break;
       }
-
-      batchConstraints.push(limit(limitCount));
-
-      const batchQuery = query(collection(firestore, 'posts'), ...batchConstraints);
-      const batchSnapshot = await getDocs(batchQuery);
-      
-      batchSnapshot.forEach(doc => {
-        allPosts.push({ id: doc.id, ...doc.data() });
-      });
     }
 
-    // Sort all posts by creation date and take only what we need
+    // Sort all posts by creation date and limit
     allPosts.sort((a, b) => b.createdAt?.toDate() - a.createdAt?.toDate());
     const limitedPosts = allPosts.slice(0, limitCount);
 
-    console.log('Posts fetched after user filtering:', limitedPosts.length);
+    console.log('Posts fetched after processing:', limitedPosts.length);
+
+    // Get user data for all authors
+    const authorIds = [...new Set(limitedPosts.map(post => post.authorId))];
+    const usersData = new Map<string, any>();
+
+    // Fetch user data in batches
+    for (let i = 0; i < authorIds.length; i += batchSize) {
+      const authorBatch = authorIds.slice(i, i + batchSize);
+      const usersQuery = query(
+        collection(firestore, 'users'),
+        where('__name__', 'in', authorBatch)
+      );
+      const usersSnapshot = await getDocs(usersQuery);
+      
+      usersSnapshot.forEach(doc => {
+        usersData.set(doc.id, doc.data());
+      });
+    }
 
     const connectionPosts: any[] = [];
 
     for (const postData of limitedPosts) {
       const authorId = postData.authorId;
-      const authorData = eligibleUsers.get(authorId);
+      const authorData = usersData.get(authorId);
 
       if (!authorData) continue;
 
