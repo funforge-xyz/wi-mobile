@@ -1,6 +1,7 @@
-
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { getFirestore } from '../services/firebase';
+import { getFirestore, GeoPoint } from '../services/firebase';
+import { getAuth } from '../services/firebase';
+import { collection, getDocs, doc, getDoc, query, where, setDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
+import { GeoFirestore } from 'geofirestore';
 
 export interface NearbyUser {
   id: string;
@@ -15,6 +16,8 @@ export interface NearbyUser {
 export const loadNearbyUsers = async (currentUserId: string): Promise<NearbyUser[]> => {
   try {
     const firestore = getFirestore();
+    const GeoFirestoreProvider = GeoFirestore(firestore);
+    const geocollection = GeoFirestoreProvider.collection('users');
 
     // Run all Firestore queries in parallel
     const [blockedUsersSnapshot, blockedByUsersSnapshot, connectionsSnapshot, usersSnapshot] =

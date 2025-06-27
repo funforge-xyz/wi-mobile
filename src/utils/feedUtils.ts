@@ -2,6 +2,7 @@
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc, startAfter } from 'firebase/firestore';
+import { GeoFirestore } from 'geofirestore';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -107,8 +108,48 @@ export const handleLikePost = async (postId: string, liked: boolean, posts: any[
   }
 };
 
-// Helper function to get nearby users using Firestore geospatial queries
+// Helper function to get nearby users using GeoFirestore
 const getNearbyUsers = async (
+  currentUserLocation: { latitude: number; longitude: number },
+  radiusKm: number,
+  currentUserId: string
+): Promise<string[]> => {
+  try {
+    const firestore = getFirestore();
+    const geofirestore = new GeoFirestore(firestore);
+    const geocollection = geofirestore.collection('users');
+    
+    // Create the GeoQuery
+    const geoQuery = geocollection.near({
+      center: new firestore.GeoPoint(currentUserLocation.latitude, currentUserLocation.longitude),
+      radius: radiusKm
+    });
+
+    // Execute the query
+    const snapshot = await geoQuery.get();
+    const nearbyUserIds: string[] = [];
+
+    snapshot.docs.forEach((doc) => {
+      const userId = doc.id;
+      // Exclude current user
+      if (userId !== currentUserId) {
+        nearbyUserIds.push(userId);
+      }
+    });
+
+    console.log(`Found ${nearbyUserIds.length} nearby users within ${radiusKm}km using GeoFirestore`);
+    return nearbyUserIds;
+  } catch (error) {
+    console.error('Error fetching nearby users with GeoFirestore:', error);
+    
+    // Fallback to manual bounding box query if GeoFirestore fails
+    console.log('Falling back to manual geospatial query...');
+    return await getNearbyUsersFallback(currentUserLocation, radiusKm, currentUserId);
+  }
+};
+
+// Fallback function using manual bounding box calculation
+const getNearbyUsersFallback = async (
   currentUserLocation: { latitude: number; longitude: number },
   radiusKm: number,
   currentUserId: string
@@ -132,7 +173,7 @@ const getNearbyUsers = async (
       collection(firestore, 'users'),
       where('location.latitude', '>=', bounds.minLat),
       where('location.latitude', '<=', bounds.maxLat),
-      where('__name__', '!=', currentUserId) // Exclude current user
+      where('__name__', '!=', currentUserId)
     );
 
     const usersSnapshot = await getDocs(usersQuery);
@@ -161,10 +202,10 @@ const getNearbyUsers = async (
       }
     });
 
-    console.log(`Found ${nearbyUserIds.length} nearby users within ${radiusKm}km`);
+    console.log(`Fallback: Found ${nearbyUserIds.length} nearby users within ${radiusKm}km`);
     return nearbyUserIds;
   } catch (error) {
-    console.error('Error fetching nearby users:', error);
+    console.error('Error in fallback nearby users query:', error);
     return [];
   }
 };
@@ -249,7 +290,7 @@ export const loadConnectionPosts = async (
       }
     }
 
-    // Get all nearby users using geospatial query
+    // Get all nearby users using GeoFirestore
     const nearbyUserIds = await getNearbyUsers(userLocation, searchRadius, currentUser.uid);
     
     if (nearbyUserIds.length === 0) {

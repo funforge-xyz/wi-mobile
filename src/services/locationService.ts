@@ -1,7 +1,8 @@
 
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
-import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, GeoPoint } from 'firebase/firestore';
+import { GeoFirestore } from 'geofirestore';
 import { getAuth } from './firebase';
 
 const LOCATION_TASK_NAME = 'background-location-task';
@@ -219,6 +220,7 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const wifiInfo = await wifiService.getCurrentWifiInfo();
 
     const updateData: any = {
+      coordinates: new GeoPoint(latitude, longitude),
       location: {
         latitude,
         longitude,

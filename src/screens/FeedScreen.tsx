@@ -151,9 +151,35 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
+  useEffect(() => {
+    initializeLocationAndLoadPosts();
+  }, []);
+
+  const initializeLocationAndLoadPosts = async () => {
+    try {
+      // Import location service dynamically to avoid circular imports
+      const { locationService } = await import('../services/locationService');
+
+      // Check if location tracking is active, if not try to start it
+      if (!locationService.isLocationTrackingActive()) {
+        const hasPermissions = await locationService.checkPermissions();
+        if (hasPermissions) {
+          await locationService.startLocationTracking();
+        }
+      }
+
+      // Load posts after ensuring location is being tracked
+      loadPosts();
+    } catch (error) {
+      console.error('Error initializing location tracking:', error);
+      // Still load posts even if location tracking fails
+      loadPosts();
+    }
+  };
+
   const loadPosts = async (isRefresh = false) => {
     let timeout: NodeJS.Timeout | number | undefined;
-    
+
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -169,21 +195,21 @@ export default function FeedScreen({ navigation }: any) {
         null, // lastTimestamp for initial load
         10 // limit - fetch 10 posts initially
       );
-      
+
       if (isRefresh) {
         setPosts(connectionPosts);
       } else {
         setPosts(connectionPosts);
       }
-      
+
       // Set the last post timestamp for pagination
       if (connectionPosts.length > 0) {
         setLastPostTimestamp(connectionPosts[connectionPosts.length - 1].createdAt);
       }
-      
+
       // Check if we have more posts
       setHasMorePosts(connectionPosts.length === 10);
-      
+
       if (timeout) clearTimeout(timeout);
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -196,25 +222,25 @@ export default function FeedScreen({ navigation }: any) {
 
   const loadMorePosts = async () => {
     console.log('loadMorePosts called:', { loadingMore, hasMorePosts, lastPostTimestamp });
-    
+
     if (loadingMore || !hasMorePosts || !lastPostTimestamp) {
       console.log('Skipping loadMorePosts:', { loadingMore, hasMorePosts, lastPostTimestamp });
       return;
     }
-    
+
     try {
       console.log('Loading more posts...');
       setLoadingMore(true);
-      
+
       const morePosts = await loadConnectionPosts(
         userRadius,
         currentUserLocation,
         lastPostTimestamp,
         10 // Load 10 more posts
       );
-      
+
       console.log('Loaded more posts:', morePosts.length);
-      
+
       if (morePosts.length > 0) {
         setPosts(prevPosts => {
           const newPosts = [...prevPosts, ...morePosts];
