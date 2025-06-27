@@ -111,7 +111,7 @@ export const loadConnectionPosts = async (
   userRadius: number | null,
   currentUserLocation: any,
   lastTimestamp: Date | null = null,
-  limit: number = 50
+  limitCount: number = 50
 ) => {
   try {
     const auth = getAuth();
@@ -156,13 +156,13 @@ export const loadConnectionPosts = async (
         collection(firestore, 'posts'),
         orderBy('createdAt', 'desc'),
         where('createdAt', '<', lastTimestamp),
-        limit(limit)
+        limit(limitCount)
       );
     } else {
       postsQuery = query(
         collection(firestore, 'posts'),
         orderBy('createdAt', 'desc'),
-        limit(limit)
+        limit(limitCount)
       );
     }
     
@@ -252,7 +252,7 @@ export const loadConnectionPosts = async (
       });
 
       // Break if we've reached the requested limit
-      if (connectionPosts.length >= limit) break;
+      if (connectionPosts.length >= limitCount) break;
     }
 
     return connectionPosts;
