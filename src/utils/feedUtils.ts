@@ -149,21 +149,23 @@ export const loadConnectionPosts = async (
     });
 
     // Get posts with pagination
-    let postsQuery = query(
-      collection(firestore, 'posts'), 
-      orderBy('createdAt', 'desc')
-    );
+    let postsQuery;
     
     if (lastTimestamp) {
-      const { where: firestoreWhere } = await import('firebase/firestore');
       postsQuery = query(
         collection(firestore, 'posts'),
         orderBy('createdAt', 'desc'),
-        firestoreWhere('createdAt', '<', lastTimestamp)
+        where('createdAt', '<', lastTimestamp),
+        limit(limit)
+      );
+    } else {
+      postsQuery = query(
+        collection(firestore, 'posts'),
+        orderBy('createdAt', 'desc'),
+        limit(limit)
       );
     }
     
-    postsQuery = query(postsQuery, limit(limit));
     const postsSnapshot = await getDocs(postsQuery);
 
     console.log('Posts fetched:', postsSnapshot.size);
