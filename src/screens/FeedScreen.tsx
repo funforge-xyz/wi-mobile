@@ -5,6 +5,7 @@ import {
   FlatList,
   RefreshControl,
   AppState,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -300,7 +301,9 @@ export default function FeedScreen({ navigation }: any) {
         ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
         ListFooterComponent={
           loadingMore ? (
-            <FeedSkeleton count={2} />
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={currentTheme.primary} />
+            </View>
           ) : null
         }
         onEndReached={loadMorePosts}
