@@ -49,3 +49,5 @@ node_modules/
 dist/
 package-lock.json
 .expo
+
+google-services.json
