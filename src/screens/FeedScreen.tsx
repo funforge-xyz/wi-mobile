@@ -194,9 +194,15 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const loadMorePosts = async () => {
-    if (loadingMore || !hasMorePosts) return;
+    console.log('loadMorePosts called:', { loadingMore, hasMorePosts, lastPostTimestamp });
+    
+    if (loadingMore || !hasMorePosts || !lastPostTimestamp) {
+      console.log('Skipping loadMorePosts:', { loadingMore, hasMorePosts, lastPostTimestamp });
+      return;
+    }
     
     try {
+      console.log('Loading more posts...');
       setLoadingMore(true);
       
       const morePosts = await loadConnectionPosts(
@@ -206,11 +212,18 @@ export default function FeedScreen({ navigation }: any) {
         5
       );
       
+      console.log('Loaded more posts:', morePosts.length);
+      
       if (morePosts.length > 0) {
-        setPosts(prevPosts => [...prevPosts, ...morePosts]);
+        setPosts(prevPosts => {
+          const newPosts = [...prevPosts, ...morePosts];
+          console.log('Total posts after loading more:', newPosts.length);
+          return newPosts;
+        });
         setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
         setHasMorePosts(morePosts.length === 5);
       } else {
+        console.log('No more posts to load');
         setHasMorePosts(false);
       }
     } catch (error) {
@@ -293,7 +306,7 @@ export default function FeedScreen({ navigation }: any) {
           ) : null
         }
         onEndReached={loadMorePosts}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : undefined}
       />
