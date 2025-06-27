@@ -166,7 +166,7 @@ export default function FeedScreen({ navigation }: any) {
         userRadius, 
         currentUserLocation, 
         null, // lastTimestamp for initial load
-        10 // limit
+        5 // limit
       );
       
       if (isRefresh) {
@@ -181,7 +181,7 @@ export default function FeedScreen({ navigation }: any) {
       }
       
       // Check if we have more posts
-      setHasMorePosts(connectionPosts.length === 10);
+      setHasMorePosts(connectionPosts.length === 5);
       
       if (timeout) clearTimeout(timeout);
     } catch (error) {
@@ -203,13 +203,13 @@ export default function FeedScreen({ navigation }: any) {
         userRadius,
         currentUserLocation,
         lastPostTimestamp,
-        10
+        5
       );
       
       if (morePosts.length > 0) {
         setPosts(prevPosts => [...prevPosts, ...morePosts]);
         setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
-        setHasMorePosts(morePosts.length === 10);
+        setHasMorePosts(morePosts.length === 5);
       } else {
         setHasMorePosts(false);
       }
