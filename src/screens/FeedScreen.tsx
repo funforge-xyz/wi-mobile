@@ -300,9 +300,7 @@ export default function FeedScreen({ navigation }: any) {
         ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
         ListFooterComponent={
           loadingMore ? (
-            <View style={{ padding: 20, alignItems: 'center' }}>
-              <Text style={{ color: currentTheme.textSecondary }}>Loading more posts...</Text>
-            </View>
+            <FeedSkeleton count={2} />
           ) : null
         }
         onEndReached={loadMorePosts}
