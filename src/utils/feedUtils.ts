@@ -107,6 +107,19 @@ export const handleLikePost = async (postId: string, liked: boolean, posts: any[
   }
 };
 
+// Helper function to calculate bounding box for radius
+const calculateBoundingBox = (latitude: number, longitude: number, radiusKm: number) => {
+  const latDelta = radiusKm / 111.32; // 1 degree lat ≈ 111.32 km
+  const lonDelta = radiusKm / (111.32 * Math.cos(latitude * Math.PI / 180));
+  
+  return {
+    minLat: latitude - latDelta,
+    maxLat: latitude + latDelta,
+    minLon: longitude - lonDelta,
+    maxLon: longitude + lonDelta
+  };
+};
+
 export const loadConnectionPosts = async (
   userRadius: number | null,
   currentUserLocation: any,
@@ -148,82 +161,132 @@ export const loadConnectionPosts = async (
       }
     });
 
-    // Get posts with pagination
-    let postsQuery;
-    
-    if (lastTimestamp) {
-      console.log('Loading posts after timestamp:', lastTimestamp);
-      postsQuery = query(
-        collection(firestore, 'posts'),
-        orderBy('createdAt', 'desc'),
-        where('createdAt', '<', lastTimestamp),
-        limit(limitCount * 3) // Get more posts to account for filtering
-      );
-    } else {
-      console.log('Loading initial posts');
-      postsQuery = query(
-        collection(firestore, 'posts'),
-        orderBy('createdAt', 'desc'),
-        limit(limitCount * 3) // Get more posts to account for filtering
+    // Calculate bounding box if location filtering is needed
+    let boundingBox = null;
+    if (userRadius && currentUserLocation) {
+      boundingBox = calculateBoundingBox(
+        currentUserLocation.latitude,
+        currentUserLocation.longitude,
+        userRadius
       );
     }
-    
-    const postsSnapshot = await getDocs(postsQuery);
 
-    console.log('Posts fetched:', postsSnapshot.size);
-
-    // Filter posts first
-    const filteredPosts = postsSnapshot.docs.filter((postDoc) => {
-      const postData = postDoc.data();
-      return (
-        postData.authorId !== currentUser.uid &&
-        postData.isPrivate !== true
-      );
-    });
-
-    console.log('Filtered posts:', filteredPosts.length);
-
-    const authorIds = Array.from(new Set(filteredPosts.map((doc) => doc.data().authorId)));
-
-    // Batch fetch all authors
-    const authorDocs = await Promise.all(
-      authorIds.map((authorId) => getDoc(doc(firestore, 'users', authorId)))
+    // Get eligible users first (those not current user, public posts, and within radius if applicable)
+    let usersQuery = query(
+      collection(firestore, 'users'),
+      where('__name__', '!=', currentUser.uid) // Exclude current user
     );
-    const authorDataMap = new Map<string, any>();
-    authorDocs.forEach((snap) => {
-      if (snap.exists()) {
-        authorDataMap.set(snap.id, snap.data());
-      }
-    });
 
-    const connectionPosts: any[] = [];
+    // Add location bounds to users query if radius filtering is needed
+    if (boundingBox) {
+      usersQuery = query(
+        collection(firestore, 'users'),
+        where('__name__', '!=', currentUser.uid),
+        where('location.latitude', '>=', boundingBox.minLat),
+        where('location.latitude', '<=', boundingBox.maxLat)
+      );
+    }
 
-    for (const postDoc of filteredPosts) {
-      const postData = postDoc.data();
-      const authorId = postData.authorId;
-      const authorData = authorDataMap.get(authorId) || {};
+    const usersSnapshot = await getDocs(usersQuery);
+    console.log('Users fetched:', usersSnapshot.size);
 
-      const authorLat = authorData.location?.latitude;
-      const authorLon = authorData.location?.longitude;
+    // Filter eligible users by longitude bounds and radius if needed
+    const eligibleUsers = new Map<string, any>();
+    usersSnapshot.forEach((userDoc) => {
+      const userData = userDoc.data();
+      const userLat = userData.location?.latitude;
+      const userLon = userData.location?.longitude;
 
-      // Skip if no author location
-      if (!authorLat || !authorLon) continue;
+      // Skip users without location
+      if (!userLat || !userLon) return;
 
-      // Distance filter (if applicable)
-      if (userRadius && currentUserLocation) {
+      // Apply longitude bounds if location filtering is active
+      if (boundingBox) {
+        if (userLon < boundingBox.minLon || userLon > boundingBox.maxLon) return;
+
+        // Apply precise radius check
         const distance = calculateDistance(
           currentUserLocation.latitude,
           currentUserLocation.longitude,
-          authorLat,
-          authorLon
+          userLat,
+          userLon
         );
-        if (distance > userRadius) continue;
+        if (distance > userRadius) return;
       }
+
+      eligibleUsers.set(userDoc.id, userData);
+    });
+
+    console.log('Eligible users after location filtering:', eligibleUsers.size);
+
+    if (eligibleUsers.size === 0) {
+      return [];
+    }
+
+    // Get posts from eligible users
+    const eligibleUserIds = Array.from(eligibleUsers.keys());
+    
+    // Build posts query
+    let postsQuery;
+    const baseConstraints = [
+      where('authorId', 'in', eligibleUserIds.slice(0, 10)), // Firestore 'in' limit is 10
+      where('isPrivate', '!=', true),
+      orderBy('createdAt', 'desc')
+    ];
+
+    if (lastTimestamp) {
+      baseConstraints.push(where('createdAt', '<', lastTimestamp));
+    }
+
+    baseConstraints.push(limit(limitCount));
+
+    postsQuery = query(collection(firestore, 'posts'), ...baseConstraints);
+
+    // If we have more than 10 eligible users, we need multiple queries
+    const allPosts: any[] = [];
+    const batchSize = 10;
+    
+    for (let i = 0; i < eligibleUserIds.length; i += batchSize) {
+      const batch = eligibleUserIds.slice(i, i + batchSize);
+      
+      const batchConstraints = [
+        where('authorId', 'in', batch),
+        where('isPrivate', '!=', true),
+        orderBy('createdAt', 'desc')
+      ];
+
+      if (lastTimestamp) {
+        batchConstraints.push(where('createdAt', '<', lastTimestamp));
+      }
+
+      batchConstraints.push(limit(limitCount));
+
+      const batchQuery = query(collection(firestore, 'posts'), ...batchConstraints);
+      const batchSnapshot = await getDocs(batchQuery);
+      
+      batchSnapshot.forEach(doc => {
+        allPosts.push({ id: doc.id, ...doc.data() });
+      });
+    }
+
+    // Sort all posts by creation date and take only what we need
+    allPosts.sort((a, b) => b.createdAt?.toDate() - a.createdAt?.toDate());
+    const limitedPosts = allPosts.slice(0, limitCount);
+
+    console.log('Posts fetched after user filtering:', limitedPosts.length);
+
+    const connectionPosts: any[] = [];
+
+    for (const postData of limitedPosts) {
+      const authorId = postData.authorId;
+      const authorData = eligibleUsers.get(authorId);
+
+      if (!authorData) continue;
 
       // Get likes & comments in parallel
       const [likesSnapshot, commentsSnapshot] = await Promise.all([
-        getDocs(collection(firestore, 'posts', postDoc.id, 'likes')),
-        getDocs(collection(firestore, 'posts', postDoc.id, 'comments')),
+        getDocs(collection(firestore, 'posts', postData.id, 'likes')),
+        getDocs(collection(firestore, 'posts', postData.id, 'comments')),
       ]);
 
       const isLikedByUser = likesSnapshot.docs.some(
@@ -236,7 +299,7 @@ export const loadConnectionPosts = async (
         now - authorData.lastSeen.toDate().getTime() < 2 * 60 * 1000;
 
       connectionPosts.push({
-        id: postDoc.id,
+        id: postData.id,
         authorId,
         authorName:
           authorData.firstName && authorData.lastName
@@ -255,15 +318,11 @@ export const loadConnectionPosts = async (
         isAuthorOnline: Boolean(isOnline),
         isFromConnection: connectedUserIds.has(authorId),
       });
-
-      // Break if we've reached the requested limit
-      if (connectionPosts.length >= limitCount) break;
     }
 
     console.log('Final connection posts:', connectionPosts.length, 'requested limit:', limitCount);
     
-    // Return only the requested number of posts
-    return connectionPosts.slice(0, limitCount);
+    return connectionPosts;
   } catch (error: any) {
     console.error('Error loading connection posts:', error);
     if (error.code !== 'cancelled' && error.code !== 'timeout') {
