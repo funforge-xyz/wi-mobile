@@ -119,9 +119,12 @@ const getNearbyUsers = async (
     const geofirestore = new GeoFirestore(firestore);
     const geocollection = geofirestore.collection('users');
     
+    // Import GeoPoint from firebase/firestore
+    const { GeoPoint } = await import('firebase/firestore');
+    
     // Create the GeoQuery
     const geoQuery = geocollection.near({
-      center: new firestore.GeoPoint(currentUserLocation.latitude, currentUserLocation.longitude),
+      center: new GeoPoint(currentUserLocation.latitude, currentUserLocation.longitude),
       radius: radiusKm
     });
 
@@ -225,12 +228,11 @@ const getPostsBatch = async (
       return [];
     }
 
-    // Build query constraints
+    // Simplified query without isPrivate filter to avoid index requirement
     const queryConstraints = [
       where('authorId', 'in', userBatch),
-      where('isPrivate', '!=', true),
       orderBy('createdAt', 'desc'),
-      limit(10)
+      limit(20) // Get more to filter out private posts client-side
     ];
 
     // Add timestamp filter for pagination
@@ -243,11 +245,18 @@ const getPostsBatch = async (
     
     const posts: any[] = [];
     postsSnapshot.forEach(doc => {
-      posts.push({ id: doc.id, ...doc.data() });
+      const postData = doc.data();
+      // Filter out private posts client-side
+      if (!postData.isPrivate) {
+        posts.push({ id: doc.id, ...postData });
+      }
     });
 
-    console.log(`Fetched ${posts.length} posts from batch starting at index ${batchStartIndex}`);
-    return posts;
+    // Limit to 10 after filtering
+    const limitedPosts = posts.slice(0, 10);
+
+    console.log(`Fetched ${limitedPosts.length} posts from batch starting at index ${batchStartIndex}`);
+    return limitedPosts;
   } catch (error) {
     console.error('Error fetching posts batch:', error);
     return [];
