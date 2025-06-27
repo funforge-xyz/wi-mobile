@@ -46,6 +46,9 @@ export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
   const [notificationKey, setNotificationKey] = useState(0);
   const [userRadius, setUserRadius] = useState<number | null>(null);
   const [currentUserLocation, setCurrentUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
@@ -147,27 +150,78 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  const loadPosts = async () => {
+  const loadPosts = async (isRefresh = false) => {
     let timeout: NodeJS.Timeout | number | undefined;
     
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+        setLastPostTimestamp(null);
+        setHasMorePosts(true);
+      } else {
+        setLoading(true);
+      }
 
-      const connectionPosts = await loadConnectionPosts(userRadius, currentUserLocation);
-      setPosts(connectionPosts);
+      const connectionPosts = await loadConnectionPosts(
+        userRadius, 
+        currentUserLocation, 
+        null, // lastTimestamp for initial load
+        10 // limit
+      );
+      
+      if (isRefresh) {
+        setPosts(connectionPosts);
+      } else {
+        setPosts(connectionPosts);
+      }
+      
+      // Set the last post timestamp for pagination
+      if (connectionPosts.length > 0) {
+        setLastPostTimestamp(connectionPosts[connectionPosts.length - 1].createdAt);
+      }
+      
+      // Check if we have more posts
+      setHasMorePosts(connectionPosts.length === 10);
+      
       if (timeout) clearTimeout(timeout);
     } catch (error) {
       console.error('Error loading posts:', error);
       if (timeout) clearTimeout(timeout);
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const loadMorePosts = async () => {
+    if (loadingMore || !hasMorePosts) return;
+    
+    try {
+      setLoadingMore(true);
+      
+      const morePosts = await loadConnectionPosts(
+        userRadius,
+        currentUserLocation,
+        lastPostTimestamp,
+        10
+      );
+      
+      if (morePosts.length > 0) {
+        setPosts(prevPosts => [...prevPosts, ...morePosts]);
+        setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
+        setHasMorePosts(morePosts.length === 10);
+      } else {
+        setHasMorePosts(false);
+      }
+    } catch (error) {
+      console.error('Error loading more posts:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
   const onRefresh = async () => {
-    setRefreshing(true);
-    await loadPosts();
-    setRefreshing(false);
+    await loadPosts(true);
   };
 
   const handleLike = async (postId: string, liked: boolean) => {
@@ -231,6 +285,15 @@ export default function FeedScreen({ navigation }: any) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <Text style={{ color: currentTheme.textSecondary }}>Loading more posts...</Text>
+            </View>
+          ) : null
+        }
+        onEndReached={loadMorePosts}
+        onEndReachedThreshold={0.1}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : undefined}
       />

@@ -109,7 +109,9 @@ export const handleLikePost = async (postId: string, liked: boolean, posts: any[
 
 export const loadConnectionPosts = async (
   userRadius: number | null,
-  currentUserLocation: any
+  currentUserLocation: any,
+  lastTimestamp: Date | null = null,
+  limit: number = 50
 ) => {
   try {
     const auth = getAuth();
@@ -146,10 +148,23 @@ export const loadConnectionPosts = async (
       }
     });
 
-    // Get latest 50 posts
-    const postsSnapshot = await getDocs(
-      query(collection(firestore, 'posts'), orderBy('createdAt', 'desc'), limit(50))
+    // Get posts with pagination
+    let postsQuery = query(
+      collection(firestore, 'posts'), 
+      orderBy('createdAt', 'desc')
     );
+    
+    if (lastTimestamp) {
+      const { where: firestoreWhere } = await import('firebase/firestore');
+      postsQuery = query(
+        collection(firestore, 'posts'),
+        orderBy('createdAt', 'desc'),
+        firestoreWhere('createdAt', '<', lastTimestamp)
+      );
+    }
+    
+    postsQuery = query(postsQuery, limit(limit));
+    const postsSnapshot = await getDocs(postsQuery);
 
     console.log('Posts fetched:', postsSnapshot.size);
 
@@ -234,8 +249,8 @@ export const loadConnectionPosts = async (
         isFromConnection: connectedUserIds.has(authorId),
       });
 
-      // Limit to 20 posts
-      if (connectionPosts.length >= 20) break;
+      // Break if we've reached the requested limit
+      if (connectionPosts.length >= limit) break;
     }
 
     return connectionPosts;
