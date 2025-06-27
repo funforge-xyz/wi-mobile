@@ -152,17 +152,19 @@ export const loadConnectionPosts = async (
     let postsQuery;
     
     if (lastTimestamp) {
+      console.log('Loading posts after timestamp:', lastTimestamp);
       postsQuery = query(
         collection(firestore, 'posts'),
         orderBy('createdAt', 'desc'),
         where('createdAt', '<', lastTimestamp),
-        limit(limitCount)
+        limit(limitCount * 3) // Get more posts to account for filtering
       );
     } else {
+      console.log('Loading initial posts');
       postsQuery = query(
         collection(firestore, 'posts'),
         orderBy('createdAt', 'desc'),
-        limit(limitCount)
+        limit(limitCount * 3) // Get more posts to account for filtering
       );
     }
     
@@ -170,7 +172,8 @@ export const loadConnectionPosts = async (
 
     console.log('Posts fetched:', postsSnapshot.size);
 
-    const posts = postsSnapshot.docs.filter((postDoc) => {
+    // Filter posts first
+    const filteredPosts = postsSnapshot.docs.filter((postDoc) => {
       const postData = postDoc.data();
       return (
         postData.authorId !== currentUser.uid &&
@@ -178,7 +181,9 @@ export const loadConnectionPosts = async (
       );
     });
 
-    const authorIds = Array.from(new Set(posts.map((doc) => doc.data().authorId)));
+    console.log('Filtered posts:', filteredPosts.length);
+
+    const authorIds = Array.from(new Set(filteredPosts.map((doc) => doc.data().authorId)));
 
     // Batch fetch all authors
     const authorDocs = await Promise.all(
@@ -193,7 +198,7 @@ export const loadConnectionPosts = async (
 
     const connectionPosts: any[] = [];
 
-    for (const postDoc of posts) {
+    for (const postDoc of filteredPosts) {
       const postData = postDoc.data();
       const authorId = postData.authorId;
       const authorData = authorDataMap.get(authorId) || {};
@@ -255,7 +260,10 @@ export const loadConnectionPosts = async (
       if (connectionPosts.length >= limitCount) break;
     }
 
-    return connectionPosts;
+    console.log('Final connection posts:', connectionPosts.length, 'requested limit:', limitCount);
+    
+    // Return only the requested number of posts
+    return connectionPosts.slice(0, limitCount);
   } catch (error: any) {
     console.error('Error loading connection posts:', error);
     if (error.code !== 'cancelled' && error.code !== 'timeout') {
