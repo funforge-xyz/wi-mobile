@@ -1,5 +1,4 @@
-
-import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc, limit, startAfter, Timestamp } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { Alert } from 'react-native';
 import { createNearbyRequestNotification } from '../services/notifications';
@@ -35,21 +34,74 @@ export const updateUserLastSeen = async (currentUserId: string) => {
 
 export const setupMessageListener = (
   chatRoomId: string,
-  onMessagesUpdate: (messages: Message[]) => void,
-  onLoadingComplete: () => void
-): (() => void) => {
-  const firestore = getFirestore();
+  setMessages: (messages: Message[]) => void,
+  onLoadComplete?: () => void,
+  limit: number = 30
+) => {
+  try {
+    const db = getFirestore();
+    const messagesRef = collection(db, 'chats', chatRoomId, 'messages');
+    const q = query(
+      messagesRef, 
+      orderBy('createdAt', 'desc'),
+      limit(limit)
+    );
 
-  const messagesQuery = query(
-    collection(firestore, 'chats', chatRoomId, 'messages'),
-    orderBy('createdAt', 'asc')
-  );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messagesData: Message[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        messagesData.push({
+          id: doc.id,
+          senderId: data.senderId,
+          receiverId: data.receiverId,
+          text: data.text,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          isFirstMessage: data.isFirstMessage || false,
+        });
+      });
 
-  const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-    const messagesList: Message[] = [];
+      // Reverse to show chronological order (oldest first)
+      setMessages(messagesData.reverse());
+      if (onLoadComplete) onLoadComplete();
+    }, (error) => {
+      console.error('Error listening to messages:', error);
+      if (onLoadComplete) onLoadComplete();
+    });
+
+    return unsubscribe;
+  } catch (error) {
+    console.error('Error setting up message listener:', error);
+    if (onLoadComplete) onLoadComplete();
+    return () => {};
+  }
+};
+
+export const loadMoreMessages = async (
+  chatRoomId: string,
+  lastMessage: Message,
+  limit: number = 30
+): Promise<Message[]> => {
+  try {
+    const db = getFirestore();
+    const messagesRef = collection(db, 'chats', chatRoomId, 'messages');
+
+    // Convert lastMessage createdAt to Firestore Timestamp for cursor
+    const lastMessageTimestamp = Timestamp.fromDate(lastMessage.createdAt);
+
+    const q = query(
+      messagesRef,
+      orderBy('createdAt', 'desc'),
+      startAfter(lastMessageTimestamp),
+      limit(limit)
+    );
+
+    const snapshot = await getDocs(q);
+    const olderMessages: Message[] = [];
+
     snapshot.forEach((doc) => {
       const data = doc.data();
-      messagesList.push({
+      olderMessages.push({
         id: doc.id,
         senderId: data.senderId,
         receiverId: data.receiverId,
@@ -58,11 +110,13 @@ export const setupMessageListener = (
         isFirstMessage: data.isFirstMessage || false,
       });
     });
-    onMessagesUpdate(messagesList);
-    onLoadingComplete();
-  });
 
-  return unsubscribe;
+    // Reverse to maintain chronological order
+    return olderMessages.reverse();
+  } catch (error) {
+    console.error('Error loading more messages:', error);
+    return [];
+  }
 };
 
 export const setupOnlineStatusListener = (
@@ -203,7 +257,7 @@ export const sendChatMessage = async (
     if (isFirstMessage) {
       const currentUserDoc = await getDoc(doc(firestore, 'users', currentUserId));
       const currentUserData = currentUserDoc.data();
-      
+
       await createNearbyRequestNotification(
         receiverId,
         currentUserData?.displayName || currentUserData?.name || 'Someone',

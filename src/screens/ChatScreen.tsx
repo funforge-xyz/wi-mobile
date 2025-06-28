@@ -19,6 +19,7 @@ import {
   markMessagesAsRead,
   checkPendingRequestStatus,
   sendChatMessage,
+  loadMoreMessages,
 } from '../utils/chatUtils';
 import { useTranslation } from 'react-i18next';
 
@@ -43,6 +44,8 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [chatRoomId, setChatRoomId] = useState('');
   const [userOnlineStatus, setUserOnlineStatus] = useState(false);
   const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received'>('none');
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -117,11 +120,18 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       const roomId = createChatRoomId(currentUserId, userId);
       setChatRoomId(roomId);
 
-      // Set up real-time message listener
+      // Set up real-time message listener with pagination
       setupMessageListener(
         roomId,
-        setMessages,
-        () => setLoading(false)
+        (newMessages) => {
+          setMessages(newMessages);
+          // Check if we got less than the limit, meaning no more messages
+          if (newMessages.length < 30) {
+            setHasMoreMessages(false);
+          }
+        },
+        () => setLoading(false),
+        30 // Initial limit
       );
 
       // Set up online status listener for the other user
@@ -173,6 +183,29 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     navigation.navigate('UserProfile', { userId });
   };
 
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMoreMessages || messages.length === 0) return;
+    
+    setLoadingMore(true);
+    try {
+      const oldestMessage = messages[0];
+      const olderMessages = await loadMoreMessages(chatRoomId, oldestMessage, 30);
+      
+      if (olderMessages.length > 0) {
+        setMessages(prevMessages => [...olderMessages, ...prevMessages]);
+      }
+      
+      // If we got less than the limit, no more messages available
+      if (olderMessages.length < 30) {
+        setHasMoreMessages(false);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   const handleBackPress = () => {
     navigation.goBack();
   };
@@ -215,6 +248,9 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           messages={messages}
           currentUserId={getCurrentUserId()}
           currentTheme={currentTheme}
+          onLoadMore={handleLoadMore}
+          hasMoreMessages={hasMoreMessages}
+          loadingMore={loadingMore}
         />
       )}
 
