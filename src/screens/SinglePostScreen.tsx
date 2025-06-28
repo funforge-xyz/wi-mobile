@@ -81,7 +81,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [likes, setLikes] = useState<Like[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
-  const [isSubmittingComment, setSubmittingComment] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
