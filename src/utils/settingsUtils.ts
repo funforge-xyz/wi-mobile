@@ -50,7 +50,7 @@ export const loadSettings = async (
       console.log('Could not load radius from Firebase, using local storage');
     }
 
-    const radiusInKm = savedRadiusInMeters ? Math.round(savedRadiusInMeters / 1000) : 1;
+    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 0.1; // Default to 100m
     setTrackingRadius(radiusInKm);
 
     const hasLocationPermissions = await locationService.checkPermissions();

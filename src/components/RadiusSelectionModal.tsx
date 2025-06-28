@@ -28,7 +28,7 @@ export default function RadiusSelectionModal({
 }: RadiusSelectionModalProps) {
   const { t } = useTranslation();
 
-  const radiusOptions = [1, 5, 10];
+  const radiusOptions = [0.1, 0.2, 0.5]; // 100m, 200m, 500m in kilometers
 
   return (
     <Modal 
@@ -81,13 +81,13 @@ export default function RadiusSelectionModal({
                       fontWeight: 'bold',
                     }
                   ]}>
-                    {radius}km {t('settings.radius')}
+                    {radius * 1000}m {t('settings.radius')}
                   </Text>
                   <Text style={[
                     modalStyles.radiusOptionDescription,
                     { color: currentTheme.textSecondary }
                   ]}>
-                    {t('settings.connectWithin')} {radius} {radius === 1 ? t('settings.kilometer') : t('settings.kilometer_plural')}
+                    {t('settings.connectWithin')} {radius * 1000} {t('settings.meters')}
                   </Text>
                 </View>
 

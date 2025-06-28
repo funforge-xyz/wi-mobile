@@ -245,6 +245,7 @@
     "radius": "radius",
     "kilometer": "kilometar",
     "kilometer_plural": "kilometara",
+    "meters": "metara",
     "success": "Uspeh",
     "pushNotificationsEnabledSuccessfully": "Push obavještenja su uspješno omogućena",
     "pushNotificationsDisabled": "Push obavještenja su onemogućena",

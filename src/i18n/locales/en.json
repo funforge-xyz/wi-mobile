@@ -250,6 +250,7 @@
     "radius": "radius",
     "kilometer": "kilometer",
     "kilometer_plural": "kilometers",
+    "meters": "meters",
     "success": "Success",
     "pushNotificationsEnabledSuccessfully": "Push notifications enabled successfully",
     "pushNotificationsDisabled": "Push notifications have been disabled",

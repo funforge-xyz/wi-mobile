@@ -112,7 +112,7 @@ export class LocationService {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Balanced,
         timeInterval: UPDATE_INTERVAL,
-        distanceInterval: 100, // Update if moved more than 100 meters
+        distanceInterval: 50, // Update if moved more than 50 meters
         deferredUpdatesInterval: UPDATE_INTERVAL,
         showsBackgroundLocationIndicator: true,
         foregroundService: {
