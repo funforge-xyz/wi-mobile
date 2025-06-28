@@ -19,39 +19,46 @@ interface ChatMessageProps {
   currentTheme: any;
 }
 
-const getMessageStatusIcon = (message: Message) => {
-  if (!message.deliveredAt) {
-    // Not delivered yet - sending
-    return (
-      <Ionicons 
-        name="radio-button-off-outline" 
-        size={12} 
-        color="rgba(255,255,255,0.6)" 
-        style={styles.statusIcon}
-      />
-    );
-  } else if (message.seenAt) {
-    // Seen - double blue checkmarks
-    return (
-      <Ionicons 
-        name="checkmark-done" 
-        size={16} 
-        color={COLORS.primary} 
-        style={styles.statusIcon}
-      />
-    );
-  } else {
-    // Delivered but not seen - single gray checkmark
-    return (
-      <Ionicons 
-        name="checkmark" 
-        size={16} 
-        color="rgba(255,255,255,0.6)" 
-        style={styles.statusIcon}
-      />
-    );
-  }
-};
+const getMessageStatusIcon = () => {
+    if (!message.deliveredAt) {
+      // Sending/Not delivered - clock icon
+      return (
+        <Ionicons 
+          name="time-outline" 
+          size={14} 
+          color="#ffffff70" 
+        />
+      );
+    } else if (message.deliveredAt && !message.seenAt) {
+      // Delivered but not seen - single check
+      return (
+        <Ionicons 
+          name="checkmark" 
+          size={16} 
+          color="#ffffff90" 
+        />
+      );
+    } else if (message.seenAt) {
+      // Seen - double check (blue)
+      return (
+        <View style={styles.doubleCheck}>
+          <Ionicons 
+            name="checkmark" 
+            size={16} 
+            color="#4FC3F7" 
+            style={styles.firstCheck}
+          />
+          <Ionicons 
+            name="checkmark" 
+            size={16} 
+            color="#4FC3F7" 
+            style={styles.secondCheck}
+          />
+        </View>
+      );
+    }
+    return null;
+  };
 
 export default function ChatMessage({
   message,
