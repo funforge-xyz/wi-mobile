@@ -25,6 +25,7 @@ import CommentInput from '../components/CommentInput';
 import EditPostModal from '../components/EditPostModal';
 import SinglePostSkeleton from '../components/SinglePostSkeleton';
 import DeletePostConfirmationModal from '../components/DeletePostConfirmationModal';
+import SuccessModal from '../components/SuccessModal';
 import { createSinglePostStyles } from '../styles/SinglePostStyles';
 import { getTheme } from '../theme';
 import {
@@ -231,7 +232,25 @@ export default function SinglePostScreen({ route, navigation }: any) {
       });
 
       setIsEditing(false);
-      Alert.alert(t('singlePost.success'), t('singlePost.postUpdated'));
+      
+      // Show success modal
+      setShowEditSuccessModal(true);
+      Animated.timing(editSuccessAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Auto-hide after 2 seconds
+      setTimeout(() => {
+        Animated.timing(editSuccessAnimation, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowEditSuccessModal(false);
+        });
+      }, 2000);
     } catch (error) {
       Alert.alert(t('common.error'), t('singlePost.failedToUpdate'));
     }
@@ -246,8 +265,26 @@ export default function SinglePostScreen({ route, navigation }: any) {
     setShowDeleteModal(false);
     try {
       await deletePost(postId, dispatch);
-      Alert.alert(t('singlePost.success'), t('singlePost.postDeleted'));
-      navigation.goBack();
+      
+      // Show success modal
+      setShowDeleteSuccessModal(true);
+      Animated.timing(deleteSuccessAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Auto-hide after 2 seconds then navigate back
+      setTimeout(() => {
+        Animated.timing(deleteSuccessAnimation, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowDeleteSuccessModal(false);
+          navigation.goBack();
+        });
+      }, 2000);
     } catch (error) {
       Alert.alert(t('common.error'), t('singlePost.failedToDelete'));
     }
@@ -354,6 +391,24 @@ export default function SinglePostScreen({ route, navigation }: any) {
         visible={showDeleteModal}
         onConfirm={confirmDeletePost}
         onCancel={() => setShowDeleteModal(false)}
+        currentTheme={currentTheme}
+      />
+
+      {/* Edit Success Modal */}
+      <SuccessModal
+        visible={showEditSuccessModal}
+        title={t('singlePost.success')}
+        message={t('singlePost.postUpdated')}
+        animation={editSuccessAnimation}
+        currentTheme={currentTheme}
+      />
+
+      {/* Delete Success Modal */}
+      <SuccessModal
+        visible={showDeleteSuccessModal}
+        title={t('singlePost.success')}
+        message={t('singlePost.postDeleted')}
+        animation={deleteSuccessAnimation}
         currentTheme={currentTheme}
       />
     </SafeAreaView>
