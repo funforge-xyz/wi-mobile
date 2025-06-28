@@ -229,32 +229,21 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
       lastSeen: new Date(), // Add last seen for online status
     };
 
-    // Enhanced network info with more details
+    // Basic network info (Flutter-style)
     if (wifiInfo.isConnected && wifiInfo.networkId) {
       updateData.currentNetworkId = wifiInfo.networkId;
-      updateData.currentNetworkSSID = wifiInfo.ssid;
-      updateData.currentNetworkBSSID = wifiInfo.bssid;
-      updateData.networkSignalStrength = wifiInfo.signal;
-      updateData.networkQuality = wifiService.getNetworkQuality();
       updateData.lastNetworkUpdate = new Date();
     } else {
       // Clear network info if not connected to WiFi
       updateData.currentNetworkId = null;
-      updateData.currentNetworkSSID = null;
-      updateData.currentNetworkBSSID = null;
-      updateData.networkSignalStrength = null;
-      updateData.networkQuality = null;
     }
 
     await updateDoc(userRef, updateData);
 
-    console.log('User location and enhanced network updated in Firestore:', { 
+    console.log('User location and network updated in Firestore:', { 
       latitude, 
       longitude, 
-      networkId: wifiInfo.networkId,
-      ssid: wifiInfo.ssid,
-      signal: wifiInfo.signal,
-      quality: wifiService.getNetworkQuality()
+      networkId: wifiInfo.networkId
     });
   } catch (error) {
     console.error('Error updating user location in Firestore:', error);
