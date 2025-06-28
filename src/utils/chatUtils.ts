@@ -9,6 +9,8 @@ export interface Message {
   receiverId: string;
   text: string;
   createdAt: Date;
+  deliveredAt?: Date;
+  seenAt?: Date;
   isFirstMessage?: boolean;
   read?: boolean;
   readAt?: Date;
@@ -57,7 +59,11 @@ export const setupMessageListener = (
           receiverId: data.receiverId,
           text: data.text,
           createdAt: data.createdAt?.toDate() || new Date(),
+          deliveredAt: data.deliveredAt?.toDate(),
+          seenAt: data.seenAt?.toDate(),
           isFirstMessage: data.isFirstMessage || false,
+          read: data.read || false,
+          readAt: data.readAt?.toDate(),
         });
       });
 
@@ -107,7 +113,11 @@ export const loadMoreMessages = async (
         receiverId: data.receiverId,
         text: data.text,
         createdAt: data.createdAt?.toDate() || new Date(),
+        deliveredAt: data.deliveredAt?.toDate(),
+        seenAt: data.seenAt?.toDate(),
         isFirstMessage: data.isFirstMessage || false,
+        read: data.read || false,
+        readAt: data.readAt?.toDate(),
       });
     });
 
@@ -146,24 +156,29 @@ export const markMessagesAsRead = async (chatRoomId: string, userId: string, cur
 
     const firestore = getFirestore();
 
-    const unreadQuery = query(
+    // Mark messages as seen (from other user that haven't been seen)
+    const unseenQuery = query(
       collection(firestore, 'chats', chatRoomId, 'messages'),
       where('senderId', '==', userId),
-      where('read', '==', false)
+      where('seenAt', '==', null)
     );
 
-    const unreadSnapshot = await getDocs(unreadQuery);
+    const unseenSnapshot = await getDocs(unseenQuery);
 
-    if (unreadSnapshot.size > 0) {
-      const updatePromises = unreadSnapshot.docs.map(doc => 
-        updateDoc(doc.ref, { read: true, readAt: new Date() })
+    if (unseenSnapshot.size > 0) {
+      const updatePromises = unseenSnapshot.docs.map(doc => 
+        updateDoc(doc.ref, { 
+          seenAt: new Date(),
+          read: true, 
+          readAt: new Date() 
+        })
       );
 
       await Promise.all(updatePromises);
-      console.log(`Marked ${unreadSnapshot.size} messages as read`);
+      console.log(`Marked ${unseenSnapshot.size} messages as seen`);
     }
   } catch (error) {
-    console.error('Error marking messages as read:', error);
+    console.error('Error marking messages as seen:', error);
   }
 };
 
@@ -250,6 +265,8 @@ export const sendChatMessage = async (
       receiverId: receiverId,
       text: messageText,
       createdAt: new Date(),
+      deliveredAt: new Date(), // Mark as delivered immediately
+      seenAt: null, // Will be updated when recipient sees it
       read: false,
     });
 

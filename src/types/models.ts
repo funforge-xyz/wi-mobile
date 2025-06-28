@@ -57,6 +57,8 @@ export interface Message {
   attachments?: Attachment[];
   type: 'text' | 'image' | 'video';
   createdAt: Date;
+  deliveredAt?: Date;
+  seenAt?: Date;
   readAt?: Date;
 }
 

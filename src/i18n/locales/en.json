@@ -85,7 +85,10 @@
     "declineRequestMessage": "Are you sure you want to decline the request from {{user}}?",
     "blockUser": "Block User",
     "blockUserMessage": "Are you sure you want to block {{user}}? They will be removed from your connections.",
-    "userBlocked": "User has been blocked"
+    "userBlocked": "User has been blocked",
+    "messageSending": "Sending...",
+    "messageDelivered": "Delivered",
+    "messageSeen": "Seen"
   },
   "addPost": {
     "title": "Create Post",
@@ -441,7 +444,7 @@
     "title": "Nearby",
     "noUsers": "No nearby users found",
     "checkBackLater": "Check back later for nearby connections",
-    "failedToLoad": "Failed to load nearby users",
+    "failedToLoad": "Failed toload nearby users",
     "distance": "{{distance}} away",
     "sameNetwork": "Same WiFi network",
     "online": "Online",

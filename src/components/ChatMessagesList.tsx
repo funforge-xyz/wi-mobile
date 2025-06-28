@@ -10,6 +10,8 @@ interface Message {
   receiverId: string;
   text: string;
   createdAt: Date;
+  deliveredAt?: Date;
+  seenAt?: Date;
   isFirstMessage?: boolean;
 }
 
