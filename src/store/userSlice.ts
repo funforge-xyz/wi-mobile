@@ -221,6 +221,16 @@ const userSlice = createSlice({
       state.lastProfileFetch = 0;
       state.lastPostsFetch = 0;
     },
+    logout: (state) => {
+      // Clear all user data on logout
+      state.profile = null;
+      state.posts = [];
+      state.loading = false;
+      state.postsLoading = false;
+      state.error = null;
+      state.lastProfileFetch = 0;
+      state.lastPostsFetch = 0;
+    },
     addPost: (state, action: PayloadAction<UserPost>) => {
       state.posts.unshift(action.payload);
       if (state.profile) {
@@ -297,6 +307,7 @@ export const {
   removePost,
   updatePostLike,
   setError,
+  logout,
 } = userSlice.actions;
 
 export default userSlice.reducer;

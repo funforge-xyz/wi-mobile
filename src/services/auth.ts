@@ -227,6 +227,21 @@ export class AuthService {
     }
   }
 
+  async logout(dispatch: any): Promise<void> {
+    try {
+      // Clear all Redux state first
+      dispatch({ type: 'user/logout' });
+      dispatch({ type: 'feed/logout' });
+      dispatch({ type: 'connections/logout' });
+      
+      // Then sign out from Firebase
+      await this.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
+  }
+
   async getCurrentUser(): Promise<any> {
     return await this.credentials.getUser();
   }
