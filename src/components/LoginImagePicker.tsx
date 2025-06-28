@@ -8,6 +8,96 @@ import { styles } from '../styles/LoginStyles';
 
 interface LoginImagePickerProps {
   profileImage: string;
+  setProfileImage: (image: string) => void;
+}
+
+export default function LoginImagePicker({ profileImage, setProfileImage }: LoginImagePickerProps) {
+  const { t } = useTranslation();
+
+  const selectImage = () => {
+    Alert.alert(
+      t('addPost.selectPhoto'),
+      t('addPost.useCameraToAdd'),
+      [
+        {
+          text: t('addPost.takePhoto'),
+          onPress: takePhoto,
+        },
+        {
+          text: t('addPost.selectPhoto'),
+          onPress: pickImage,
+        },
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert(t('common.error'), t('errors.permissionDenied'));
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const removeImage = () => {
+    setProfileImage('');
+  };
+
+  return (
+    <View style={styles.imagePickerContainer}>
+      <TouchableOpacity
+        style={styles.imagePickerButton}
+        onPress={profileImage ? removeImage : selectImage}
+      >
+        {profileImage ? (
+          <View style={styles.selectedImageContainer}>
+            <Image source={{ uri: profileImage }} style={styles.selectedImage} />
+            <View style={styles.removeImageButton}>
+              <Ionicons name="close" size={16} color="white" />
+            </View>
+          </View>
+        ) : (
+          <View style={styles.placeholderImageContainer}>
+            <Ionicons name="camera" size={24} color={COLORS.textSecondary} />
+            <Text style={styles.imagePickerText}>{t('addPost.takePhotoOptional')}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+interface LoginImagePickerProps {
+  profileImage: string;
   setProfileImage: (uri: string) => void;
 }
 

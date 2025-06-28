@@ -41,7 +41,16 @@
     "createAccount": "Napravite profil",
     "firstName": "Ime",
     "lastName": "Prezime",
-    "confirmPassword": "Potvrdite lozinku"
+    "confirmPassword": "Potvrdite lozinku",
+    "bioOptional": "Bio (opciono)",
+    "emailPasswordRequired": "Email i lozinka su obavezni",
+    "nameRequired": "Ime i prezime su obavezni",
+    "passwordMismatch": "Lozinke se ne poklapaju",
+    "acceptTermsRequired": "Molimo prihvatite uslove korištenja",
+    "acceptTerms": "Prihvatam",
+    "accountCreated": "Nalog kreiran!",
+    "verificationEmailSent": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja.",
+    "googleSignInUnavailable": "Google prijavljivanje će biti dostupno u produkcijskoj aplikaciji"
   },
   "feed": {
     "title": "Početna",

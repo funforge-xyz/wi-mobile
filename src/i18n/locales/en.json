@@ -41,7 +41,16 @@
     "createAccount": "Create Account",
     "firstName": "First Name",
     "lastName": "Last Name",
-    "confirmPassword": "Confirm Password"
+    "confirmPassword": "Confirm Password",
+    "bioOptional": "Bio (optional)",
+    "emailPasswordRequired": "Email and password are required",
+    "nameRequired": "First name and last name are required",
+    "passwordMismatch": "Passwords do not match",
+    "acceptTermsRequired": "Please accept the terms and conditions",
+    "acceptTerms": "I accept the",
+    "accountCreated": "Account Created!",
+    "verificationEmailSent": "Please check your email and click the verification link before signing in.",
+    "googleSignInUnavailable": "Google Sign In will be available in the production app"
   },
   "feed": {
     "title": "Feed",

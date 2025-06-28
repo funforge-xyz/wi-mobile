@@ -51,13 +51,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleEmailAuth = async () => {
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Email and password are required');
+      setErrorMessage(t('auth.emailPasswordRequired'));
       return;
     }
 
     if (isSignUp) {
       if (!firstName.trim() || !lastName.trim()) {
-        setErrorMessage('First name and last name are required');
+        setErrorMessage(t('auth.nameRequired'));
         return;
       }
 
@@ -69,12 +69,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       }
 
       if (password !== confirmPassword) {
-        setErrorMessage('Passwords do not match');
+        setErrorMessage(t('auth.passwordMismatch'));
         return;
       }
 
       if (!acceptTerms) {
-        setErrorMessage('Please accept the terms and conditions');
+        setErrorMessage(t('auth.acceptTermsRequired'));
         return;
       }
     }
@@ -93,7 +93,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             photoURL = await storageService.uploadProfilePicture(tempUserId, profileImage);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
-            setErrorMessage('Failed to upload profile picture');
+            setErrorMessage(t('auth.uploadPictureFailed'));
             setIsLoading(false);
             return;
           }
@@ -108,11 +108,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
         // Show success message for signup
         Alert.alert(
-          'Account Created!',
-          'Please check your email and click the verification link before signing in.',
+          t('auth.accountCreated'),
+          t('auth.verifyEmail'),
           [
             {
-              text: 'OK',
+              text: t('common.ok'),
               onPress: () => {
                 // Switch to sign in mode after successful signup
                 setIsSignUp(false);
@@ -140,7 +140,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleGoogleSignIn = async () => {
     // TODO: Google Sign In not working with Expo Go - temporarily disabled
-    setErrorMessage('Google Sign In will be available in the production app');
+    setErrorMessage(t('auth.googleSignInUnavailable'));
     return;
 
     // setIsLoading(true);
@@ -177,7 +177,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <>
               <LoginInput
                 icon="person-outline"
-                placeholder="First Name *"
+                placeholder={`${t('auth.firstName')} *`}
                 value={firstName}
                 onChangeText={setFirstName}
                 autoCapitalize="words"
@@ -185,7 +185,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
               <LoginInput
                 icon="person-outline"
-                placeholder="Last Name *"
+                placeholder={`${t('auth.lastName')} *`}
                 value={lastName}
                 onChangeText={setLastName}
                 autoCapitalize="words"
@@ -198,7 +198,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
               <LoginInput
                 icon="document-text-outline"
-                placeholder="Bio (optional)"
+                placeholder={t('auth.bioOptional')}
                 value={bio}
                 onChangeText={setBio}
                 multiline
@@ -212,7 +212,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
           <LoginInput
             icon="mail-outline"
-            placeholder="Email *"
+            placeholder={`${t('auth.email')} *`}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -221,7 +221,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
           <LoginInput
             icon="lock-closed-outline"
-            placeholder="Password *"
+            placeholder={`${t('auth.password')} *`}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -230,7 +230,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           {isSignUp && (
             <LoginInput
               icon="lock-closed-outline"
-              placeholder="Confirm Password *"
+              placeholder={`${t('auth.confirmPassword')} *`}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
