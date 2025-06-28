@@ -19,7 +19,7 @@ interface ChatMessageProps {
   currentTheme: any;
 }
 
-const getMessageStatusIcon = () => {
+const getMessageStatusIcon = (message: Message) => {
     if (!message.deliveredAt) {
       // Sending/Not delivered - clock icon
       return (
@@ -120,5 +120,18 @@ const styles = StyleSheet.create({
   },
   statusIcon: {
     marginLeft: SPACING.xs,
+  },
+  doubleCheck: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 20,
+  },
+  firstCheck: {
+    position: 'absolute',
+    left: 0,
+  },
+  secondCheck: {
+    position: 'absolute',
+    left: 6,
   },
 });
