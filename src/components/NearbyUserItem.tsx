@@ -1,4 +1,3 @@
-
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NearbyUser } from '../utils/nearbyUtils';
@@ -10,6 +9,12 @@ interface NearbyUserItemProps {
   currentTheme: any;
   onPress: (user: NearbyUser) => void;
 }
+
+// Assuming COLORS is defined somewhere, e.g., in styles/colors.ts
+const COLORS = {
+  primary: 'blue', // Example color
+  success: 'green', // Example color
+};
 
 export default function NearbyUserItem({
   user,
@@ -41,12 +46,24 @@ export default function NearbyUserItem({
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'Anonymous User'}
+            {user.isSameNetwork && (
+              <Text style={{ color: COLORS.primary }}>
+                {' 📶'}
+              </Text>
+            )}
           </Text>
           {user.bio ? (
             <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
               {user.bio}
             </Text>
           ) : null}
+          <Text style={[styles.userBio, { color: currentTheme.textSecondary }]}>
+            {user.isSameNetwork ? 'Same Network' : 
+              user.distance < 1 
+                ? `${Math.round(user.distance * 1000)}m away`
+                : `${user.distance.toFixed(1)}km away`
+            }
+          </Text>
         </View>
       </View>
       <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />

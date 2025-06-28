@@ -436,5 +436,17 @@
     "contactTitle": "10. Contact Us",
     "contactText": "If you have any questions about this privacy policy, please contact us through the Help & Support section in the app or email us at privacy@wichat.app.",
     "lastUpdated": "Last Updated: {{date}}"
+  },
+   "nearby": {
+    "title": "Nearby",
+    "noUsers": "No nearby users found",
+    "checkBackLater": "Check back later for nearby connections",
+    "failedToLoad": "Failed to load nearby users",
+    "distance": "{{distance}} away",
+    "sameNetwork": "Same WiFi network",
+    "online": "Online",
+    "offline": "Offline",
+    "sendRequest": "Send Request",
+    "requestSent": "Request Sent"
   }
 }

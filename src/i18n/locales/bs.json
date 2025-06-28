@@ -417,7 +417,7 @@
     "howWeUseTitle": "3. Kako koristimo vaše informacije",
     "howWeUseText": "Koristimo informacije koje prikupljamo da pružimo, održimo i poboljšamo naše usluge, uključujući olakšavanje konekcija između korisnika, personalizaciju vašeg iskustva, slanje obavještenja, odgovaranje na vaše zahtjeve i obezbijeđivanje bezbjednosti naše platforme.",
     "sharingTitle": "4. Dijeljenje informacija",
-    "sharingText": "Ne prodajemo, ne trgovinujemo niti prenosimo vaše lične informacije trećim stranama bez vaše saglasnosti, osim kako je opisano u ovoj politici. Možemo dijeliti informacije sa pružaocima usluga koji nam pomažu u upravljanju našom platformom, vođenju posla ili usluživanju korisnika.",
+    "sharingText": "Ne prodajemo, ne trgovinujemo niti prenosimo vaše lične informacije trećim stranama bez vaše saglasnosti, osim kako je opisano u ovoj politici. Možemo dijeliti informacije sa pružaocimausluga koji nam pomažu u upravljanju našom platformom, vođenju posla ili usluživanju korisnika.",
     "securityTitle": "5. Bezbijednost podataka",
     "securityText": "Primjenjujemo odgovarajuće bezbjednosne mjere za zaštitu vaših ličnih informacija od neovlaštenog pristupa, izmjene, otkrivanja ili uništavanja. Međutim, nijedan metod prenosa preko interneta nije 100% bezbijedan.",
     "retentionTitle": "6. Čuvanje podataka",
@@ -430,7 +430,7 @@
     "changesText": "Možemo ažurirati ovu politiku privatnosti s vremena na vrijeme. Obavijestit ćemo vas o svim značajnim promjenama objavljivanjem nove politike u aplikaciji i ažuriranjem datuma \"Posljednja izmena\" u nastavku.",
     "contactTitle": "10. Kontaktirajte nas",
     "contactText": "Ako imate bilo kakva pitanja o ovoj politici privatnosti, molimo kontaktirajte nas kroz sekciju Pomoć i podrška u aplikaciji ili pošaljite nam email na privacy@wichat.app.",
-    "lastUpdated": "Posljednja izmena: {{date}}"
+    "lastUpdated": "Posljednja izmjena: {{date}}"
   },
   "profile": {
     "title": "Profil",
@@ -487,5 +487,19 @@
     "contactTitle": "10. Kontaktirajte nas",
     "contactText": "Ako imate bilo kakva pitanja o ovoj politici privatnosti, molimo kontaktirajte nas kroz sekciju Pomoć i podrška u aplikaciji ili pošaljite nam email na privacy@wichat.app.",
     "lastUpdated": "Posljednja izmjena: {{date}}"
+  },
+   "nearby": {
+    "title": "U blizini",
+    "noUsers": "Nema korisnika u blizini",
+    "checkBackLater": "Provjerite kasnije za konekcije u blizini",
+    "failedToLoad": "Neuspješno učitavanje korisnika u blizini",
+    "distance": "{{distance}} daleko",
+    "online": "Na mreži",
+    "offline": "Van mreže",
+    "away": "daleko",
+    "sameNetwork": "Ista WiFi mreža",
+    "connectWith": "Povežite se sa",
+    "sendRequest": "Pošaljite zahtjev",
+    "requestSent": "Zahtjev poslat"
   }
 }

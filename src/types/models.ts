@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -86,4 +85,14 @@ export interface NotificationRecord {
   data?: any;
   read: boolean;
   createdAt: Date;
+}
+
+export interface NearbyUser {
+  id: string;
+  name: string;
+  photoURL: string;
+  lastSeen: Date;
+  distance: number;
+  isOnline: boolean;
+  isSameNetwork: boolean;
 }

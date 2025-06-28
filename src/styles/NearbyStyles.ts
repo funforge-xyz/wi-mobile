@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { getTheme } from '../theme';
@@ -97,5 +96,15 @@ export const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  onlineIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: SPACING.sm,
+  },
+  networkIndicator: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

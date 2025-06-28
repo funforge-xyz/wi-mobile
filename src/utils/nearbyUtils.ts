@@ -13,92 +13,135 @@ export interface NearbyUser {
   isOnline?: boolean;
 }
 
-export const loadNearbyUsers = async (currentUserId: string): Promise<NearbyUser[]> => {
+export const loadNearbyUsers = async (
+  userRadius: number,
+  currentUserLocation: { latitude: number; longitude: number } | null
+): Promise<NearbyUser[]> => {
   try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+
     const firestore = getFirestore();
-    const GeoFirestoreProvider = GeoFirestore(firestore);
-    const geocollection = GeoFirestoreProvider.collection('users');
 
-    // Run all Firestore queries in parallel
-    const [blockedUsersSnapshot, blockedByUsersSnapshot, connectionsSnapshot, usersSnapshot] =
-      await Promise.all([
-        getDocs(
-          query(
-            collection(firestore, 'blockedUsers'),
-            where('blockerUserId', '==', currentUserId)
-          )
-        ),
-        getDocs(
-          query(
-            collection(firestore, 'blockedUsers'),
-            where('blockedUserId', '==', currentUserId)
-          )
-        ),
-        getDocs(
-          query(
-            collection(firestore, 'connections'),
-            where('participants', 'array-contains', currentUserId),
-            where('status', '==', 'active')
-          )
-        ),
-        getDocs(collection(firestore, 'users')),
-      ]);
+    // Get user settings and current network info
+    const userDocRef = doc(firestore, 'users', currentUser.uid);
+    const userDoc = await getDoc(userDocRef);
+    const userData = userDoc.data();
+    const sameNetworkMatchingEnabled = userData?.sameNetworkMatching ?? true;
+    const currentUserNetworkId = userData?.currentNetworkId;
 
-    // Get blocked users
-    const blockedUserIds = new Set<string>();
-    blockedUsersSnapshot.forEach((doc) => {
-      blockedUserIds.add(doc.data().blockedUserId);
-    });
+    // Get blocked users, connections, and all users in parallel
+    const [blockedUsersQuery, connectionsQuery, usersQuery] = await Promise.all([
+      getDocs(query(
+        collection(firestore, 'blocks'),
+        where('blockerId', '==', currentUser.uid)
+      )),
+      getDocs(query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid)
+      )),
+      getDocs(collection(firestore, 'users'))
+    ]);
 
-    // Get users who blocked current user
-    blockedByUsersSnapshot.forEach((doc) => {
-      blockedUserIds.add(doc.data().blockerUserId);
-    });
+    const blockedUserIds = new Set(
+      blockedUsersQuery.docs.map(doc => doc.data().blockedUserId)
+    );
 
-    // Get connected users
-    const connectedUserIds = new Set<string>();
-    connectionsSnapshot.forEach((doc) => {
-      const connectionData = doc.data();
-      const otherParticipant = connectionData.participants.find(
-        (id: string) => id !== currentUserId
-      );
-      if (otherParticipant) {
-        connectedUserIds.add(otherParticipant);
+    const connectedUserIds = new Set(
+      connectionsQuery.docs.flatMap(doc => 
+        doc.data().participants.filter((id: string) => id !== currentUser.uid)
+      )
+    );
+
+    const nearbyUsers: NearbyUser[] = [];
+    const now = new Date();
+    const onlineThreshold = 2 * 60 * 1000; // 2 minutes
+
+    // Flutter-style filtering: users within bounding box OR same network
+    usersQuery.docs.forEach(doc => {
+      const userId = doc.id;
+      const user = doc.data();
+
+      // Skip current user, blocked users, and existing connections
+      if (userId === currentUser.uid || 
+          blockedUserIds.has(userId) || 
+          connectedUserIds.has(userId)) {
+        return;
       }
-    });
 
-    const now = Date.now();
-    const users: NearbyUser[] = [];
+      const lastSeen = user.lastSeen?.toDate();
+      const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
 
-    usersSnapshot.forEach((doc) => {
-      const userData = doc.data();
+      // Check if user is on same network
+      const isSameNetwork = sameNetworkMatchingEnabled && 
+                           currentUserNetworkId && 
+                           user.currentNetworkId === currentUserNetworkId;
 
-      // Exclude current user, blocked users, and connected users
-      if (
-        doc.id !== currentUserId &&
-        !blockedUserIds.has(doc.id) &&
-        !connectedUserIds.has(doc.id)
-      ) {
-        // Check if user is online (last seen within 2 minutes)
-        const lastSeen = userData.lastSeen?.toDate?.();
-        const isOnline = lastSeen && now - lastSeen.getTime() < 2 * 60 * 1000;
+      // Flutter logic: Include if (within bounding box AND within time frame) OR same network
+      let shouldInclude = false;
+      let distance = 0;
 
-        users.push({
-          id: doc.id,
-          firstName: userData.firstName || '',
-          lastName: userData.lastName || '',
-          email: userData.email || '',
-          photoURL: userData.thumbnailURL || userData.photoURL || '',
-          bio: userData.bio || '',
-          isOnline: Boolean(isOnline),
+      if (isSameNetwork) {
+        // Always include same network users (like Flutter)
+        shouldInclude = true;
+        // Calculate distance for sorting even if same network
+        if (currentUserLocation && user.coordinates) {
+          distance = calculateDistance(
+            currentUserLocation.latitude,
+            currentUserLocation.longitude,
+            user.coordinates.latitude,
+            user.coordinates.longitude
+          );
+        }
+      } else if (currentUserLocation && user.coordinates) {
+        // For non-same-network users, check distance and recent location update
+        distance = calculateDistance(
+          currentUserLocation.latitude,
+          currentUserLocation.longitude,
+          user.coordinates.latitude,
+          user.coordinates.longitude
+        );
+
+        // Check if user has updated location recently (Flutter checks lastUpdatedLocation >= date_frame)
+        const lastLocationUpdate = user.lastUpdatedLocation?.toDate();
+        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+        const hasRecentLocationUpdate = lastLocationUpdate && lastLocationUpdate >= fiveMinutesAgo;
+
+        shouldInclude = distance <= userRadius && hasRecentLocationUpdate;
+      }
+
+      if (shouldInclude) {
+        nearbyUsers.push({
+          id: userId,
+          name: user.name || 'Unknown User',
+          photoURL: user.photoURL || '',
+          lastSeen: lastSeen || new Date(0),
+          distance,
+          isOnline,
+          isSameNetwork: isSameNetwork || false,
         });
       }
     });
 
-    return users;
+    // Sort exactly like Flutter SQL: ORDER BY "sameWiFi" DESC, distance ASC
+    const sortedUsers = nearbyUsers.sort((a, b) => {
+      // Primary sort: same network users first (sameWiFi DESC)
+      if (a.isSameNetwork && !b.isSameNetwork) return -1;
+      if (!a.isSameNetwork && b.isSameNetwork) return 1;
+
+      // Secondary sort: by distance ASC (closer users first)
+      return a.distance - b.distance;
+    });
+
+    return sortedUsers;
+
   } catch (error) {
-    console.error('Error loading users:', error);
-    throw error;
+    console.error('Error loading nearby users:', error);
+    return [];
   }
 };
 
