@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 20 24">
+  <g id="Group_2009" data-name="Group 2009" transform="translate(-37 -740.841)">
+    <g id="Group" transform="translate(37 740.5)">
+      <path id="Fill_4341" data-name="Fill 4341" d="M19.5,24H.5a.5.5,0,0,1-.5-.5V.5A.5.5,0,0,1,.5,0h19a.5.5,0,0,1,.5.5v23A.5.5,0,0,1,19.5,24ZM1,1V23H19V1Z" transform="translate(0 0.341)" fill="#fa4169"/>
+      <path id="Fill_4342" data-name="Fill 4342" d="M15.5,14H.5a.5.5,0,0,1-.5-.5V.5A.494.494,0,0,1,.5,0h15a.494.494,0,0,1,.5.5v13A.5.5,0,0,1,15.5,14ZM1,1V13H15V1Z" transform="translate(2 2.341)" fill="#fa4169"/>
+      <path id="Fill_4343" data-name="Fill 4343" d="M4.5,1H.5a.5.5,0,1,1,0-1h4a.5.5,0,1,1,0,1" transform="translate(2.5 18.341)" fill="#fa4169"/>
+      <path id="Fill_4344" data-name="Fill 4344" d="M11.5,1H.5a.5.5,0,1,1,0-1h11a.5.5,0,1,1,0,1" transform="translate(2.5 20.341)" fill="#fa4169"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "dist"
+  },
+  "emulators": {
+    "firestore": {
+      "port": "8000"
+    },
+    "ui": {
+      "host": "localhost",
+      "port": 4001
+    },
+    "functions": {
+      "port": "5001"
+    }
+  }
+}

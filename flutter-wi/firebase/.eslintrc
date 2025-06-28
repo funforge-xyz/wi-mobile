@@ -1,0 +1,70 @@
+{
+    "env": {
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "airbnb-base"
+    ],
+    "parser": "babel-eslint",
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module"
+    },
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"],
+                "paths": ["/src"]
+            }
+        }
+    },
+    "rules": {
+        "no-param-reassign": 2,
+        "indent": [
+            2,
+            2,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "space-before-function-paren": [
+            2,
+            {
+                "anonymous": "always",
+                "named": "never"
+            }
+        ],
+        "no-multiple-empty-lines": [
+            0
+        ],
+        "no-use-before-define": [
+            2,
+            "nofunc"
+        ],
+        "linebreak-style": [
+            0
+        ],
+        "import/no-extraneous-dependencies": [
+            "error",
+            {
+                "devDependencies": [
+                    "**/test/**"
+                ]
+            }
+        ],
+        "no-underscore-dangle": [
+            0
+        ]
+    },
+    "overrides": [
+        {
+            "files": [
+                "**/test/**"
+            ],
+            "rules": {
+                "no-unused-expressions": "off"
+            }
+        }
+    ]
+}
