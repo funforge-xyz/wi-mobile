@@ -12,7 +12,6 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
-import { authService } from '../services/auth';
 import { TFunction } from 'react-i18next';
 
 interface Post {
@@ -218,9 +217,6 @@ export const handleComment = async (
     throw error;
   }
 };
-
-import { Alert } from 'react-native';
-import { TFunction } from 'i18next';
 
 export const updatePost = async (
   postId: string,
