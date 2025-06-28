@@ -228,11 +228,10 @@ const getPostsBatch = async (
       return [];
     }
 
-    // Simplified query without isPrivate filter to avoid index requirement
     const queryConstraints = [
       where('authorId', 'in', userBatch),
       orderBy('createdAt', 'desc'),
-      limit(20) // Get more to filter out private posts client-side
+      limit(10)
     ];
 
     // Add timestamp filter for pagination
@@ -246,14 +245,10 @@ const getPostsBatch = async (
     const posts: any[] = [];
     postsSnapshot.forEach(doc => {
       const postData = doc.data();
-      // Filter out private posts client-side
-      if (!postData.isPrivate) {
-        posts.push({ id: doc.id, ...postData });
-      }
+      posts.push({ id: doc.id, ...postData });
     });
 
-    // Limit to 10 after filtering
-    const limitedPosts = posts.slice(0, 10);
+    const limitedPosts = posts;
 
     console.log(`Fetched ${limitedPosts.length} posts from batch starting at index ${batchStartIndex}`);
     return limitedPosts;

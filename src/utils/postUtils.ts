@@ -1,4 +1,3 @@
-
 import { Alert } from 'react-native';
 import { getFirestore } from '../services/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -8,7 +7,6 @@ import { authService } from '../services/auth';
 export interface PostData {
   content: string;
   mediaURL: string;
-  isPrivate: boolean;
   allowComments: boolean;
   showLikeCount: boolean;
 }
@@ -48,7 +46,6 @@ export const createPost = async (
       content: postData.content.trim(),
       mediaURL: mediaURL || null,
       thumbURL: mediaURL || null,
-      isPrivate: postData.isPrivate,
       allowComments: postData.allowComments,
       showLikeCount: postData.showLikeCount,
       createdAt: serverTimestamp(),

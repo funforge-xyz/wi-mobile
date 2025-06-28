@@ -20,8 +20,6 @@ interface AddPostFormProps {
   selectedImage: string | null;
   onImagePress: () => void;
   onRemoveImage: () => void;
-  isPrivate: boolean;
-  onPrivacyToggle: () => void;
   allowComments: boolean;
   onAllowCommentsToggle: () => void;
   showLikeCount: boolean;
@@ -35,8 +33,6 @@ export default function AddPostForm({
   selectedImage,
   onImagePress,
   onRemoveImage,
-  isPrivate,
-  onPrivacyToggle,
   allowComments,
   onAllowCommentsToggle,
   showLikeCount,
@@ -93,24 +89,7 @@ export default function AddPostForm({
           </TouchableOpacity>
         </View>
 
-        <View style={[addPostStyles.privacyContainer, { backgroundColor: currentTheme.surface }]}>
-          <TouchableOpacity style={addPostStyles.privacyOption} onPress={onPrivacyToggle}>
-            <Ionicons 
-              name={isPrivate ? "lock-closed-outline" : "globe-outline"} 
-              size={20} 
-              color={currentTheme.textSecondary} 
-            />
-            <View style={addPostStyles.privacyTextContainer}>
-              <Text style={[addPostStyles.privacyText, { color: currentTheme.text }]}>
-                {isPrivate ? t('addPost.private', 'Private') : t('addPost.public', 'Public')}
-              </Text>
-              <Text style={[addPostStyles.privacySubtext, { color: currentTheme.textSecondary }]}>
-                {isPrivate ? t('addPost.privateDescription', 'Only you can see this post') : t('addPost.publicDescription', 'Anyone can see this post')}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
-          </TouchableOpacity>
-        </View>
+        
 
         <View style={[addPostStyles.optionsContainer, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity style={addPostStyles.option} onPress={onAllowCommentsToggle}>

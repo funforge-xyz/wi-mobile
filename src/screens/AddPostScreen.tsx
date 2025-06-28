@@ -19,7 +19,7 @@ import SuccessModal from '../components/SuccessModal';
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-  const [isPrivate, setIsPrivate] = useState(false);
+  
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -56,7 +56,6 @@ export default function AddPostScreen() {
   const resetForm = () => {
     setContent('');
     setSelectedImage(null);
-    setIsPrivate(false);
     setAllowComments(true);
     setShowLikeCount(true);
   };
@@ -140,7 +139,6 @@ export default function AddPostScreen() {
       const postData: PostData = {
         content,
         mediaURL: selectedImage || '',
-        isPrivate,
         allowComments,
         showLikeCount,
       };
@@ -163,7 +161,6 @@ export default function AddPostScreen() {
         commentsCount: 0,
         showLikeCount: showLikeCount,
         allowComments: allowComments,
-        isPrivate: isPrivate,
         isLikedByUser: false,
       });
 
@@ -192,8 +189,6 @@ export default function AddPostScreen() {
         selectedImage={selectedImage}
         onImagePress={showImagePicker}
         onRemoveImage={() => setSelectedImage('')}
-        isPrivate={isPrivate}
-        onPrivacyToggle={() => setIsPrivate(!isPrivate)}
         allowComments={allowComments}
         onAllowCommentsToggle={() => setAllowComments(!allowComments)}
         showLikeCount={showLikeCount}

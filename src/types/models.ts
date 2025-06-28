@@ -25,10 +25,6 @@ export interface Post {
   userId: string;
   content: string;
   attachments?: Attachment[];
-  location?: {
-    latitude: number;
-    longitude: number;
-  };
   likesCount: number;
   commentsCount: number;
   createdAt: Date;

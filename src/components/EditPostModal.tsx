@@ -1,11 +1,9 @@
-
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   Modal,
-  Switch,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,11 +15,9 @@ import { useTranslation } from 'react-i18next';
 interface EditPostModalProps {
   visible: boolean;
   content: string;
-  isPrivate: boolean;
   allowComments: boolean;
   showLikeCount: boolean;
   onContentChange: (text: string) => void;
-  onPrivacyChange: (value: boolean) => void;
   onAllowCommentsChange: (value: boolean) => void;
   onShowLikeCountChange: (value: boolean) => void;
   onSave: () => void;
@@ -33,11 +29,9 @@ interface EditPostModalProps {
 export default function EditPostModal({
   visible,
   content,
-  isPrivate,
   allowComments,
   showLikeCount,
   onContentChange,
-  onPrivacyChange,
   onAllowCommentsChange,
   onShowLikeCountChange,
   onSave,
@@ -87,31 +81,9 @@ export default function EditPostModal({
           <View style={styles.modalSection}>
             <View style={styles.switchContainer}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
-                {t('singlePost.privatePost')}
-              </Text>
-              <Switch
-                value={isPrivate}
-                onValueChange={onPrivacyChange}
-                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
-                thumbColor="white"
-              />
-            </View>
-            <Text style={[styles.switchDescription, { color: currentTheme.textSecondary }]}>
-              {t('singlePost.privatePostDescription')}
-            </Text>
-          </View>
-
-          <View style={styles.modalSection}>
-            <View style={styles.switchContainer}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
                 {t('singlePost.allowComments')}
               </Text>
-              <Switch
-                value={allowComments}
-                onValueChange={onAllowCommentsChange}
-                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
-                thumbColor="white"
-              />
+              {/* Removed Switch component for privacy */}
             </View>
           </View>
 
@@ -120,12 +92,7 @@ export default function EditPostModal({
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
                 {t('singlePost.showLikeCount')}
               </Text>
-              <Switch
-                value={showLikeCount}
-                onValueChange={onShowLikeCountChange}
-                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
-                thumbColor="white"
-              />
+              {/* Removed Switch component for privacy */}
             </View>
           </View>
 
