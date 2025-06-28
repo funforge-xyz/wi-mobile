@@ -215,7 +215,7 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const firestore = getFirestore();
     const userRef = doc(firestore, 'users', currentUser.uid);
 
-    // Get WiFi network info
+    // Get enhanced WiFi network info
     const { wifiService } = await import('./wifiService');
     const wifiInfo = await wifiService.getCurrentWifiInfo();
 
@@ -226,25 +226,35 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
         longitude,
       },
       lastUpdatedLocation: new Date(),
+      lastSeen: new Date(), // Add last seen for online status
     };
 
-    // Only add network info if WiFi is connected and we have a network ID
+    // Enhanced network info with more details
     if (wifiInfo.isConnected && wifiInfo.networkId) {
       updateData.currentNetworkId = wifiInfo.networkId;
       updateData.currentNetworkSSID = wifiInfo.ssid;
+      updateData.currentNetworkBSSID = wifiInfo.bssid;
+      updateData.networkSignalStrength = wifiInfo.signal;
+      updateData.networkQuality = wifiService.getNetworkQuality();
+      updateData.lastNetworkUpdate = new Date();
     } else {
       // Clear network info if not connected to WiFi
       updateData.currentNetworkId = null;
       updateData.currentNetworkSSID = null;
+      updateData.currentNetworkBSSID = null;
+      updateData.networkSignalStrength = null;
+      updateData.networkQuality = null;
     }
 
     await updateDoc(userRef, updateData);
 
-    console.log('User location and network updated in Firestore:', { 
+    console.log('User location and enhanced network updated in Firestore:', { 
       latitude, 
       longitude, 
       networkId: wifiInfo.networkId,
-      ssid: wifiInfo.ssid 
+      ssid: wifiInfo.ssid,
+      signal: wifiInfo.signal,
+      quality: wifiService.getNetworkQuality()
     });
   } catch (error) {
     console.error('Error updating user location in Firestore:', error);

@@ -284,6 +284,25 @@ export default function SettingsScreen() {
             disabled={isLoading}
             currentTheme={currentTheme}
           />
+
+          <SettingsActionRow
+            icon="signal"
+            title={t('settings.networkStatus')}
+            description={t('settings.viewCurrentNetwork')}
+            value={currentNetworkStatus}
+            onPress={showNetworkInfo}
+            currentTheme={currentTheme}
+          />
+
+          <SettingsToggleRow
+            icon="refresh"
+            title={t('settings.realTimeNetworkMonitoring')}
+            description={t('settings.realTimeNetworkDescription')}
+            value={realTimeNetworkEnabled}
+            onValueChange={(value) => handleToggleRealTimeNetwork(value, setRealTimeNetworkEnabled, setIsLoading, t)}
+            disabled={isLoading}
+            currentTheme={currentTheme}
+          />
         </SettingsSection>
 
         <SettingsSection title={t('settings.notifications')} currentTheme={currentTheme}>
