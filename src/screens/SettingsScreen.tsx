@@ -41,6 +41,7 @@ import {
   getCurrentLanguageName,
   changeLanguage,
 } from '../utils/settingsUtils';
+import { useNetworkMonitoring } from '../hooks/useNetworkMonitoring';
 
 export default function SettingsScreen() {
   const [loading, setLoading] = useState(false);
@@ -61,7 +62,7 @@ export default function SettingsScreen() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
   const [showSettingsOption, setShowSettingsOption] = useState(false);
-  
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
@@ -72,8 +73,23 @@ export default function SettingsScreen() {
     bio: '',
   });
 
+  // Network monitoring state
+  const { 
+    wifiInfo, 
+    isNetworkMonitoring, 
+    startNetworkMonitoring, 
+    stopNetworkMonitoring,
+    networkQuality 
+  } = useNetworkMonitoring();
+  const [realTimeNetworkEnabled, setRealTimeNetworkEnabled] = useState(false);
+
   const settings = new Settings();
   const currentTheme = getTheme(isDarkMode);
+
+  // Computed network status
+  const currentNetworkStatus = wifiInfo ? 
+    `${wifiInfo.ssid || t('settings.unknownNetwork')} (${networkQuality})` : 
+    t('settings.notConnected');
 
   if (loading) {
     return <SettingsSkeleton />;
@@ -219,10 +235,29 @@ export default function SettingsScreen() {
     setShowLanguageModal(true);
   };
 
-  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
-
   const showDeleteAccountModalHandler = () => {
     setShowDeleteAccountModal(true);
+  };
+
+  const showNetworkInfo = () => {
+    Alert.alert(
+      t('settings.networkInformation'),
+      `${t('settings.ssid')}: ${wifiInfo?.ssid || t('settings.unavailable')}\n${t('settings.bssid')}: ${wifiInfo?.bssid || t('settings.unavailable')}\n${t('settings.ipAddress')}: ${wifiInfo?.ipAddress || t('settings.unavailable')}\n${t('settings.networkQuality')}: ${networkQuality}`
+    );
+  };
+
+  const handleToggleRealTimeNetwork = (value: boolean, setRealTimeNetworkEnabled: (value: boolean) => void, setIsLoading: (value: boolean) => void, t: any) => {
+    setIsLoading(true);
+    if (value) {
+      startNetworkMonitoring();
+      setRealTimeNetworkEnabled(true);
+      Alert.alert(t('settings.realTimeNetworkEnabled'), t('settings.realTimeNetworkEnabledDescription'));
+    } else {
+      stopNetworkMonitoring();
+      setRealTimeNetworkEnabled(false);
+      Alert.alert(t('settings.realTimeNetworkDisabled'), t('settings.realTimeNetworkDisabledDescription'));
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -428,4 +463,3 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
-
