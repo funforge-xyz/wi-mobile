@@ -219,7 +219,6 @@ export const handleComment = async (
   }
 };
 
-import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Alert } from 'react-native';
 import { TFunction } from 'i18next';
 
