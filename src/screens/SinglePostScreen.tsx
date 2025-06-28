@@ -40,6 +40,7 @@ import {
   handleLike,
   handleComment,
 } from '../utils/singlePostUtils';
+import { Animated } from 'react-native';
 
 interface Post {
   id: string;
@@ -80,7 +81,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [likes, setLikes] = useState<Like[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
+  const [isSubmittingComment, setSubmittingComment] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
@@ -88,6 +89,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [editedAllowComments, setEditedAllowComments] = useState(true);
   const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [editSuccessAnimation] = useState(new Animated.Value(0));
+  const [deleteSuccessAnimation] = useState(new Animated.Value(0));
 
   const { t } = useTranslation();
 

@@ -292,7 +292,7 @@
     "camera": "Camera",
     "gallery": "Gallery",
     "failedToSend": "Failed to send message",
-    "failedToLoad": "Failed to load messages"
+    "failedToLoad": "Failed toload messages"
   },
   "onboarding": {
     "welcome": "Welcome to Wi Chat",
@@ -324,12 +324,10 @@
     "appVersion": "App Version",
     "contactSupportModal": "Contact Support",
     "howWouldYouLike": "How would you like to contact our support team?",
-    "emailSupport": "Email Support",
-    "getHelpViaEmail": "Get help via email",
+    "emailSupport": "Get help via email",
     "reportBugModal": "Report Bug",
     "reportTechnicalIssues": "Report technical issues",
-    "featureRequestModal": "Feature Request",
-    "suggestNewFeatures": "Suggest new features",
+    "featureRequestModal": "Suggest new features",
     "cancel": "Cancel",
     "faqQuestions": {
       "howDoesMatchingWork": "How does matching work?",
@@ -401,7 +399,9 @@
     "failedToLoadPost": "Failed to load post",
     "failedToAddComment": "Failed to add comment",
     "failedToUpdateLike": "Failed to update like",
-    "success": "Success"
+    "success": "Success",
+    "postUpdated": "Your post has been updated!",
+    "postDeleted": "Your post has been deleted!"
   },
   "userProfile": {
     "title": "Profile",

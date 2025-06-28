@@ -396,7 +396,9 @@
     "failedToLoadPost": "Neuspješno učitavanje objave",
     "failedToAddComment": "Neuspješno dodavanje komentara",
     "failedToUpdateLike": "Neuspješno ažuriranje sviđanja",
-    "success": "Uspješno"
+    "success": "Uspješno",
+    "postUpdated": "Vaša objava je ažurirana!",
+    "postDeleted": "Vaša objava je obrisana!"
   },
   "userProfile": {
     "title": "Profil",
