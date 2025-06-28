@@ -4,6 +4,7 @@ import { ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { useDataRefresh } from '../hooks/useDataRefresh';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/ProfileStyles';
 import { getTheme } from '../theme';
@@ -17,7 +18,7 @@ import ProfileSkeleton from '../components/ProfileSkeleton';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  const { profile, loading } = useAppSelector((state) => state.user);
+  const { profile, loading, lastProfileFetch } = useAppSelector((state) => state.user);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
@@ -25,11 +26,12 @@ export default function ProfileScreen() {
 
   const currentTheme = getTheme(isDarkMode);
 
-  useEffect(() => {
-    if (!profile || (profile && Date.now() - profile.lastUpdated > 300000)) {
-      loadProfile(dispatch, profile);
-    }
-  }, [dispatch, profile]);
+  // Use data refresh hook to automatically refresh when screen is focused
+  useDataRefresh({
+    fetchData: () => loadProfile(dispatch, profile),
+    lastFetch: lastProfileFetch,
+    refreshThreshold: 5 * 60 * 1000 // 5 minutes
+  });
 
   const handleRefresh = () => {
     onRefresh(setRefreshing, dispatch, t);

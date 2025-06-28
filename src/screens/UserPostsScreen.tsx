@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { fetchUserProfile, fetchUserPosts, updatePostLike } from '../store/userSlice';
+import { useDataRefresh } from '../hooks/useDataRefresh';
 import { useTranslation } from 'react-i18next';
 
 import UserPostItem from '../components/UserPostItem';
@@ -33,36 +34,36 @@ interface UserPost {
 
 export default function UserPostsScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const { profile, posts = [], postsLoading } = useAppSelector((state) => state.user);
+  const { profile, posts = [], postsLoading, lastProfileFetch, lastPostsFetch } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
   const currentTheme = getTheme(isDarkMode);
 
-  // Load data only once when component mounts or when explicitly refreshed
-  useEffect(() => {
-    // Only load if we don't have data or if it's been more than 5 minutes
-    const shouldLoad = !profile || 
-                      posts.length === 0 || 
-                      (profile && Date.now() - profile.lastUpdated > 300000);
-
-    if (shouldLoad) {
-      loadInitialData();
-    }
-  }, []);
-
+  // Use data refresh hook to automatically refresh when screen is focused
   const loadInitialData = async () => {
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
-      await loadUserPostsData(dispatch, currentUser, fetchUserProfile, fetchUserPosts);
+      if (currentUser) {
+        await Promise.all([
+          dispatch(fetchUserProfile(currentUser.uid)),
+          dispatch(fetchUserPosts(currentUser.uid))
+        ]);
+      }
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
   };
+
+  useDataRefresh({
+    fetchData: loadInitialData,
+    lastFetch: Math.max(lastProfileFetch, lastPostsFetch),
+    refreshThreshold: 5 * 60 * 1000 // 5 minutes
+  });
 
   const onRefresh = async () => {
     setRefreshing(true);
