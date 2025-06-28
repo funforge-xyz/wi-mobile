@@ -1,4 +1,4 @@
-import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc, limit, startAfter, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, doc, getDoc, updateDoc, where, getDocs, setDoc, limit as firestoreLimit, startAfter, Timestamp } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { Alert } from 'react-native';
 import { createNearbyRequestNotification } from '../services/notifications';
@@ -46,7 +46,7 @@ export const setupMessageListener = (
     const q = query(
       messagesRef, 
       orderBy('createdAt', 'desc'),
-      limit(limit)
+      firestoreLimit(limit)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -99,7 +99,7 @@ export const loadMoreMessages = async (
       messagesRef,
       orderBy('createdAt', 'desc'),
       startAfter(lastMessageTimestamp),
-      limit(limit)
+      firestoreLimit(limit)
     );
 
     const snapshot = await getDocs(q);
