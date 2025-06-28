@@ -320,14 +320,7 @@ export default function SettingsScreen() {
             currentTheme={currentTheme}
           />
 
-          <SettingsActionRow
-            icon="signal"
-            title={t('settings.networkStatus')}
-            description={t('settings.viewCurrentNetwork')}
-            value={currentNetworkStatus}
-            onPress={showNetworkInfo}
-            currentTheme={currentTheme}
-          />
+          
 
           <SettingsToggleRow
             icon="refresh"

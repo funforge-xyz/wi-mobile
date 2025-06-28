@@ -1,4 +1,3 @@
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface AppSettings {
@@ -7,7 +6,6 @@ export interface AppSettings {
   locationTrackingEnabled: boolean;
   pushNotificationsEnabled: boolean;
   darkMode: boolean;
-  realTimeNetworkMonitoring: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -16,7 +14,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   locationTrackingEnabled: false,
   pushNotificationsEnabled: true,
   darkMode: false,
-  realTimeNetworkMonitoring: false,
 };
 
 export class SettingsService {
@@ -59,15 +56,6 @@ export class SettingsService {
   async getSameNetworkMatching(): Promise<boolean> {
     const settings = await this.loadSettings();
     return settings.sameNetworkMatching;
-  }
-
-  async setRealTimeNetworkMonitoring(enabled: boolean): Promise<void> {
-    await this.saveSettings({ realTimeNetworkMonitoring: enabled });
-  }
-
-  async getRealTimeNetworkMonitoring(): Promise<boolean> {
-    const settings = await this.loadSettings();
-    return settings.realTimeNetworkMonitoring || false;
   }
 
   async setTrackingRadius(radius: number): Promise<void> {

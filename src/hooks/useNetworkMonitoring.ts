@@ -14,7 +14,6 @@ export const useNetworkMonitoring = () => {
     if (locationService.isLocationTrackingActive()) {
       const currentLocation = await locationService.getCurrentLocation();
       if (currentLocation) {
-        // This will trigger a Firestore update with new network info
         console.log('Network changed, updating location with new network info');
       }
     }
@@ -49,7 +48,6 @@ export const useNetworkMonitoring = () => {
     isNetworkMonitoring,
     startNetworkMonitoring,
     stopNetworkMonitoring,
-    networkQuality: wifiInfo ? wifiService.getNetworkQuality() : 'unknown',
     isOnSameNetwork: (networkId: string | null) => wifiService.isOnSameNetwork(networkId),
   };
 };
