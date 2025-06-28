@@ -35,7 +35,7 @@ export class AuthService {
       if (user) {
         // Reload user to get latest emailVerified status
         await reload(user);
-        
+
         // Check if email is verified
         if (!user.emailVerified) {
           // Sign out the user since email is not verified

@@ -260,6 +260,18 @@ export default function SettingsScreen() {
     setIsLoading(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout(dispatch);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to logout');
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <SettingsHeader
@@ -320,7 +332,7 @@ export default function SettingsScreen() {
             currentTheme={currentTheme}
           />
 
-          
+
 
           <SettingsToggleRow
             icon="refresh"
@@ -390,6 +402,13 @@ export default function SettingsScreen() {
             currentTheme={currentTheme}
           />
         </SettingsSection>
+        <SettingsActionRow
+            icon="log-out-outline"
+            title={t('settings.logout')}
+            description={t('settings.logoutDescription')}
+            onPress={handleLogout}
+            currentTheme={currentTheme}
+          />
       </ScrollView>
 
       {/* Edit Profile Modal */}

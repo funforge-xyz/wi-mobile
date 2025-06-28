@@ -28,15 +28,17 @@ import DeletePostConfirmationModal from '../components/DeletePostConfirmationMod
 import { createSinglePostStyles } from '../styles/SinglePostStyles';
 import { getTheme } from '../theme';
 import {
+  updatePost,
+  deletePost,
+  showDeleteCommentAlert,
+} from '../utils/singlePostUtils';
+import { useAppDispatch } from '../hooks/redux';
+import {
   loadPost,
   loadComments,
   loadLikes,
   handleLike,
   handleComment,
-  updatePost,
-  deletePost,
-  deleteComment,
-  showDeleteCommentAlert,
 } from '../utils/singlePostUtils';
 
 interface Post {
@@ -69,6 +71,9 @@ interface Like {
 }
 
 export default function SinglePostScreen({ route, navigation }: any) {
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const dispatch = useAppDispatch();
+
   const { postId, isOwnPost = false } = route.params;
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -83,7 +88,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [editedAllowComments, setEditedAllowComments] = useState(true);
   const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
   const { t } = useTranslation();
 
@@ -208,7 +212,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
         editedContent,
         editedPrivacy,
         editedAllowComments,
-        editedShowLikeCount
+        editedShowLikeCount,
+        dispatch
       );
 
       // Update local state
@@ -235,7 +240,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const confirmDeletePost = async () => {
     setShowDeleteModal(false);
     try {
-      await deletePost(postId);
+      await deletePost(postId, dispatch);
       Alert.alert(t('singlePost.success'), t('singlePost.postDeleted'));
       navigation.goBack();
     } catch (error) {

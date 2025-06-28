@@ -219,35 +219,63 @@ export const handleComment = async (
   }
 };
 
+import { getFirestore } from '../services/firebase';
+import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { Alert } from 'react-native';
+import { TFunction } from 'i18next';
+
 export const updatePost = async (
   postId: string,
   content: string,
   isPrivate: boolean,
   allowComments: boolean,
-  showLikeCount: boolean
+  showLikeCount: boolean,
+  dispatch?: any
 ) => {
   try {
     const firestore = getFirestore();
     const postRef = doc(firestore, 'posts', postId);
 
-    await updateDoc(postRef, {
+    const updates = {
       content: content.trim(),
       isPrivate: isPrivate,
       allowComments: allowComments,
       showLikeCount: showLikeCount,
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    await updateDoc(postRef, updates);
+    
+    // Update Redux state
+    if (dispatch) {
+      const { updatePost } = await import('../store/userSlice');
+      dispatch(updatePost({ 
+        postId, 
+        updates: {
+          content: content.trim(),
+          isPrivate,
+          allowComments,
+          showLikeCount
+        }
+      }));
+    }
   } catch (error) {
     console.error('Error updating post:', error);
     throw error;
   }
 };
 
-export const deletePost = async (postId: string) => {
+export const deletePost = async (postId: string, dispatch?: any) => {
   try {
     const firestore = getFirestore();
     const postRef = doc(firestore, 'posts', postId);
     await deleteDoc(postRef);
+    
+    // Update Redux state
+    if (dispatch) {
+      const { removePost } = await import('../store/userSlice');
+      dispatch(removePost(postId));
+    }
   } catch (error) {
     console.error('Error deleting post:', error);
     throw error;
