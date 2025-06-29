@@ -241,35 +241,78 @@ export const handleComment = async (
   postId: string, 
   commentText: string, 
   currentUser: any, 
-  post: Post | null
+  post: Post | null,
+  parentCommentId?: string
 ) => {
   if (!commentText.trim() || !currentUser || !post?.allowComments) return;
 
   try {
     const firestore = getFirestore();
-    const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+    
+    // Get current user info
+    const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+    const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+    const currentUserName = currentUserData.firstName && currentUserData.lastName 
+      ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+      : 'Someone';
 
-    await addDoc(commentsCollection, {
-      authorId: currentUser.uid,
-      content: commentText.trim(),
-      createdAt: serverTimestamp(),
-    });
+    if (parentCommentId) {
+      // This is a reply - store it in the replies subcollection
+      const repliesCollection = collection(firestore, 'posts', postId, 'comments', parentCommentId, 'replies');
+      
+      await addDoc(repliesCollection, {
+        authorId: currentUser.uid,
+        authorName: currentUserName,
+        authorPhotoURL: currentUserData.photoURL || '',
+        content: commentText.trim(),
+        createdAt: serverTimestamp(),
+        parentCommentId: parentCommentId,
+        likesCount: 0,
+        repliesCount: 0,
+      });
+
+      // Update parent comment's reply count
+      const parentCommentRef = doc(firestore, 'posts', postId, 'comments', parentCommentId);
+      const parentCommentDoc = await getDoc(parentCommentRef);
+      if (parentCommentDoc.exists()) {
+        await updateDoc(parentCommentRef, {
+          repliesCount: (parentCommentDoc.data().repliesCount || 0) + 1,
+        });
+      }
+    } else {
+      // This is a top-level comment
+      const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+      
+      await addDoc(commentsCollection, {
+        authorId: currentUser.uid,
+        authorName: currentUserName,
+        authorPhotoURL: currentUserData.photoURL || '',
+        content: commentText.trim(),
+        createdAt: serverTimestamp(),
+        parentCommentId: null,
+        likesCount: 0,
+        repliesCount: 0,
+      });
+    }
+
+    // Update post's total comments count
+    const postRef = doc(firestore, 'posts', postId);
+    const postDoc = await getDoc(postRef);
+    if (postDoc.exists()) {
+      await updateDoc(postRef, {
+        commentsCount: (postDoc.data().commentsCount || 0) + 1,
+      });
+    }
 
     // Create notification for the post author if it's not the current user
     if (post && post.authorId !== currentUser.uid) {
-      // Get current user info
-      const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-      const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
-      const currentUserName = currentUserData.firstName && currentUserData.lastName 
-        ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-        : 'Someone';
-
       // Create notification
       await addDoc(collection(firestore, 'notifications'), {
-        type: 'comment',
-        title: 'New Comment',
-        body: `${currentUserName} commented on your post`,
+        type: parentCommentId ? 'reply' : 'comment',
+        title: parentCommentId ? 'New Reply' : 'New Comment',
+        body: parentCommentId ? `${currentUserName} replied to your comment` : `${currentUserName} commented on your post`,
         postId: postId,
+        parentCommentId: parentCommentId || null,
         targetUserId: post.authorId,
         fromUserId: currentUser.uid,
         fromUserName: currentUserName,

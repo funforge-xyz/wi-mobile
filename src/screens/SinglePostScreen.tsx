@@ -197,6 +197,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       await handleComment(postId, commentText, currentUser, post, replyToComment?.id);
       setCommentText('');
       setReplyToComment(null);
+      await loadCommentsData(); // Reload comments to show the new reply
     } catch (error) {
       Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));
     } finally {
