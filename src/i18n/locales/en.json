@@ -386,6 +386,7 @@
     "title": "Post",
     "content": "Content",
     "noCommentsYet": "No comments yet. Be the first to comment!",
+    "addComment": "Add comment",
     "writeComment": "Write a comment...",
     "writeReply": "Write a reply...",
     "reply": "Reply",

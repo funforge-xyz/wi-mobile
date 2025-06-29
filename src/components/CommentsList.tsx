@@ -103,24 +103,17 @@ export default function CommentsList({
           )}
         </View>
 
-        {/* Show quoted original comment for replies */}
-        {comment.parentCommentId && parentComment && (
-          <View style={[styles.quotedComment, { 
-            backgroundColor: currentTheme.background,
-            borderLeftColor: COLORS.primary 
-          }]}>
-            <Text style={[styles.quotedAuthor, { color: currentTheme.textSecondary }]}>
-              {parentComment.authorName}:
-            </Text>
-            <Text style={[styles.quotedText, { color: currentTheme.textSecondary }]} numberOfLines={2}>
-              {parentComment.content}
-            </Text>
-          </View>
-        )}
-
-        <Text style={[styles.commentText, { color: currentTheme.text }]}>
-          {comment.content}
-        </Text>
+        
+        <View style={styles.commentContentRow}>
+          {parentComment && (
+            <View style={[styles.replyIndicator, { borderLeftColor: COLORS.primary }]}>
+              <Ionicons name="return-down-forward" size={14} color={COLORS.primary} style={styles.replyArrow} />
+            </View>
+          )}
+          <Text style={[styles.commentText, { color: currentTheme.text, flex: 1 }]}>
+            {comment.content}
+          </Text>
+        </View>
 
         <View style={styles.commentActions}>
           <TouchableOpacity
@@ -358,5 +351,18 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontStyle: 'italic',
     lineHeight: 16,
+  },
+  commentContentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start', // Align items to the top
+  },
+  replyIndicator: {
+    marginLeft: 0,
+    marginRight: SPACING.sm,
+    paddingLeft: SPACING.sm,
+    borderLeftWidth: 2,
+  },
+  replyArrow: {
+    marginTop: 2,
   },
 });

@@ -34,21 +34,6 @@ export default function CommentInput({
 
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
-      {replyToComment && (
-        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background, borderLeftColor: COLORS.primary }]}>
-          <View style={styles.replyIndicatorContent}>
-            <Ionicons name="return-down-forward" size={16} color={COLORS.primary} />
-            <Text style={[styles.replyIndicatorText, { color: currentTheme.textSecondary }]}>
-              {t('singlePost.replyingTo')} <Text style={{ color: COLORS.primary, fontFamily: FONTS.medium }}>{replyToComment.authorName}</Text>
-            </Text>
-          </View>
-          {onCancelReply && (
-            <TouchableOpacity onPress={onCancelReply} style={styles.cancelReplyButton}>
-              <Ionicons name="close" size={16} color={currentTheme.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
       <View style={styles.inputContainer}>
         <TextInput
           style={[
@@ -92,28 +77,6 @@ const styles = StyleSheet.create({
   container: {
     padding: SPACING.md,
     borderTopWidth: 1,
-  },
-  replyIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.sm,
-    marginBottom: SPACING.sm,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-  },
-  replyIndicatorContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  replyIndicatorText: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    marginLeft: SPACING.xs,
-  },
-  cancelReplyButton: {
-    padding: SPACING.xs,
   },
   inputContainer: {
     flexDirection: 'row',
