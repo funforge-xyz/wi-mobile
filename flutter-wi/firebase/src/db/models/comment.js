@@ -4,7 +4,8 @@ export default (sequelize, DataTypes) => {
     externalCommentId: DataTypes.STRING,
     postId: DataTypes.INTEGER,
     externalPostId: DataTypes.STRING,
-    externalAuthorId: DataTypes.STRING
+    externalAuthorId: DataTypes.STRING,
+    parentCommentId: DataTypes.STRING
   });
 
   Comment.aliases = () => ({

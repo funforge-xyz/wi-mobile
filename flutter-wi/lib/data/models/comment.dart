@@ -14,11 +14,13 @@ class Comment {
   final Timestamp createdAt;
   final String authorId;
   final String content;
+  final String parentCommentId;
 
   Comment({
     this.authorId,
     this.content,
     this.createdAt,
+    this.parentCommentId,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) =>

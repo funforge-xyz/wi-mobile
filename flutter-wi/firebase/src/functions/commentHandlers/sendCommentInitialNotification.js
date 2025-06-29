@@ -81,6 +81,7 @@ const summarizeAndNotifyOnCommentCreateHandler = async (snap, context) => {
     externalCommentId: context.params.commentId,
     externalPostId: context.params.postId,
     externalAuthorId: currentData.authorId,
+    parentCommentId: currentData.parentCommentId || null,
   };
 
   const factory = new ServiceFactory('rdb', context);
