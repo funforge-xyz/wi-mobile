@@ -13,6 +13,8 @@ import {
   query, 
   orderBy, 
   collection,
+  getDoc,
+  doc,
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { authService } from '../services/auth';
@@ -32,6 +34,7 @@ import {
   updatePost,
   deletePost,
   showDeleteCommentAlert,
+  addComment,
 } from '../utils/singlePostUtils';
 import { useAppDispatch } from '../hooks/redux';
 import {
@@ -192,9 +195,27 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleCommentSubmit = async () => {
+    if (!currentUser) return;
+    
     try {
       setSubmittingComment(true);
-      await handleComment(postId, commentText, currentUser, post, replyToComment?.id);
+      
+      const currentUserDoc = await getDoc(doc(getFirestore(), 'users', currentUser.uid));
+      const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
+      const currentUserName = currentUserData.firstName && currentUserData.lastName 
+        ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+        : 'Unknown User';
+      
+      await addComment(
+        postId,
+        commentText,
+        currentUser.uid,
+        currentUserName,
+        currentUserData.photoURL || '',
+        t,
+        replyToComment?.id
+      );
+      
       setCommentText('');
       setReplyToComment(null);
     } catch (error) {
