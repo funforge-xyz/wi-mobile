@@ -71,7 +71,10 @@ export default function CommentsList({
   };
 
   const renderComment = (comment: Comment, parentComment?: Comment) => (
-    <View key={comment.id} style={styles.commentItem}>
+    <View key={comment.id} style={[
+      styles.commentItem,
+      comment.parentCommentId && styles.replyComment
+    ]}>
       <UserAvatar
         photoURL={comment.authorPhotoURL}
         isOnline={false}
@@ -83,13 +86,6 @@ export default function CommentsList({
           <Text style={[styles.commentAuthor, { color: currentTheme.text }]}>
             {comment.authorName}
           </Text>
-          {comment.parentCommentId && parentComment && (
-            <Text style={[styles.replyLabel, { color: currentTheme.textSecondary }]}>
-              • {t('singlePost.replyingTo')} <Text style={{ color: COLORS.primary, fontFamily: FONTS.medium }}>
-                {parentComment.authorName}
-              </Text>
-            </Text>
-          )}
           <Text style={[styles.commentTime, { color: currentTheme.textSecondary }]}>
             • {formatTimeAgo(comment.createdAt)}
           </Text>
@@ -103,17 +99,9 @@ export default function CommentsList({
           )}
         </View>
 
-        
-        <View style={styles.commentContentRow}>
-          {parentComment && (
-            <View style={[styles.replyIndicator, { borderLeftColor: COLORS.primary }]}>
-              <Ionicons name="return-down-forward" size={14} color={COLORS.primary} style={styles.replyArrow} />
-            </View>
-          )}
-          <Text style={[styles.commentText, { color: currentTheme.text, flex: 1 }]}>
-            {comment.content}
-          </Text>
-        </View>
+        <Text style={[styles.commentText, { color: currentTheme.text }]}>
+          {comment.content}
+        </Text>
 
         <View style={styles.commentActions}>
           <TouchableOpacity
@@ -194,18 +182,7 @@ export default function CommentsList({
           {/* Replies Section */}
           {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && (
             <View style={styles.repliesContainer}>
-              <View style={[styles.repliesConnector, { backgroundColor: currentTheme.border }]} />
-              <View style={[styles.repliesContent, { borderLeftColor: currentTheme.border }]}>
-                {repliesMap[comment.id].map((reply, index) => (
-                  <View key={reply.id} style={[
-                    styles.replyWrapper,
-                    { backgroundColor: currentTheme.background },
-                    index === repliesMap[comment.id].length - 1 && styles.lastReply
-                  ]}>
-                    {renderComment(reply, comment)}
-                  </View>
-                ))}
-              </View>
+              {repliesMap[comment.id].map((reply) => renderComment(reply, comment))}
             </View>
           )}
         </View>
@@ -240,33 +217,11 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   repliesContainer: {
-    flexDirection: 'row',
     marginTop: SPACING.xs,
-    marginLeft: SPACING.sm,
+    marginLeft: SPACING.xl,
   },
-  repliesConnector: {
-    width: 2,
-    minHeight: 60,
-    marginLeft: 16,
-    marginRight: SPACING.md,
-    borderRadius: 1,
-    opacity: 0.3,
-  },
-  repliesContent: {
-    flex: 1,
-    paddingLeft: SPACING.sm,
-    borderLeftWidth: 2,
-    borderLeftColor: 'rgba(128, 128, 128, 0.2)',
-    borderRadius: 4,
-  },
-  replyWrapper: {
-    marginBottom: SPACING.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderRadius: 8,
-    padding: SPACING.sm,
-  },
-  lastReply: {
-    marginBottom: 0,
+  replyComment: {
+    marginLeft: SPACING.xl,
   },
   commentContent: {
     flex: 1,
@@ -281,11 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.medium,
   },
-  replyLabel: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-    marginLeft: SPACING.xs,
-  },
+  
   commentTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
@@ -334,35 +285,5 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     padding: SPACING.xs,
   },
-  quotedComment: {
-    marginVertical: SPACING.xs,
-    padding: SPACING.sm,
-    borderLeftWidth: 3,
-    borderRadius: 6,
-    marginBottom: SPACING.sm,
-  },
-  quotedAuthor: {
-    fontSize: 12,
-    fontFamily: FONTS.medium,
-    marginBottom: SPACING.xs,
-  },
-  quotedText: {
-    fontSize: 12,
-    fontFamily: FONTS.regular,
-    fontStyle: 'italic',
-    lineHeight: 16,
-  },
-  commentContentRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start', // Align items to the top
-  },
-  replyIndicator: {
-    marginLeft: 0,
-    marginRight: SPACING.sm,
-    paddingLeft: SPACING.sm,
-    borderLeftWidth: 2,
-  },
-  replyArrow: {
-    marginTop: 2,
-  },
+  
 });
