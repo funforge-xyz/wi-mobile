@@ -34,6 +34,19 @@ export default function CommentInput({
 
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
+      {replyToComment && (
+        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background, borderColor: currentTheme.border }]}>
+          <Ionicons name="arrow-undo" size={16} color={currentTheme.textSecondary} />
+          <Text style={[styles.replyText, { color: currentTheme.textSecondary }]}>
+            {t('singlePost.replyingTo')} {replyToComment.authorName}
+          </Text>
+          {onCancelReply && (
+            <TouchableOpacity onPress={onCancelReply} style={styles.cancelReplyButton}>
+              <Ionicons name="close" size={16} color={currentTheme.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       <View style={styles.inputContainer}>
         <TextInput
           style={[
@@ -77,6 +90,23 @@ const styles = StyleSheet.create({
   container: {
     padding: SPACING.md,
     borderTopWidth: 1,
+  },
+  replyIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.sm,
+    marginBottom: SPACING.sm,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  replyText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
+    flex: 1,
+  },
+  cancelReplyButton: {
+    padding: SPACING.xs,
   },
   inputContainer: {
     flexDirection: 'row',
