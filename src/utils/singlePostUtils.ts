@@ -88,14 +88,14 @@ export const loadComments = async (postId: string, currentUserId?: string): Prom
   try {
     const firestore = getFirestore();
 
-    // Get all comments (including replies) from the same collection
+    // Get top-level comments
     const commentsQuery = query(
       collection(firestore, 'posts', postId, 'comments'),
       orderBy('createdAt', 'asc')
     );
 
     const commentsSnapshot = await getDocs(commentsQuery);
-    const comments: Comment[] = [];
+    const allComments: Comment[] = [];
 
     for (const commentDoc of commentsSnapshot.docs) {
       const commentData = commentDoc.data();
@@ -115,7 +115,8 @@ export const loadComments = async (postId: string, currentUserId?: string): Prom
         isLikedByUser = !likeSnapshot.empty;
       }
 
-      comments.push({
+      // Add top-level comment
+      allComments.push({
         id: commentDoc.id,
         authorId: commentData.authorId,
         authorName: authorData.firstName && authorData.lastName 
@@ -126,12 +127,54 @@ export const loadComments = async (postId: string, currentUserId?: string): Prom
         createdAt: commentData.createdAt?.toDate() || new Date(),
         likesCount: commentData.likesCount || 0,
         repliesCount: commentData.repliesCount || 0,
-        parentCommentId: commentData.parentCommentId || undefined,
+        parentCommentId: undefined,
         isLikedByUser,
       });
+
+      // Get replies for this comment
+      const repliesQuery = query(
+        collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies'),
+        orderBy('createdAt', 'asc')
+      );
+
+      const repliesSnapshot = await getDocs(repliesQuery);
+
+      for (const replyDoc of repliesSnapshot.docs) {
+        const replyData = replyDoc.data();
+
+        // Get reply author info
+        const replyAuthorDoc = await getDoc(doc(firestore, 'users', replyData.authorId));
+        const replyAuthorData = replyAuthorDoc.exists() ? replyAuthorDoc.data() : {};
+
+        // Check if current user liked this reply
+        let isReplyLikedByUser = false;
+        if (currentUserId) {
+          const replyLikeQuery = query(
+            collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies', replyDoc.id, 'likes'),
+            where('authorId', '==', currentUserId)
+          );
+          const replyLikeSnapshot = await getDocs(replyLikeQuery);
+          isReplyLikedByUser = !replyLikeSnapshot.empty;
+        }
+
+        allComments.push({
+          id: replyDoc.id,
+          authorId: replyData.authorId,
+          authorName: replyAuthorData.firstName && replyAuthorData.lastName 
+            ? `${replyAuthorData.firstName} ${replyAuthorData.lastName}` 
+            : 'Unknown User',
+          authorPhotoURL: replyAuthorData.photoURL || '',
+          content: replyData.content,
+          createdAt: replyData.createdAt?.toDate() || new Date(),
+          likesCount: replyData.likesCount || 0,
+          repliesCount: 0, // Replies don't have sub-replies
+          parentCommentId: commentDoc.id,
+          isLikedByUser: isReplyLikedByUser,
+        });
+      }
     }
 
-    return comments;
+    return allComments;
   } catch (error) {
     console.error('Error loading comments:', error);
     return [];
@@ -299,11 +342,48 @@ export const deletePost = async (postId: string, dispatch?: any) => {
   }
 };
 
-export const deleteComment = async (postId: string, commentId: string) => {
+export const deleteComment = async (postId: string, commentId: string, parentCommentId?: string) => {
   try {
     const firestore = getFirestore();
-    const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
-    await deleteDoc(commentRef);
+    
+    if (parentCommentId) {
+      // This is a reply - delete from replies subcollection
+      const replyRef = doc(firestore, 'posts', postId, 'comments', parentCommentId, 'replies', commentId);
+      await deleteDoc(replyRef);
+      
+      // Update parent comment's reply count
+      const parentCommentRef = doc(firestore, 'posts', postId, 'comments', parentCommentId);
+      const parentCommentDoc = await getDoc(parentCommentRef);
+      if (parentCommentDoc.exists()) {
+        await updateDoc(parentCommentRef, {
+          repliesCount: Math.max(0, (parentCommentDoc.data().repliesCount || 1) - 1),
+        });
+      }
+    } else {
+      // This is a top-level comment
+      const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
+      
+      // First, delete all replies to this comment
+      const repliesQuery = query(
+        collection(firestore, 'posts', postId, 'comments', commentId, 'replies')
+      );
+      const repliesSnapshot = await getDocs(repliesQuery);
+      
+      const batch = repliesSnapshot.docs.map(replyDoc => deleteDoc(replyDoc.ref));
+      await Promise.all(batch);
+      
+      // Then delete the comment itself
+      await deleteDoc(commentRef);
+    }
+    
+    // Update post's total comments count
+    const postRef = doc(firestore, 'posts', postId);
+    const postDoc = await getDoc(postRef);
+    if (postDoc.exists()) {
+      await updateDoc(postRef, {
+        commentsCount: Math.max(0, (postDoc.data().commentsCount || 1) - 1),
+      });
+    }
   } catch (error) {
     console.error('Error deleting comment:', error);
     throw error;
@@ -357,22 +437,22 @@ export const addComment = async (
   try {
     const firestore = getFirestore();
     
-    // Store all comments (including replies) in the same collection with parentCommentId field
-    const commentsCollection = collection(firestore, 'posts', postId, 'comments');
-    
-    await addDoc(commentsCollection, {
-      authorId: userId,
-      authorName: userName,
-      authorPhotoURL: userPhotoURL || '',
-      content: content.trim(),
-      createdAt: serverTimestamp(),
-      parentCommentId: parentCommentId || null,
-      likesCount: 0,
-      repliesCount: 0,
-    });
-
-    // If this is a reply, update parent comment's reply count
     if (parentCommentId) {
+      // This is a reply - store it in the replies subcollection
+      const repliesCollection = collection(firestore, 'posts', postId, 'comments', parentCommentId, 'replies');
+      
+      await addDoc(repliesCollection, {
+        authorId: userId,
+        authorName: userName,
+        authorPhotoURL: userPhotoURL || '',
+        content: content.trim(),
+        createdAt: serverTimestamp(),
+        parentCommentId: parentCommentId,
+        likesCount: 0,
+        repliesCount: 0,
+      });
+
+      // Update parent comment's reply count
       const parentCommentRef = doc(firestore, 'posts', postId, 'comments', parentCommentId);
       const parentCommentDoc = await getDoc(parentCommentRef);
       if (parentCommentDoc.exists()) {
@@ -380,6 +460,20 @@ export const addComment = async (
           repliesCount: (parentCommentDoc.data().repliesCount || 0) + 1,
         });
       }
+    } else {
+      // This is a top-level comment
+      const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+      
+      await addDoc(commentsCollection, {
+        authorId: userId,
+        authorName: userName,
+        authorPhotoURL: userPhotoURL || '',
+        content: content.trim(),
+        createdAt: serverTimestamp(),
+        parentCommentId: null,
+        likesCount: 0,
+        repliesCount: 0,
+      });
     }
 
     // Update post's total comments count

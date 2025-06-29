@@ -93,12 +93,12 @@ export default function CommentsList({
           <Text style={[styles.commentTime, { color: currentTheme.textSecondary }]}>
             • {formatTimeAgo(comment.createdAt)}
           </Text>
-          {(comment.authorId === currentUserId || postAuthorId === currentUserId) && (
-            <TouchableOpacity 
-              onPress={() => onDeleteComment(comment.id, comment.authorId)}
+          {(currentUserId === comment.authorId || currentUserId === postAuthorId) && (
+            <TouchableOpacity
               style={styles.deleteCommentButton}
+              onPress={() => onDeleteComment(comment.id, comment.authorId, parentComment?.id)}
             >
-              <Ionicons name="trash-outline" size={14} color={COLORS.error} />
+              <Ionicons name="trash-outline" size={16} color={COLORS.error} />
             </TouchableOpacity>
           )}
         </View>

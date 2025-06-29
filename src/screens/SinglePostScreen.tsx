@@ -13,8 +13,6 @@ import {
   query, 
   orderBy, 
   collection,
-  getDoc,
-  doc,
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { authService } from '../services/auth';
@@ -34,7 +32,6 @@ import {
   updatePost,
   deletePost,
   showDeleteCommentAlert,
-  addComment,
 } from '../utils/singlePostUtils';
 import { useAppDispatch } from '../hooks/redux';
 import {
@@ -195,27 +192,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleCommentSubmit = async () => {
-    if (!currentUser) return;
-    
     try {
       setSubmittingComment(true);
-      
-      const currentUserDoc = await getDoc(doc(getFirestore(), 'users', currentUser.uid));
-      const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
-      const currentUserName = currentUserData.firstName && currentUserData.lastName 
-        ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-        : 'Unknown User';
-      
-      await addComment(
-        postId,
-        commentText,
-        currentUser.uid,
-        currentUserName,
-        currentUserData.photoURL || '',
-        t,
-        replyToComment?.id
-      );
-      
+      await handleComment(postId, commentText, currentUser, post, replyToComment?.id);
       setCommentText('');
       setReplyToComment(null);
     } catch (error) {
@@ -349,18 +328,22 @@ export default function SinglePostScreen({ route, navigation }: any) {
     }
   };
 
-  const handleDeleteComment = (commentId: string, commentAuthorId: string) => {
-    // Only allow deletion if it's the user's own comment or their own post
-    if (commentAuthorId !== currentUser?.uid && post?.authorId !== currentUser?.uid) {
-      Alert.alert(t('common.error'), t('singlePost.canOnlyDeleteOwnComments'));
+  const handleDeleteComment = async (commentId: string, commentAuthorId: string, parentCommentId?: string) => {
+    if (!currentUser || (commentAuthorId !== currentUser.uid && post?.authorId !== currentUser.uid)) {
+      Alert.alert(t('error.title'), t('error.unauthorized'));
       return;
     }
 
     showDeleteCommentAlert(async () => {
       try {
-        await deleteComment(postId, commentId);
+        setLoading(true);
+        await deleteComment(post!.id, commentId, parentCommentId);
+        await loadCommentsData(); // Reload comments
       } catch (error) {
-        Alert.alert(t('common.error'), t('singlePost.failedToDeleteComment'));
+        console.error('Error deleting comment:', error);
+        Alert.alert(t('error.title'), t('error.deleteCommentFailed'));
+      } finally {
+        setLoading(false);
       }
     }, t);
   };
