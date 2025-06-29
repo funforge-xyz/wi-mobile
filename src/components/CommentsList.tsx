@@ -71,7 +71,7 @@ export default function CommentsList({
     }
   };
 
-  const renderComment = (comment: Comment) => (
+  const renderComment = (comment: Comment, parentComment?: Comment) => (
     <View key={comment.id} style={[
       styles.commentItem,
       comment.parentCommentId && styles.replyItem
@@ -90,9 +90,11 @@ export default function CommentsList({
           <Text style={[styles.commentAuthor, { color: currentTheme.text }]}>
             {comment.authorName}
           </Text>
-          {comment.parentCommentId && (
+          {comment.parentCommentId && parentComment && (
             <Text style={[styles.replyLabel, { color: currentTheme.textSecondary }]}>
-              • {t('singlePost.reply')}
+              • {t('singlePost.replyingTo')} <Text style={{ color: COLORS.primary, fontFamily: FONTS.medium }}>
+                {parentComment.authorName}
+              </Text>
             </Text>
           )}
           <Text style={[styles.commentTime, { color: currentTheme.textSecondary }]}>
@@ -107,6 +109,22 @@ export default function CommentsList({
             </TouchableOpacity>
           )}
         </View>
+        
+        {/* Show quoted original comment for replies */}
+        {comment.parentCommentId && parentComment && (
+          <View style={[styles.quotedComment, { 
+            backgroundColor: currentTheme.background,
+            borderLeftColor: COLORS.primary 
+          }]}>
+            <Text style={[styles.quotedAuthor, { color: currentTheme.textSecondary }]}>
+              {parentComment.authorName}:
+            </Text>
+            <Text style={[styles.quotedText, { color: currentTheme.textSecondary }]} numberOfLines={2}>
+              {parentComment.content}
+            </Text>
+          </View>
+        )}
+        
         <Text style={[styles.commentText, { color: currentTheme.text }]}>
           {comment.content}
         </Text>
@@ -186,7 +204,7 @@ export default function CommentsList({
       {mainComments.map(comment => (
         <View key={comment.id}>
           {renderComment(comment)}
-          {repliesMap[comment.id]?.map(reply => renderComment(reply))}
+          {repliesMap[comment.id]?.map(reply => renderComment(reply, comment))}
         </View>
       ))}
 
@@ -289,5 +307,23 @@ const styles = StyleSheet.create({
   deleteCommentButton: {
     marginLeft: 'auto',
     padding: SPACING.xs,
+  },
+  quotedComment: {
+    marginVertical: SPACING.xs,
+    padding: SPACING.sm,
+    borderLeftWidth: 3,
+    borderRadius: 6,
+    marginBottom: SPACING.sm,
+  },
+  quotedAuthor: {
+    fontSize: 12,
+    fontFamily: FONTS.medium,
+    marginBottom: SPACING.xs,
+  },
+  quotedText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    fontStyle: 'italic',
+    lineHeight: 16,
   },
 });

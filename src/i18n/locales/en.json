@@ -389,7 +389,7 @@
     "writeComment": "Write a comment...",
     "writeReply": "Write a reply...",
     "reply": "Reply",
-    "replyingTo": "Replying to",
+    "replyingTo": "replying to",
     "viewReplies": "View {{count}} replies",
     "comments": "Comments",
     "postNotFound": "Post not found",
