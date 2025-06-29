@@ -35,10 +35,10 @@ export default function CommentInput({
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
       {replyToComment && (
-        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background, borderColor: '#3498db' }]}>
+        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background }]}>
           <Ionicons name="arrow-undo" size={16} color="#3498db" />
-          <Text style={[styles.replyText, { color: '#3498db' }]}>
-            {t('singlePost.replyingTo')} {replyToComment.authorName}
+          <Text style={[styles.replyText, { color: currentTheme.text }]}>
+            {t('singlePost.replyingTo')} <Text style={{ color: '#3498db' }}>{replyToComment.authorName}</Text>
           </Text>
           {onCancelReply && (
             <TouchableOpacity onPress={onCancelReply} style={styles.cancelReplyButton}>
@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
     marginBottom: SPACING.sm,
     borderRadius: 8,
-    borderWidth: 1,
   },
   replyText: {
     fontSize: 14,

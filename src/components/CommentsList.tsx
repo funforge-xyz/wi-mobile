@@ -233,11 +233,9 @@ const styles = StyleSheet.create({
   repliesContainer: {
     marginTop: SPACING.xs,
     marginLeft: SPACING.md,
-    paddingLeft: SPACING.xs,
-    paddingTop: SPACING.xs,
-    paddingBottom: SPACING.xs,
-    borderRadius: 8,
-    backgroundColor: '#f5f5f5',
+    padding: SPACING.sm,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
   },
   replyComment: {
     marginLeft: SPACING.sm,
