@@ -232,15 +232,15 @@ const styles = StyleSheet.create({
   },
   repliesContainer: {
     marginTop: SPACING.xs,
-    marginLeft: SPACING.lg,
-    paddingLeft: SPACING.sm,
+    marginLeft: SPACING.md,
+    paddingLeft: SPACING.xs,
     paddingTop: SPACING.xs,
     paddingBottom: SPACING.xs,
     borderRadius: 8,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#f5f5f5',
   },
   replyComment: {
-    marginLeft: SPACING.lg,
+    marginLeft: SPACING.sm,
   },
   commentContent: {
     flex: 1,

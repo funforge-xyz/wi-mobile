@@ -388,7 +388,6 @@
     "noCommentsYet": "No comments yet. Be the first to comment!",
     "addComment": "Add comment",
     "writeComment": "Write a comment...",
-    "writeReply": "Write a reply...",
     "reply": "Reply",
     "replyingTo": "replying to",
     "writeReply": "Write a reply...",
@@ -483,5 +482,16 @@
     "offline": "Offline",
     "sendRequest": "Send Request",
     "requestSent": "Request Sent"
+  },
+  "singlePost": {
+     "title": "Post",
+    "content": "Content",
+    "noCommentsYet": "No comments yet. Be the first to comment!",
+    "addComment": "Add comment",
+    "writeComment": "Write a comment...",
+    "writeReply": "Write a reply...",
+    "showReplies": "Show replies",
+    "hideReplies": "Hide replies",
+    "replyingTo": "Replying to"
   }
 }

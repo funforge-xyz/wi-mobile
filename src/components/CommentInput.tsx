@@ -35,14 +35,14 @@ export default function CommentInput({
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
       {replyToComment && (
-        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background, borderColor: currentTheme.border }]}>
-          <Ionicons name="arrow-undo" size={16} color={currentTheme.textSecondary} />
-          <Text style={[styles.replyText, { color: currentTheme.textSecondary }]}>
+        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background, borderColor: '#3498db' }]}>
+          <Ionicons name="arrow-undo" size={16} color="#3498db" />
+          <Text style={[styles.replyText, { color: '#3498db' }]}>
             {t('singlePost.replyingTo')} {replyToComment.authorName}
           </Text>
           {onCancelReply && (
             <TouchableOpacity onPress={onCancelReply} style={styles.cancelReplyButton}>
-              <Ionicons name="close" size={16} color={currentTheme.textSecondary} />
+              <Ionicons name="close" size={16} color="#3498db" />
             </TouchableOpacity>
           )}
         </View>
