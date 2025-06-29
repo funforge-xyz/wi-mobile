@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -29,7 +28,7 @@ interface CommentsListProps {
   currentUserId?: string;
   postAuthorId?: string;
   onDeleteComment: (commentId: string, commentAuthorId: string) => void;
-  onLikeComment: (commentId: string) => void;
+  onLikeComment: (commentId: string, parentCommentId: string | undefined, commentId: string) => void;
   onReplyToComment: (commentId: string, commentAuthorName: string) => void;
   onShowReplies: (commentId: string) => void;
   currentTheme: any;
@@ -103,7 +102,7 @@ export default function CommentsList({
             </TouchableOpacity>
           )}
         </View>
-        
+
         {/* Show quoted original comment for replies */}
         {comment.parentCommentId && parentComment && (
           <View style={[styles.quotedComment, { 
@@ -118,15 +117,15 @@ export default function CommentsList({
             </Text>
           </View>
         )}
-        
+
         <Text style={[styles.commentText, { color: currentTheme.text }]}>
           {comment.content}
         </Text>
-        
+
         <View style={styles.commentActions}>
           <TouchableOpacity
             style={styles.commentActionButton}
-            onPress={() => onLikeComment(comment.id)}
+            onPress={() => onLikeComment(comment.id, comment.parentCommentId, comment.id)}
           >
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
@@ -198,7 +197,7 @@ export default function CommentsList({
       {mainComments.map(comment => (
         <View key={comment.id} style={styles.commentThread}>
           {renderComment(comment)}
-          
+
           {/* Replies Section */}
           {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && (
             <View style={styles.repliesContainer}>
