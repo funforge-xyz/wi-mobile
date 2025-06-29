@@ -203,10 +203,11 @@ export default function CommentsList({
           {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && (
             <View style={styles.repliesContainer}>
               <View style={[styles.repliesConnector, { backgroundColor: currentTheme.border }]} />
-              <View style={styles.repliesContent}>
+              <View style={[styles.repliesContent, { borderLeftColor: currentTheme.border }]}>
                 {repliesMap[comment.id].map((reply, index) => (
                   <View key={reply.id} style={[
                     styles.replyWrapper,
+                    { backgroundColor: currentTheme.background },
                     index === repliesMap[comment.id].length - 1 && styles.lastReply
                   ]}>
                     {renderComment(reply, comment)}
@@ -249,21 +250,28 @@ const styles = StyleSheet.create({
   repliesContainer: {
     flexDirection: 'row',
     marginTop: SPACING.xs,
+    marginLeft: SPACING.sm,
   },
   repliesConnector: {
     width: 2,
+    minHeight: 60,
     marginLeft: 16,
     marginRight: SPACING.md,
     borderRadius: 1,
+    opacity: 0.3,
   },
   repliesContent: {
     flex: 1,
+    paddingLeft: SPACING.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(128, 128, 128, 0.2)',
+    borderRadius: 4,
   },
   replyWrapper: {
     marginBottom: SPACING.sm,
-    paddingLeft: SPACING.sm,
-    borderLeftWidth: 1,
-    borderLeftColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    borderRadius: 8,
+    padding: SPACING.sm,
   },
   lastReply: {
     marginBottom: 0,
