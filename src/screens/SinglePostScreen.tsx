@@ -94,6 +94,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
   const [editSuccessAnimation] = useState(new Animated.Value(0));
   const [deleteSuccessAnimation] = useState(new Animated.Value(0));
+  const [replyToComment, setReplyToComment] = useState<{
+    id: string;
+    authorName: string;
+  } | null>(null);
 
   const { t } = useTranslation();
 
@@ -190,13 +194,47 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const handleCommentSubmit = async () => {
     try {
       setSubmittingComment(true);
-      await handleComment(postId, commentText, currentUser, post);
+      await handleComment(postId, commentText, currentUser, post, replyToComment?.id);
       setCommentText('');
+      setReplyToComment(null);
     } catch (error) {
       Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));
     } finally {
       setSubmittingComment(false);
     }
+  };
+
+    const handleReplyToComment = (commentId: string, authorName: string) => {
+    setReplyToComment({ id: commentId, authorName });
+  };
+
+  const handleCancelReply = () => {
+    setReplyToComment(null);
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    // if (!user || !post) return;
+
+    // try {
+    //   const comment = comments.find(c => c.id === commentId);
+    //   if (!comment) return;
+
+    //   await toggleCommentLike(
+    //     post.id,
+    //     commentId,
+    //     user.id,
+    //     comment.isLikedByUser || false,
+    //     t
+    //   );
+    //   await loadComments();
+    // } catch (error) {
+    //   console.error('Error liking comment:', error);
+    // }
+  };
+
+  const handleShowReplies = (commentId: string) => {
+    // This could expand/collapse replies or navigate to a detailed view
+    // For now, all replies are shown inline
   };
 
   const handleEditPost = () => {
@@ -232,7 +270,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       });
 
       setIsEditing(false);
-      
+
       // Show success modal
       setShowEditSuccessModal(true);
       Animated.timing(editSuccessAnimation, {
@@ -265,7 +303,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
     setShowDeleteModal(false);
     try {
       await deletePost(postId, dispatch);
-      
+
       // Show success modal
       setShowDeleteSuccessModal(true);
       Animated.timing(deleteSuccessAnimation, {
@@ -354,6 +392,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
           currentUserId={currentUser?.uid}
           postAuthorId={post.authorId}
           onDeleteComment={handleDeleteComment}
+          onLikeComment={handleLikeComment}
+          onReplyToComment={handleReplyToComment}
+          onShowReplies={handleShowReplies}
           currentTheme={currentTheme}
         />
       </KeyboardAwareScrollView>
@@ -366,6 +407,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
           onSubmit={handleCommentSubmit}
           isSubmitting={submittingComment}
           currentTheme={currentTheme}
+          replyToComment={replyToComment}
+          onCancelReply={handleCancelReply}
         />
       )}
 

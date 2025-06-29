@@ -37,6 +37,7 @@ export interface Comment {
   content: string;
   parentCommentId?: string;
   likesCount: number;
+  repliesCount: number;
   createdAt: Date;
   updatedAt: Date;
 }

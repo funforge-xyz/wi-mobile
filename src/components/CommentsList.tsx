@@ -17,6 +17,10 @@ interface Comment {
   authorPhotoURL: string;
   content: string;
   createdAt: Date;
+  likesCount: number;
+  repliesCount: number;
+  parentCommentId?: string;
+  isLikedByUser?: boolean;
 }
 
 interface CommentsListProps {
@@ -25,6 +29,9 @@ interface CommentsListProps {
   currentUserId?: string;
   postAuthorId?: string;
   onDeleteComment: (commentId: string, commentAuthorId: string) => void;
+  onLikeComment: (commentId: string) => void;
+  onReplyToComment: (commentId: string, commentAuthorName: string) => void;
+  onShowReplies: (commentId: string) => void;
   currentTheme: any;
 }
 
@@ -34,6 +41,9 @@ export default function CommentsList({
   currentUserId,
   postAuthorId,
   onDeleteComment,
+  onLikeComment,
+  onReplyToComment,
+  onShowReplies,
   currentTheme,
 }: CommentsListProps) {
   const { t } = useTranslation();
@@ -62,11 +72,17 @@ export default function CommentsList({
   };
 
   const renderComment = (comment: Comment) => (
-    <View key={comment.id} style={styles.commentItem}>
+    <View key={comment.id} style={[
+      styles.commentItem,
+      comment.parentCommentId && styles.replyItem
+    ]}>
+      {comment.parentCommentId && (
+        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.border }]} />
+      )}
       <UserAvatar
         photoURL={comment.authorPhotoURL}
         isOnline={false}
-        size={30}
+        size={comment.parentCommentId ? 25 : 30}
         currentTheme={currentTheme}
       />
       <View style={styles.commentContent}>
@@ -74,8 +90,13 @@ export default function CommentsList({
           <Text style={[styles.commentAuthor, { color: currentTheme.text }]}>
             {comment.authorName}
           </Text>
+          {comment.parentCommentId && (
+            <Text style={[styles.replyLabel, { color: currentTheme.textSecondary }]}>
+              • {t('singlePost.reply')}
+            </Text>
+          )}
           <Text style={[styles.commentTime, { color: currentTheme.textSecondary }]}>
-            {formatTimeAgo(comment.createdAt)}
+            • {formatTimeAgo(comment.createdAt)}
           </Text>
           {(comment.authorId === currentUserId || postAuthorId === currentUserId) && (
             <TouchableOpacity 
@@ -89,6 +110,47 @@ export default function CommentsList({
         <Text style={[styles.commentText, { color: currentTheme.text }]}>
           {comment.content}
         </Text>
+        
+        <View style={styles.commentActions}>
+          <TouchableOpacity
+            style={styles.commentActionButton}
+            onPress={() => onLikeComment(comment.id)}
+          >
+            <Ionicons
+              name={comment.isLikedByUser ? "heart" : "heart-outline"}
+              size={16}
+              color={comment.isLikedByUser ? COLORS.error : currentTheme.textSecondary}
+            />
+            {comment.likesCount > 0 && (
+              <Text style={[styles.commentActionText, { color: currentTheme.textSecondary }]}>
+                {comment.likesCount}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {!comment.parentCommentId && (
+            <TouchableOpacity
+              style={styles.commentActionButton}
+              onPress={() => onReplyToComment(comment.id, comment.authorName)}
+            >
+              <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
+              <Text style={[styles.commentActionText, { color: currentTheme.textSecondary }]}>
+                {t('singlePost.reply')}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {!comment.parentCommentId && comment.repliesCount > 0 && (
+            <TouchableOpacity
+              style={styles.commentActionButton}
+              onPress={() => onShowReplies(comment.id)}
+            >
+              <Text style={[styles.viewRepliesText, { color: COLORS.primary }]}>
+                {t('singlePost.viewReplies', { count: comment.repliesCount })}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -103,13 +165,30 @@ export default function CommentsList({
     );
   }
 
+  // Separate main comments and replies
+  const mainComments = comments.filter(comment => !comment.parentCommentId);
+  const repliesMap = comments.reduce((acc, comment) => {
+    if (comment.parentCommentId) {
+      if (!acc[comment.parentCommentId]) {
+        acc[comment.parentCommentId] = [];
+      }
+      acc[comment.parentCommentId].push(comment);
+    }
+    return acc;
+  }, {} as Record<string, Comment[]>);
+
   return (
     <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
       <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
         {t('singlePost.comments')} ({comments.length})
       </Text>
 
-      {comments.map(renderComment)}
+      {mainComments.map(comment => (
+        <View key={comment.id}>
+          {renderComment(comment)}
+          {repliesMap[comment.id]?.map(reply => renderComment(reply))}
+        </View>
+      ))}
 
       {comments.length === 0 && (
         <Text style={[styles.noCommentsText, { color: currentTheme.textSecondary }]}>
@@ -136,6 +215,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: SPACING.md,
   },
+  replyItem: {
+    marginLeft: SPACING.lg,
+    marginTop: SPACING.xs,
+  },
+  replyIndicator: {
+    width: 2,
+    marginRight: SPACING.sm,
+    borderRadius: 1,
+  },
   commentContent: {
     flex: 1,
     marginLeft: SPACING.sm,
@@ -148,16 +236,41 @@ const styles = StyleSheet.create({
   commentAuthor: {
     fontSize: 14,
     fontFamily: FONTS.medium,
-    marginRight: SPACING.sm,
+  },
+  replyLabel: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
   },
   commentTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
   },
   commentText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
     lineHeight: 20,
+    marginBottom: SPACING.sm,
+  },
+  commentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  commentActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SPACING.lg,
+    paddingVertical: SPACING.xs,
+  },
+  commentActionText: {
+    fontSize: 12,
+    fontFamily: FONTS.regular,
+    marginLeft: SPACING.xs,
+  },
+  viewRepliesText: {
+    fontSize: 12,
+    fontFamily: FONTS.medium,
   },
   noCommentsText: {
     fontSize: 14,
@@ -174,7 +287,7 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.lg,
   },
   deleteCommentButton: {
-    marginLeft: SPACING.sm,
+    marginLeft: 'auto',
     padding: SPACING.xs,
   },
 });

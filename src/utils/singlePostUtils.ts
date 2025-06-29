@@ -35,6 +35,10 @@ interface Comment {
   authorPhotoURL: string;
   content: string;
   createdAt: Date;
+  likesCount: number;
+  repliesCount: number;
+  parentCommentId?: string;
+  isLikedByUser?: boolean;
 }
 
 interface Like {
@@ -105,6 +109,9 @@ export const loadComments = async (postId: string): Promise<Comment[]> => {
         authorPhotoURL: authorData.photoURL || '',
         content: commentData.content || '',
         createdAt: commentData.createdAt?.toDate() || new Date(),
+        likesCount: commentData.likesCount || 0,
+        repliesCount: commentData.repliesCount || 0,
+        parentCommentId: commentData.parentCommentId || undefined,
       });
     }
 
@@ -239,7 +246,7 @@ export const updatePost = async (
     };
 
     await updateDoc(postRef, updates);
-    
+
     // Update Redux state
     if (dispatch) {
       const { updatePost } = await import('../store/userSlice');
@@ -264,7 +271,7 @@ export const deletePost = async (postId: string, dispatch?: any) => {
     const firestore = getFirestore();
     const postRef = doc(firestore, 'posts', postId);
     await deleteDoc(postRef);
-    
+
     // Update Redux state
     if (dispatch) {
       const { removePost } = await import('../store/userSlice');
@@ -315,4 +322,161 @@ export const showDeleteCommentAlert = (onConfirm: () => void, t: TFunction) => {
       }
     ]
   );
+};
+
+export const addComment = async (
+  postId: string,
+  content: string,
+  userId: string,
+  userName: string,
+  userPhotoURL: string,
+  t: TFunction,
+  parentCommentId?: string
+): Promise<void> => {
+  if (!content.trim()) {
+    Alert.alert(t('error.title'), t('singlePost.commentCannotBeEmpty'));
+    return;
+  }
+
+  try {
+    const firestore = getFirestore();
+    const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+
+    await addDoc(commentsCollection, {
+      authorId: userId,
+      authorName: userName,
+      authorPhotoURL: userPhotoURL || '',
+      content: content.trim(),
+      createdAt: serverTimestamp(),
+      parentCommentId: parentCommentId || null,
+      likesCount: 0,
+      repliesCount: 0,
+    });
+
+    // Update counts
+    const postRef = doc(firestore, 'posts', postId);
+    const postDoc = await getDoc(postRef);
+    if (postDoc.exists()) {
+      await updateDoc(postRef, {
+        commentsCount: (postDoc.data().commentsCount || 0) + 1,
+      });
+    }
+
+    // If it's a reply, update the parent comment's reply count
+    if (parentCommentId) {
+      const parentCommentRef = doc(firestore, 'posts', postId, 'comments', parentCommentId);
+      const parentCommentDoc = await getDoc(parentCommentRef);
+      if (parentCommentDoc.exists()) {
+        await updateDoc(parentCommentRef, {
+          repliesCount: (parentCommentDoc.data().repliesCount || 0) + 1,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    Alert.alert(t('error.title'), t('error.addCommentFailed'));
+    throw error;
+  }
+};
+
+export const toggleCommentLike = async (
+  postId: string,
+  commentId: string,
+  userId: string,
+  isCurrentlyLiked: boolean,
+  t: TFunction
+): Promise<void> => {
+  try {
+    const firestore = getFirestore();
+    const commentLikesCollection = collection(firestore, 'posts', postId, 'comments', commentId, 'likes');
+    const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
+
+    if (isCurrentlyLiked) {
+      // Remove like
+      const userLikeQuery = query(commentLikesCollection, orderBy('createdAt'));
+      const userLikesSnapshot = await getDocs(userLikeQuery);
+
+      let userLikeDoc = null;
+      userLikesSnapshot.forEach((likeDoc) => {
+        if (likeDoc.data().authorId === userId) {
+          userLikeDoc = likeDoc;
+        }
+      });
+
+      if (userLikeDoc) {
+        await deleteDoc(userLikeDoc.ref);
+      }
+
+      // Update comment likes count
+      const commentDoc = await getDoc(commentRef);
+      if (commentDoc.exists()) {
+        await updateDoc(commentRef, {
+          likesCount: Math.max(0, (commentDoc.data().likesCount || 1) - 1),
+        });
+      }
+    } else {
+      // Add like
+      await addDoc(commentLikesCollection, {
+        authorId: userId,
+        createdAt: serverTimestamp(),
+      });
+
+      // Update comment likes count
+      const commentDoc = await getDoc(commentRef);
+      if (commentDoc.exists()) {
+        await updateDoc(commentRef, {
+          likesCount: (commentDoc.data().likesCount || 0) + 1,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error toggling comment like:', error);
+    Alert.alert(t('error.title'), t('error.likeCommentFailed'));
+    throw error;
+  }
+};
+
+export const fetchComments = async (postId: string, userId?: string): Promise<Comment[]> => {
+  try {
+    const firestore = getFirestore();
+    const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+    const commentsQuery = query(commentsCollection, orderBy('createdAt', 'asc'));
+    const commentsSnapshot = await getDocs(commentsQuery);
+
+    const comments: Comment[] = [];
+
+    for (const commentDoc of commentsSnapshot.docs) {
+      const data = commentDoc.data();
+
+      // Check if user liked this comment
+      let isLikedByUser = false;
+      if (userId) {
+        const likesCollection = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'likes');
+        const likesSnapshot = await getDocs(likesCollection);
+        likesSnapshot.forEach((likeDoc) => {
+          if (likeDoc.data().authorId === userId) {
+            isLikedByUser = true;
+          }
+        });
+      }
+
+      comments.push({
+        id: commentDoc.id,
+        authorId: data.authorId,
+        authorName: data.authorName,
+        authorPhotoURL: data.authorPhotoURL,
+        content: data.content,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        likesCount: data.likesCount || 0,
+        repliesCount: data.repliesCount || 0,
+        parentCommentId: data.parentCommentId || undefined,
+        isLikedByUser,
+      });
+    }
+
+    return comments;
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    throw error;
+  }
 };
