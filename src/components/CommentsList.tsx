@@ -72,17 +72,11 @@ export default function CommentsList({
   };
 
   const renderComment = (comment: Comment, parentComment?: Comment) => (
-    <View key={comment.id} style={[
-      styles.commentItem,
-      comment.parentCommentId && styles.replyItem
-    ]}>
-      {comment.parentCommentId && (
-        <View style={[styles.replyIndicator, { backgroundColor: currentTheme.border }]} />
-      )}
+    <View key={comment.id} style={styles.commentItem}>
       <UserAvatar
         photoURL={comment.authorPhotoURL}
         isOnline={false}
-        size={comment.parentCommentId ? 25 : 30}
+        size={comment.parentCommentId ? 28 : 32}
         currentTheme={currentTheme}
       />
       <View style={styles.commentContent}>
@@ -202,9 +196,25 @@ export default function CommentsList({
       </Text>
 
       {mainComments.map(comment => (
-        <View key={comment.id}>
+        <View key={comment.id} style={styles.commentThread}>
           {renderComment(comment)}
-          {repliesMap[comment.id]?.map(reply => renderComment(reply, comment))}
+          
+          {/* Replies Section */}
+          {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && (
+            <View style={styles.repliesContainer}>
+              <View style={[styles.repliesConnector, { backgroundColor: currentTheme.border }]} />
+              <View style={styles.repliesContent}>
+                {repliesMap[comment.id].map((reply, index) => (
+                  <View key={reply.id} style={[
+                    styles.replyWrapper,
+                    index === repliesMap[comment.id].length - 1 && styles.lastReply
+                  ]}>
+                    {renderComment(reply, comment)}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       ))}
 
@@ -229,18 +239,34 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     marginBottom: SPACING.md,
   },
+  commentThread: {
+    marginBottom: SPACING.lg,
+  },
   commentItem: {
     flexDirection: 'row',
     marginBottom: SPACING.md,
   },
-  replyItem: {
-    marginLeft: SPACING.lg,
+  repliesContainer: {
+    flexDirection: 'row',
     marginTop: SPACING.xs,
   },
-  replyIndicator: {
+  repliesConnector: {
     width: 2,
-    marginRight: SPACING.sm,
+    marginLeft: 16,
+    marginRight: SPACING.md,
     borderRadius: 1,
+  },
+  repliesContent: {
+    flex: 1,
+  },
+  replyWrapper: {
+    marginBottom: SPACING.sm,
+    paddingLeft: SPACING.sm,
+    borderLeftWidth: 1,
+    borderLeftColor: 'transparent',
+  },
+  lastReply: {
+    marginBottom: 0,
   },
   commentContent: {
     flex: 1,
