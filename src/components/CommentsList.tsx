@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -46,6 +47,19 @@ export default function CommentsList({
   currentTheme,
 }: CommentsListProps) {
   const { t } = useTranslation();
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+
+  const toggleReplies = (commentId: string) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -135,10 +149,10 @@ export default function CommentsList({
           {!comment.parentCommentId && comment.repliesCount > 0 && (
             <TouchableOpacity
               style={styles.commentActionButton}
-              onPress={() => onShowReplies(comment.id)}
+              onPress={() => toggleReplies(comment.id)}
             >
               <Text style={[styles.viewRepliesText, { color: COLORS.primary }]}>
-                {t('singlePost.viewReplies', { count: comment.repliesCount })}
+                {expandedComments.has(comment.id) ? t('singlePost.hideReplies') : t('singlePost.showReplies')}
               </Text>
             </TouchableOpacity>
           )}
@@ -180,8 +194,8 @@ export default function CommentsList({
           {renderComment(comment)}
 
           {/* Replies Section */}
-          {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && (
-            <View style={styles.repliesContainer}>
+          {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && expandedComments.has(comment.id) && (
+            <View style={[styles.repliesContainer, { backgroundColor: currentTheme.surface }]}>
               {repliesMap[comment.id].map((reply) => renderComment(reply, comment))}
             </View>
           )}
@@ -218,10 +232,15 @@ const styles = StyleSheet.create({
   },
   repliesContainer: {
     marginTop: SPACING.xs,
-    marginLeft: SPACING.xl,
+    marginLeft: SPACING.lg,
+    paddingLeft: SPACING.sm,
+    paddingTop: SPACING.xs,
+    paddingBottom: SPACING.xs,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
   },
   replyComment: {
-    marginLeft: SPACING.xl,
+    marginLeft: SPACING.lg,
   },
   commentContent: {
     flex: 1,
