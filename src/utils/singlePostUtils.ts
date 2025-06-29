@@ -10,6 +10,8 @@ import {
   query, 
   orderBy,
   serverTimestamp,
+  where,
+  increment
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { TFunction } from 'react-i18next';
@@ -82,43 +84,57 @@ export const loadPost = async (postId: string): Promise<Post | null> => {
   }
 };
 
-export const loadComments = async (postId: string): Promise<Comment[]> => {
+export const loadComments = async (postId: string, currentUserId?: string): Promise<Comment[]> => {
   try {
     const firestore = getFirestore();
+
+    // Get comments
     const commentsQuery = query(
       collection(firestore, 'posts', postId, 'comments'),
       orderBy('createdAt', 'asc')
     );
-    const commentsSnapshot = await getDocs(commentsQuery);
 
-    const commentsList: Comment[] = [];
+    const commentsSnapshot = await getDocs(commentsQuery);
+    const comments: Comment[] = [];
 
     for (const commentDoc of commentsSnapshot.docs) {
       const commentData = commentDoc.data();
 
-      // Get author information
+      // Get author info
       const authorDoc = await getDoc(doc(firestore, 'users', commentData.authorId));
       const authorData = authorDoc.exists() ? authorDoc.data() : {};
 
-      commentsList.push({
+      // Check if current user liked this comment
+      let isLikedByUser = false;
+      if (currentUserId) {
+        const likeQuery = query(
+          collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'likes'),
+          where('authorId', '==', currentUserId)
+        );
+        const likeSnapshot = await getDocs(likeQuery);
+        isLikedByUser = !likeSnapshot.empty;
+      }
+
+      comments.push({
         id: commentDoc.id,
         authorId: commentData.authorId,
         authorName: authorData.firstName && authorData.lastName 
           ? `${authorData.firstName} ${authorData.lastName}` 
-          : 'Anonymous User',
+          : 'Unknown User',
         authorPhotoURL: authorData.photoURL || '',
-        content: commentData.content || '',
+        content: commentData.content,
         createdAt: commentData.createdAt?.toDate() || new Date(),
         likesCount: commentData.likesCount || 0,
         repliesCount: commentData.repliesCount || 0,
         parentCommentId: commentData.parentCommentId || undefined,
+        isLikedByUser,
       });
     }
 
-    return commentsList;
+    return comments;
   } catch (error) {
     console.error('Error loading comments:', error);
-    throw error;
+    return [];
   }
 };
 

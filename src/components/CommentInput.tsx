@@ -1,4 +1,3 @@
-
 import {
   View,
   TextInput,
@@ -16,12 +15,9 @@ interface CommentInputProps {
   onChangeText: (text: string) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
-  currentTheme: any;
-  replyToComment?: {
-    id: string;
-    authorName: string;
-  } | null;
+  replyToComment?: { id: string; authorName: string } | null;
   onCancelReply?: () => void;
+  currentTheme: any;
 }
 
 export default function CommentInput({
@@ -29,9 +25,9 @@ export default function CommentInput({
   onChangeText,
   onSubmit,
   isSubmitting,
-  currentTheme,
   replyToComment,
   onCancelReply,
+  currentTheme,
 }: CommentInputProps) {
   const { t } = useTranslation();
 
@@ -52,7 +48,7 @@ export default function CommentInput({
           </TouchableOpacity>
         </View>
       )}
-      
+
       <View style={styles.inputRow}>
         <TextInput
           style={[styles.commentInput, { 
