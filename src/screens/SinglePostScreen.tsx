@@ -25,13 +25,13 @@ import CommentInput from '../components/CommentInput';
 import EditPostModal from '../components/EditPostModal';
 import SinglePostSkeleton from '../components/SinglePostSkeleton';
 import DeletePostConfirmationModal from '../components/DeletePostConfirmationModal';
+import DeleteCommentConfirmationModal from '../components/DeleteCommentConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
 import { createSinglePostStyles } from '../styles/SinglePostStyles';
 import { getTheme } from '../theme';
 import {
   updatePost,
   deletePost,
-  showDeleteCommentAlert,
   toggleCommentLike,
   deleteComment,
 } from '../utils/singlePostUtils';
@@ -92,6 +92,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [editedAllowComments, setEditedAllowComments] = useState(true);
   const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<{id: string, authorId: string, parentCommentId?: string} | null>(null);
   const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
   const [editSuccessAnimation] = useState(new Animated.Value(0));
@@ -380,18 +382,47 @@ export default function SinglePostScreen({ route, navigation }: any) {
       return;
     }
 
-    showDeleteCommentAlert(async () => {
-      try {
-        setLoading(true);
-        await deleteComment(post!.id, commentId, parentCommentId);
-        await loadCommentsData(); // Reload comments
-      } catch (error) {
-        console.error('Error deleting comment:', error);
-        Alert.alert(t('error.title'), t('error.deleteCommentFailed'));
-      } finally {
-        setLoading(false);
+    setCommentToDelete({ id: commentId, authorId: commentAuthorId, parentCommentId });
+    setShowDeleteCommentModal(true);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!commentToDelete || !post) return;
+    
+    setShowDeleteCommentModal(false);
+    
+    try {
+      await deleteComment(post.id, commentToDelete.id, commentToDelete.parentCommentId);
+      
+      // Update local state immediately without reloading
+      if (commentToDelete.parentCommentId) {
+        // This is a reply - remove it from the comments array and update parent's reply count
+        setComments(prevComments => {
+          return prevComments.map(comment => {
+            if (comment.id === commentToDelete.parentCommentId) {
+              return {
+                ...comment,
+                repliesCount: Math.max(0, (comment.repliesCount || 1) - 1)
+              };
+            }
+            return comment;
+          }).filter(comment => comment.id !== commentToDelete.id);
+        });
+      } else {
+        // This is a top-level comment - remove it and all its replies
+        setComments(prevComments => {
+          return prevComments.filter(comment => 
+            comment.id !== commentToDelete.id && comment.parentCommentId !== commentToDelete.id
+          );
+        });
       }
-    }, t);
+      
+      setCommentToDelete(null);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      Alert.alert(t('common.error'), t('singlePost.failedToDeleteComment'));
+      setCommentToDelete(null);
+    }
   };
 
   if (loading) {
@@ -485,6 +516,17 @@ export default function SinglePostScreen({ route, navigation }: any) {
         visible={showDeleteModal}
         onConfirm={confirmDeletePost}
         onCancel={() => setShowDeleteModal(false)}
+        currentTheme={currentTheme}
+      />
+
+      {/* Delete Comment Confirmation Modal */}
+      <DeleteCommentConfirmationModal
+        visible={showDeleteCommentModal}
+        onConfirm={confirmDeleteComment}
+        onCancel={() => {
+          setShowDeleteCommentModal(false);
+          setCommentToDelete(null);
+        }}
         currentTheme={currentTheme}
       />
 

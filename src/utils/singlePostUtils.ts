@@ -430,6 +430,8 @@ export const deleteComment = async (postId: string, commentId: string, parentCom
         commentsCount: Math.max(0, (postDoc.data().commentsCount || 1) - 1),
       });
     }
+
+    return { success: true };
   } catch (error) {
     console.error('Error deleting comment:', error);
     throw error;
