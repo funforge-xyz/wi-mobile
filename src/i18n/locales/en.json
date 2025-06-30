@@ -1,3 +1,4 @@
+
 {
   "common": {
     "loading": "Loading...",
@@ -77,6 +78,7 @@
     "checkBackLater": "Check back later for nearby connections",
     "failedToLoad": "Failed to load nearby users",
     "distance": "{{distance}} away",
+    "sameNetwork": "Same WiFi network",
     "online": "Online",
     "offline": "Offline",
     "sendRequest": "Send Request",
@@ -202,7 +204,7 @@
     "notConnected": "Not Connected",
     "noNetworkInfo": "No network information available",
     "unknown": "Unknown",
-    "failedToUpdateSetting": "Failed toupdate setting",
+    "failedToUpdateSetting": "Failed to update setting",
     "pushNotifications": "Push Notifications",
     "receiveNotifications": "Receive push notifications",
     "account": "Account",
@@ -287,7 +289,7 @@
     "camera": "Camera",
     "gallery": "Gallery",
     "failedToSend": "Failed to send message",
-    "failedToLoad": "Failed toload messages"
+    "failedToLoad": "Failed to load messages"
   },
   "onboarding": {
     "welcome": "Welcome to Wi Chat",
@@ -380,7 +382,6 @@
     "viewReplies": "View {{count}} replies",
     "showReplies": "Show replies",
     "hideReplies": "Hide replies",
-    "reply": "Reply",
     "comments": "Comments",
     "postNotFound": "Post not found",
     "editPost": "Edit Post",
@@ -401,9 +402,7 @@
     "showLikeCount": "Show Like Count",
     "failedToLoadPost": "Failed to load post",
     "failedToAddComment": "Failed to add comment",
-    "success": "Success",
-    "postUpdated": "Your post has been updated!",
-    "postDeleted": "Your post has been deleted!"
+    "success": "Success"
   },
   "userProfile": {
     "title": "Profile",
@@ -455,31 +454,5 @@
     "contactTitle": "10. Contact Us",
     "contactText": "If you have any questions about this privacy policy, please contact us through the Help & Support section in the app or email us at privacy@wichat.app.",
     "lastUpdated": "Last Updated: {{date}}"
-  },
-   "nearby": {
-    "title": "Nearby",
-    "noUsers": "No nearby users found",
-    "checkBackLater": "Check back later for nearby connections",
-    "failedToLoad": "Failed toload nearby users",
-    "distance": "{{distance}} away",
-    "sameNetwork": "Same WiFi network",
-    "online": "Online",
-    "offline": "Offline",
-    "sendRequest": "Send Request",
-    "requestSent": "Request Sent"
-  },
-  "singlePost": {
-     "title": "Post",
-    "content": "Content",
-    "noCommentsYet": "No comments yet. Be the first to comment!",
-    "addComment": "Add comment",
-    "writeComment": "Write a comment...",
-    "writeReply": "Write a reply...",
-    "writeReply": "Write a reply...",
-    "showReplies": "Show replies",
-    "hideReplies": "Hide replies",
-    "replyingTo": "Replying to",
-    "deleteCommentConfirmation": "Are you sure you want to delete this comment?",
-    "failedToDeleteComment": "Failed to delete comment"
   }
 }
