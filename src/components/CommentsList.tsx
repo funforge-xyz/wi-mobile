@@ -67,25 +67,38 @@ export default function CommentsList({
 
   // Auto-expand when a new reply is added to any comment and scroll to it
   React.useEffect(() => {
-    // Check if any comment has replies that should be auto-expanded
-    const mainComments = comments.filter(comment => !comment.parentCommentId);
-    mainComments.forEach(comment => {
-      const hasReplies = comments.some(c => c.parentCommentId === comment.id);
-      if (hasReplies && newlyAddedReplyParentId === comment.id) {
-        setExpandedComments(prev => {
-          const newSet = new Set(prev);
-          newSet.add(comment.id);
-          return newSet;
-        });
-        
-        // Scroll to bottom after expanding replies to show the new reply
-        setTimeout(() => {
-          if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({ animated: true });
-          }
-        }, 300); // Small delay to ensure the reply container is expanded and rendered
+    if (newlyAddedReplyParentId) {
+      // Check if any comment has replies that should be auto-expanded
+      const mainComments = comments.filter(comment => !comment.parentCommentId);
+      const targetComment = mainComments.find(comment => comment.id === newlyAddedReplyParentId);
+      
+      if (targetComment) {
+        const hasReplies = comments.some(c => c.parentCommentId === targetComment.id);
+        if (hasReplies) {
+          setExpandedComments(prev => {
+            const newSet = new Set(prev);
+            newSet.add(targetComment.id);
+            return newSet;
+          });
+          
+          // Find the newest reply to scroll to
+          const replies = comments.filter(c => c.parentCommentId === targetComment.id);
+          const newestReply = replies.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+          
+          // Scroll to the newest reply after container expansion
+          setTimeout(() => {
+            if (newestReply && replyRefs.current[newestReply.id] && scrollViewRef.current) {
+              replyRefs.current[newestReply.id]?.measure((x, y, width, height, pageX, pageY) => {
+                scrollViewRef.current?.scrollTo({
+                  y: pageY - 100, // Offset to show some context above the reply
+                  animated: true,
+                });
+              });
+            }
+          }, 300); // Small delay to ensure the reply container is expanded and rendered
+        }
       }
-    });
+    }
   }, [comments, newlyAddedReplyParentId]);
 
   const toggleReplies = (commentId: string) => {

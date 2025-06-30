@@ -136,8 +136,14 @@ export default function SinglePostScreen({ route, navigation }: any) {
   // Load comments and likes after currentUser is available
   useEffect(() => {
     if (currentUser && post) {
-      loadCommentsData();
-      loadLikesData();
+      const loadInitialData = async () => {
+        await Promise.all([
+          loadCommentsData(),
+          loadLikesData()
+        ]);
+        setLoading(false);
+      };
+      loadInitialData();
     }
   }, [currentUser, post]);
 
@@ -168,7 +174,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
     } catch (error) {
       console.error('Error loading post:', error);
       Alert.alert(t('common.error'), t('singlePost.failedToLoadPost'));
-    } finally {
       setLoading(false);
     }
   };
