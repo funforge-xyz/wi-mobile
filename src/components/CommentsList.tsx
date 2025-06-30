@@ -128,12 +128,12 @@ export default function CommentsList({
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
               size={16}
-              color={comment.isLikedByUser ? currentTheme.colors.primary : currentTheme.colors.textSecondary}
+              color={comment.isLikedByUser ? currentTheme.primary : currentTheme.textSecondary}
             />
             <Text style={[
               styles.commentActionText, 
               { 
-                color: comment.isLikedByUser ? currentTheme.colors.primary : currentTheme.colors.textSecondary,
+                color: comment.isLikedByUser ? currentTheme.primary : currentTheme.textSecondary,
                 fontWeight: comment.isLikedByUser ? 'bold' : 'normal'
               }
             ]}>
