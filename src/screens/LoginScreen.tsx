@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
