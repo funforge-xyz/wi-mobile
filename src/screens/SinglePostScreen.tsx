@@ -119,14 +119,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
     // Set up real-time listeners
     const firestore = getFirestore();
 
-    // Listen to comments
-    const commentsQuery = query(
-      collection(firestore, 'posts', postId, 'comments'),
-      orderBy('createdAt', 'asc')
-    );
-    const unsubscribeComments = onSnapshot(commentsQuery, (snapshot) => {
-      loadCommentsData();
-    });
+    // Don't use real-time listener for comments to avoid conflicts with optimistic updates
+    // Comments will be refreshed when needed (new comment, delete, etc.)
 
     // Listen to likes
     const likesQuery = query(collection(firestore, 'posts', postId, 'likes'));
@@ -135,7 +129,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
     });
 
     return () => {
-      unsubscribeComments();
       unsubscribeLikes();
     };
   }, [postId]);
@@ -301,6 +294,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         t,
         parentCommentId
       );
+
+      // Don't reload comments data here - let the real-time listener handle it
+      // But we need to make sure our local state persists
     } catch (error) {
       console.error('Error liking comment:', error);
       
