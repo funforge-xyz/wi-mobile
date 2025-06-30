@@ -58,7 +58,6 @@
     "verificationEmailSent": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja.",
     "googleSignInUnavailable": "Google prijava je privremeno nedostupna u razvoju",
     "uploadPictureFailed": "Neuspješno učitavanje profilne slike. Molimo pokušajte ponovo.",
-    "forgotPassword": "Zaboravili ste lozinku?",
     "forgotPasswordTitle": "Resetiranje lozinke",
     "forgotPasswordDescription": "Unesite vašu email adresu i poslat ćemo vam link za resetiranje lozinke.",
     "sendResetEmail": "Pošaljite email za resetiranje",
@@ -67,7 +66,9 @@
     "resetEmailSentMessage": "Molimo provjerite vaš email za instrukcije za resetiranje lozinke.",
     "resetEmailError": "Neuspješno slanje email-a za resetiranje. Molimo pokušajte ponovo.",
     "emailRequired": "Email je obavezan",
-    "invalidEmail": "Molimo unesite valjanu email adresu"
+    "invalidEmail": "Molimo unesite valjanu email adresu",
+    "signIn": "Prijavite se",
+    "verifyEmail": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja."
   },
   "feed": {
     "title": "Početna",

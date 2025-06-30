@@ -58,7 +58,6 @@
     "verificationEmailSent": "Please check your email and click the verification link before signing in.",
     "googleSignInUnavailable": "Google Sign In is temporarily unavailable in development",
     "uploadPictureFailed": "Failed to upload profile picture. Please try again.",
-    "forgotPassword": "Forgot Password?",
     "forgotPasswordTitle": "Reset Password",
     "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
     "sendResetEmail": "Send Reset Email",
@@ -67,7 +66,9 @@
     "resetEmailSentMessage": "Please check your email for password reset instructions.",
     "resetEmailError": "Failed to send reset email. Please try again.",
     "emailRequired": "Email is required",
-    "invalidEmail": "Please enter a valid email address"
+    "invalidEmail": "Please enter a valid email address",
+    "signIn": "Sign In",
+    "verifyEmail": "Please check your email and click the verification link before signing in."
   },
   "feed": {
     "title": "Feed",
