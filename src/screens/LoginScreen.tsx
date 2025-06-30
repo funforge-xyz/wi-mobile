@@ -233,7 +233,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             placeholder={`${t('auth.password')} *`}
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            isPassword={true}
           />
 
           {isSignUp && (
@@ -242,8 +242,19 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               placeholder={`${t('auth.confirmPassword')} *`}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              secureTextEntry
+              isPassword={true}
             />
+          )}
+
+          {!isSignUp && (
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('ForgotPassword' as never)}
+              style={styles.forgotPasswordLink}
+            >
+              <Text style={[styles.forgotPasswordText, { color: currentTheme.primary }]}>
+                {t('auth.forgotPassword')}
+              </Text>
+            </TouchableOpacity>
           )}
 
           {isSignUp && (

@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "Loading...",
@@ -57,7 +56,18 @@
     "acceptTerms": "I accept the",
     "accountCreated": "Account Created!",
     "verificationEmailSent": "Please check your email and click the verification link before signing in.",
-    "googleSignInUnavailable": "Google Sign In will be available in the production app"
+    "googleSignInUnavailable": "Google Sign In is temporarily unavailable in development",
+    "uploadPictureFailed": "Failed to upload profile picture. Please try again.",
+    "forgotPassword": "Forgot Password?",
+    "forgotPasswordTitle": "Reset Password",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "sendResetEmail": "Send Reset Email",
+    "backToSignIn": "Back to Sign In",
+    "resetEmailSent": "Reset Email Sent",
+    "resetEmailSentMessage": "Please check your email for password reset instructions.",
+    "resetEmailError": "Failed to send reset email. Please try again.",
+    "emailRequired": "Email is required",
+    "invalidEmail": "Please enter a valid email address"
   },
   "feed": {
     "title": "Feed",

@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { getTheme } from '../theme';
@@ -18,19 +17,25 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       flexGrow: 1,
     },
     header: {
-      alignItems: 'center',
       marginBottom: SPACING.xl,
       paddingHorizontal: SPACING.lg,
       position: 'relative',
     },
+    headerContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+    },
     title: {
-      fontSize: 28,
+      fontSize: 24,
       fontFamily: FONTS.bold,
-      textAlign: 'center',
-      marginBottom: SPACING.sm,
+      flex: 1,
       color: theme.text,
     },
     headerButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
       position: 'absolute',
       top: 0,
       right: 0,
@@ -223,13 +228,43 @@ export const createLoginStyles = (isDarkMode: boolean) => {
     },
     textInput: {
       flex: 1,
-      marginLeft: SPACING.md,
       fontSize: 16,
       fontFamily: FONTS.regular,
       color: theme.text,
     },
     icon: {
       color: theme.textSecondary,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: 16,
+      paddingVertical: 0,
+      color: isDarkMode ? '#FFFFFF' : '#000000',
+    },
+    passwordToggle: {
+      padding: 4,
+    },
+    subtitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    description: {
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: 'center',
+      marginBottom: 24,
+      paddingHorizontal: 10,
+    },
+    forgotPasswordLink: {
+      alignSelf: 'flex-end',
+      marginBottom: 20,
+      marginTop: 8,
+    },
+    forgotPasswordText: {
+      fontSize: 14,
+      fontWeight: '500',
     },
   });
 };

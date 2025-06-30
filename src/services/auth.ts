@@ -26,6 +26,11 @@ export class AuthService {
     // });
   }
 
+  // Alias for signInWithEmail for backward compatibility
+  async signIn(email: string, password: string): Promise<FirebaseUser | null> {
+    return this.signInWithEmail(email, password);
+  }
+
   async signInWithEmail(email: string, password: string): Promise<FirebaseUser | null> {
     try {
       const auth = getAuth();
@@ -301,6 +306,24 @@ export class AuthService {
     } catch (error) {
       console.error('Resend verification email error:', error);
       throw error;
+    }
+  }
+
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    try {
+      const auth = getAuth();
+      const { sendPasswordResetEmail } = await import('firebase/auth');
+      await sendPasswordResetEmail(auth, email);
+    } catch (error: any) {
+      console.error('Send password reset email error:', error);
+      
+      if (error.code === 'auth/user-not-found') {
+        throw new Error('No account found with this email address');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Invalid email address');
+      }
+      
+      throw new Error('Failed to send password reset email. Please try again.');
     }
   }
 
