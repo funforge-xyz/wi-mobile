@@ -82,6 +82,12 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>WiChat needs location access to find nearby users and enable location-based features.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>WiChat needs background location access to keep finding nearby users even when the app is not active.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>WiChat needs location access to find nearby users around you.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

@@ -70,7 +70,7 @@ export default function App() {
       try {
         const { getAuth } = await import('./src/services/firebase');
         const auth = getAuth();
-        
+
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
           if (user) {
             // User is authenticated, register for push notifications

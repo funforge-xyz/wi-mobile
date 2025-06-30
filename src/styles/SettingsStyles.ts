@@ -337,4 +337,18 @@ export const modalStyles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginLeft: SPACING.sm,
   },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: SPACING.xl,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    marginLeft: SPACING.sm,
+  },
 });
