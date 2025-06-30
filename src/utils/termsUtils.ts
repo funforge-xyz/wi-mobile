@@ -1,3 +1,4 @@
+
 import { getTheme } from '../theme';
 
 export { getTheme };
@@ -34,5 +35,5 @@ export const getTermsSections = (t: (key: string, options?: any) => string) => [
 ];
 
 export const getLastUpdatedText = (t: (key: string, options?: any) => string) => {
-  return t('terms.lastUpdated', { date: new Date().toLocaleDateString() });
+  return t('terms.lastUpdated', { date: 'January 15, 2024' });
 };

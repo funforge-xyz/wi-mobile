@@ -1,13 +1,15 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../hooks/redux';
-import { getTheme } from '../utils/termsUtils';
+import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/TermsStyles';
+import { getTermsSections, getLastUpdatedText } from '../utils/termsUtils';
 import PolicyHeader from '../components/PolicyHeader';
-import TermsSection from '../components/TermsSection';
+import PolicySection from '../components/PolicySection';
+import PolicyFooter from '../components/PolicyFooter';
+import { getTheme } from '../theme';
 
 export default function TermsScreen() {
   const navigation = useNavigation();
@@ -15,39 +17,7 @@ export default function TermsScreen() {
   const { t } = useTranslation();
 
   const currentTheme = getTheme(isDarkMode);
-
-  const termsSections = [
-    {
-      title: t('terms.acceptanceTitle'),
-      content: t('terms.acceptanceText')
-    },
-    {
-      title: t('terms.privacyTitle'),
-      content: t('terms.privacyText')
-    },
-    {
-      title: t('terms.conductTitle'),
-      content: t('terms.conductText')
-    },
-    {
-      title: t('terms.contentTitle'),
-      content: t('terms.contentText')
-    },
-    {
-      title: t('terms.securityTitle'),
-      content: t('terms.securityText')
-    },
-    {
-      title: t('terms.liabilityTitle'),
-      content: t('terms.liabilityText')
-    },
-    {
-      title: t('terms.changesTitle'),
-      content: t('terms.changesText')
-    }
-  ];
-
-  const lastUpdatedText = t('terms.lastUpdated', { date: 'January 15, 2024' });
+  const termsSections = getTermsSections(t);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -59,21 +29,17 @@ export default function TermsScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {termsSections.map((section, index) => (
-          <TermsSection
+          <PolicySection
             key={index}
             title={section.title}
-            content={section.content}
+            text={section.content}
             currentTheme={currentTheme}
-            styles={styles}
           />
         ))}
 
-        <TermsSection
-          title=""
-          content={lastUpdatedText}
+        <PolicyFooter
+          lastUpdatedText={getLastUpdatedText(t)}
           currentTheme={currentTheme}
-          styles={styles}
-          isLastUpdated={true}
         />
       </ScrollView>
     </SafeAreaView>
