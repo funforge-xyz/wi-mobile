@@ -100,6 +100,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
     id: string;
     authorName: string;
   } | null>(null);
+  const [newlyAddedReplyParentId, setNewlyAddedReplyParentId] = useState<string | undefined>(undefined);
 
   const { t } = useTranslation();
 
@@ -204,6 +205,52 @@ export default function SinglePostScreen({ route, navigation }: any) {
       Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));
     } finally {
       setSubmittingComment(false);
+    }
+  };
+  
+  const handleAddComment = async (commentText: string) => {
+    if (!commentText.trim() || !currentUser) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const currentUserData = {
+        firstName: currentUser.displayName?.split(' ')[0] || '',
+        lastName: currentUser.displayName?.split(' ')[1] || '',
+        photoURL: currentUser.photoURL || ''
+      };
+
+      const parentCommentId = replyToComment?.id;
+
+      await addComment(
+        postId,
+        commentText.trim(),
+        currentUser.uid,
+        currentUserData.firstName && currentUserData.lastName 
+          ? `${currentUserData.firstName} ${currentUserData.lastName}` 
+          : 'Someone',
+        currentUserData.photoURL,
+        t,
+        parentCommentId
+      );
+
+      // If this was a reply, mark it for auto-expand
+      if (parentCommentId) {
+        setNewlyAddedReplyParentId(parentCommentId);
+        // Clear the marker after a short delay
+        setTimeout(() => setNewlyAddedReplyParentId(undefined), 1000);
+      }
+
+      // Reset form
+      setCommentText('');
+      setReplyToComment(null);
+
+      // Reload comments
+      await loadCommentsData();
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -402,6 +449,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
           onReplyToComment={handleReplyToComment}
           onShowReplies={handleShowReplies}
           currentTheme={currentTheme}
+          newlyAddedReplyParentId={newlyAddedReplyParentId}
         />
       </KeyboardAwareScrollView>
 

@@ -33,6 +33,7 @@ interface CommentsListProps {
   onReplyToComment: (commentId: string, commentAuthorName: string) => void;
   onShowReplies: (commentId: string) => void;
   currentTheme: any;
+  newlyAddedReplyParentId?: string;
 }
 
 export default function CommentsList({
@@ -45,9 +46,21 @@ export default function CommentsList({
   onReplyToComment,
   onShowReplies,
   currentTheme,
+  newlyAddedReplyParentId,
 }: CommentsListProps) {
   const { t } = useTranslation();
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+
+  // Auto-expand replies when a new reply is added
+  React.useEffect(() => {
+    if (newlyAddedReplyParentId) {
+      setExpandedComments(prev => {
+        const newSet = new Set(prev);
+        newSet.add(newlyAddedReplyParentId);
+        return newSet;
+      });
+    }
+  }, [newlyAddedReplyParentId]);
 
   const toggleReplies = (commentId: string) => {
     setExpandedComments(prev => {
@@ -121,7 +134,13 @@ export default function CommentsList({
           <TouchableOpacity
             style={[
               styles.commentActionButton,
-              comment.isLikedByUser && { backgroundColor: currentTheme.colors.primary + '20' }
+              comment.isLikedByUser && { 
+                backgroundColor: currentTheme.primary + '15',
+                borderWidth: 1,
+                borderColor: currentTheme.primary + '30',
+                borderRadius: 12,
+                paddingHorizontal: SPACING.sm,
+              }
             ]}
             onPress={() => onLikeComment(comment.id, comment.parentCommentId, comment.isLikedByUser || false, t)}
           >
@@ -134,7 +153,7 @@ export default function CommentsList({
               styles.commentActionText, 
               { 
                 color: comment.isLikedByUser ? currentTheme.primary : currentTheme.textSecondary,
-                fontWeight: comment.isLikedByUser ? 'bold' : 'normal'
+                fontWeight: comment.isLikedByUser ? '600' : 'normal'
               }
             ]}>
               {comment.likesCount || 0}
