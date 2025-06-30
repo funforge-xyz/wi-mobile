@@ -266,6 +266,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
             postId: post.id,
             commentsCount: newCommentsCount
           }));
+          
+          // Update local post state to reflect the change immediately
+          setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
         }
       }
 
@@ -515,6 +518,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         postId: post.id,
         commentsCount: newCommentsCount
       }));
+      
+      // Update local post state to reflect the change immediately
+      setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
       
       setCommentToDelete(null);
     } catch (error) {

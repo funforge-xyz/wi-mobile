@@ -250,16 +250,23 @@ const userSlice = createSlice({
         state.profile.postsCount = Math.max(0, state.profile.postsCount - 1);
       }
     },
-    updatePostLike: (state, action: PayloadAction<{ postId: string; isLiked: boolean }>) => {
-      const { postId, isLiked } = action.payload;
+    updatePostLike: (state, action: PayloadAction<{ postId: string; isLiked?: boolean; commentsCount?: number }>) => {
+      const { postId, isLiked, commentsCount } = action.payload;
       const postIndex = state.posts.findIndex(post => post.id === postId);
       if (postIndex !== -1) {
         const post = state.posts[postIndex];
-        state.posts[postIndex] = {
-          ...post,
-          likesCount: isLiked ? post.likesCount + 1 : Math.max(0, post.likesCount - 1),
-          isLikedByUser: isLiked,
-        };
+        const updates: Partial<UserPost> = {};
+        
+        if (isLiked !== undefined) {
+          updates.likesCount = isLiked ? post.likesCount + 1 : Math.max(0, post.likesCount - 1);
+          updates.isLikedByUser = isLiked;
+        }
+        
+        if (commentsCount !== undefined) {
+          updates.commentsCount = commentsCount;
+        }
+        
+        state.posts[postIndex] = { ...post, ...updates };
       }
     },
     setError: (state, action: PayloadAction<string | null>) => {

@@ -136,6 +136,7 @@
   },
   "profile": {
     "title": "Profile",
+    "myPosts": "My Posts",
     "general": "General",
     "account": "Account",
     "session": "Session",
