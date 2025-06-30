@@ -22,7 +22,13 @@
     "notifications": "Obavještenja",
     "help": "Pomoć i podrška",
     "privacyPolicy": "Politika privatnosti",
-    "terms": "Uslovi korištenja"
+    "terms": "Uslovi korištenja",
+    "openSettings": "Otvori Podešavanja"
+  },
+  "location": {
+    "permissionRequired": "Potrebna je dozvola za lokaciju",
+    "permissionDescription": "Ova aplikacija zahtijeva pristup lokaciji da bi vam pokazala korisnike i objave u blizini. Molimo dodijelite dozvolu za lokaciju da biste nastavili koristiti aplikaciju.",
+    "grantPermission": "Dodijeli dozvolu"
   },
   "auth": {
     "login": "Prijavite se",
@@ -424,8 +430,10 @@
     "failedToAddComment": "Neuspješno dodavanje komentara",
     "failedToUpdateLike": "Neuspješno ažuriranje sviđanja",
     "success": "Uspješno",
-    "postUpdated": "Vaša objava je ažurirana!",
-    "postDeleted": "Vaša objava je obrisana!"
+    "postUpdated": "Objava je uspješno ažurirana",
+    "postDeleted": "Objava je uspješno obrisana",
+    "failedToUpdate": "Neuspješno ažuriranje objave",
+    "failedToDelete": "Neuspješno brisanje objave"
   },
   "userProfile": {
     "title": "Profil",
