@@ -71,7 +71,21 @@
     "signInWithGoogle": "Sign in with Google",
     "verifyEmail": "Please check your email and click the verification link before signing in.",
     "addProfilePhoto": "Add profile photo (optional)",
-    "profilePhotoSelected": "Profile photo selected"
+    "profilePhotoSelected": "Profile photo selected",
+    "passwordTooShort": "Password must be at least 8 characters long",
+    "passwordMissingLowercase": "Password must contain at least one lowercase letter",
+    "passwordMissingUppercase": "Password must contain at least one uppercase letter",
+    "passwordMissingNumber": "Password must contain at least one number",
+    "passwordMissingSpecialChar": "Password must contain at least one special character",
+    "userNotFound": "No account found with this email address",
+    "wrongPassword": "Incorrect password. Please try again",
+    "userDisabled": "This account has been disabled",
+    "tooManyRequests": "Too many failed attempts. Please try again later",
+    "emailAlreadyInUse": "An account with this email already exists",
+    "weakPassword": "Password does not meet security requirements",
+    "invalidCredentials": "Invalid email or password. Please check your credentials",
+    "unknownError": "An error occurred. Please try again",
+    "emailNotVerified": "Please verify your email address before signing in. Check your inbox for a verification link"
   },
   "feed": {
     "title": "Feed",

@@ -58,13 +58,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleEmailAuth = async () => {
     if (!email.trim() || !password.trim()) {
-      setErrorMessage(t('auth.emailPasswordRequired'));
+      setErrorMessage('auth.emailPasswordRequired');
       return;
     }
 
     if (isSignUp) {
       if (!firstName.trim() || !lastName.trim()) {
-        setErrorMessage(t('auth.nameRequired'));
+        setErrorMessage('auth.nameRequired');
         return;
       }
 
@@ -76,12 +76,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       }
 
       if (password !== confirmPassword) {
-        setErrorMessage(t('auth.passwordMismatch'));
+        setErrorMessage('auth.passwordMismatch');
         return;
       }
 
       if (!acceptTerms) {
-        setErrorMessage(t('auth.acceptTermsRequired'));
+        setErrorMessage('auth.acceptTermsRequired');
         return;
       }
     }
@@ -100,7 +100,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             photoURL = await storageService.uploadProfilePicture(tempUserId, profileImage);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
-            setErrorMessage(t('auth.uploadPictureFailed'));
+            setErrorMessage('auth.uploadPictureFailed');
             setIsLoading(false);
             return;
           }
@@ -147,7 +147,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleGoogleSignIn = async () => {
     // TODO: Google Sign In not working with Expo Go - temporarily disabled
-    setErrorMessage(t('auth.googleSignInUnavailable'));
+    setErrorMessage('auth.googleSignInUnavailable');
     return;
 
     // setIsLoading(true);

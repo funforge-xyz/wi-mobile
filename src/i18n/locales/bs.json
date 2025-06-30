@@ -70,7 +70,21 @@
     "signIn": "Prijavite se",
     "verifyEmail": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja.",
     "addProfilePhoto": "Dodajte profilnu sliku (opcionalno)",
-    "profilePhotoSelected": "Profilna slika odabrana"
+    "profilePhotoSelected": "Profilna slika odabrana",
+    "passwordTooShort": "Lozinka mora imati najmanje 8 karaktera",
+    "passwordMissingLowercase": "Lozinka mora sadržavati najmanje jedno malo slovo",
+    "passwordMissingUppercase": "Lozinka mora sadržavati najmanje jedno veliko slovo",
+    "passwordMissingNumber": "Lozinka mora sadržavati najmanje jedan broj",
+    "passwordMissingSpecialChar": "Lozinka mora sadržavati najmanje jedan specijalni karakter",
+    "userNotFound": "Nema naloga registrovanog sa ovom email adresom",
+    "wrongPassword": "Netačna lozinka. Molimo pokušajte ponovo",
+    "userDisabled": "Ovaj nalog je onemogućen",
+    "tooManyRequests": "Previše neuspešnih pokušaja. Molimo pokušajte kasnije",
+    "emailAlreadyInUse": "Nalog sa ovom email adresom već postoji",
+    "weakPassword": "Lozinka ne ispunjava bezbednosne zahteve",
+    "invalidCredentials": "Neispravan email ili lozinka. Molimo proverite vaše podatke",
+    "unknownError": "Dogodila se greška. Molimo pokušajte ponovo",
+    "emailNotVerified": "Molimo verifikujte vašu email adresu pre prijavljivanja. Proverite vaš inbox za verifikacioni link"
   },
   "feed": {
     "title": "Početna",

@@ -1,19 +1,19 @@
 
 export const validatePassword = (password: string): string | null => {
   if (password.length < 8) {
-    return 'Password must be at least 8 characters long';
+    return 'auth.passwordTooShort';
   }
   if (!/[a-z]/.test(password)) {
-    return 'Password must contain at least one lowercase letter';
+    return 'auth.passwordMissingLowercase';
   }
   if (!/[A-Z]/.test(password)) {
-    return 'Password must contain at least one uppercase letter';
+    return 'auth.passwordMissingUppercase';
   }
   if (!/[0-9]/.test(password)) {
-    return 'Password must contain at least one number';
+    return 'auth.passwordMissingNumber';
   }
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    return 'Password must contain at least one special character';
+    return 'auth.passwordMissingSpecialChar';
   }
   return null;
 };
@@ -24,27 +24,27 @@ export const getErrorMessage = (error: any): string => {
 
   // Handle custom email verification error
   if (errorMessage === 'email-not-verified') {
-    return 'Please verify your email address before signing in. Check your inbox for a verification link.';
+    return 'auth.emailNotVerified';
   }
 
   switch (errorCode) {
     case 'auth/user-not-found':
-      return 'No account found with this email address.';
+      return 'auth.userNotFound';
     case 'auth/wrong-password':
-      return 'Incorrect password. Please try again.';
+      return 'auth.wrongPassword';
     case 'auth/invalid-email':
-      return 'Please enter a valid email address.';
+      return 'auth.invalidEmail';
     case 'auth/user-disabled':
-      return 'This account has been disabled.';
+      return 'auth.userDisabled';
     case 'auth/too-many-requests':
-      return 'Too many failed attempts. Please try again later.';
+      return 'auth.tooManyRequests';
     case 'auth/email-already-in-use':
-      return 'An account with this email already exists.';
+      return 'auth.emailAlreadyInUse';
     case 'auth/weak-password':
-      return 'Password does not meet security requirements.';
+      return 'auth.weakPassword';
     case 'auth/invalid-credential':
-      return 'Invalid email or password. Please check your credentials.';
+      return 'auth.invalidCredentials';
     default:
-      return 'An error occurred. Please try again.';
+      return 'auth.unknownError';
   }
 };

@@ -43,13 +43,13 @@ export default function ForgotPasswordScreen() {
 
   const handlePasswordReset = async () => {
     if (!email.trim()) {
-      setErrorMessage(t('auth.emailRequired'));
+      setErrorMessage('auth.emailRequired');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      setErrorMessage(t('auth.invalidEmail'));
+      setErrorMessage('auth.invalidEmail');
       return;
     }
 
@@ -70,7 +70,7 @@ export default function ForgotPasswordScreen() {
         ]
       );
     } catch (error: any) {
-      setErrorMessage(error.message || t('auth.resetEmailError'));
+      setErrorMessage(error.message || 'auth.resetEmailError');
     } finally {
       setIsLoading(false);
     }
