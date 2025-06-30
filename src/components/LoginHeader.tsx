@@ -7,9 +7,11 @@ interface LoginHeaderProps {
   currentTheme: any;
   styles: any;
   onLanguagePress?: () => void;
+  onThemeToggle?: () => void;
+  isDarkMode?: boolean;
 }
 
-export default function LoginHeader({ currentTheme, styles, onLanguagePress }: LoginHeaderProps) {
+export default function LoginHeader({ currentTheme, styles, onLanguagePress, onThemeToggle, isDarkMode }: LoginHeaderProps) {
   const { t } = useTranslation();
 
   return (
@@ -17,15 +19,30 @@ export default function LoginHeader({ currentTheme, styles, onLanguagePress }: L
       <Text style={[styles.title, { color: currentTheme.text }]}>
         {t('auth.welcome')}
       </Text>
-      {onLanguagePress && (
-        <TouchableOpacity 
-          style={styles.languageButton} 
-          onPress={onLanguagePress}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="language" size={24} color={currentTheme.textSecondary} />
-        </TouchableOpacity>
-      )}
+      <View style={styles.headerButtons}>
+        {onThemeToggle && (
+          <TouchableOpacity 
+            style={styles.themeButton} 
+            onPress={onThemeToggle}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name={isDarkMode ? "sunny" : "moon"} 
+              size={24} 
+              color={currentTheme.textSecondary} 
+            />
+          </TouchableOpacity>
+        )}
+        {onLanguagePress && (
+          <TouchableOpacity 
+            style={styles.languageButton} 
+            onPress={onLanguagePress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="language" size={24} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }

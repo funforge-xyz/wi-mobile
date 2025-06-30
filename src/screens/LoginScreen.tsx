@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/auth';
 import { storageService } from '../services/storage';
 import { validatePassword, getErrorMessage } from '../utils/loginUtils';
-import { styles } from '../styles/LoginStyles';
+import { createLoginStyles } from '../styles/LoginStyles';
 import LoginHeader from '../components/LoginHeader';
 import LoginErrorMessage from '../components/LoginErrorMessage';
 import LoginInput from '../components/LoginInput';
@@ -15,8 +15,9 @@ import LoginTermsCheckbox from '../components/LoginTermsCheckbox';
 import LoginButtons from '../components/LoginButtons';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
+import { toggleTheme } from '../store/themeSlice';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -38,7 +39,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const { t, i18n } = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const dispatch = useAppDispatch();
   const currentTheme = getTheme(isDarkMode);
+  const styles = createLoginStyles(isDarkMode);
 
   const handleLanguagePress = () => {
     setShowLanguageModal(true);
@@ -47,6 +50,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const handleLanguageChange = (code: string) => {
     i18n.changeLanguage(code);
     setShowLanguageModal(false);
+  };
+
+  const handleThemeToggle = () => {
+    dispatch(toggleTheme());
   };
 
   const handleEmailAuth = async () => {
@@ -168,6 +175,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         currentTheme={currentTheme} 
         styles={styles} 
         onLanguagePress={handleLanguagePress}
+        onThemeToggle={handleThemeToggle}
+        isDarkMode={isDarkMode}
       />
 
         <View style={styles.form}>
