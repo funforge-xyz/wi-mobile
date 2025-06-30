@@ -62,6 +62,22 @@ export default function CommentsList({
     }
   }, [newlyAddedReplyParentId]);
 
+  // Auto-expand when a new reply is added to any comment
+  React.useEffect(() => {
+    // Check if any comment has replies that should be auto-expanded
+    const mainComments = comments.filter(comment => !comment.parentCommentId);
+    mainComments.forEach(comment => {
+      const hasReplies = comments.some(c => c.parentCommentId === comment.id);
+      if (hasReplies && newlyAddedReplyParentId === comment.id) {
+        setExpandedComments(prev => {
+          const newSet = new Set(prev);
+          newSet.add(comment.id);
+          return newSet;
+        });
+      }
+    });
+  }, [comments, newlyAddedReplyParentId]);
+
   const toggleReplies = (commentId: string) => {
     setExpandedComments(prev => {
       const newSet = new Set(prev);
@@ -135,9 +151,9 @@ export default function CommentsList({
             style={[
               styles.commentActionButton,
               comment.isLikedByUser && { 
-                backgroundColor: currentTheme.primary + '15',
+                backgroundColor: '#FF3B30' + '15',
                 borderWidth: 1,
-                borderColor: currentTheme.primary + '30',
+                borderColor: '#FF3B30' + '30',
                 borderRadius: 12,
                 paddingHorizontal: SPACING.sm,
               }
@@ -147,12 +163,12 @@ export default function CommentsList({
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
               size={16}
-              color={comment.isLikedByUser ? currentTheme.primary : currentTheme.textSecondary}
+              color={comment.isLikedByUser ? '#FF3B30' : currentTheme.textSecondary}
             />
             <Text style={[
               styles.commentActionText, 
               { 
-                color: comment.isLikedByUser ? currentTheme.primary : currentTheme.textSecondary,
+                color: comment.isLikedByUser ? '#FF3B30' : currentTheme.textSecondary,
                 fontWeight: comment.isLikedByUser ? '600' : 'normal'
               }
             ]}>

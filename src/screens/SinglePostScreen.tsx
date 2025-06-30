@@ -212,7 +212,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
     if (!commentText.trim() || !currentUser) return;
 
     try {
-      setIsSubmitting(true);
+      setSubmittingComment(true);
 
       const currentUserData = {
         firstName: currentUser.displayName?.split(' ')[0] || '',
@@ -222,15 +222,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
       const parentCommentId = replyToComment?.id;
 
-      await addComment(
+      await handleComment(
         postId,
         commentText.trim(),
-        currentUser.uid,
-        currentUserData.firstName && currentUserData.lastName 
-          ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-          : 'Someone',
-        currentUserData.photoURL,
-        t,
+        currentUser,
+        post,
         parentCommentId
       );
 
@@ -245,12 +241,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
       setCommentText('');
       setReplyToComment(null);
 
-      // Reload comments
+      // Reload comments to get updated like status
       await loadCommentsData();
     } catch (error) {
       console.error('Error adding comment:', error);
+      Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));
     } finally {
-      setIsSubmitting(false);
+      setSubmittingComment(false);
     }
   };
 
@@ -458,7 +455,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         <CommentInput
           value={commentText}
           onChangeText={setCommentText}
-          onSubmit={handleCommentSubmit}
+          onSubmit={() => handleAddComment(commentText)}
           isSubmitting={submittingComment}
           currentTheme={currentTheme}
           replyToComment={replyToComment}
