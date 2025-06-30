@@ -30,6 +30,20 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       color: theme.text,
       flex: 1,
     },
+    subtitle: {
+      fontSize: 24,
+      fontFamily: FONTS.bold,
+      color: theme.text,
+      textAlign: 'center',
+    },
+    description: {
+      fontSize: 16,
+      fontFamily: FONTS.regular,
+      color: theme.textSecondary,
+      textAlign: 'center',
+      marginBottom: SPACING.lg,
+      lineHeight: 22,
+    },
     headerButtons: {
       flexDirection: 'row',
       alignItems: 'center',

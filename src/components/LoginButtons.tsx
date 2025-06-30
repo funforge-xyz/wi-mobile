@@ -12,6 +12,9 @@ interface LoginButtonsProps {
   onEmailAuth: () => void;
   onGoogleSignIn: () => void;
   onSwitchMode: () => void;
+  primaryButtonText?: string;
+  switchModeText?: string;
+  hideGoogleButton?: boolean;
 }
 
 export default function LoginButtons({
@@ -20,6 +23,9 @@ export default function LoginButtons({
   onEmailAuth,
   onGoogleSignIn,
   onSwitchMode,
+  primaryButtonText,
+  switchModeText,
+  hideGoogleButton = false,
 }: LoginButtonsProps) {
   const { t } = useTranslation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -36,27 +42,31 @@ export default function LoginButtons({
           <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.primaryButtonText}>
-            {isSignUp ? t('auth.signUp') : t('auth.signIn')}
+            {primaryButtonText || (isSignUp ? t('auth.signUp') : t('auth.signIn'))}
           </Text>
         )}
       </TouchableOpacity>
 
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>{t('auth.or')}</Text>
-        <View style={styles.dividerLine} />
-      </View>
+      {!hideGoogleButton && (
+        <>
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('auth.or')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-      <TouchableOpacity
-        style={styles.socialButton}
-        onPress={onGoogleSignIn}
-        disabled={isLoading}
-      >
-        <Ionicons name="logo-google" size={20} color="#4285F4" />
-        <Text style={styles.socialButtonText}>
-          {t('auth.signInWithGoogle')}
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={onGoogleSignIn}
+            disabled={isLoading}
+          >
+            <Ionicons name="logo-google" size={20} color="#4285F4" />
+            <Text style={styles.socialButtonText}>
+              {t('auth.signInWithGoogle')}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       <TouchableOpacity 
         style={styles.switchButton}
@@ -64,7 +74,7 @@ export default function LoginButtons({
         disabled={isLoading}
       >
         <Text style={styles.switchButtonText}>
-          {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
+          {switchModeText || (isSignUp ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount'))}
         </Text>
       </TouchableOpacity>
     </>
