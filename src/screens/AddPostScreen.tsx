@@ -61,11 +61,6 @@ export default function AddPostScreen() {
     setSelectedImage(null);
     setAllowComments(true);
     setShowLikeCount(true);
-    // Blur input and dismiss keyboard
-    if (textInputRef.current) {
-      textInputRef.current.blur();
-    }
-    Keyboard.dismiss();
   };
 
   const handleCameraCapture = async () => {
@@ -141,6 +136,12 @@ export default function AddPostScreen() {
       Alert.alert(t('common.error'), t('addPost.addContentError', 'Please add some content or an image to your post'));
       return;
     }
+
+    // Blur input and dismiss keyboard immediately
+    if (textInputRef.current) {
+      textInputRef.current.blur();
+    }
+    Keyboard.dismiss();
 
     setIsPosting(true);
     try {
