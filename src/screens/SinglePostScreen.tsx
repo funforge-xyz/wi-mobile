@@ -32,6 +32,8 @@ import {
   updatePost,
   deletePost,
   showDeleteCommentAlert,
+  toggleCommentLike,
+  deleteComment,
 } from '../utils/singlePostUtils';
 import { useAppDispatch } from '../hooks/redux';
 import {
