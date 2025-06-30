@@ -78,26 +78,10 @@ export default function CommentsList({
           return newSet;
         });
         
-        // Scroll to the newly added reply after a short delay to ensure it's rendered
+        // Scroll to bottom after expanding replies to show the new reply
         setTimeout(() => {
-          const replies = comments.filter(c => c.parentCommentId === comment.id);
-          if (replies.length > 0) {
-            // Get the most recent reply (assuming it's the newly added one)
-            const newestReply = replies.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-            const replyRef = replyRefs.current[newestReply.id];
-            
-            if (replyRef && scrollViewRef.current) {
-              replyRef.measureLayout(
-                scrollViewRef.current.getInnerViewNode(),
-                (x, y) => {
-                  scrollViewRef.current?.scrollTo({
-                    y: y - 100, // Offset to show some context above the reply
-                    animated: true,
-                  });
-                },
-                () => {} // Error callback
-              );
-            }
+          if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: true });
           }
         }, 300); // Small delay to ensure the reply container is expanded and rendered
       }
