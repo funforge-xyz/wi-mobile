@@ -119,19 +119,26 @@ export default function CommentsList({
 
         <View style={styles.commentActions}>
           <TouchableOpacity
-            style={styles.commentActionButton}
+            style={[
+              styles.commentActionButton,
+              comment.isLikedByUser && { backgroundColor: currentTheme.colors.primary + '20' }
+            ]}
             onPress={() => onLikeComment(comment.id, comment.parentCommentId, comment.isLikedByUser || false, t)}
           >
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
               size={16}
-              color={comment.isLikedByUser ? COLORS.error : currentTheme.textSecondary}
+              color={comment.isLikedByUser ? currentTheme.colors.primary : currentTheme.colors.textSecondary}
             />
-            {comment.likesCount > 0 && (
-              <Text style={[styles.commentActionText, { color: currentTheme.textSecondary }]}>
-                {comment.likesCount}
-              </Text>
-            )}
+            <Text style={[
+              styles.commentActionText, 
+              { 
+                color: comment.isLikedByUser ? currentTheme.colors.primary : currentTheme.colors.textSecondary,
+                fontWeight: comment.isLikedByUser ? 'bold' : 'normal'
+              }
+            ]}>
+              {comment.likesCount || 0}
+            </Text>
           </TouchableOpacity>
 
           {!comment.parentCommentId && (
@@ -253,7 +260,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.medium,
   },
-  
+
   commentTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
@@ -302,5 +309,5 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     padding: SPACING.xs,
   },
-  
+
 });
