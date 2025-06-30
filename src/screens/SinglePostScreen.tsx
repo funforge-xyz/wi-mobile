@@ -275,6 +275,15 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
       // Reload comments to get updated like status
       await loadCommentsData();
+
+      // For top-level comments, scroll to the end to show the new comment
+      if (!parentCommentId) {
+        setTimeout(() => {
+          // Trigger scroll to end by setting a temporary state
+          setNewlyAddedReplyParentId('scroll-to-end');
+          setTimeout(() => setNewlyAddedReplyParentId(undefined), 100);
+        }, 500);
+      }
     } catch (error) {
       console.error('Error adding comment:', error);
       Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));

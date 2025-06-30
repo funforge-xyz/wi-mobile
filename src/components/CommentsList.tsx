@@ -54,14 +54,22 @@ export default function CommentsList({
   const scrollViewRef = useRef<ScrollView>(null);
   const replyRefs = useRef<Record<string, View | null>>({});
 
-  // Auto-expand replies when a new reply is added
+  // Auto-expand replies when a new reply is added or scroll to end for new comments
   React.useEffect(() => {
     if (newlyAddedReplyParentId) {
-      setExpandedComments(prev => {
-        const newSet = new Set(prev);
-        newSet.add(newlyAddedReplyParentId);
-        return newSet;
-      });
+      if (newlyAddedReplyParentId === 'scroll-to-end') {
+        // Scroll to end for new top-level comments
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 200);
+      } else {
+        // Expand replies for actual reply parent IDs
+        setExpandedComments(prev => {
+          const newSet = new Set(prev);
+          newSet.add(newlyAddedReplyParentId);
+          return newSet;
+        });
+      }
     }
   }, [newlyAddedReplyParentId]);
 
@@ -89,20 +97,29 @@ export default function CommentsList({
           setTimeout(() => {
             if (newestReply && replyRefs.current[newestReply.id] && scrollViewRef.current) {
               try {
-                replyRefs.current[newestReply.id]?.measure((x, y, width, height, pageX, pageY) => {
-                  // Calculate scroll position based on the reply's position
-                  const scrollY = Math.max(0, pageY - 150); // Offset to show context above
-                  scrollViewRef.current?.scrollTo({
-                    y: scrollY,
-                    animated: true,
+                // Use measureInWindow to get absolute position, then calculate relative position
+                replyRefs.current[newestReply.id]?.measureInWindow((x, y, width, height) => {
+                  // Get ScrollView's position
+                  scrollViewRef.current?.measureInWindow((scrollX, scrollY, scrollWidth, scrollHeight) => {
+                    // Calculate the relative position of the reply within the ScrollView
+                    const relativeY = y - scrollY;
+                    // Scroll to show the reply with some padding
+                    scrollViewRef.current?.scrollTo({
+                      y: Math.max(0, relativeY - 100),
+                      animated: true,
+                    });
                   });
                 });
               } catch (error) {
+                console.log('Scroll measurement failed, falling back to scrollToEnd');
                 // Fallback: just scroll to the end if measurement fails
                 scrollViewRef.current?.scrollToEnd({ animated: true });
               }
+            } else {
+              // If no specific reply ref, just scroll to the end to show new content
+              scrollViewRef.current?.scrollToEnd({ animated: true });
             }
-          }, 300); // Small delay to ensure the reply container is expanded and rendered
+          }, 400); // Slightly longer delay to ensure the reply container is fully expanded and rendered
         }
       }
     }
