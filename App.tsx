@@ -65,18 +65,37 @@ export default function App() {
   useEffect(() => {
     initializeNotifications();
 
-    // Register for push notifications explicitly
-    const setupPushNotifications = async () => {
+    // Set up auth state listener to register for push notifications only when authenticated
+    const setupAuthListener = async () => {
       try {
-        const { registerForPushNotifications } = await import('./src/services/notifications');
-        await registerForPushNotifications();
+        const { getAuth } = await import('./src/services/firebase');
+        const auth = getAuth();
+        
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+          if (user) {
+            // User is authenticated, register for push notifications
+            console.log('🔐 User authenticated, registering for push notifications...');
+            try {
+              const { registerForPushNotifications } = await import('./src/services/notifications');
+              await registerForPushNotifications();
+            } catch (error) {
+              console.error('Failed to register for push notifications:', error);
+            }
+          } else {
+            console.log('👤 User not authenticated, skipping push notification registration');
+          }
+        });
+
+        return unsubscribe;
       } catch (error) {
-        console.error('Failed to register for push notifications:', error);
+        console.error('Error setting up auth listener for push notifications:', error);
       }
     };
 
-    // Delay registration slightly to ensure app is fully loaded
-    setTimeout(setupPushNotifications, 2000);
+    let authUnsubscribe: (() => void) | undefined;
+    setupAuthListener().then((unsub) => {
+      authUnsubscribe = unsub;
+    });
 
     // Handle app state changes to refresh notifications when app comes to foreground
     const handleAppStateChange = (nextAppState: string) => {
@@ -86,10 +105,13 @@ export default function App() {
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
     return () => {
-      subscription?.remove();
+      if (authUnsubscribe) {
+        authUnsubscribe();
+      }
+      appStateSubscription?.remove();
     };
   }, []);
 
