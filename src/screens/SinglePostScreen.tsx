@@ -213,24 +213,23 @@ export default function SinglePostScreen({ route, navigation }: any) {
     setReplyToComment(null);
   };
 
-  const handleLikeComment = async (commentId: string) => {
-    // if (!user || !post) return;
+  const handleLikeComment = async (commentId: string, parentCommentId: string | undefined, isCurrentlyLiked: boolean, t: any) => {
+    if (!currentUser || !post) return;
 
-    // try {
-    //   const comment = comments.find(c => c.id === commentId);
-    //   if (!comment) return;
-
-    //   await toggleCommentLike(
-    //     post.id,
-    //     commentId,
-    //     user.id,
-    //     comment.isLikedByUser || false,
-    //     t
-    //   );
-    //   await loadComments();
-    // } catch (error) {
-    //   console.error('Error liking comment:', error);
-    // }
+    try {
+      await toggleCommentLike(
+        post.id,
+        commentId,
+        currentUser.uid,
+        isCurrentlyLiked,
+        t,
+        parentCommentId
+      );
+      await loadCommentsData();
+    } catch (error) {
+      console.error('Error liking comment:', error);
+      Alert.alert(t('common.error'), t('singlePost.failedToLikeComment'));
+    }
   };
 
   const handleShowReplies = (commentId: string) => {

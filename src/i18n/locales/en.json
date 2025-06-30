@@ -415,7 +415,8 @@
     "showLikeCount": "Show Like Count",
     "failedToLoadPost": "Failed to load post",
     "failedToAddComment": "Failed to add comment",
-    "failedToUpdateLike": "Failed to update like",
+    "failedToDeleteComment": "Failed to delete comment",
+    "failedToLikeComment": "Failed to like comment",
     "success": "Success",
     "postUpdated": "Your post has been updated!",
     "postDeleted": "Your post has been deleted!"

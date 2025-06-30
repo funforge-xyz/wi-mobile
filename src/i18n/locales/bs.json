@@ -542,6 +542,7 @@
         "likes": "Sviđanja",
         "comments": "Komentari",
         "failedToLoad": "Neuspješno učitavanje objava",
+        "failedToLikeComment": "Neuspješno lajkovanje komentara",
         "title": "Objava",
         "content": "Sadržaj",
         "addComment": "Dodaj komentar",

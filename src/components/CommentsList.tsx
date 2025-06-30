@@ -29,7 +29,7 @@ interface CommentsListProps {
   currentUserId?: string;
   postAuthorId?: string;
   onDeleteComment: (commentId: string, commentAuthorId: string) => void;
-  onLikeComment: (commentId: string, parentCommentId: string | undefined, commentId: string) => void;
+  onLikeComment: (commentId: string, parentCommentId: string | undefined, isCurrentlyLiked: boolean, t: any) => void;
   onReplyToComment: (commentId: string, commentAuthorName: string) => void;
   onShowReplies: (commentId: string) => void;
   currentTheme: any;
@@ -120,7 +120,7 @@ export default function CommentsList({
         <View style={styles.commentActions}>
           <TouchableOpacity
             style={styles.commentActionButton}
-            onPress={() => onLikeComment(comment.id, comment.parentCommentId, comment.id)}
+            onPress={() => onLikeComment(comment.id, comment.parentCommentId, comment.isLikedByUser || false, t)}
           >
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
