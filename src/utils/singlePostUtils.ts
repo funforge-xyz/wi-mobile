@@ -88,24 +88,16 @@ export const loadPost = async (postId: string): Promise<Post | null> => {
 export const loadComments = async (postId: string, currentUserId?: string): Promise<Comment[]> => {
   try {
     const firestore = getFirestore();
-
-    // Get top-level comments
-    const commentsQuery = query(
-      collection(firestore, 'posts', postId, 'comments'),
-      orderBy('createdAt', 'asc')
-    );
-
+    const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+    const commentsQuery = query(commentsCollection, orderBy('createdAt', 'asc'));
     const commentsSnapshot = await getDocs(commentsQuery);
-    const allComments: Comment[] = [];
+
+    const comments: Comment[] = [];
 
     for (const commentDoc of commentsSnapshot.docs) {
-      const commentData = commentDoc.data();
+      const data = commentDoc.data();
 
-      // Get author info
-      const authorDoc = await getDoc(doc(firestore, 'users', commentData.authorId));
-      const authorData = authorDoc.exists() ? authorDoc.data() : {};
-
-      // Check if current user has liked this comment
+      // Check if current user liked this comment
       let isLikedByUser = false;
       if (currentUserId) {
         const userLikeQuery = query(
@@ -117,38 +109,29 @@ export const loadComments = async (postId: string, currentUserId?: string): Prom
         isLikedByUser = !userLikeSnapshot.empty;
       }
 
-      // Add top-level comment
-      allComments.push({
+      const comment: Comment = {
         id: commentDoc.id,
-        authorId: commentData.authorId,
-        authorName: authorData.firstName && authorData.lastName 
-          ? `${authorData.firstName} ${authorData.lastName}` 
-          : 'Unknown User',
-        authorPhotoURL: authorData.photoURL || '',
-        content: commentData.content,
-        createdAt: commentData.createdAt?.toDate() || new Date(),
-        likesCount: commentData.likesCount || 0,
-        repliesCount: commentData.repliesCount || 0,
-        parentCommentId: undefined,
+        authorId: data.authorId,
+        authorName: data.authorName,
+        authorPhotoURL: data.authorPhotoURL || '',
+        content: data.content,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        likesCount: data.likesCount || 0,
+        repliesCount: data.repliesCount || 0,
         isLikedByUser,
-      });
+      };
 
-      // Get replies for this comment
-      const repliesQuery = query(
-        collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies'),
-        orderBy('createdAt', 'asc')
-      );
+      comments.push(comment);
 
+      // Fetch replies for this comment
+      const repliesCollection = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies');
+      const repliesQuery = query(repliesCollection, orderBy('createdAt', 'asc'));
       const repliesSnapshot = await getDocs(repliesQuery);
 
       for (const replyDoc of repliesSnapshot.docs) {
         const replyData = replyDoc.data();
 
-        // Get reply author info
-        const replyAuthorDoc = await getDoc(doc(firestore, 'users', replyData.authorId));
-        const replyAuthorData = replyAuthorDoc.exists() ? replyAuthorDoc.data() : {};
-
-        // Check if current user has liked this reply
+        // Check if current user liked this reply
         let isReplyLikedByUser = false;
         if (currentUserId) {
           const userReplyLikeQuery = query(
@@ -160,27 +143,27 @@ export const loadComments = async (postId: string, currentUserId?: string): Prom
           isReplyLikedByUser = !userReplyLikeSnapshot.empty;
         }
 
-        allComments.push({
+        const reply: Comment = {
           id: replyDoc.id,
           authorId: replyData.authorId,
-          authorName: replyAuthorData.firstName && replyAuthorData.lastName 
-            ? `${replyAuthorData.firstName} ${replyAuthorData.lastName}` 
-            : 'Unknown User',
-          authorPhotoURL: replyAuthorData.photoURL || '',
+          authorName: replyData.authorName,
+          authorPhotoURL: replyData.authorPhotoURL || '',
           content: replyData.content,
           createdAt: replyData.createdAt?.toDate() || new Date(),
           likesCount: replyData.likesCount || 0,
-          repliesCount: 0, // Replies don't have sub-replies
+          repliesCount: 0,
           parentCommentId: commentDoc.id,
           isLikedByUser: isReplyLikedByUser,
-        });
+        };
+
+        comments.push(reply);
       }
     }
 
-    return allComments;
+    return comments;
   } catch (error) {
-    console.error('Error loading comments:', error);
-    return [];
+    console.error('Error fetching comments:', error);
+    throw error;
   }
 };
 
@@ -617,7 +600,7 @@ export const fetchComments = async (postId: string, userId?: string): Promise<Co
     for (const commentDoc of commentsSnapshot.docs) {
       const data = commentDoc.data();
 
-      // Check if user liked this comment
+      // Check if current user liked this comment
       let isLikedByUser = false;
       if (userId) {
         const likesCollection = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'likes');

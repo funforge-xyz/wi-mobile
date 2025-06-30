@@ -274,6 +274,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const handleLikeComment = async (commentId: string, parentCommentId: string | undefined, isCurrentlyLiked: boolean, t: any) => {
     if (!currentUser || !post) return;
 
+    const newLikedState = !isCurrentlyLiked;
+    const likesCountChange = newLikedState ? 1 : -1;
+
     try {
       // Update local state immediately for responsive UI
       setComments(prevComments => {
@@ -281,10 +284,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
           if (comment.id === commentId) {
             return {
               ...comment,
-              isLikedByUser: !isCurrentlyLiked,
-              likesCount: isCurrentlyLiked 
-                ? Math.max(0, (comment.likesCount || 1) - 1)
-                : (comment.likesCount || 0) + 1
+              isLikedByUser: newLikedState,
+              likesCount: Math.max(0, (comment.likesCount || 0) + likesCountChange)
             };
           }
           return comment;
@@ -310,9 +311,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
             return {
               ...comment,
               isLikedByUser: isCurrentlyLiked,
-              likesCount: isCurrentlyLiked 
-                ? (comment.likesCount || 0) + 1
-                : Math.max(0, (comment.likesCount || 1) - 1)
+              likesCount: Math.max(0, (comment.likesCount || 0) - likesCountChange)
             };
           }
           return comment;
