@@ -5,9 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
@@ -25,6 +22,7 @@ interface AddPostFormProps {
   showLikeCount: boolean;
   onShowLikeCountToggle: () => void;
   currentTheme: any;
+  textInputRef?: any;
 }
 
 export default function AddPostForm({
@@ -38,22 +36,23 @@ export default function AddPostForm({
   showLikeCount,
   onShowLikeCountToggle,
   currentTheme,
+  textInputRef,
 }: AddPostFormProps) {
   const { t } = useTranslation();
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ScrollView style={addPostStyles.content} showsVerticalScrollIndicator={false}>
-        <TextInput
-          style={[addPostStyles.textInput, { color: currentTheme.text }]}
-          placeholder={t('addPost.whatsOnMind')}
-          placeholderTextColor={currentTheme.textSecondary}
-          value={content}
-          onChangeText={onContentChange}
-          multiline
-          maxLength={500}
-          textAlignVertical="top"
-        />
+    <View style={addPostStyles.content}>
+      <TextInput
+        ref={textInputRef}
+        style={[addPostStyles.textInput, { color: currentTheme.text }]}
+        placeholder={t('addPost.whatsOnMind')}
+        placeholderTextColor={currentTheme.textSecondary}
+        value={content}
+        onChangeText={onContentChange}
+        multiline
+        maxLength={500}
+        textAlignVertical="top"
+      />
 
         <View style={addPostStyles.characterCount}>
           <Text style={[addPostStyles.characterCountText, { color: currentTheme.textSecondary }]}>
@@ -138,7 +137,6 @@ export default function AddPostForm({
             </View>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </TouchableWithoutFeedback>
+    </View>
   );
 }

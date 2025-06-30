@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Alert,
   Animated,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as ImagePicker from 'expo-image-picker';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +27,7 @@ export default function AddPostScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0));
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const textInputRef = useRef<any>(null);
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
@@ -58,6 +61,11 @@ export default function AddPostScreen() {
     setSelectedImage(null);
     setAllowComments(true);
     setShowLikeCount(true);
+    // Blur input and dismiss keyboard
+    if (textInputRef.current) {
+      textInputRef.current.blur();
+    }
+    Keyboard.dismiss();
   };
 
   const handleCameraCapture = async () => {
@@ -183,18 +191,27 @@ export default function AddPostScreen() {
         currentTheme={currentTheme}
       />
 
-      <AddPostForm
-        content={content}
-        onContentChange={setContent}
-        selectedImage={selectedImage}
-        onImagePress={showImagePicker}
-        onRemoveImage={() => setSelectedImage('')}
-        allowComments={allowComments}
-        onAllowCommentsToggle={() => setAllowComments(!allowComments)}
-        showLikeCount={showLikeCount}
-        onShowLikeCountToggle={() => setShowLikeCount(!showLikeCount)}
-        currentTheme={currentTheme}
-      />
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraScrollHeight={100}
+      >
+        <AddPostForm
+          content={content}
+          onContentChange={setContent}
+          selectedImage={selectedImage}
+          onImagePress={showImagePicker}
+          onRemoveImage={() => setSelectedImage('')}
+          allowComments={allowComments}
+          onAllowCommentsToggle={() => setAllowComments(!allowComments)}
+          showLikeCount={showLikeCount}
+          onShowLikeCountToggle={() => setShowLikeCount(!showLikeCount)}
+          currentTheme={currentTheme}
+          textInputRef={textInputRef}
+        />
+      </KeyboardAwareScrollView>
 
       <SuccessModal
         visible={showSuccessModal}
