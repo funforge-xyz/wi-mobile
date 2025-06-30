@@ -448,8 +448,15 @@
     "deleteComment": "Delete Comment",
     "deleteCommentConfirmation": "Are you sure you want to delete this comment?",
     "failedToDeleteComment": "Failed to delete comment. Please try again.",
-    "privacy": "Private Post",
-    "privatePostDescription": "Only your connections can see this post"
+    "failedToAddComment": "Failed to add comment. Please try again.",
+    "failedToLikeComment": "Failed to like comment. Please try again.",
+    "failedToLoadPost": "Failed to load post. Please try again.",
+    "success": "Success",
+    "privacy": "Privacy",
+    "privatePostDescription": "Only your connections can see this post",
+    "allowComments": "Allow Comments",
+    "showLikeCount": "Show Like Count",
+    "commentsDisabled": "Comments are disabled for this post"
   },
   "userProfile": {
     "title": "Profile",

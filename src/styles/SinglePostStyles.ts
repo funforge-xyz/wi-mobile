@@ -12,6 +12,8 @@ export const createSinglePostStyles = (isDarkMode: boolean) => {
   return StyleSheet.create({
     container: {
       flex: 1,
+      height: '100%',
+      backgroundColor: isDarkMode ? COLORS.dark.background : COLORS.light.background,
     },
     loadingContainer: {
       flex: 1,
