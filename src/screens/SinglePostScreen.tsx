@@ -168,7 +168,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
         setEditedShowLikeCount(postData.showLikeCount);
         setPost(postData);
         // Comments and likes will be loaded after currentUser is set
-      }
       } else {
         Alert.alert(t('common.error'), t('singlePost.postNotFound'));
         navigation.goBack();
