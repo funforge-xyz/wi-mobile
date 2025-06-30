@@ -3,110 +3,68 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../config/constants';
-import { styles } from '../styles/LoginStyles';
+import { createLoginStyles } from '../styles/LoginStyles';
+import { useAppSelector } from '../hooks/redux';
 
 interface LoginImagePickerProps {
   profileImage: string;
-  setProfileImage: (uri: string) => void;
+  setProfileImage: (image: string) => void;
 }
 
-export default function LoginImagePicker({ profileImage, setProfileImage }: LoginImagePickerProps) {
+export default function LoginImagePicker({
+  profileImage,
+  setProfileImage,
+}: LoginImagePickerProps) {
   const { t } = useTranslation();
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const styles = createLoginStyles(isDarkMode);
 
-  const showImagePickerOptions = () => {
-    Alert.alert(
-      t('addPost.selectPhoto'),
-      t('addPost.useCameraToAdd'),
-      [
-        {
-          text: t('addPost.takePhoto'),
-          onPress: handleCameraCapture,
-        },
-        {
-          text: t('chat.gallery'),
-          onPress: handleImagePicker,
-        },
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-      ]
-    );
-  };
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
 
-  const handleImagePicker = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert(t('settings.permissionRequired'), t('errors.permissionDenied'));
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-
-      // Check file size (2.5MB = 2,621,440 bytes)
-      if (asset.fileSize && asset.fileSize > 2621440) {
-        Alert.alert(t('common.error'), 'Please select an image smaller than 2.5MB');
-        return;
+      if (!result.canceled && result.assets[0]) {
+        setProfileImage(result.assets[0].uri);
       }
-
-      setProfileImage(asset.uri);
+    } catch (error) {
+      console.error('Image picker error:', error);
+      Alert.alert(t('auth.imagePicker'), t('auth.imagePickerError'));
     }
   };
 
-  const handleCameraCapture = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert(t('settings.permissionRequired'), t('errors.permissionDenied'));
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      if (asset.fileSize && asset.fileSize > 2621440) {
-        Alert.alert(t('common.error'), 'Please select an image smaller than 2.5MB');
-        return;
-      }
-
-      setProfileImage(asset.uri);
-    }
+  const removeImage = () => {
+    setProfileImage('');
   };
 
   return (
-    <TouchableOpacity style={styles.imagePickerContainer} onPress={showImagePickerOptions}>
-      <View style={styles.imagePickerContent}>
-        <Ionicons name="camera-outline" size={20} color={COLORS.textSecondary} />
-        <Text style={[styles.imagePickerText, { color: COLORS.textSecondary }]}>
-          {profileImage ? t('addPost.changePhoto') : t('addPost.takePhotoOptional')}
+    <View style={styles.imagePickerContainer}>
+      <TouchableOpacity
+        style={styles.imagePickerContent}
+        onPress={pickImage}
+      >
+        <Ionicons name="camera-outline" size={20} style={styles.icon} />
+        <Text style={styles.imagePickerText}>
+          {t('auth.profilePictureOptional')}
         </Text>
-      </View>
+        <Ionicons name="chevron-forward" size={16} style={styles.icon} />
+      </TouchableOpacity>
+
       {profileImage && (
         <View style={styles.selectedImageContainer}>
           <Image source={{ uri: profileImage }} style={styles.selectedImage} />
-          <TouchableOpacity 
-            style={styles.removeImageButton} 
-            onPress={() => setProfileImage('')}
+          <TouchableOpacity
+            style={styles.removeImageButton}
+            onPress={removeImage}
           >
-            <Ionicons name="trash" size={16} color={COLORS.error} />
+            <Ionicons name="close-circle" size={24} color={COLORS.error} />
           </TouchableOpacity>
         </View>
       )}
-    </TouchableOpacity>
+    </View>
   );
 }

@@ -1,7 +1,9 @@
+
 import { View, TextInput, TouchableOpacity, Text, TextInputProps, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
-import { styles } from '../styles/LoginStyles';
+import { createLoginStyles } from '../styles/LoginStyles';
+import { useAppSelector } from '../hooks/redux';
 
 interface LoginInputProps extends TextInputProps {
   icon: string;
@@ -18,16 +20,21 @@ export default function LoginInput({
   secureTextEntry,
   ...props
 }: LoginInputProps) {
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const styles = createLoginStyles(isDarkMode);
+
   return (
     <View style={[styles.inputContainer, containerStyle]}>
-      <Ionicons name={icon as any} size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
-      <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder={placeholder}
-        placeholderTextColor={COLORS.textSecondary}
-        secureTextEntry={secureTextEntry}
-        {...props}
-      />
+      <View style={styles.input}>
+        <Ionicons name={icon as any} size={20} style={styles.icon} />
+        <TextInput
+          style={[styles.textInput, inputStyle]}
+          placeholder={placeholder}
+          placeholderTextColor={styles.icon.color}
+          secureTextEntry={secureTextEntry}
+          {...props}
+        />
+      </View>
     </View>
   );
 }
