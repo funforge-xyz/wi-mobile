@@ -74,14 +74,6 @@ export default function ProfileScreen() {
             onPress={() => navigation.navigate('HelpSupport')}
             currentTheme={currentTheme}
           />
-
-          <SettingsActionRow
-            icon="shield-outline"
-            title={t('profile.privacyPolicy')}
-            description={t('profile.viewPrivacy')}
-            onPress={() => navigation.navigate('PrivacyPolicy')}
-            currentTheme={currentTheme}
-          />
         </SettingsSection>
 
         <SettingsSection title={t('profile.account')} currentTheme={currentTheme}>

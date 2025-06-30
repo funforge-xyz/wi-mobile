@@ -8,19 +8,15 @@ export const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
   },
-  backButton: {
-    marginRight: SPACING.md,
-  },
-  title: {
-    fontSize: 20,
+  headerTitle: {
+    fontSize: 24,
     fontFamily: FONTS.bold,
-    flex: 1,
-    textAlign: 'center',
   },
   content: {
     flex: 1,
