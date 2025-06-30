@@ -40,16 +40,4 @@ export const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: SPACING.xl,
   },
-  okButton: {
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: 12,
-    borderWidth: 1,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  okButtonText: {
-    fontSize: 16,
-    fontFamily: FONTS.medium,
-  },
 });

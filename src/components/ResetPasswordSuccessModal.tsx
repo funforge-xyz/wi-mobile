@@ -59,14 +59,6 @@ export default function ResetPasswordSuccessModal({
           <Text style={[styles.successMessage, { color: currentTheme.textSecondary }]}>
             {t('auth.resetEmailSentMessage')}
           </Text>
-          <TouchableOpacity
-            style={[styles.okButton, { borderColor: currentTheme.border }]}
-            onPress={onClose}
-          >
-            <Text style={[styles.okButtonText, { color: COLORS.primary }]}>
-              {t('common.ok')}
-            </Text>
-          </TouchableOpacity>
         </Animated.View>
       </View>
     </Modal>
