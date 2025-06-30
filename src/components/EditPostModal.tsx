@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,9 +16,11 @@ import { useTranslation } from 'react-i18next';
 interface EditPostModalProps {
   visible: boolean;
   content: string;
+  isPrivate: boolean;
   allowComments: boolean;
   showLikeCount: boolean;
   onContentChange: (text: string) => void;
+  onPrivacyChange: (value: boolean) => void;
   onAllowCommentsChange: (value: boolean) => void;
   onShowLikeCountChange: (value: boolean) => void;
   onSave: () => void;
@@ -29,9 +32,11 @@ interface EditPostModalProps {
 export default function EditPostModal({
   visible,
   content,
+  isPrivate,
   allowComments,
   showLikeCount,
   onContentChange,
+  onPrivacyChange,
   onAllowCommentsChange,
   onShowLikeCountChange,
   onSave,
@@ -81,9 +86,31 @@ export default function EditPostModal({
           <View style={styles.modalSection}>
             <View style={styles.switchContainer}>
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
+                {t('singlePost.privacy')}
+              </Text>
+              <Switch
+                value={isPrivate}
+                onValueChange={onPrivacyChange}
+                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+                thumbColor={isPrivate ? '#fff' : currentTheme.textSecondary}
+              />
+            </View>
+            <Text style={[styles.switchDescription, { color: currentTheme.textSecondary }]}>
+              {t('singlePost.privatePostDescription')}
+            </Text>
+          </View>
+
+          <View style={styles.modalSection}>
+            <View style={styles.switchContainer}>
+              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
                 {t('singlePost.allowComments')}
               </Text>
-              {/* Removed Switch component for privacy */}
+              <Switch
+                value={allowComments}
+                onValueChange={onAllowCommentsChange}
+                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+                thumbColor={allowComments ? '#fff' : currentTheme.textSecondary}
+              />
             </View>
           </View>
 
@@ -92,7 +119,12 @@ export default function EditPostModal({
               <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
                 {t('singlePost.showLikeCount')}
               </Text>
-              {/* Removed Switch component for privacy */}
+              <Switch
+                value={showLikeCount}
+                onValueChange={onShowLikeCountChange}
+                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
+                thumbColor={showLikeCount ? '#fff' : currentTheme.textSecondary}
+              />
             </View>
           </View>
 

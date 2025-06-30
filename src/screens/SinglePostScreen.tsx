@@ -564,7 +564,12 @@ export default function SinglePostScreen({ route, navigation }: any) {
         currentTheme={currentTheme}
       />
 
-      <KeyboardAwareScrollView style={singlePostStyles.content}>
+      <KeyboardAwareScrollView 
+        style={singlePostStyles.content}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
+      >
         <SinglePostDisplay
           post={post}
           liked={userLiked}
@@ -587,20 +592,20 @@ export default function SinglePostScreen({ route, navigation }: any) {
           currentTheme={currentTheme}
           newlyAddedReplyParentId={newlyAddedReplyParentId}
         />
-      </KeyboardAwareScrollView>
 
-      {/* Comment Input */}
-      {post.allowComments && currentUser && (
-        <CommentInput
-          value={commentText}
-          onChangeText={setCommentText}
-          onSubmit={() => handleAddComment(commentText)}
-          isSubmitting={submittingComment}
-          currentTheme={currentTheme}
-          replyToComment={replyToComment}
-          onCancelReply={handleCancelReply}
-        />
-      )}
+        {/* Comment Input */}
+        {post.allowComments && currentUser && (
+          <CommentInput
+            value={commentText}
+            onChangeText={setCommentText}
+            onSubmit={() => handleAddComment(commentText)}
+            isSubmitting={submittingComment}
+            currentTheme={currentTheme}
+            replyToComment={replyToComment}
+            onCancelReply={handleCancelReply}
+          />
+        )}
+      </KeyboardAwareScrollView>
 
       {/* Edit Post Modal */}
       <EditPostModal
