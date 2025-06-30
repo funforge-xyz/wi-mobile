@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { getTheme } from '../theme';
@@ -210,6 +209,10 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       backgroundColor: 'white',
       borderRadius: 12,
     },
+    removeImageText: { //Corrected typo here
+      fontSize: 12,
+      textDecorationLine: 'underline',
+    },
     bioContainer: {
       flexDirection: 'row',
       backgroundColor: theme.surface,
@@ -241,6 +244,75 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       fontSize: 14,
       color: COLORS.primary,
       fontFamily: FONTS.medium,
+    },
+    imagePickerContainer: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    imagePickerButton: {
+      marginBottom: 10,
+    },
+    imagePlaceholder: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: isDarkMode ? '#404040' : '#E0E0E0',
+      borderStyle: 'dashed',
+    },
+    profilePreview: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+    },
+    imagePickerText: {
+      fontSize: 14,
+      color: isDarkMode ? '#B0B0B0' : '#666666',
+      textAlign: 'center',
+      marginBottom: 5,
+    },
+    removeImageButton: {
+      marginTop: 5,
+    },
+    removeImageText: {
+      fontSize: 12,
+      textDecorationLine: 'underline',
+    },
+    bioContainer: {
+      marginBottom: 15,
+    },
+    bioInput: {
+      height: 80,
+      textAlignVertical: 'top',
+      paddingTop: 12,
+    },
+    inputContainer: {
+      marginBottom: 15,
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDarkMode ? '#2A2A2A' : '#F8F9FA',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: isDarkMode ? '#404040' : '#E1E5E9',
+      paddingHorizontal: 15,
+      minHeight: 50,
+    },
+    inputIcon: {
+      marginRight: 12,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: 16,
+      paddingVertical: 12,
+    },
+    passwordToggle: {
+      padding: 5,
+      marginLeft: 10,
     },
   });
 };

@@ -68,6 +68,7 @@
     "emailRequired": "Email is required",
     "invalidEmail": "Please enter a valid email address",
     "signIn": "Sign In",
+    "signInWithGoogle": "Sign in with Google",
     "verifyEmail": "Please check your email and click the verification link before signing in."
   },
   "feed": {
@@ -153,7 +154,8 @@
     "likeCountVisible": "Like count is visible",
     "likeCountHidden": "Like count is hidden",
     "changePhoto": "Change Photo",
-    "takePhotoOptional": "Take Photo (optional)"
+    "takePhotoOptional": "Take Photo (optional)",
+    "selectPhoto": "Select Photo"
   },
   "profile": {
     "title": "Profile",

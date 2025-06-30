@@ -68,6 +68,7 @@
     "emailRequired": "Email je obavezan",
     "invalidEmail": "Molimo unesite valjanu email adresu",
     "signIn": "Prijavite se",
+    "signInWithGoogle": "Prijavite se sa Google",
     "verifyEmail": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja."
   },
   "feed": {
@@ -153,7 +154,8 @@
     "likeCountVisible": "Broj sviđanja je vidljiv",
     "likeCountHidden": "Broj sviđanja je sakriven",
     "changePhoto": "Promjenite fotografiju",
-    "takePhotoOptional": "Uslikajte (opciono)"
+    "takePhotoOptional": "Uslikajte (opciono)",
+    "selectPhoto": "Izaberite fotografiju"
   },
   "profile": {
     "title": "Profil",
