@@ -1,10 +1,10 @@
-
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../config/constants';
 import AvatarImage from './AvatarImage';
 import PostMedia from './PostMedia';
 import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '../hooks/redux';
 
 interface UserPost {
   id: string;
@@ -41,6 +41,13 @@ export default function UserPostItem({
   formatTimeAgo, 
 }: UserPostItemProps) {
   const { t } = useTranslation();
+
+  // Get the latest post data from Redux to ensure real-time updates
+  const userPosts = useAppSelector((state) => state.user.posts);
+  const currentPost = userPosts.find(post => post.id === item.id);
+
+  // Use Redux state for commentsCount to get real-time updates
+  const commentsCount = currentPost?.commentsCount ?? item.commentsCount;
 
   return (
     <TouchableOpacity
@@ -109,7 +116,7 @@ export default function UserPostItem({
           <TouchableOpacity style={styles.statItem}>
             <Ionicons name="chatbubble-outline" size={16} color={currentTheme.textSecondary} />
             <Text style={[styles.statText, { color: currentTheme.textSecondary }]}>
-              {item.commentsCount}
+              {commentsCount}
             </Text>
           </TouchableOpacity>
         )}
