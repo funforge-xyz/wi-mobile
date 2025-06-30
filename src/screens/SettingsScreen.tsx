@@ -260,17 +260,7 @@ export default function SettingsScreen() {
     setIsLoading(false);
   };
 
-  const handleLogout = async () => {
-    try {
-      await authService.logout(dispatch);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      Alert.alert('Error', 'Failed to logout');
-    }
-  };
+  
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -385,30 +375,7 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        <SettingsSection title={t('settings.support')} currentTheme={currentTheme}>
-          <SettingsActionRow
-            icon="help-circle-outline"
-            title={t('settings.helpAndSupport')}
-            description={t('settings.getHelp')}
-            onPress={() => (navigation as any).navigate('HelpSupport')}
-            currentTheme={currentTheme}
-          />
-
-          <SettingsActionRow
-            icon="shield-outline"
-            title={t('settings.privacyPolicy')}
-            description={t('settings.viewPrivacy')}
-            onPress={() => (navigation as any).navigate('PrivacyPolicy')}
-            currentTheme={currentTheme}
-          />
-        </SettingsSection>
-        <SettingsActionRow
-            icon="log-out-outline"
-            title={t('settings.logout')}
-            description={t('settings.logoutDescription')}
-            onPress={handleLogout}
-            currentTheme={currentTheme}
-          />
+        
       </ScrollView>
 
       {/* Edit Profile Modal */}

@@ -43,16 +43,16 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
   };
 
   return (
-    <>
-      <ScrollView style={[styles.container, { backgroundColor: currentTheme.background }]} showsVerticalScrollIndicator={false}>
-        <SafeAreaView>
-          <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('helpSupport.title')}</Text>
-            <View style={{ width: 24 }} />
-          </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{t('helpSupport.title')}</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
 
           {/* Quick Actions */}
           <View style={[styles.section, { backgroundColor: currentTheme.surface }]}>
@@ -124,7 +124,6 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
               isLast={true}
             />
           </View>
-        </SafeAreaView>
       </ScrollView>
 
       <HelpSupportContactModal
@@ -132,6 +131,6 @@ export default function HelpSupportScreen({ navigation }: HelpSupportScreenProps
         onClose={() => setContactModalVisible(false)}
         currentTheme={currentTheme}
       />
-    </>
+    </SafeAreaView>
   );
 }

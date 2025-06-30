@@ -66,20 +66,30 @@ export default function ProfileScreen() {
           t={t}
         />
 
+        <SettingsSection title={t('profile.general')} currentTheme={currentTheme}>
+          <SettingsActionRow
+            icon="help-circle-outline"
+            title={t('profile.helpSupport')}
+            description={t('profile.getHelp')}
+            onPress={() => navigation.navigate('HelpSupport')}
+            currentTheme={currentTheme}
+          />
+
+          <SettingsActionRow
+            icon="shield-outline"
+            title={t('profile.privacyPolicy')}
+            description={t('profile.viewPrivacy')}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+            currentTheme={currentTheme}
+          />
+        </SettingsSection>
+
         <SettingsSection title={t('profile.account')} currentTheme={currentTheme}>
           <SettingsActionRow
             icon="settings-outline"
             title={t('profile.settings')}
             description={t('profile.manageSettings')}
             onPress={() => navigation.navigate('Settings')}
-            currentTheme={currentTheme}
-          />
-
-          <SettingsActionRow
-            icon="help-circle-outline"
-            title={t('profile.helpSupport')}
-            description={t('profile.getHelp')}
-            onPress={() => navigation.navigate('HelpSupport')}
             currentTheme={currentTheme}
           />
         </SettingsSection>

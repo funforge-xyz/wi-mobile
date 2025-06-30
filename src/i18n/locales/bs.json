@@ -575,5 +575,19 @@
         "success": "Uspješno",
         "postUpdated": "Vaša objava je ažurirana!",
         "postDeleted": "Vaša objava je obrisana!"
-    }
+    },
+   "profile": {
+    "title": "Profil",
+    "general": "Opšte",
+    "account": "Nalog",
+    "session": "Sesija",
+    "helpSupport": "Pomoć i podrška",
+    "privacyPolicy": "Politika privatnosti",
+    "settings": "Postavke",
+    "signOut": "Odjavi se",
+    "manageSettings": "Upravljaj svojim preferencijama",
+    "getHelp": "Dobij pomoć i podršku",
+    "viewPrivacy": "Prikaži politiku privatnosti",
+    "signOutDescription": "Odjavi se iz svog naloga"
+  }
 }
