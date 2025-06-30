@@ -220,7 +220,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       setSubmittingComment(false);
     }
   };
-  
+
   const handleAddComment = async (commentText: string) => {
     if (!commentText.trim() || !currentUser) return;
 
@@ -243,39 +243,39 @@ export default function SinglePostScreen({ route, navigation }: any) {
         parentCommentId
       );
 
+      // Always update comment count for both top-level comments and replies
+      // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
+      if (post) {
+        // Get current comments count from Redux user posts (which is the source of truth)
+        const currentPostFromRedux = userPosts.find(p => p.id === post.id);
+        const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
+        const newCommentsCount = currentCommentsCount + 1;
+
+        // Update Redux slices
+        dispatch(updatePostInFeed({
+          postId: post.id,
+          updates: {
+            commentsCount: newCommentsCount
+          }
+        }));
+
+        dispatch(updatePostLike({
+          postId: post.id,
+          commentsCount: newCommentsCount
+        }));
+
+        // Sync local post state with Redux state
+        setPost(prevPost => prevPost ? { 
+          ...prevPost, 
+          commentsCount: newCommentsCount 
+        } : null);
+      }
+
       // If this was a reply, mark it for auto-expand
       if (parentCommentId) {
         setNewlyAddedReplyParentId(parentCommentId);
         // Clear the marker after a short delay
         setTimeout(() => setNewlyAddedReplyParentId(undefined), 1000);
-      } else {
-        // Only increment comment count for top-level comments
-        // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
-        if (post) {
-          // Get current comments count from Redux user posts (which is the source of truth)
-          const currentPostFromRedux = userPosts.find(p => p.id === post.id);
-          const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
-          const newCommentsCount = currentCommentsCount + 1;
-          
-          // Update Redux slices
-          dispatch(updatePostInFeed({
-            postId: post.id,
-            updates: {
-              commentsCount: newCommentsCount
-            }
-          }));
-          
-          dispatch(updatePostLike({
-            postId: post.id,
-            commentsCount: newCommentsCount
-          }));
-          
-          // Sync local post state with Redux state
-          setPost(prevPost => prevPost ? { 
-            ...prevPost, 
-            commentsCount: newCommentsCount 
-          } : null);
-        }
       }
 
       // Reset form
@@ -344,7 +344,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       // But we need to make sure our local state persists
     } catch (error) {
       console.error('Error liking comment:', error);
-      
+
       // Revert local state on error
       setComments(prevComments => {
         return prevComments.map(comment => {
@@ -358,7 +358,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
           return comment;
         });
       });
-      
+
       Alert.alert(t('common.error'), t('singlePost.failedToLikeComment'));
     }
   };
@@ -471,12 +471,12 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   const confirmDeleteComment = async () => {
     if (!commentToDelete || !post) return;
-    
+
     setShowDeleteCommentModal(false);
-    
+
     try {
       await deleteComment(post.id, commentToDelete.id, commentToDelete.parentCommentId);
-      
+
       // Update local comments state immediately
       if (commentToDelete.parentCommentId) {
         // This is a reply - remove it from the comments array and update parent's reply count
@@ -499,36 +499,32 @@ export default function SinglePostScreen({ route, navigation }: any) {
           );
         });
       }
-      
-      // Calculate how many comments will be removed for Redux update
-      let commentsToRemove = 1; // The comment being deleted
-      if (!commentToDelete.parentCommentId) {
-        // If it's a top-level comment, also count its replies
-        const replies = comments.filter(c => c.parentCommentId === commentToDelete.id);
-        commentsToRemove += replies.length;
-      }
-      
-      // Get current comments count from Redux user posts (which is the source of truth)
-      const currentPostFromRedux = userPosts.find(p => p.id === post.id);
-      const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
-      const newCommentsCount = Math.max(0, currentCommentsCount - commentsToRemove);
-      
-      // Update Redux slices
-      dispatch(updatePostInFeed({
-        postId: post.id,
-        updates: {
+
+      // Always update comment count for both top-level comments and replies
+      // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
+      if (post) {
+        // Get current comments count from Redux user posts (which is the source of truth)
+        const currentPostFromRedux = userPosts.find(p => p.id === post.id);
+        const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
+        const newCommentsCount = Math.max(0, currentCommentsCount - 1);
+
+        // Update Redux slices
+        dispatch(updatePostInFeed({
+          postId: post.id,
+          updates: {
+            commentsCount: newCommentsCount
+          }
+        }));
+
+        dispatch(updatePostLike({
+          postId: post.id,
           commentsCount: newCommentsCount
-        }
-      }));
-      
-      dispatch(updatePostLike({
-        postId: post.id,
-        commentsCount: newCommentsCount
-      }));
-      
-      // Sync local post state with Redux state
-      setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
-      
+        }));
+
+        // Sync local post state with Redux state
+        setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
+      }
+
       setCommentToDelete(null);
     } catch (error) {
       console.error('Error deleting comment:', error);
