@@ -151,9 +151,9 @@ export default function CommentsList({
             style={[
               styles.commentActionButton,
               comment.isLikedByUser && { 
-                backgroundColor: '#FF3B30' + '15',
+                backgroundColor: COLORS.error + '15',
                 borderWidth: 1,
-                borderColor: '#FF3B30' + '30',
+                borderColor: COLORS.error + '30',
                 borderRadius: 12,
                 paddingHorizontal: SPACING.sm,
               }
@@ -163,12 +163,12 @@ export default function CommentsList({
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
               size={16}
-              color={comment.isLikedByUser ? '#FF3B30' : currentTheme.textSecondary}
+              color={comment.isLikedByUser ? COLORS.error : currentTheme.textSecondary}
             />
             <Text style={[
               styles.commentActionText, 
               { 
-                color: comment.isLikedByUser ? '#FF3B30' : currentTheme.textSecondary,
+                color: comment.isLikedByUser ? COLORS.error : currentTheme.textSecondary,
                 fontWeight: comment.isLikedByUser ? '600' : 'normal'
               }
             ]}>

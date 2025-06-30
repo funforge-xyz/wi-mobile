@@ -265,6 +265,23 @@ export default function SinglePostScreen({ route, navigation }: any) {
     if (!currentUser || !post) return;
 
     try {
+      // Update local state immediately for responsive UI
+      setComments(prevComments => {
+        return prevComments.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              isLikedByUser: !isCurrentlyLiked,
+              likesCount: isCurrentlyLiked 
+                ? Math.max(0, (comment.likesCount || 1) - 1)
+                : (comment.likesCount || 0) + 1
+            };
+          }
+          return comment;
+        });
+      });
+
+      // Then update Firebase
       await toggleCommentLike(
         post.id,
         commentId,
@@ -273,9 +290,25 @@ export default function SinglePostScreen({ route, navigation }: any) {
         t,
         parentCommentId
       );
-      await loadCommentsData();
     } catch (error) {
       console.error('Error liking comment:', error);
+      
+      // Revert local state on error
+      setComments(prevComments => {
+        return prevComments.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              isLikedByUser: isCurrentlyLiked,
+              likesCount: isCurrentlyLiked 
+                ? (comment.likesCount || 0) + 1
+                : Math.max(0, (comment.likesCount || 1) - 1)
+            };
+          }
+          return comment;
+        });
+      });
+      
       Alert.alert(t('common.error'), t('singlePost.failedToLikeComment'));
     }
   };
