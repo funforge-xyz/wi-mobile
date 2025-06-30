@@ -23,7 +23,7 @@ import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 
 // Services
 import { initializeFirebase } from './src/services/firebase';
-import { initializeNotifications } from './src/services/notifications';
+import { initializeNotifications, registerForPushNotifications } from './src/services/notifications';
 
 // Types
 import { RootStackParamList } from './src/types/navigation';
@@ -64,6 +64,19 @@ export default function App() {
 
   useEffect(() => {
     initializeNotifications();
+
+    // Register for push notifications explicitly
+    const setupPushNotifications = async () => {
+      try {
+        const { registerForPushNotifications } = await import('./src/services/notifications');
+        await registerForPushNotifications();
+      } catch (error) {
+        console.error('Failed to register for push notifications:', error);
+      }
+    };
+
+    // Delay registration slightly to ensure app is fully loaded
+    setTimeout(setupPushNotifications, 2000);
 
     // Handle app state changes to refresh notifications when app comes to foreground
     const handleAppStateChange = (nextAppState: string) => {

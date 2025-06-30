@@ -34,7 +34,8 @@ export const initializeNotifications = async () => {
   }
 
   const token = (await Notifications.getExpoPushTokenAsync()).data;
-  console.log('Push notification token:', token);
+  console.log('🚀 EXPO PUSH TOKEN:', token);
+  console.log('📱 Copy this token to test push notifications:', token);
 
   // Save token to Firestore for the current user
   try {
@@ -48,10 +49,10 @@ export const initializeNotifications = async () => {
         expoPushToken: token,
         lastTokenUpdate: new Date(),
       });
-      console.log('Push token saved to Firestore');
+      console.log('✅ Push token saved to Firestore');
     }
   } catch (error) {
-    console.error('Error saving push token:', error);
+    console.error('❌ Error saving push token:', error);
   }
 
   if (Platform.OS === 'android') {
@@ -64,6 +65,87 @@ export const initializeNotifications = async () => {
   }
 
   return token;
+};
+
+export const registerForPushNotifications = async () => {
+  console.log('🔔 Registering for push notifications...');
+  
+  if (!Device.isDevice) {
+    console.log('❌ Push notifications only work on physical devices');
+    return null;
+  }
+
+  try {
+    // Check existing permissions
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    console.log('📋 Current notification permission status:', existingStatus);
+
+    // Request permissions if not granted
+    if (existingStatus !== 'granted') {
+      console.log('🔄 Requesting notification permissions...');
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+      console.log('📋 New notification permission status:', finalStatus);
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log('❌ Push notification permission denied');
+      return null;
+    }
+
+    // Get the Expo push token
+    console.log('🎫 Getting Expo push token...');
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const token = tokenData.data;
+    
+    console.log('🚀 EXPO PUSH TOKEN RECEIVED:');
+    console.log('📱 Token:', token);
+    console.log('🔗 Use this token to send test notifications via Expo Push Notification Tool');
+    console.log('🌐 Test URL: https://expo.dev/notifications');
+    
+    // Save token to Firestore
+    await saveTokenToFirestore(token);
+    
+    // Configure notification channel for Android
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+        sound: true,
+      });
+      console.log('📱 Android notification channel configured');
+    }
+
+    return token;
+  } catch (error) {
+    console.error('❌ Error registering for push notifications:', error);
+    return null;
+  }
+};
+
+const saveTokenToFirestore = async (token: string) => {
+  try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+      const firestore = getFirestore();
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        expoPushToken: token,
+        lastTokenUpdate: new Date(),
+        platform: Platform.OS,
+      });
+      console.log('✅ Push token saved to Firestore for user:', currentUser.uid);
+    } else {
+      console.log('⚠️ No authenticated user to save token for');
+    }
+  } catch (error) {
+    console.error('❌ Error saving push token to Firestore:', error);
+  }
 };
 
 export const sendLocalNotification = async (title: string, body: string, data?: any) => {
