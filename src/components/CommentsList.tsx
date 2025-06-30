@@ -148,24 +148,18 @@ export default function CommentsList({
 
         <View style={styles.commentActions}>
           <TouchableOpacity
-            style={[
-              styles.commentActionButton,
-              comment.isLikedByUser && {
-                backgroundColor: COLORS.error + '10',
-              }
-            ]}
+            style={styles.commentActionButton}
             onPress={() => onLikeComment(comment.id, comment.parentCommentId, comment.isLikedByUser || false, t)}
           >
             <Ionicons
               name={comment.isLikedByUser ? "heart" : "heart-outline"}
               size={16}
-              color={comment.isLikedByUser ? COLORS.error : currentTheme.textSecondary}
+              color={comment.isLikedByUser ? "red" : currentTheme.textSecondary}
             />
             <Text style={[
               styles.commentActionText, 
               { 
-                color: comment.isLikedByUser ? COLORS.error : currentTheme.textSecondary,
-                fontWeight: comment.isLikedByUser ? '600' : 'normal'
+                color: currentTheme.textSecondary,
               }
             ]}>
               {comment.likesCount || 0}
