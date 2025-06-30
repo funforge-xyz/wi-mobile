@@ -1,7 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Settings } from '../services/storage';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { setTheme } from '../store/themeSlice';
@@ -14,11 +12,8 @@ import {
 } from '../utils/rootUtils';
 
 import LoginScreen from './LoginScreen';
-import ForgotPasswordScreen from './ForgotPasswordScreen';
 import OnboardingScreen from './OnboardingScreen';
 import RootTabNavigator from '../components/RootTabNavigator';
-
-const Stack = createStackNavigator();
 
 export default function RootScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -67,14 +62,7 @@ export default function RootScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} initialParams={{ onLoginSuccess: handleLoginSuccess }} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (showOnboarding) {

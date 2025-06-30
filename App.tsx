@@ -11,6 +11,7 @@ import './src/i18n';
 
 // Screens
 import RootScreen from './src/screens/RootScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import ChatImagesScreen from './src/screens/ChatImagesScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -130,6 +131,7 @@ export default function App() {
             }}
           >
             <Stack.Screen name="Root" component={RootScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Terms" component={TermsScreen} />
