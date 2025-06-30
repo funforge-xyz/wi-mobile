@@ -270,7 +270,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
           }));
           
           // Update local post state to reflect the change immediately
-          setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
+          setPost(prevPost => prevPost ? { 
+            ...prevPost, 
+            commentsCount: newCommentsCount 
+          } : null);
         }
       }
 
@@ -473,19 +476,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
     try {
       await deleteComment(post.id, commentToDelete.id, commentToDelete.parentCommentId);
       
-      // Calculate how many comments will be removed
-      let commentsToRemove = 1; // The comment being deleted
-      if (!commentToDelete.parentCommentId) {
-        // If it's a top-level comment, also count its replies
-        const replies = comments.filter(c => c.parentCommentId === commentToDelete.id);
-        commentsToRemove += replies.length;
-      }
+      // Update local state immediately and calculate new count based on the updated comments
+      let newCommentsArray: Comment[] = [];
       
-      // Update local state immediately without reloading
       if (commentToDelete.parentCommentId) {
         // This is a reply - remove it from the comments array and update parent's reply count
         setComments(prevComments => {
-          return prevComments.map(comment => {
+          newCommentsArray = prevComments.map(comment => {
             if (comment.id === commentToDelete.parentCommentId) {
               return {
                 ...comment,
@@ -494,36 +491,44 @@ export default function SinglePostScreen({ route, navigation }: any) {
             }
             return comment;
           }).filter(comment => comment.id !== commentToDelete.id);
+          return newCommentsArray;
         });
       } else {
         // This is a top-level comment - remove it and all its replies
         setComments(prevComments => {
-          return prevComments.filter(comment => 
+          newCommentsArray = prevComments.filter(comment => 
             comment.id !== commentToDelete.id && comment.parentCommentId !== commentToDelete.id
           );
+          return newCommentsArray;
         });
       }
       
-      // Ensure commentsCount is a valid number before calculation
-      const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
-      const newCommentsCount = Math.max(0, currentCommentsCount - commentsToRemove);
+      // Calculate new count based on the updated comments array length
+      // Use a timeout to ensure state has been updated
+      setTimeout(() => {
+        setComments(currentComments => {
+          const newCommentsCount = currentComments.length;
       
       // Update feed slice
-      dispatch(updatePostInFeed({
-        postId: post.id,
-        updates: {
-          commentsCount: newCommentsCount
-        }
-      }));
-      
-      // Update user slice (for UserPostsScreen) - this is crucial for the profile page
-      dispatch(updatePostLike({
-        postId: post.id,
-        commentsCount: newCommentsCount
-      }));
-      
-      // Update local post state to reflect the change immediately
-      setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
+          dispatch(updatePostInFeed({
+            postId: post.id,
+            updates: {
+              commentsCount: newCommentsCount
+            }
+          }));
+          
+          // Update user slice (for UserPostsScreen) - this is crucial for the profile page
+          dispatch(updatePostLike({
+            postId: post.id,
+            commentsCount: newCommentsCount
+          }));
+          
+          // Update local post state to reflect the change immediately
+          setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
+          
+          return currentComments;
+        });
+      }, 0);
       
       setCommentToDelete(null);
     } catch (error) {
