@@ -1,3 +1,4 @@
+
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { getTheme } from '../theme';
@@ -17,28 +18,20 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       flexGrow: 1,
     },
     header: {
-      marginBottom: SPACING.xl,
-      paddingHorizontal: SPACING.lg,
-      position: 'relative',
-    },
-    headerContent: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      width: '100%',
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.md,
+      marginBottom: SPACING.xl,
     },
     title: {
-      fontSize: 24,
+      fontSize: 28,
       fontFamily: FONTS.bold,
-      flex: 1,
       color: theme.text,
+      flex: 1,
     },
     headerButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      position: 'absolute',
-      top: 0,
-      right: 0,
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -71,6 +64,19 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       paddingVertical: SPACING.md,
       borderWidth: 1,
       borderColor: theme.border,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: 16,
+      fontFamily: FONTS.regular,
+      color: theme.text,
+    },
+    icon: {
+      color: theme.textSecondary,
+      marginRight: SPACING.sm,
+    },
+    passwordToggle: {
+      padding: 4,
     },
     primaryButton: {
       backgroundColor: COLORS.primary,
@@ -226,45 +232,15 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       minHeight: 60,
       color: theme.text,
     },
-    textInput: {
-      flex: 1,
-      fontSize: 16,
-      fontFamily: FONTS.regular,
-      color: theme.text,
-    },
-    icon: {
-      color: theme.textSecondary,
-    },
-    textInput: {
-      flex: 1,
-      fontSize: 16,
-      paddingVertical: 0,
-      color: isDarkMode ? '#FFFFFF' : '#000000',
-    },
-    passwordToggle: {
-      padding: 4,
-    },
-    subtitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      marginBottom: 12,
-      textAlign: 'center',
-    },
-    description: {
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: 'center',
-      marginBottom: 24,
-      paddingHorizontal: 10,
-    },
     forgotPasswordLink: {
       alignSelf: 'flex-end',
-      marginBottom: 20,
-      marginTop: 8,
+      marginBottom: SPACING.md,
+      marginTop: SPACING.xs,
     },
     forgotPasswordText: {
       fontSize: 14,
-      fontWeight: '500',
+      color: COLORS.primary,
+      fontFamily: FONTS.medium,
     },
   });
 };
