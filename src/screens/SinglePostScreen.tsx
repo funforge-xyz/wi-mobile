@@ -251,7 +251,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         // Only increment comment count for top-level comments
         // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
         if (post) {
-          const newCommentsCount = post.commentsCount + 1;
+          // Ensure commentsCount is a valid number before calculation
+          const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
+          const newCommentsCount = currentCommentsCount + 1;
           
           // Update feed slice
           dispatch(updatePostInFeed({
@@ -261,7 +263,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
             }
           }));
           
-          // Update user slice (for UserPostsScreen)
+          // Update user slice (for UserPostsScreen) - this is crucial for the profile page
           dispatch(updatePostLike({
             postId: post.id,
             commentsCount: newCommentsCount
@@ -502,8 +504,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         });
       }
       
-      // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
-      const newCommentsCount = Math.max(0, post.commentsCount - commentsToRemove);
+      // Ensure commentsCount is a valid number before calculation
+      const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
+      const newCommentsCount = Math.max(0, currentCommentsCount - commentsToRemove);
       
       // Update feed slice
       dispatch(updatePostInFeed({
@@ -513,7 +516,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         }
       }));
       
-      // Update user slice (for UserPostsScreen)
+      // Update user slice (for UserPostsScreen) - this is crucial for the profile page
       dispatch(updatePostLike({
         postId: post.id,
         commentsCount: newCommentsCount

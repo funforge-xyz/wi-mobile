@@ -182,8 +182,8 @@ export const fetchUserPosts = createAsyncThunk(
             mediaURL: postData.mediaURL || '',
             mediaType: postData.mediaType || 'image',
             createdAt: formatFirestoreDate(postData.createdAt),
-            likesCount: postData.likesCount ?? likesSnapshot.size,
-            commentsCount: postData.commentsCount ?? commentsSnapshot.size,
+            likesCount: typeof postData.likesCount === 'number' ? postData.likesCount : likesSnapshot.size,
+            commentsCount: typeof postData.commentsCount === 'number' ? postData.commentsCount : commentsSnapshot.size,
             showLikeCount: postData.showLikeCount !== false,
             allowComments: postData.allowComments !== false,
             isPrivate: postData.isPrivate || false,
@@ -258,12 +258,14 @@ const userSlice = createSlice({
         const updates: Partial<UserPost> = {};
         
         if (isLiked !== undefined) {
-          updates.likesCount = isLiked ? post.likesCount + 1 : Math.max(0, post.likesCount - 1);
+          // Ensure likesCount is a valid number before calculation
+          const currentLikesCount = typeof post.likesCount === 'number' ? post.likesCount : 0;
+          updates.likesCount = isLiked ? currentLikesCount + 1 : Math.max(0, currentLikesCount - 1);
           updates.isLikedByUser = isLiked;
         }
         
-        if (commentsCount !== undefined) {
-          updates.commentsCount = commentsCount;
+        if (commentsCount !== undefined && typeof commentsCount === 'number') {
+          updates.commentsCount = Math.max(0, commentsCount);
         }
         
         state.posts[postIndex] = { ...post, ...updates };
