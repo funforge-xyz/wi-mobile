@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { createLoginStyles } from '../styles/LoginStyles';
 import LoginErrorMessage from '../components/LoginErrorMessage';
 import LoginInput from '../components/LoginInput';
 import LoginButtons from '../components/LoginButtons';
+import ResetPasswordSuccessModal from '../components/ResetPasswordSuccessModal';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
@@ -21,6 +22,8 @@ export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successAnimation] = useState(new Animated.Value(0));
   const { t, i18n } = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -41,6 +44,17 @@ export default function ForgotPasswordScreen() {
     dispatch(toggleTheme());
   };
 
+  const handleSuccessModalClose = () => {
+    Animated.timing(successAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSuccessModal(false);
+      navigation.goBack();
+    });
+  };
+
   const handlePasswordReset = async () => {
     if (!email.trim()) {
       setErrorMessage('auth.emailRequired');
@@ -59,16 +73,25 @@ export default function ForgotPasswordScreen() {
     try {
       await authService.sendPasswordResetEmail(email.trim());
       
-      Alert.alert(
-        t('auth.resetEmailSent'),
-        t('auth.resetEmailSentMessage'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => navigation.goBack(),
-          }
-        ]
-      );
+      // Show success modal with animation
+      setShowSuccessModal(true);
+      Animated.timing(successAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Auto-hide after 3 seconds then navigate back
+      setTimeout(() => {
+        Animated.timing(successAnimation, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowSuccessModal(false);
+          navigation.goBack();
+        });
+      }, 3000);
     } catch (error: any) {
       setErrorMessage(error.message || 'auth.resetEmailError');
     } finally {
@@ -135,6 +158,13 @@ export default function ForgotPasswordScreen() {
         currentTheme={currentTheme}
         onLanguageChange={handleLanguageChange}
         currentLanguage={i18n.language}
+      />
+
+      <ResetPasswordSuccessModal
+        visible={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        animation={successAnimation}
+        currentTheme={currentTheme}
       />
     </SafeAreaView>
   );
