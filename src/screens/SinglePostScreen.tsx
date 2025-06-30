@@ -78,6 +78,7 @@ interface Like {
 
 export default function SinglePostScreen({ route, navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const userPosts = useAppSelector((state) => state.user.posts);
   const dispatch = useAppDispatch();
 
   const { postId, isOwnPost = false } = route.params;
@@ -251,8 +252,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         // Only increment comment count for top-level comments
         // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
         if (post) {
-          // Get current comments count from Redux state (which is correct)
-          const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
+          // Get current comments count from Redux user posts (which is the source of truth)
+          const currentPostFromRedux = userPosts.find(p => p.id === post.id);
+          const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
           const newCommentsCount = currentCommentsCount + 1;
           
           // Update Redux slices
@@ -506,8 +508,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         commentsToRemove += replies.length;
       }
       
-      // Get current comments count from Redux state (which is correct)
-      const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
+      // Get current comments count from Redux user posts (which is the source of truth)
+      const currentPostFromRedux = userPosts.find(p => p.id === post.id);
+      const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
       const newCommentsCount = Math.max(0, currentCommentsCount - commentsToRemove);
       
       // Update Redux slices
