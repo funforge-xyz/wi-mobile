@@ -88,19 +88,19 @@ export default function CommentsList({
           // Scroll to the newest reply after container expansion
           setTimeout(() => {
             if (newestReply && replyRefs.current[newestReply.id] && scrollViewRef.current) {
-              replyRefs.current[newestReply.id]?.measureLayout(
-                scrollViewRef.current.getInnerViewNode(),
-                (x, y) => {
+              try {
+                replyRefs.current[newestReply.id]?.measure((x, y, width, height, pageX, pageY) => {
+                  // Calculate scroll position based on the reply's position
+                  const scrollY = Math.max(0, pageY - 150); // Offset to show context above
                   scrollViewRef.current?.scrollTo({
-                    y: y - 50, // Offset to show some context above the reply
+                    y: scrollY,
                     animated: true,
                   });
-                },
-                () => {
-                  // Fallback: just scroll to the end if measureLayout fails
-                  scrollViewRef.current?.scrollToEnd({ animated: true });
-                }
-              );
+                });
+              } catch (error) {
+                // Fallback: just scroll to the end if measurement fails
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }
             }
           }, 300); // Small delay to ensure the reply container is expanded and rendered
         }
