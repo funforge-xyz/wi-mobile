@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -50,6 +51,8 @@ export default function CommentsList({
 }: CommentsListProps) {
   const { t } = useTranslation();
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const scrollViewRef = useRef<ScrollView>(null);
+  const replyRefs = useRef<Record<string, View | null>>({});
 
   // Auto-expand replies when a new reply is added
   React.useEffect(() => {
@@ -62,7 +65,7 @@ export default function CommentsList({
     }
   }, [newlyAddedReplyParentId]);
 
-  // Auto-expand when a new reply is added to any comment
+  // Auto-expand when a new reply is added to any comment and scroll to it
   React.useEffect(() => {
     // Check if any comment has replies that should be auto-expanded
     const mainComments = comments.filter(comment => !comment.parentCommentId);
@@ -74,6 +77,29 @@ export default function CommentsList({
           newSet.add(comment.id);
           return newSet;
         });
+        
+        // Scroll to the newly added reply after a short delay to ensure it's rendered
+        setTimeout(() => {
+          const replies = comments.filter(c => c.parentCommentId === comment.id);
+          if (replies.length > 0) {
+            // Get the most recent reply (assuming it's the newly added one)
+            const newestReply = replies.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+            const replyRef = replyRefs.current[newestReply.id];
+            
+            if (replyRef && scrollViewRef.current) {
+              replyRef.measureLayout(
+                scrollViewRef.current.getInnerViewNode(),
+                (x, y) => {
+                  scrollViewRef.current?.scrollTo({
+                    y: y - 100, // Offset to show some context above the reply
+                    animated: true,
+                  });
+                },
+                () => {} // Error callback
+              );
+            }
+          }
+        }, 300); // Small delay to ensure the reply container is expanded and rendered
       }
     });
   }, [comments, newlyAddedReplyParentId]);
@@ -114,10 +140,18 @@ export default function CommentsList({
   };
 
   const renderComment = (comment: Comment, parentComment?: Comment) => (
-    <View key={comment.id} style={[
-      styles.commentItem,
-      comment.parentCommentId && styles.replyComment
-    ]}>
+    <View 
+      key={comment.id} 
+      ref={(ref) => {
+        if (comment.parentCommentId) {
+          replyRefs.current[comment.id] = ref;
+        }
+      }}
+      style={[
+        styles.commentItem,
+        comment.parentCommentId && styles.replyComment
+      ]}
+    >
       <UserAvatar
         photoURL={comment.authorPhotoURL}
         isOnline={false}
@@ -221,24 +255,30 @@ export default function CommentsList({
         {t('singlePost.comments')} ({comments.length})
       </Text>
 
-      {mainComments.map(comment => (
-        <View key={comment.id} style={styles.commentThread}>
-          {renderComment(comment)}
+      <ScrollView 
+        ref={scrollViewRef}
+        nestedScrollEnabled={true}
+        showsVerticalScrollIndicator={false}
+      >
+        {mainComments.map(comment => (
+          <View key={comment.id} style={styles.commentThread}>
+            {renderComment(comment)}
 
-          {/* Replies Section */}
-          {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && expandedComments.has(comment.id) && (
-            <View style={styles.repliesContainer}>
-              {repliesMap[comment.id].map((reply) => renderComment(reply, comment))}
-            </View>
-          )}
-        </View>
-      ))}
+            {/* Replies Section */}
+            {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && expandedComments.has(comment.id) && (
+              <View style={styles.repliesContainer}>
+                {repliesMap[comment.id].map((reply) => renderComment(reply, comment))}
+              </View>
+            )}
+          </View>
+        ))}
 
-      {comments.length === 0 && (
-        <Text style={[styles.noCommentsText, { color: currentTheme.textSecondary }]}>
-          {t('singlePost.noCommentsYet')}
-        </Text>
-      )}
+        {comments.length === 0 && (
+          <Text style={[styles.noCommentsText, { color: currentTheme.textSecondary }]}>
+            {t('singlePost.noCommentsYet')}
+          </Text>
+        )}
+      </ScrollView>
     </View>
   );
 }
