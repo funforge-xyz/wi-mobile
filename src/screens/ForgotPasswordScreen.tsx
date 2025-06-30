@@ -10,18 +10,36 @@ import LoginErrorMessage from '../components/LoginErrorMessage';
 import LoginInput from '../components/LoginInput';
 import LoginButtons from '../components/LoginButtons';
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
+import { toggleTheme } from '../store/themeSlice';
+import LoginHeader from '../components/LoginHeader';
+import LanguageSelectionModal from '../components/LanguageSelectionModal';
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const dispatch = useAppDispatch();
   const currentTheme = getTheme(isDarkMode);
   const styles = createLoginStyles(isDarkMode);
+
+  const handleLanguagePress = () => {
+    setShowLanguageModal(true);
+  };
+
+  const handleLanguageChange = (code: string) => {
+    i18n.changeLanguage(code);
+    setShowLanguageModal(false);
+  };
+
+  const handleThemeToggle = () => {
+    dispatch(toggleTheme());
+  };
 
   const handlePasswordReset = async () => {
     if (!email.trim()) {
@@ -67,9 +85,13 @@ export default function ForgotPasswordScreen() {
         extraScrollHeight={100}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('app.name')}</Text>
-        </View>
+        <LoginHeader 
+          currentTheme={currentTheme} 
+          styles={styles} 
+          onLanguagePress={handleLanguagePress}
+          onThemeToggle={handleThemeToggle}
+          isDarkMode={isDarkMode}
+        />
 
         <View style={styles.form}>
           <Text style={[styles.subtitle, { color: currentTheme.text, marginBottom: 16 }]}>
@@ -80,7 +102,10 @@ export default function ForgotPasswordScreen() {
             {t('auth.forgotPasswordDescription')}
           </Text>
 
-          <LoginErrorMessage errorMessage={errorMessage} />
+          <LoginErrorMessage 
+            errorMessage={errorMessage} 
+            onDismiss={() => setErrorMessage('')} 
+          />
 
           <LoginInput
             icon="mail-outline"
@@ -103,6 +128,14 @@ export default function ForgotPasswordScreen() {
           />
         </View>
       </KeyboardAwareScrollView>
+
+      <LanguageSelectionModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        currentTheme={currentTheme}
+        onLanguageChange={handleLanguageChange}
+        currentLanguage={i18n.language}
+      />
     </SafeAreaView>
   );
 }

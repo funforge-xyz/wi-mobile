@@ -180,7 +180,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       />
 
         <View style={styles.form}>
-          <LoginErrorMessage errorMessage={errorMessage} />
+          <LoginErrorMessage 
+            errorMessage={errorMessage} 
+            onDismiss={() => setErrorMessage('')} 
+          />
 
           {isSignUp && (
             <>
