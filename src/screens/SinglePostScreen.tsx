@@ -93,7 +93,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
-  const [editedPrivacy, setEditedPrivacy] = useState(false);
   const [editedAllowComments, setEditedAllowComments] = useState(true);
   const [editedShowLikeCount, setEditedShowLikeCount] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -167,7 +166,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
       if (postData) {
         setEditedContent(postData.content);
-        setEditedPrivacy(postData.isPrivate || false);
         setEditedAllowComments(postData.allowComments);
         setEditedShowLikeCount(postData.showLikeCount);
         setPost(postData);
@@ -373,7 +371,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const handleEditPost = () => {
     if (post) {
       setEditedContent(post.content || '');
-      setEditedPrivacy(post.isPrivate || false);
       setEditedAllowComments(post.allowComments);
       setEditedShowLikeCount(post.showLikeCount);
     }
@@ -387,7 +384,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       await updatePost(
         postId,
         editedContent,
-        editedPrivacy,
+        false, // All posts are public now
         editedAllowComments,
         editedShowLikeCount,
         dispatch
@@ -397,7 +394,6 @@ export default function SinglePostScreen({ route, navigation }: any) {
       setPost({
         ...post,
         content: editedContent.trim(),
-        isPrivate: editedPrivacy,
         allowComments: editedAllowComments,
         showLikeCount: editedShowLikeCount,
       });
@@ -621,11 +617,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
         <EditPostModal
           visible={isEditing}
           content={editedContent}
-          isPrivate={editedPrivacy}
           allowComments={editedAllowComments}
           showLikeCount={editedShowLikeCount}
           onContentChange={setEditedContent}
-          onPrivacyChange={setEditedPrivacy}
           onAllowCommentsChange={setEditedAllowComments}
           onShowLikeCountChange={setEditedShowLikeCount}
           onSave={handleSaveEdit}

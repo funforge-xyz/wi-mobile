@@ -13,7 +13,7 @@ export const createSinglePostStyles = (isDarkMode: boolean) => {
     container: {
       flex: 1,
       height: '100%',
-      backgroundColor: isDarkMode ? COLORS.dark.background : COLORS.light.background,
+      backgroundColor: theme.background,
     },
     loadingContainer: {
       flex: 1,
@@ -28,6 +28,7 @@ export const createSinglePostStyles = (isDarkMode: boolean) => {
     errorText: {
       fontSize: 16,
       fontFamily: FONTS.regular,
+      color: theme.text,
     },
     content: {
       flex: 1,

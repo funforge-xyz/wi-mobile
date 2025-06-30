@@ -16,11 +16,9 @@ import { useTranslation } from 'react-i18next';
 interface EditPostModalProps {
   visible: boolean;
   content: string;
-  isPrivate: boolean;
   allowComments: boolean;
   showLikeCount: boolean;
   onContentChange: (text: string) => void;
-  onPrivacyChange: (value: boolean) => void;
   onAllowCommentsChange: (value: boolean) => void;
   onShowLikeCountChange: (value: boolean) => void;
   onSave: () => void;
@@ -32,11 +30,9 @@ interface EditPostModalProps {
 export default function EditPostModal({
   visible,
   content,
-  isPrivate,
   allowComments,
   showLikeCount,
   onContentChange,
-  onPrivacyChange,
   onAllowCommentsChange,
   onShowLikeCountChange,
   onSave,
@@ -81,23 +77,6 @@ export default function EditPostModal({
               multiline
               numberOfLines={6}
             />
-          </View>
-
-          <View style={styles.modalSection}>
-            <View style={styles.switchContainer}>
-              <Text style={[styles.inputLabel, { color: currentTheme.text }]}>
-                {t('singlePost.privacy')}
-              </Text>
-              <Switch
-                value={isPrivate}
-                onValueChange={onPrivacyChange}
-                trackColor={{ false: currentTheme.border, true: COLORS.primary }}
-                thumbColor={isPrivate ? '#fff' : currentTheme.textSecondary}
-              />
-            </View>
-            <Text style={[styles.switchDescription, { color: currentTheme.textSecondary }]}>
-              {t('singlePost.privatePostDescription')}
-            </Text>
           </View>
 
           <View style={styles.modalSection}>
