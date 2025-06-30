@@ -16,55 +16,25 @@ Notifications.setNotificationHandler({
 
 export const initializeNotifications = async () => {
   if (!Device.isDevice) {
-    console.log('Notifications only work on physical devices');
+    console.log('📱 Notifications only work on physical devices');
     return;
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
-    console.log('Failed to get push token for push notification!');
-    return;
-  }
-
-  const token = (await Notifications.getExpoPushTokenAsync()).data;
-  console.log('🚀 EXPO PUSH TOKEN:', token);
-  console.log('📱 Copy this token to test push notifications:', token);
-
-  // Save token to Firestore for the current user
-  try {
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
-
-    if (currentUser) {
-      const firestore = getFirestore();
-      const userRef = doc(firestore, 'users', currentUser.uid);
-      await updateDoc(userRef, {
-        expoPushToken: token,
-        lastTokenUpdate: new Date(),
-      });
-      console.log('✅ Push token saved to Firestore');
-    }
-  } catch (error) {
-    console.error('❌ Error saving push token:', error);
-  }
+  // Only set up notification handlers and channels - NO token registration
+  console.log('⚙️ Setting up notification handlers...');
 
   if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#FF231F7C',
+      sound: true,
     });
+    console.log('📱 Android notification channel configured');
   }
 
-  return token;
+  console.log('✅ Notification handlers initialized (no token registration)');
 };
 
 export const registerForPushNotifications = async () => {
