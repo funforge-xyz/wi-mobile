@@ -598,20 +598,20 @@ export default function SinglePostScreen({ route, navigation }: any) {
               newlyAddedReplyParentId={newlyAddedReplyParentId}
             />
           </View>
-
-          {/* Comment Input */}
-          {post.allowComments && currentUser && (
-            <CommentInput
-              value={commentText}
-              onChangeText={setCommentText}
-              onSubmit={() => handleAddComment(commentText)}
-              isSubmitting={submittingComment}
-              currentTheme={currentTheme}
-              replyToComment={replyToComment}
-              onCancelReply={handleCancelReply}
-            />
-          )}
         </KeyboardAwareScrollView>
+
+        {/* Comment Input - Fixed at bottom */}
+        {post.allowComments && currentUser && (
+          <CommentInput
+            value={commentText}
+            onChangeText={setCommentText}
+            onSubmit={() => handleAddComment(commentText)}
+            isSubmitting={submittingComment}
+            currentTheme={currentTheme}
+            replyToComment={replyToComment}
+            onCancelReply={handleCancelReply}
+          />
+        )}
 
         {/* Edit Post Modal */}
         <EditPostModal

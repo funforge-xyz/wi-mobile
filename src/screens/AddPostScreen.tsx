@@ -194,6 +194,7 @@ export default function AddPostScreen() {
 
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
