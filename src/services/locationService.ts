@@ -1,4 +1,3 @@
-
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { getFirestore, doc, updateDoc, GeoPoint } from 'firebase/firestore';
@@ -18,7 +17,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
   if (data) {
     const { locations } = data as any;
     const location = locations[0];
-    
+
     if (location) {
       await updateUserLocationInFirestore(
         location.coords.latitude,
@@ -31,6 +30,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
 export class LocationService {
   private static instance: LocationService;
   private isTracking = false;
+  private permissionModalCallback?: (showModal: boolean) => void;
 
   static getInstance(): LocationService {
     if (!LocationService.instance) {
@@ -39,27 +39,42 @@ export class LocationService {
     return LocationService.instance;
   }
 
+  setPermissionModalCallback(callback: (showModal: boolean) => void) {
+    this.permissionModalCallback = callback;
+  }
+
   async requestPermissions(): Promise<boolean> {
     try {
-      // Request foreground location permission
-      const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
-      
-      if (foregroundStatus !== 'granted') {
-        console.log('Foreground location permission denied');
+      console.log('🗺️ Requesting location permissions...');
+
+      // First check if permissions are already granted
+      const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+
+      if (existingStatus === 'granted') {
+        console.log('✅ Location permission already granted');
+        return true;
+      }
+
+      // Request permissions
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        console.log('❌ Location permission denied, showing modal...');
+        // Show the modal to force user to enable location
+        if (this.permissionModalCallback) {
+          this.permissionModalCallback(true);
+        }
         return false;
       }
 
-      // Request background location permission
-      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-      
-      if (backgroundStatus !== 'granted') {
-        console.log('Background location permission denied');
-        return false;
-      }
-
+      console.log('✅ Location permission granted');
       return true;
     } catch (error) {
       console.error('Error requesting location permissions:', error);
+      // Show modal on error too
+      if (this.permissionModalCallback) {
+        this.permissionModalCallback(true);
+      }
       return false;
     }
   }
@@ -188,7 +203,7 @@ export class LocationService {
     try {
       const foreground = await Location.getForegroundPermissionsAsync();
       const background = await Location.getBackgroundPermissionsAsync();
-      
+
       return foreground.status === 'granted' && background.status === 'granted';
     } catch (error) {
       console.error('Error checking location permissions:', error);

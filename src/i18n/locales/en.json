@@ -22,7 +22,13 @@
     "notifications": "Notifications",
     "help": "Help & Support",
     "privacyPolicy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "openSettings": "Open Settings"
+  },
+  "location": {
+    "permissionRequired": "Location Permission Required",
+    "permissionDescription": "This app requires location access to show you nearby users and posts. Please grant location permission to continue using the app.",
+    "grantPermission": "Grant Permission"
   },
   "auth": {
     "login": "Login",
@@ -148,22 +154,6 @@
     "getHelp": "Get help and support",
     "viewPrivacy": "View privacy policy",
     "signOutDescription": "Sign out of your account"
-  },
-  "location": {
-    "permissionRequired": "Location Permission Required",
-    "locationRequired": "Location Access Required",
-    "locationRequiredDescription": "WiChat needs access to your location to find nearby users and enable location-based features. This is essential for the app to work properly.",
-    "findNearbyUsers": "Find nearby users",
-    "shareYourLocation": "Share your location with others",
-    "networkBasedMatching": "WiFi network-based user matching",
-    "locationRequiredToUseApp": "Location access is required to use WiChat. The app cannot function without location permissions.",
-    "enableLocation": "Enable Location Access",
-    "checkAgain": "Check Permissions Again",
-    "checkingPermissions": "Checking Permissions...",
-    "permissionDenied": "Permission Denied",
-    "openSettingsToEnable": "Please open Settings to enable location permissions for WiChat.",
-    "pleaseEnableInSettings": "Please enable location permissions in your device settings to continue using WiChat.",
-    "errorRequestingPermissions": "An error occurred while requesting location permissions. Please try again."
   },
   "settings": {
     "title": "Settings",

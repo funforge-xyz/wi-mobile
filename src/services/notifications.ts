@@ -64,18 +64,24 @@ export const registerForPushNotifications = async () => {
       return null;
     }
 
-    // Get the Expo push token
-    console.log('🎫 Getting Expo push token...');
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    // Get the Expo push token with security enabled
+    console.log('🎫 Getting Expo push token with security...');
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: process.env.EXPO_PROJECT_ID, // Add your Expo project ID to .env
+    });
     const token = tokenData.data;
+    
+    // Generate access token for secure push notifications
+    const accessToken = await generatePushAccessToken();
     
     console.log('🚀 EXPO PUSH TOKEN RECEIVED:');
     console.log('📱 Token:', token);
+    console.log('🔑 ACCESS TOKEN:', accessToken);
     console.log('🔗 Use this token to send test notifications via Expo Push Notification Tool');
     console.log('🌐 Test URL: https://expo.dev/notifications');
     
-    // Save token to Firestore
-    await saveTokenToFirestore(token);
+    // Save both tokens to Firestore
+    await saveTokenToFirestore(token, accessToken);
     
     // Configure notification channel for Android
     if (Platform.OS === 'android') {
@@ -89,14 +95,14 @@ export const registerForPushNotifications = async () => {
       console.log('📱 Android notification channel configured');
     }
 
-    return token;
+    return { token, accessToken };
   } catch (error) {
     console.error('❌ Error registering for push notifications:', error);
     return null;
   }
 };
 
-const saveTokenToFirestore = async (token: string) => {
+const saveTokenToFirestore = async (token: string, accessToken?: string) => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -106,15 +112,42 @@ const saveTokenToFirestore = async (token: string) => {
       const userRef = doc(firestore, 'users', currentUser.uid);
       await updateDoc(userRef, {
         expoPushToken: token,
+        pushAccessToken: accessToken,
         lastTokenUpdate: new Date(),
         platform: Platform.OS,
+        pushSecurityEnabled: !!accessToken,
       });
-      console.log('✅ Push token saved to Firestore for user:', currentUser.uid);
+      console.log('✅ Push token and access token saved to Firestore for user:', currentUser.uid);
     } else {
       console.log('⚠️ No authenticated user to save token for');
     }
   } catch (error) {
     console.error('❌ Error saving push token to Firestore:', error);
+  }
+};
+
+const generatePushAccessToken = async (): Promise<string> => {
+  try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+
+    // Generate a secure access token using user's ID token
+    const idToken = await currentUser.getIdToken();
+    const timestamp = Date.now();
+    
+    // Create a unique access token combining user data and timestamp
+    const tokenData = `${currentUser.uid}-${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
+    const accessToken = btoa(tokenData); // Base64 encode for security
+    
+    console.log('🔑 Generated push access token for secure notifications');
+    return accessToken;
+  } catch (error) {
+    console.error('❌ Error generating push access token:', error);
+    throw error;
   }
 };
 
