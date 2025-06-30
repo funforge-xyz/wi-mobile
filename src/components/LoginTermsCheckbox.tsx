@@ -1,8 +1,9 @@
 import { TouchableOpacity, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { styles } from '../styles/LoginStyles';
-import { COLORS } from '../config/constants';
+import { createLoginStyles } from '../styles/LoginStyles';
+import { useAppSelector } from '../hooks/redux';
+import { getTheme } from '../theme';
 
 interface LoginTermsCheckboxProps {
   acceptTerms: boolean;
@@ -16,6 +17,9 @@ export default function LoginTermsCheckbox({
   onTermsPress,
 }: LoginTermsCheckboxProps) {
   const { t } = useTranslation();
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const currentTheme = getTheme(isDarkMode);
+  const styles = createLoginStyles(isDarkMode);
 
   return (
     <View style={styles.termsContainer}>
@@ -24,12 +28,12 @@ export default function LoginTermsCheckbox({
         onPress={() => setAcceptTerms(!acceptTerms)}
       >
         {acceptTerms && (
-          <Ionicons name="checkmark" size={16} color={COLORS.primary} />
+          <Ionicons name="checkmark" size={16} color={currentTheme.primary} />
         )}
       </TouchableOpacity>
-      <Text style={styles.termsText}>
+      <Text style={[styles.termsText, { color: currentTheme.text }]}>
         {t('auth.acceptTerms')}{' '}
-        <Text style={styles.termsLink} onPress={onTermsPress}>
+        <Text style={[styles.termsLink, { color: currentTheme.primary }]} onPress={onTermsPress}>
           {t('common.terms')}
         </Text>
       </Text>

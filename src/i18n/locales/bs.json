@@ -68,8 +68,9 @@
     "emailRequired": "Email je obavezan",
     "invalidEmail": "Molimo unesite valjanu email adresu",
     "signIn": "Prijavite se",
-    "signInWithGoogle": "Prijavite se sa Google",
-    "verifyEmail": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja."
+    "verifyEmail": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja.",
+    "addProfilePhoto": "Dodajte profilnu sliku (opcionalno)",
+    "profilePhotoSelected": "Profilna slika odabrana"
   },
   "feed": {
     "title": "Početna",

@@ -86,38 +86,46 @@ export default function LoginImagePicker({
   };
 
   return (
-    <View style={styles.imagePickerContainer}>
-      <TouchableOpacity
-        style={styles.imagePickerButton}
-        onPress={showImageOptions}
-      >
-        {profileImage ? (
-          <Image source={{ uri: profileImage }} style={styles.profilePreview} />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Ionicons 
-              name="person-add-outline" 
-              size={40} 
-              color={currentTheme.textSecondary} 
-            />
-          </View>
-        )}
-      </TouchableOpacity>
-      
-      <Text style={styles.imagePickerText}>
-        {t('addPost.takePhotoOptional')}
-      </Text>
-      
-      {profileImage && (
+    <View style={styles.inputContainer}>
+      <View style={styles.inputWrapper}>
+        <Ionicons 
+          name="person-add-outline" 
+          size={20} 
+          color={currentTheme.textSecondary} 
+          style={styles.inputIcon}
+        />
+        
         <TouchableOpacity
-          style={styles.removeImageButton}
-          onPress={() => setProfileImage('')}
+          style={styles.imagePickerButton}
+          onPress={showImageOptions}
         >
-          <Text style={[styles.removeImageText, { color: currentTheme.error }]}>
-            {t('addPost.removePhoto')}
-          </Text>
+          {profileImage ? (
+            <View style={styles.imagePreviewContainer}>
+              <Image source={{ uri: profileImage }} style={styles.profilePreview} />
+              <Text style={[styles.imagePickerText, { color: currentTheme.text }]}>
+                {t('auth.profilePhotoSelected')}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.imagePickerText, { color: currentTheme.textSecondary }]}>
+              {t('auth.addProfilePhoto')}
+            </Text>
+          )}
         </TouchableOpacity>
-      )}
+        
+        {profileImage && (
+          <TouchableOpacity
+            onPress={() => setProfileImage('')}
+            style={styles.removeImageIcon}
+          >
+            <Ionicons
+              name="close-outline"
+              size={20}
+              color={currentTheme.error}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }

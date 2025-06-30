@@ -1,3 +1,6 @@
+The code is modified to include the ForgotPassword screen in the navigation stack.
+```
+```replit_final_file
 import { useState, useEffect } from 'react';
 import { Settings } from '../services/storage';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
@@ -10,8 +13,9 @@ import {
   setupSignOutCallback,
 } from '../utils/rootUtils';
 
-import OnboardingScreen from './OnboardingScreen';
 import LoginScreen from './LoginScreen';
+import ForgotPasswordScreen from './ForgotPasswordScreen';
+import OnboardingScreen from './OnboardingScreen';
 import RootTabNavigator from '../components/RootTabNavigator';
 
 export default function RootScreen() {

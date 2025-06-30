@@ -69,7 +69,9 @@
     "invalidEmail": "Please enter a valid email address",
     "signIn": "Sign In",
     "signInWithGoogle": "Sign in with Google",
-    "verifyEmail": "Please check your email and click the verification link before signing in."
+    "verifyEmail": "Please check your email and click the verification link before signing in.",
+    "addProfilePhoto": "Add profile photo (optional)",
+    "profilePhotoSelected": "Profile photo selected"
   },
   "feed": {
     "title": "Feed",

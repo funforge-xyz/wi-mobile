@@ -250,36 +250,26 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       marginBottom: 20,
     },
     imagePickerButton: {
-      marginBottom: 10,
-    },
-    imagePlaceholder: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5',
+      flex: 1,
       justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 2,
-      borderColor: isDarkMode ? '#404040' : '#E0E0E0',
-      borderStyle: 'dashed',
-    },
-    profilePreview: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
+      minHeight: 44,
     },
     imagePickerText: {
-      fontSize: 14,
-      color: isDarkMode ? '#B0B0B0' : '#666666',
-      textAlign: 'center',
-      marginBottom: 5,
+      fontSize: 16,
     },
-    removeImageButton: {
-      marginTop: 5,
+    imagePreviewContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
     },
-    removeImageText: {
-      fontSize: 12,
-      textDecorationLine: 'underline',
+    profilePreview: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      marginRight: 12,
+    },
+    removeImageIcon: {
+      padding: 4,
     },
     bioContainer: {
       marginBottom: 15,
@@ -304,6 +294,8 @@ export const createLoginStyles = (isDarkMode: boolean) => {
     },
     inputIcon: {
       marginRight: 12,
+      alignSelf: 'flex-start',
+      marginTop: 2,
     },
     textInput: {
       flex: 1,
