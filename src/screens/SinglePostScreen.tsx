@@ -36,7 +36,7 @@ import {
   deleteComment,
 } from '../utils/singlePostUtils';
 import { useAppDispatch } from '../hooks/redux';
-import { updatePost } from '../store/feedSlice';
+import { updatePost as updatePostInFeed } from '../store/feedSlice';
 import { updatePostLike } from '../store/userSlice';
 import {
   loadPost,
@@ -254,7 +254,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
           const newCommentsCount = post.commentsCount + 1;
           
           // Update feed slice
-          dispatch(updatePost({
+          dispatch(updatePostInFeed({
             postId: post.id,
             updates: {
               commentsCount: newCommentsCount
@@ -494,7 +494,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       const newCommentsCount = Math.max(0, post.commentsCount - commentsToRemove);
       
       // Update feed slice
-      dispatch(updatePost({
+      dispatch(updatePostInFeed({
         postId: post.id,
         updates: {
           commentsCount: newCommentsCount
