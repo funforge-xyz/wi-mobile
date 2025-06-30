@@ -110,8 +110,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const singlePostStyles = createSinglePostStyles(isDarkMode);
 
   useEffect(() => {
-    loadPostData();
-    loadCurrentUser();
+    const initializeData = async () => {
+      await loadCurrentUser();
+      await loadPostData();
+    };
+    initializeData();
 
     // Set up real-time listeners
     const firestore = getFirestore();
@@ -137,6 +140,14 @@ export default function SinglePostScreen({ route, navigation }: any) {
     };
   }, [postId]);
 
+  // Load comments and likes after currentUser is available
+  useEffect(() => {
+    if (currentUser && post) {
+      loadCommentsData();
+      loadLikesData();
+    }
+  }, [currentUser, post]);
+
   const loadCurrentUser = async () => {
     try {
       const user = await authService.getCurrentUser();
@@ -156,8 +167,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
         setEditedAllowComments(postData.allowComments);
         setEditedShowLikeCount(postData.showLikeCount);
         setPost(postData);
-        await loadCommentsData();
-        await loadLikesData();
+        // Comments and likes will be loaded after currentUser is set
+      }
       } else {
         Alert.alert(t('common.error'), t('singlePost.postNotFound'));
         navigation.goBack();
@@ -172,7 +183,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   const loadCommentsData = async () => {
     try {
-      const commentsData = await loadComments(postId);
+      const commentsData = await loadComments(postId, currentUser?.uid);
       setComments(commentsData);
     } catch (error) {
       console.error('Error loading comments:', error);
