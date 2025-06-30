@@ -19,8 +19,11 @@ const themeSlice = createSlice({
     setTheme: (state, action: PayloadAction<boolean>) => {
       state.isDarkMode = action.payload;
     },
+    logout: (state) => {
+      // Preserve theme state on logout - no changes needed
+    },
   },
 });
 
-export const { toggleTheme, setTheme } = themeSlice.actions;
+export const { toggleTheme, setTheme, logout } = themeSlice.actions;
 export default themeSlice.reducer;

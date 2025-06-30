@@ -238,7 +238,7 @@ export class AuthService {
       dispatch({ type: 'user/logout' });
       dispatch({ type: 'feed/logout' });
       dispatch({ type: 'connections/logout' });
-      
+
       // Then sign out from Firebase
       await this.signOut();
     } catch (error) {
@@ -316,13 +316,13 @@ export class AuthService {
       await sendPasswordResetEmail(auth, email);
     } catch (error: any) {
       console.error('Send password reset email error:', error);
-      
+
       if (error.code === 'auth/user-not-found') {
         throw new Error('No account found with this email address');
       } else if (error.code === 'auth/invalid-email') {
         throw new Error('Invalid email address');
       }
-      
+
       throw new Error('Failed to send password reset email. Please try again.');
     }
   }

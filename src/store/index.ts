@@ -4,6 +4,7 @@ import themeReducer from './themeSlice';
 import userReducer from './userSlice';
 import feedReducer from './feedSlice';
 import connectionsReducer from './connectionsSlice';
+import languageReducer from './languageSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     user: userReducer,
     feed: feedReducer,
     connections: connectionsReducer,
+    language: languageReducer,
   },
 });
 
