@@ -238,6 +238,8 @@ export class AuthService {
       dispatch({ type: 'user/logout' });
       dispatch({ type: 'feed/logout' });
       dispatch({ type: 'connections/logout' });
+      dispatch({ type: 'theme/logout' });
+      dispatch({ type: 'language/logout' });
 
       // Then sign out from Firebase
       await this.signOut();

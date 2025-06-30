@@ -50,13 +50,29 @@ export default function ChatsScreen({ navigation }: any) {
   useEffect(() => {
     let unsubscribeRequests: (() => void) | null = null;
     let unsubscribeConnections: (() => void) | null = null;
+    let unsubscribeAuth: (() => void) | null = null;
 
     const initializeListeners = async () => {
-      const { unsubscribeRequests: reqUnsub, unsubscribeConnections: connUnsub } = 
-        await setupRealtimeListeners(setConnectionRequests, setConnections, setLoading);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
 
-      unsubscribeRequests = reqUnsub;
-      unsubscribeConnections = connUnsub;
+      // Set up auth state listener to clear data on logout
+      unsubscribeAuth = auth.onAuthStateChanged((user) => {
+        if (!user) {
+          // User logged out, clear local state
+          setConnectionRequests([]);
+          setConnections([]);
+          setLoading(true);
+          return;
+        }
+        
+        // User is logged in, set up data listeners
+        setupRealtimeListeners(setConnectionRequests, setConnections, setLoading)
+          .then(({ unsubscribeRequests: reqUnsub, unsubscribeConnections: connUnsub }) => {
+            unsubscribeRequests = reqUnsub;
+            unsubscribeConnections = connUnsub;
+          });
+      });
     };
 
     initializeListeners();
@@ -84,6 +100,7 @@ export default function ChatsScreen({ navigation }: any) {
     return () => {
       if (unsubscribeRequests) unsubscribeRequests();
       if (unsubscribeConnections) unsubscribeConnections();
+      if (unsubscribeAuth) unsubscribeAuth();
       clearInterval(lastSeenInterval);
       appStateSubscription?.remove();
     };

@@ -65,6 +65,32 @@ export default function UserPostsScreen({ navigation }: any) {
     refreshThreshold: 5 * 60 * 1000 // 5 minutes
   });
 
+  // Listen for auth state changes to load fresh data for new user
+  useEffect(() => {
+    const setupAuthListener = async () => {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (user) {
+          // User logged in, load fresh data
+          loadInitialData();
+        }
+      });
+
+      return unsubscribe;
+    };
+
+    let unsubscribe: (() => void) | null = null;
+    setupAuthListener().then((unsub) => {
+      unsubscribe = unsub;
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {

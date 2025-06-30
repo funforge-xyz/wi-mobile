@@ -28,6 +28,36 @@ export default function NearbyScreen({ navigation }: any) {
     loadData();
   }, []);
 
+  // Clear local state when auth state changes (user logs out/in)
+  useEffect(() => {
+    const setupAuthListener = async () => {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (!user) {
+          // User logged out, clear local state
+          setNearbyUsers([]);
+          setLoading(true);
+        } else {
+          // User logged in, load fresh data
+          loadData();
+        }
+      });
+
+      return unsubscribe;
+    };
+
+    let unsubscribe: (() => void) | null = null;
+    setupAuthListener().then((unsub) => {
+      unsubscribe = unsub;
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   const loadData = async () => {
     try {
       setLoading(true);
