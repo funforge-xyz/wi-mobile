@@ -36,6 +36,8 @@ import {
   deleteComment,
 } from '../utils/singlePostUtils';
 import { useAppDispatch } from '../hooks/redux';
+import { updatePost } from '../store/feedSlice';
+import { updatePostLike } from '../store/userSlice';
 import {
   loadPost,
   loadComments,
@@ -245,6 +247,26 @@ export default function SinglePostScreen({ route, navigation }: any) {
         setNewlyAddedReplyParentId(parentCommentId);
         // Clear the marker after a short delay
         setTimeout(() => setNewlyAddedReplyParentId(undefined), 1000);
+      } else {
+        // Only increment comment count for top-level comments
+        // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
+        if (post) {
+          const newCommentsCount = post.commentsCount + 1;
+          
+          // Update feed slice
+          dispatch(updatePost({
+            postId: post.id,
+            updates: {
+              commentsCount: newCommentsCount
+            }
+          }));
+          
+          // Update user slice (for UserPostsScreen)
+          dispatch(updatePostLike({
+            postId: post.id,
+            commentsCount: newCommentsCount
+          }));
+        }
       }
 
       // Reset form
@@ -437,6 +459,14 @@ export default function SinglePostScreen({ route, navigation }: any) {
     try {
       await deleteComment(post.id, commentToDelete.id, commentToDelete.parentCommentId);
       
+      // Calculate how many comments will be removed
+      let commentsToRemove = 1; // The comment being deleted
+      if (!commentToDelete.parentCommentId) {
+        // If it's a top-level comment, also count its replies
+        const replies = comments.filter(c => c.parentCommentId === commentToDelete.id);
+        commentsToRemove += replies.length;
+      }
+      
       // Update local state immediately without reloading
       if (commentToDelete.parentCommentId) {
         // This is a reply - remove it from the comments array and update parent's reply count
@@ -459,6 +489,23 @@ export default function SinglePostScreen({ route, navigation }: any) {
           );
         });
       }
+      
+      // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
+      const newCommentsCount = Math.max(0, post.commentsCount - commentsToRemove);
+      
+      // Update feed slice
+      dispatch(updatePost({
+        postId: post.id,
+        updates: {
+          commentsCount: newCommentsCount
+        }
+      }));
+      
+      // Update user slice (for UserPostsScreen)
+      dispatch(updatePostLike({
+        postId: post.id,
+        commentsCount: newCommentsCount
+      }));
       
       setCommentToDelete(null);
     } catch (error) {
