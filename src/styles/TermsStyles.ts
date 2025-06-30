@@ -19,6 +19,8 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: FONTS.bold,
+    flex: 1,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
