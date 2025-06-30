@@ -225,7 +225,7 @@ export const createLoginStyles = (isDarkMode: boolean) => {
       minHeight: 80,
     },
     bioIconContainer: {
-      paddingTop: 2,
+      paddingTop: 12,
     },
     bioInput: {
       flex: 1,
@@ -294,8 +294,6 @@ export const createLoginStyles = (isDarkMode: boolean) => {
     },
     inputIcon: {
       marginRight: 12,
-      alignSelf: 'flex-start',
-      marginTop: 2,
     },
     textInput: {
       flex: 1,

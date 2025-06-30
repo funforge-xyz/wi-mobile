@@ -46,7 +46,10 @@ export default function LoginInput({
           name={icon as any} 
           size={20} 
           color={currentTheme.textSecondary} 
-          style={styles.inputIcon}
+          style={[
+            styles.inputIcon,
+            multiline && { alignSelf: 'flex-start', marginTop: 12 }
+          ]}
         />
 
         <TextInput
