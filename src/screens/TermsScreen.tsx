@@ -2,13 +2,15 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../hooks/redux';
 import { getTheme } from '../utils/termsUtils';
 import { styles } from '../styles/TermsStyles';
-import TermsHeader from '../components/TermsHeader';
+import PolicyHeader from '../components/PolicyHeader';
 import TermsSection from '../components/TermsSection';
 
 export default function TermsScreen() {
+  const navigation = useNavigation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -49,7 +51,11 @@ export default function TermsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <TermsHeader currentTheme={currentTheme} styles={styles} />
+      <PolicyHeader
+        title={t('terms.title')}
+        onBackPress={() => navigation.goBack()}
+        currentTheme={currentTheme}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {termsSections.map((section, index) => (
