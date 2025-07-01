@@ -287,7 +287,7 @@ export default function CommentsList({
 
             {/* Replies Section */}
             {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && expandedComments.has(comment.id) && (
-              <View style={styles.repliesContainer}>
+              <View style={[styles.repliesContainer, { backgroundColor: currentTheme.background }]}>
                 {repliesMap[comment.id].map((reply) => renderComment(reply, comment))}
               </View>
             )}
@@ -328,7 +328,6 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.md,
     padding: SPACING.sm,
     borderRadius: 12,
-    backgroundColor: '#f0f0f0',
   },
   replyComment: {
     marginLeft: SPACING.sm,
