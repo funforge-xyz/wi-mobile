@@ -68,24 +68,33 @@ export default function AddPostForm({
             }]} 
             onPress={onImagePress}
           >
-            <View style={addPostStyles.imagePickerContent}>
-              <Ionicons name="camera-outline" size={20} color={currentTheme.textSecondary} />
-              <Text style={[addPostStyles.imagePickerText, { color: currentTheme.textSecondary }]}>
-                {selectedImage ? t('addPost.changePhoto', 'Change Photo') : t('addPost.takePhotoOptional', 'Take Photo (optional)')}
-              </Text>
-            </View>
-            {selectedImage && (
-              <View style={addPostStyles.selectedImageContainer}>
+            {selectedImage ? (
+              <View style={addPostStyles.imagePreviewContainer}>
                 <Image source={{ uri: selectedImage }} style={addPostStyles.selectedImage} />
-                <TouchableOpacity 
-                  style={addPostStyles.removeImageButton} 
-                  onPress={onRemoveImage}
-                >
-                  <Ionicons name="close-circle" size={24} color={COLORS.error} />
-                </TouchableOpacity>
+                <Text style={[addPostStyles.imagePickerText, { color: currentTheme.text }]}>
+                  {t('addPost.photoSelected', 'Photo Selected')}
+                </Text>
+              </View>
+            ) : (
+              <View style={addPostStyles.imagePickerContent}>
+                <Ionicons name="camera-outline" size={20} color={currentTheme.textSecondary} />
+                <Text style={[addPostStyles.imagePickerText, { color: currentTheme.textSecondary }]}>
+                  {t('addPost.takePhotoOptional', 'Take Photo (optional)')}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
+
+          {selectedImage && (
+            <TouchableOpacity
+              onPress={onRemoveImage}
+              style={addPostStyles.removeImageLink}
+            >
+              <Text style={[addPostStyles.removeImageText, { color: currentTheme.error || COLORS.error }]}>
+                {t('addPost.removePhoto', 'Remove Photo')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         

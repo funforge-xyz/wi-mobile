@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { getTheme } from '../theme';
@@ -73,22 +72,23 @@ export const addPostStyles = StyleSheet.create({
     fontFamily: FONTS.regular,
     flex: 1,
   },
-  selectedImageContainer: {
+  imagePreviewContainer: {
     alignItems: 'center',
-    marginTop: SPACING.sm,
-    position: 'relative',
   },
   selectedImage: {
     width: 200,
-    height: 150,
-    borderRadius: 12,
+    height: 200,
+    borderRadius: 8,
+    marginBottom: SPACING.sm,
   },
-  removeImageButton: {
-    position: 'absolute',
-    top: -10,
-    right: '25%',
-    backgroundColor: 'white',
-    borderRadius: 12,
+  removeImageLink: {
+    alignItems: 'center',
+    marginTop: SPACING.xs,
+  },
+  removeImageText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
+    textDecorationLine: 'underline',
   },
   privacyContainer: {
     borderRadius: 12,
