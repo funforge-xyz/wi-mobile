@@ -55,7 +55,7 @@ export default function AddPostScreen() {
     ]).start(() => {
       setShowSuccessModal(false);
       resetForm();
-      navigation.navigate('UserPosts' as never);
+      navigation.navigate('Profile' as never);
     });
   };
 
