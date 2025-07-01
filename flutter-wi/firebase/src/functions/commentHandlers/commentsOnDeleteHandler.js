@@ -6,8 +6,9 @@ import ServiceFactory from '../../web/services/serviceFactory';
 const prepareCommentsMeta = (
   fromSameUser,
   commentsMeta,
+  decrementValue = 1,
 ) => {
-  const dec = firestore.ref.FieldValue.increment(-1);
+  const dec = firestore.ref.FieldValue.increment(-decrementValue);
 
   return {
     ...commentsMeta,
@@ -32,9 +33,31 @@ const commentsOnDeleteHandler = async (snap, context) => {
     return;
   }
 
+  // Count how many replies this comment has (if it's a parent comment)
+  let totalCommentsToDelete = 1; // The comment itself
+  
+  try {
+    const repliesSnapshot = await firestore.db
+      .collection('posts')
+      .doc(context.params.postId)
+      .collection('comments')
+      .doc(context.params.commentId)
+      .collection('replies')
+      .get();
+    
+    totalCommentsToDelete += repliesSnapshot.size; // Add the number of replies
+    
+    logger.info(`Deleting comment ${context.params.commentId} with ${repliesSnapshot.size} replies. Total to delete: ${totalCommentsToDelete}`);
+  } catch (error) {
+    logger.error(`Error counting replies for comment ${context.params.commentId}:`, error);
+    // Continue with just the parent comment count
+  }
+
+  // Calculate decrements based on actual number of comments being deleted
   const commentsSummaryInfo = prepareCommentsMeta(
     currentData.authorId === postDoc.data().authorId,
     postDoc.data().commentsMeta,
+    totalCommentsToDelete,
   );
 
   logger.info(
