@@ -358,6 +358,48 @@ export const deletePost = async (postId: string, dispatch?: any) => {
   try {
     const firestore = getFirestore();
     const postRef = doc(firestore, 'posts', postId);
+
+    // Delete all comments
+    const commentsRef = collection(firestore, 'posts', postId, 'comments');
+    const commentsQuery = query(commentsRef);
+    const commentsSnapshot = await getDocs(commentsQuery);
+    
+    for (const commentDoc of commentsSnapshot.docs) {
+      // Delete all likes for the comment
+      const likesRef = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'likes');
+      const likesQuery = query(likesRef);
+      const likesSnapshot = await getDocs(likesQuery);
+      for (const likeDoc of likesSnapshot.docs) {
+        await deleteDoc(likeDoc.ref);
+      }
+
+      // Delete all replies for the comment
+      const repliesRef = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies');
+      const repliesQuery = query(repliesRef);
+      const repliesSnapshot = await getDocs(repliesQuery);
+      for (const replyDoc of repliesSnapshot.docs) {
+        // Delete all likes for the reply
+        const replyLikesRef = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies', replyDoc.id, 'likes');
+        const replyLikesQuery = query(replyLikesRef);
+        const replyLikesSnapshot = await getDocs(replyLikesQuery);
+        for (const replyLikeDoc of replyLikesSnapshot.docs) {
+          await deleteDoc(replyLikeDoc.ref);
+        }
+
+        await deleteDoc(replyDoc.ref);
+      }
+
+      await deleteDoc(commentDoc.ref);
+    }
+
+    // Delete all likes for the post
+    const postLikesRef = collection(firestore, 'posts', postId, 'likes');
+    const postLikesQuery = query(postLikesRef);
+    const postLikesSnapshot = await getDocs(postLikesQuery);
+    for (const likeDoc of postLikesSnapshot.docs) {
+      await deleteDoc(likeDoc.ref);
+    }
+
     await deleteDoc(postRef);
 
     // Update Redux state
