@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/auth';
-import { storageService } from '../services/storage';
+import { storageService, Settings } from '../services/storage';
 import { validatePassword, getErrorMessage } from '../utils/loginUtils';
 import { createLoginStyles } from '../styles/LoginStyles';
 import LoginHeader from '../components/LoginHeader';
@@ -52,8 +52,16 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setShowLanguageModal(false);
   };
 
-  const handleThemeToggle = () => {
+  const handleThemeToggle = async () => {
     dispatch(toggleTheme());
+    // Persist the new theme setting to storage
+    const newTheme = !isDarkMode;
+    try {
+      const settings = new Settings();
+      await settings.setDarkMode(newTheme);
+    } catch (error) {
+      console.error('Failed to save theme setting:', error);
+    }
   };
 
   const handleEmailAuth = async () => {
