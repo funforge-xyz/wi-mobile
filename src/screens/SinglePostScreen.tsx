@@ -475,6 +475,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
     try {
       await deleteComment(post.id, commentToDelete.id, commentToDelete.parentCommentId);
 
+      // Calculate how many comments will be deleted
+      let deletedCommentsCount = 1; // The comment itself
+      
       // Update local comments state immediately
       if (commentToDelete.parentCommentId) {
         // This is a reply - remove it from the comments array and update parent's reply count
@@ -491,6 +494,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
         });
       } else {
         // This is a top-level comment - remove it and all its replies
+        // Count how many replies this comment has before deleting
+        const repliesToDelete = comments.filter(comment => comment.parentCommentId === commentToDelete.id);
+        deletedCommentsCount += repliesToDelete.length; // Add the number of replies
+        
         setComments(prevComments => {
           return prevComments.filter(comment => 
             comment.id !== commentToDelete.id && comment.parentCommentId !== commentToDelete.id
@@ -498,13 +505,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
         });
       }
 
-      // Always update comment count for both top-level comments and replies
+      // Update comment count based on how many comments were actually deleted
       // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
         // Get current comments count from Redux user posts (which is the source of truth)
         const currentPostFromRedux = userPosts.find(p => p.id === post.id);
         const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
-        const newCommentsCount = Math.max(0, currentCommentsCount - 1);
+        const newCommentsCount = Math.max(0, currentCommentsCount - deletedCommentsCount);
 
         // Update Redux slices
         dispatch(updatePostInFeed({
