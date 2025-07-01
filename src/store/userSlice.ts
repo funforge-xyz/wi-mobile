@@ -205,6 +205,57 @@ export const fetchUserPosts = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  'user/updateProfile',
+  async (profileData: Partial<UserProfile>, { dispatch }) => {
+    const updatedProfile = { ...profileData };
+    dispatch(setProfile(updatedProfile));
+    return updatedProfile;
+  }
+);
+
+export const loadUserLanguagePreference = createAsyncThunk(
+  'user/loadLanguagePreference',
+  async (userId: string, { dispatch }) => {
+    try {
+      const { getFirestore } = await import('../services/firebase');
+      const { doc, getDoc } = await import('firebase/firestore');
+      const { setLanguage } = await import('./languageSlice');
+
+      const firestore = getFirestore();
+      const userRef = doc(firestore, 'users', userId);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const preferredLanguage = userData.preferredLanguage;
+
+        if (preferredLanguage) {
+          // Update Redux language state
+          dispatch(setLanguage(preferredLanguage));
+
+          // Update i18n
+          const { default: i18n } = await import('../i18n');
+          await i18n.changeLanguage(preferredLanguage);
+
+          // Update local storage
+          const { Settings } = await import('../services/storage');
+          const settings = new Settings();
+          await settings.setLanguage(preferredLanguage);
+
+          console.log('Loaded preferred language from Firebase:', preferredLanguage);
+          return preferredLanguage;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Failed to load language preference from Firebase:', error);
+      return null;
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: 'user',
   initialState,

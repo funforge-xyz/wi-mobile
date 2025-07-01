@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
 import { toggleTheme } from '../store/themeSlice';
+import { setLanguage } from '../store/languageSlice';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -47,9 +48,20 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setShowLanguageModal(true);
   };
 
-  const handleLanguageChange = (code: string) => {
-    i18n.changeLanguage(code);
-    setShowLanguageModal(false);
+  const handleLanguageChange = async (code: string) => {
+    try {
+      await i18n.changeLanguage(code);
+      setShowLanguageModal(false);
+
+      // Update Redux state
+      dispatch(setLanguage(code));
+
+      // Store language preference locally only (not in Firebase for login screen)
+      const settings = new Settings();
+      await settings.setLanguage(code);
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
   };
 
   const handleThemeToggle = async () => {

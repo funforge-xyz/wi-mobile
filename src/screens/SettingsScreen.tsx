@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { toggleTheme } from '../store/themeSlice';
+import { setLanguage } from '../store/languageSlice';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../config/constants';
 import { fetchUserProfile, updateProfile } from '../store/userSlice';
@@ -401,7 +402,12 @@ export default function SettingsScreen() {
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
         currentTheme={currentTheme}
-        onLanguageChange={(code) => changeLanguage(code, i18n, setShowLanguageModal)}
+        onLanguageChange={(code) => {
+          // Update Redux state first
+          dispatch(setLanguage(code));
+          // Then handle the language change with Firebase storage
+          changeLanguage(code, i18n, setShowLanguageModal);
+        }}
         currentLanguage={i18n.language}
       />
 

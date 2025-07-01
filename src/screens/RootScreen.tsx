@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Settings } from '../services/storage';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
@@ -10,6 +9,7 @@ import {
   handleOnboardingComplete as utilHandleOnboardingComplete,
   setupSignOutCallback,
 } from '../utils/rootUtils';
+import { fetchUserProfile, loadUserLanguagePreference } from '../store/userSlice';
 
 import LoginScreen from './LoginScreen';
 import OnboardingScreen from './OnboardingScreen';

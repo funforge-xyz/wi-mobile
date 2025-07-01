@@ -477,11 +477,38 @@ export const getCurrentLanguageName = (language: string) => {
   return language === 'bs' ? 'Bosanski' : 'English';
 };
 
-export const changeLanguage = (
-  language: string,
-  i18n: any,
-  setShowLanguageModal: (show: boolean) => void
-) => {
-  i18n.changeLanguage(language);
-  setShowLanguageModal(false);
+export const changeLanguage = async (code: string, i18n: any, setShowLanguageModal: (show: boolean) => void) => {
+  try {
+    await i18n.changeLanguage(code);
+    setShowLanguageModal(false);
+
+    // Store language preference locally
+    const settings = new Settings();
+    await settings.setLanguage(code);
+
+    // Store language preference in Firebase (only when changed in settings)
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const { getFirestore } = await import('../services/firebase');
+      const { doc, updateDoc } = await import('firebase/firestore');
+
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (currentUser) {
+        const firestore = getFirestore();
+        const userRef = doc(firestore, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          preferredLanguage: code,
+          languageUpdatedAt: new Date().toISOString(),
+        });
+        console.log('Language preference saved to Firebase:', code);
+      }
+    } catch (firebaseError) {
+      console.error('Failed to save language preference to Firebase:', firebaseError);
+      // Continue even if Firebase update fails
+    }
+  } catch (error) {
+    console.error('Failed to change language:', error);
+  }
 };
