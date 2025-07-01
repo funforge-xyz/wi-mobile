@@ -52,6 +52,7 @@ export const styles = StyleSheet.create({
   },
   pagination: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.xl,
   },
