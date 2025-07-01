@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
@@ -107,6 +108,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
     authorName: string;
   } | null>(null);
   const [newlyAddedReplyParentId, setNewlyAddedReplyParentId] = useState<string | undefined>(undefined);
+  const commentInputRef = useRef<TextInput>(null);
 
   const { t } = useTranslation();
 
@@ -303,6 +305,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
     const handleReplyToComment = (commentId: string, authorName: string) => {
     setReplyToComment({ id: commentId, authorName });
+    // Focus the input field after a short delay to ensure the UI has updated
+    setTimeout(() => {
+      commentInputRef.current?.focus();
+    }, 100);
   };
 
   const handleCancelReply = () => {
@@ -610,6 +616,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
           {/* Comment Input - Fixed at bottom with keyboard awareness */}
           {post.allowComments && currentUser && (
             <CommentInput
+              ref={commentInputRef}
               value={commentText}
               onChangeText={setCommentText}
               onSubmit={() => handleAddComment(commentText)}

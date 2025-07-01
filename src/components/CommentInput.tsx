@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import {
   View,
   TextInput,
@@ -21,7 +21,7 @@ interface CommentInputProps {
   onCancelReply?: () => void;
 }
 
-export default function CommentInput({
+const CommentInput = forwardRef<TextInput, CommentInputProps>(({
   value,
   onChangeText,
   onSubmit,
@@ -29,7 +29,7 @@ export default function CommentInput({
   currentTheme,
   replyToComment,
   onCancelReply,
-}: CommentInputProps) {
+}, ref) => {
   const { t } = useTranslation();
 
   return (
@@ -49,6 +49,7 @@ export default function CommentInput({
       )}
       <View style={styles.inputContainer}>
         <TextInput
+          ref={ref}
           style={[
             styles.textInput,
             {
@@ -84,7 +85,11 @@ export default function CommentInput({
       </View>
     </View>
   );
-}
+});
+
+CommentInput.displayName = 'CommentInput';
+
+export default CommentInput;
 
 const styles = StyleSheet.create({
   container: {
