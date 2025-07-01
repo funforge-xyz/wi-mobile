@@ -1,18 +1,18 @@
 import { Alert } from 'react-native';
-import { 
-  doc, 
-  getDoc, 
-  collection, 
-  getDocs, 
-  addDoc, 
-  deleteDoc, 
+import {
+  doc,
   updateDoc,
-  query, 
-  orderBy,
-  serverTimestamp,
-  where,
+  deleteDoc,
   increment,
-  limit
+  getDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit,
 } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { TFunction } from 'react-i18next';
@@ -371,50 +371,68 @@ export const deletePost = async (postId: string, dispatch?: any) => {
   }
 };
 
-export const deleteComment = async (postId: string, commentId: string, parentCommentId?: string) => {
+// Helper function to count total comments that will be deleted (including replies)
+export const countCommentsToDelete = async (
+  postId: string,
+  commentId: string,
+  parentCommentId?: string
+): Promise<number> => {
   try {
     const firestore = getFirestore();
+
+    if (parentCommentId) {
+      // This is a reply, so only 1 comment will be deleted
+      return 1;
+    } else {
+      // This is a top-level comment, count it + all its replies
+      let totalCount = 1; // The comment itself
+
+      const repliesQuery = query(
+        collection(firestore, 'posts', postId, 'comments', commentId, 'replies')
+      );
+      const repliesSnapshot = await getDocs(repliesQuery);
+      totalCount += repliesSnapshot.size;
+
+      return totalCount;
+    }
+  } catch (error) {
+    console.error('Error counting comments to delete:', error);
+    return 1; // Fallback to just the main comment
+  }
+};
+
+export const deleteComment = async (
+  postId: string,
+  commentId: string,
+  parentCommentId?: string
+) => {
+  try {
+    const firestore = getFirestore();
+
+    // Count how many comments will be deleted before actually deleting
+    const totalCommentsToDelete = await countCommentsToDelete(postId, commentId, parentCommentId);
 
     if (parentCommentId) {
       // This is a reply - delete from replies subcollection
       const replyRef = doc(firestore, 'posts', postId, 'comments', parentCommentId, 'replies', commentId);
       await deleteDoc(replyRef);
 
-      // Update parent comment's reply count
+      // Update parent comment's replies count
       const parentCommentRef = doc(firestore, 'posts', postId, 'comments', parentCommentId);
-      const parentCommentDoc = await getDoc(parentCommentRef);
-      if (parentCommentDoc.exists()) {
-        await updateDoc(parentCommentRef, {
-          repliesCount: Math.max(0, (parentCommentDoc.data().repliesCount || 1) - 1),
-        });
-      }
+      await updateDoc(parentCommentRef, {
+        repliesCount: increment(-1)
+      });
     } else {
-      // This is a top-level comment
+      // This is a top-level comment - delete from comments collection
       const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
-
-      // First, delete all replies to this comment
-      const repliesQuery = query(
-        collection(firestore, 'posts', postId, 'comments', commentId, 'replies')
-      );
-      const repliesSnapshot = await getDocs(repliesQuery);
-
-      const batch = repliesSnapshot.docs.map(replyDoc => deleteDoc(replyDoc.ref));
-      await Promise.all(batch);
-
-      // Then delete the comment itself
       await deleteDoc(commentRef);
     }
 
-    // Update post's total comments count
+    // Update post's total comments count by the actual number of comments deleted
     const postRef = doc(firestore, 'posts', postId);
-    const postDoc = await getDoc(postRef);
-    if (postDoc.exists()) {
-      await updateDoc(postRef, {
-        commentsCount: Math.max(0, (postDoc.data().commentsCount || 1) - 1),
-      });
-    }
-
-    return { success: true };
+    await updateDoc(postRef, {
+      commentsCount: increment(-totalCommentsToDelete)
+    });
   } catch (error) {
     console.error('Error deleting comment:', error);
     throw error;
