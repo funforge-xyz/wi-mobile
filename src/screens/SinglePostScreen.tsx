@@ -4,8 +4,6 @@ import {
   Text,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
@@ -554,26 +552,21 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const userLiked = likes.some(like => like.authorId === currentUser?.uid);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-    >
-      <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
-        <SinglePostHeader
-          onBack={() => navigation.goBack()}
-          onEdit={handleEditPost}
-          canEdit={isOwnPost && post?.authorId === currentUser?.uid}
-          currentTheme={currentTheme}
-        />
+    <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
+      <SinglePostHeader
+        onBack={() => navigation.goBack()}
+        onEdit={handleEditPost}
+        canEdit={isOwnPost && post?.authorId === currentUser?.uid}
+        currentTheme={currentTheme}
+      />
 
-        <KeyboardAwareScrollView 
-          style={singlePostStyles.content}
-          enableOnAndroid={true}
-          extraScrollHeight={20}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
-        >
+      <KeyboardAwareScrollView 
+        style={singlePostStyles.content}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
           <View>
             <SinglePostDisplay
               post={post}
@@ -600,71 +593,70 @@ export default function SinglePostScreen({ route, navigation }: any) {
           </View>
         </KeyboardAwareScrollView>
 
-        {/* Comment Input - Fixed at bottom */}
-        {post.allowComments && currentUser && (
-          <CommentInput
-            value={commentText}
-            onChangeText={setCommentText}
-            onSubmit={() => handleAddComment(commentText)}
-            isSubmitting={submittingComment}
-            currentTheme={currentTheme}
-            replyToComment={replyToComment}
-            onCancelReply={handleCancelReply}
-          />
-        )}
-
-        {/* Edit Post Modal */}
-        <EditPostModal
-          visible={isEditing}
-          content={editedContent}
-          allowComments={editedAllowComments}
-          showLikeCount={editedShowLikeCount}
-          onContentChange={setEditedContent}
-          onAllowCommentsChange={setEditedAllowComments}
-          onShowLikeCountChange={setEditedShowLikeCount}
-          onSave={handleSaveEdit}
-          onCancel={() => setIsEditing(false)}
-          onDelete={handleDeletePost}
+      {/* Comment Input - Fixed at bottom */}
+      {post.allowComments && currentUser && (
+        <CommentInput
+          value={commentText}
+          onChangeText={setCommentText}
+          onSubmit={() => handleAddComment(commentText)}
+          isSubmitting={submittingComment}
           currentTheme={currentTheme}
+          replyToComment={replyToComment}
+          onCancelReply={handleCancelReply}
         />
+      )}
 
-        {/* Delete Post Confirmation Modal */}
-        <DeletePostConfirmationModal
-          visible={showDeleteModal}
-          onConfirm={confirmDeletePost}
-          onCancel={() => setShowDeleteModal(false)}
-          currentTheme={currentTheme}
-        />
+      {/* Edit Post Modal */}
+      <EditPostModal
+        visible={isEditing}
+        content={editedContent}
+        allowComments={editedAllowComments}
+        showLikeCount={editedShowLikeCount}
+        onContentChange={setEditedContent}
+        onAllowCommentsChange={setEditedAllowComments}
+        onShowLikeCountChange={setEditedShowLikeCount}
+        onSave={handleSaveEdit}
+        onCancel={() => setIsEditing(false)}
+        onDelete={handleDeletePost}
+        currentTheme={currentTheme}
+      />
 
-        {/* Delete Comment Confirmation Modal */}
-        <DeleteCommentConfirmationModal
-          visible={showDeleteCommentModal}
-          onConfirm={confirmDeleteComment}
-          onCancel={() => {
-            setShowDeleteCommentModal(false);
-            setCommentToDelete(null);
-          }}
-          currentTheme={currentTheme}
-        />
+      {/* Delete Post Confirmation Modal */}
+      <DeletePostConfirmationModal
+        visible={showDeleteModal}
+        onConfirm={confirmDeletePost}
+        onCancel={() => setShowDeleteModal(false)}
+        currentTheme={currentTheme}
+      />
 
-        {/* Edit Success Modal */}
-        <SuccessModal
-          visible={showEditSuccessModal}
-          title={t('singlePost.success')}
-          message={t('singlePost.postUpdated')}
-          animation={editSuccessAnimation}
-          currentTheme={currentTheme}
-        />
+      {/* Delete Comment Confirmation Modal */}
+      <DeleteCommentConfirmationModal
+        visible={showDeleteCommentModal}
+        onConfirm={confirmDeleteComment}
+        onCancel={() => {
+          setShowDeleteCommentModal(false);
+          setCommentToDelete(null);
+        }}
+        currentTheme={currentTheme}
+      />
 
-        {/* Delete Success Modal */}
-        <SuccessModal
-          visible={showDeleteSuccessModal}
-          title={t('singlePost.success')}
-          message={t('singlePost.postDeleted')}
-          animation={deleteSuccessAnimation}
-          currentTheme={currentTheme}
-        />
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+      {/* Edit Success Modal */}
+      <SuccessModal
+        visible={showEditSuccessModal}
+        title={t('singlePost.success')}
+        message={t('singlePost.postUpdated')}
+        animation={editSuccessAnimation}
+        currentTheme={currentTheme}
+      />
+
+      {/* Delete Success Modal */}
+      <SuccessModal
+        visible={showDeleteSuccessModal}
+        title={t('singlePost.success')}
+        message={t('singlePost.postDeleted')}
+        animation={deleteSuccessAnimation}
+        currentTheme={currentTheme}
+      />
+    </SafeAreaView>
   );
 }
