@@ -32,7 +32,8 @@ export const handlePostLike = async (
   updatePostLike: (data: any) => void
 ) => {
   try {
-    const { getFirestore, doc, collection, addDoc, deleteDoc, getDocs, query, where, getAuth } = await import('../services/firebase');
+    const { getFirestore, getAuth } = await import('../services/firebase');
+    const { doc, collection, addDoc, deleteDoc, getDocs, query, where } = await import('firebase/firestore');
 
     const firestore = getFirestore();
     const auth = getAuth();
