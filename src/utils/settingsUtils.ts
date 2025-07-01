@@ -483,8 +483,8 @@ export const changeLanguage = async (code: string, i18n: any, setShowLanguageMod
     setShowLanguageModal(false);
 
     // Store language preference locally
-    const settings = new Settings();
-    await settings.setLanguage(code);
+    // const settings = new Settings();
+    // await settings.setLanguage(code);
 
     // Store language preference in Firebase (only when changed in settings)
     try {
