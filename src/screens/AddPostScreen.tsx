@@ -17,17 +17,19 @@ import { getTheme } from '../theme';
 import AddPostHeader from '../components/AddPostHeader';
 import AddPostForm from '../components/AddPostForm';
 import SuccessModal from '../components/SuccessModal';
+import { useNavigation } from '@react-navigation/native';
 
 export default function AddPostScreen() {
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-  
+
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0));
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const textInputRef = useRef<any>(null);
+  const navigation = useNavigation();
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
@@ -53,6 +55,7 @@ export default function AddPostScreen() {
     ]).start(() => {
       setShowSuccessModal(false);
       resetForm();
+      navigation.navigate('UserPosts' as never);
     });
   };
 

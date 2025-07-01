@@ -1,4 +1,3 @@
-
 import { Alert } from 'react-native';
 import { collection, getDocs, doc, addDoc, deleteDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
@@ -28,57 +27,52 @@ export const formatTimeAgo = (dateInput: string | Date, t: (key: string, options
 };
 
 export const handlePostLike = async (
-  postId: string, 
-  posts: any[], 
-  updatePostLike: (data: { postId: string; isLiked: boolean }) => void
+  postId: string,
+  posts: any[],
+  updatePostLike: (data: any) => void
 ) => {
   try {
-    const { getAuth } = await import('../services/firebase');
+    const { getFirestore, doc, collection, addDoc, deleteDoc, getDocs, query, where, getAuth } = await import('../services/firebase');
+
+    const firestore = getFirestore();
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
-    if (!currentUser) {
-      Alert.alert('Error', 'You must be logged in to like posts');
-      return;
-    }
+    if (!currentUser) return;
 
-    const firestore = getFirestore();
-    const likesCollection = collection(firestore, 'posts', postId, 'likes');
-
-    // Check if user already liked this post
     const post = posts.find(p => p.id === postId);
     if (!post) return;
 
-    if (post.isLikedByUser) {
-      // Unlike: Find and delete the user's like
-      const likesSnapshot = await getDocs(likesCollection);
-      let userLikeDoc: any = null;
+    const likesRef = collection(firestore, 'posts', postId, 'likes');
+    const userLikeQuery = query(likesRef, where('authorId', '==', currentUser.uid));
+    const userLikeSnapshot = await getDocs(userLikeQuery);
 
-      likesSnapshot.forEach((likeDoc) => {
-        if (likeDoc.data().authorId === currentUser.uid) {
-          userLikeDoc = likeDoc;
-        }
-      });
-
-      if (userLikeDoc) {
-        await deleteDoc(doc(firestore, 'posts', postId, 'likes', userLikeDoc.id));
-      }
-
-      // Update Redux state
-      updatePostLike({ postId, isLiked: false });
-    } else {
-      // Like: Add new like
-      await addDoc(likesCollection, {
+    if (userLikeSnapshot.empty) {
+      // Add like
+      await addDoc(likesRef, {
         authorId: currentUser.uid,
+        authorName: currentUser.displayName || 'Anonymous',
         createdAt: new Date(),
       });
 
-      // Update Redux state
-      updatePostLike({ postId, isLiked: true });
+      updatePostLike({
+        postId,
+        isLikedByUser: true,
+        likesCount: post.likesCount + 1,
+      });
+    } else {
+      // Remove like
+      const likeDoc = userLikeSnapshot.docs[0];
+      await deleteDoc(likeDoc.ref);
+
+      updatePostLike({
+        postId,
+        isLikedByUser: false,
+        likesCount: Math.max(0, post.likesCount - 1),
+      });
     }
   } catch (error) {
     console.error('Error handling like:', error);
-    Alert.alert('Error', 'Failed to update like');
   }
 };
 
@@ -89,7 +83,7 @@ export const loadUserPostsData = async (dispatch: any, currentUser: any, fetchUs
       const { fetchUserProfile, fetchUserPosts } = await import('../store/userSlice');
       const profileResult = await dispatch(fetchUserProfile(currentUser.uid));
       const postsResult = await dispatch(fetchUserPosts(currentUser.uid));
-      
+
       console.log('Profile result:', profileResult);
       console.log('Posts result:', postsResult);
     }

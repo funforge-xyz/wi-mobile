@@ -250,25 +250,13 @@ const userSlice = createSlice({
         state.profile.postsCount = Math.max(0, state.profile.postsCount - 1);
       }
     },
-    updatePostLike: (state, action: PayloadAction<{ postId: string; isLiked?: boolean; commentsCount?: number }>) => {
-      const { postId, isLiked, commentsCount } = action.payload;
+    updatePostLike: (state, action: PayloadAction<{ postId: string; isLikedByUser: boolean; likesCount: number }>) => {
+      const { postId, isLikedByUser, likesCount } = action.payload;
       const postIndex = state.posts.findIndex(post => post.id === postId);
       if (postIndex !== -1) {
-        const post = state.posts[postIndex];
-        const updates: Partial<UserPost> = {};
-        
-        if (isLiked !== undefined) {
-          // Ensure likesCount is a valid number before calculation
-          const currentLikesCount = typeof post.likesCount === 'number' ? post.likesCount : 0;
-          updates.likesCount = isLiked ? currentLikesCount + 1 : Math.max(0, currentLikesCount - 1);
-          updates.isLikedByUser = isLiked;
-        }
-        
-        if (commentsCount !== undefined && typeof commentsCount === 'number') {
-          updates.commentsCount = Math.max(0, commentsCount);
-        }
-        
-        state.posts[postIndex] = { ...post, ...updates };
+        state.posts[postIndex].isLikedByUser = isLikedByUser;
+        state.posts[postIndex].likesCount = likesCount;
+        // Don't update lastProfileFetch to prevent header refresh
       }
     },
     setError: (state, action: PayloadAction<string | null>) => {
