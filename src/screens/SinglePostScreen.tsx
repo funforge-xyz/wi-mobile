@@ -4,6 +4,8 @@ import {
   Text,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
@@ -560,14 +562,20 @@ export default function SinglePostScreen({ route, navigation }: any) {
         currentTheme={currentTheme}
       />
 
-      <KeyboardAwareScrollView 
-        style={singlePostStyles.content}
-        enableOnAndroid={true}
-        extraScrollHeight={20}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-          <View>
+        <KeyboardAwareScrollView 
+          style={singlePostStyles.content}
+          enableOnAndroid={true}
+          extraScrollHeight={20}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ paddingBottom: post.allowComments && currentUser ? 80 : 0 }}>
             <SinglePostDisplay
               post={post}
               liked={userLiked}
@@ -593,18 +601,27 @@ export default function SinglePostScreen({ route, navigation }: any) {
           </View>
         </KeyboardAwareScrollView>
 
-      {/* Comment Input - Fixed at bottom */}
-      {post.allowComments && currentUser && (
-        <CommentInput
-          value={commentText}
-          onChangeText={setCommentText}
-          onSubmit={() => handleAddComment(commentText)}
-          isSubmitting={submittingComment}
-          currentTheme={currentTheme}
-          replyToComment={replyToComment}
-          onCancelReply={handleCancelReply}
-        />
-      )}
+        {/* Comment Input - Fixed at bottom with keyboard awareness */}
+        {post.allowComments && currentUser && (
+          <View style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: currentTheme.background,
+          }}>
+            <CommentInput
+              value={commentText}
+              onChangeText={setCommentText}
+              onSubmit={() => handleAddComment(commentText)}
+              isSubmitting={submittingComment}
+              currentTheme={currentTheme}
+              replyToComment={replyToComment}
+              onCancelReply={handleCancelReply}
+            />
+          </View>
+        )}
+      </KeyboardAvoidingView>
 
       {/* Edit Post Modal */}
       <EditPostModal
