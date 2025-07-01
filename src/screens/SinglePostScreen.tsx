@@ -554,7 +554,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const userLiked = likes.some(like => like.authorId === currentUser?.uid);
 
   return (
-    <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
+    <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background, height: '100%' }]}>
       <SinglePostHeader
         onBack={() => navigation.goBack()}
         onEdit={handleEditPost}
@@ -567,15 +567,15 @@ export default function SinglePostScreen({ route, navigation }: any) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <KeyboardAwareScrollView 
-          style={singlePostStyles.content}
-          enableOnAndroid={true}
-          extraScrollHeight={20}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={{ paddingBottom: post.allowComments && currentUser ? 80 : 0 }}>
+        <View style={{ flex: 1 }}>
+          <KeyboardAwareScrollView 
+            style={{ flex: 1 }}
+            enableOnAndroid={true}
+            extraScrollHeight={20}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          >
             <SinglePostDisplay
               post={post}
               liked={userLiked}
@@ -598,18 +598,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
               currentTheme={currentTheme}
               newlyAddedReplyParentId={newlyAddedReplyParentId}
             />
-          </View>
-        </KeyboardAwareScrollView>
+          </KeyboardAwareScrollView>
 
-        {/* Comment Input - Fixed at bottom with keyboard awareness */}
-        {post.allowComments && currentUser && (
-          <View style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: currentTheme.background,
-          }}>
+          {/* Comment Input - Fixed at bottom with keyboard awareness */}
+          {post.allowComments && currentUser && (
             <CommentInput
               value={commentText}
               onChangeText={setCommentText}
@@ -619,8 +611,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
               replyToComment={replyToComment}
               onCancelReply={handleCancelReply}
             />
-          </View>
-        )}
+          )}
+        </View>
       </KeyboardAvoidingView>
 
       {/* Edit Post Modal */}
