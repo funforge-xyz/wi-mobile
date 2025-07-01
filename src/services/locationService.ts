@@ -7,25 +7,33 @@ import { getAuth } from './firebase';
 const LOCATION_TASK_NAME = 'background-location-task';
 const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-// Define the background task
-TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-  if (error) {
-    console.error('Background location task error:', error);
-    return;
-  }
-
-  if (data) {
-    const { locations } = data as any;
-    const location = locations[0];
-
-    if (location) {
-      await updateUserLocationInFirestore(
-        location.coords.latitude,
-        location.coords.longitude
-      );
+// Define the background task with error handling
+try {
+  TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+    if (error) {
+      console.error('Background location task error:', error);
+      return;
     }
-  }
-});
+
+    if (data) {
+      try {
+        const { locations } = data as any;
+        const location = locations[0];
+
+        if (location) {
+          await updateUserLocationInFirestore(
+            location.coords.latitude,
+            location.coords.longitude
+          );
+        }
+      } catch (taskError) {
+        console.error('Error processing location in background task:', taskError);
+      }
+    }
+  });
+} catch (defineError) {
+  console.error('Failed to define location background task:', defineError);
+}
 
 export class LocationService {
   private static instance: LocationService;
@@ -123,18 +131,31 @@ export class LocationService {
         currentLocation.coords.longitude
       );
 
+      // Ensure the background task is properly defined before starting
+      const isTaskDefined = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
+      if (!isTaskDefined) {
+        console.log('Location task not defined, it should be defined at module level');
+        // The task should already be defined at the top level, but if not, we can't proceed
+        return false;
+      }
+
       // Start background location updates
-      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.Balanced,
-        timeInterval: UPDATE_INTERVAL,
-        distanceInterval: 50, // Update if moved more than 50 meters
-        deferredUpdatesInterval: UPDATE_INTERVAL,
-        showsBackgroundLocationIndicator: true,
-        foregroundService: {
-          notificationTitle: 'Location Tracking',
-          notificationBody: 'WiChat is tracking your location to find nearby users',
-        },
-      });
+      try {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: UPDATE_INTERVAL,
+          distanceInterval: 50, // Update if moved more than 50 meters
+          deferredUpdatesInterval: UPDATE_INTERVAL,
+          showsBackgroundLocationIndicator: true,
+          foregroundService: {
+            notificationTitle: 'Location Tracking',
+            notificationBody: 'WiChat is tracking your location to find nearby users',
+          },
+        });
+      } catch (startError) {
+        console.error('Failed to start location updates:', startError);
+        return false;
+      }
 
       this.isTracking = true;
       console.log('Background location tracking started');
