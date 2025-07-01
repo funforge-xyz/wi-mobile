@@ -16,12 +16,16 @@ interface LocationPermissionModalProps {
   isVisible: boolean;
   onRequestPermission: () => void;
   onCancel?: () => void;
+  permissionDenied?: boolean;
+  hasTriedRequest?: boolean;
 }
 
 const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
   isVisible,
   onRequestPermission,
   onCancel,
+  permissionDenied = false,
+  hasTriedRequest = false,
 }) => {
   const { t } = useTranslation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -59,7 +63,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
             textAlign: 'center',
             marginBottom: 16,
           }}>
-            {t('location.permissionRequired')}
+            {permissionDenied ? t('location.permissionDenied') : t('location.permissionRequired')}
           </Text>
 
           <Text style={{
@@ -69,28 +73,33 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
             marginBottom: 24,
             lineHeight: 22,
           }}>
-            {t('location.permissionDescription')}
+            {permissionDenied 
+              ? t('location.permissionDeniedDescription') 
+              : t('location.permissionDescription')
+            }
           </Text>
 
           <View style={{ gap: 12 }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: currentTheme.primary,
-                paddingVertical: 14,
-                paddingHorizontal: 24,
-                borderRadius: 8,
-                alignItems: 'center',
-              }}
-              onPress={onRequestPermission}
-            >
-              <Text style={{
-                color: currentTheme.background,
-                fontSize: 16,
-                fontWeight: '600',
-              }}>
-                {t('location.grantPermission')}
-              </Text>
-            </TouchableOpacity>
+            {!permissionDenied && (
+              <TouchableOpacity
+                style={{
+                  backgroundColor: currentTheme.primary,
+                  paddingVertical: 14,
+                  paddingHorizontal: 24,
+                  borderRadius: 8,
+                  alignItems: 'center',
+                }}
+                onPress={onRequestPermission}
+              >
+                <Text style={{
+                  color: currentTheme.background,
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}>
+                  {t('location.grantPermission')}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={{

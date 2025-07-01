@@ -27,7 +27,9 @@
   },
   "location": {
     "permissionRequired": "Location Permission Required",
-    "permissionDescription": "This app requires location access to show you nearby users and posts. Please grant location permission to continue using the app.",
+    "permissionDenied": "Location Permission Denied",
+    "permissionDescription": "WiChat needs access to your location to find nearby users and enable location-based features.",
+    "permissionDeniedDescription": "Location permission was denied. Please enable location access in your device settings to use this feature.",
     "grantPermission": "Grant Permission"
   },
   "auth": {
@@ -268,8 +270,7 @@
     "support": "Support",
     "helpAndSupport": "Help & Support",
     "getHelp": "Get help and support",
-    "privacyPolicy": "Privacy Policy",
-    "viewPrivacy": "View our privacy policy",
+    "privacyPolicy": "View our privacy policy",
     "currentPassword": "Current Password",
     "enterCurrentPassword": "Enter your current password",
     "newPassword": "New Password",

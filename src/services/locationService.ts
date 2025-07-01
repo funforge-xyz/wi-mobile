@@ -38,7 +38,7 @@ try {
 export class LocationService {
   private static instance: LocationService;
   private isTracking = false;
-  private permissionModalCallback?: (showModal: boolean) => void;
+  private permissionModalCallback?: (showModal: boolean, permissionDenied?: boolean, hasTriedRequest?: boolean) => void;
 
   static getInstance(): LocationService {
     if (!LocationService.instance) {
@@ -47,7 +47,7 @@ export class LocationService {
     return LocationService.instance;
   }
 
-  setPermissionModalCallback(callback: (showModal: boolean) => void) {
+  setPermissionModalCallback(callback: (showModal: boolean, permissionDenied?: boolean, hasTriedRequest?: boolean) => void) {
     this.permissionModalCallback = callback;
   }
 
@@ -60,28 +60,51 @@ export class LocationService {
 
       if (existingStatus === 'granted') {
         console.log('✅ Location permission already granted');
+        // Also check background permissions
+        const { status: backgroundStatus } = await Location.getBackgroundPermissionsAsync();
+        if (backgroundStatus !== 'granted') {
+          console.log('📍 Requesting background location permission...');
+          const { status: newBackgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+          if (newBackgroundStatus !== 'granted') {
+            console.log('❌ Background location permission denied');
+            if (this.permissionModalCallback) {
+              this.permissionModalCallback(true, true, true);
+            }
+            return false;
+          }
+        }
         return true;
       }
 
-      // Request permissions
+      // Request foreground permissions first
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
         console.log('❌ Location permission denied, showing modal...');
-        // Show the modal to force user to enable location
         if (this.permissionModalCallback) {
-          this.permissionModalCallback(true);
+          this.permissionModalCallback(true, status === 'denied', true);
         }
         return false;
       }
 
-      console.log('✅ Location permission granted');
+      // Request background permissions
+      console.log('📍 Requesting background location permission...');
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      
+      if (backgroundStatus !== 'granted') {
+        console.log('❌ Background location permission denied');
+        if (this.permissionModalCallback) {
+          this.permissionModalCallback(true, true, true);
+        }
+        return false;
+      }
+
+      console.log('✅ Location permissions granted');
       return true;
     } catch (error) {
       console.error('Error requesting location permissions:', error);
-      // Show modal on error too
       if (this.permissionModalCallback) {
-        this.permissionModalCallback(true);
+        this.permissionModalCallback(true, true, true);
       }
       return false;
     }

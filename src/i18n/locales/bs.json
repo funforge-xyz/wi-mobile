@@ -26,9 +26,11 @@
     "openSettings": "Otvori Podešavanja"
   },
   "location": {
-    "permissionRequired": "Potrebna je dozvola za lokaciju",
-    "permissionDescription": "Ova aplikacija zahtijeva pristup lokaciji da bi vam pokazala korisnike i objave u blizini. Molimo dodijelite dozvolu za lokaciju da biste nastavili koristiti aplikaciju.",
-    "grantPermission": "Dodijeli dozvolu"
+    "permissionRequired": "Potrebna dozvola za lokaciju",
+    "permissionDenied": "Dozvola za lokaciju odbijena",
+    "permissionDescription": "WiChat treba pristup vašoj lokaciji da pronađe korisnike u blizini i omogući funkcije bazirane na lokaciji.",
+    "permissionDeniedDescription": "Dozvola za lokaciju je odbijena. Molimo omogućite pristup lokaciji u postavkama uređaja da koristite ovu funkciju.",
+    "grantPermission": "Odobri dozvolu"
   },
   "auth": {
     "login": "Prijavite se",
@@ -502,7 +504,7 @@
     "childrenText": "Naša usluga nije namijenjena djeci mlađoj od 13 godina. Ne prikupljamo svjesno lične informacije od djece mlađe od 13 godina. Ako saznamo da smo prikupili lične informacije od djeteta mlađeg od 13 godina, obrisat ćemo te informacije.",
     "rightsTitle": "8. Vaša prava",
     "rightsText": "Imate pravo da pristupite, ažurirate ili obrišete vaše lične informacije. Možete upravljati većinom ovih informacija kroz podešavanja profila. Za dodatne zahtjeve, molimo kontaktirajte nas kroz kanale podrške u aplikaciji.",
-    "changesTitle": "9. Izmene ove politike",
+    "changesTitle": "9. Izmjene ove politike",
     "changesText": "Možemo ažurirati ovu politiku privatnosti s vremena na vrijeme. Obavijestićemo vas o svim značajnim promjenama objavljivanjem nove politike u aplikaciji i ažuriranjem datuma \"Posljednja izmena\" u nastavku.",
     "contactTitle": "10. Kontaktirajte nas",
     "contactText": "Ako imate bilo kakva pitanja o ovoj politici privatnosti, molimo kontaktirajte nas kroz sekciju Pomoć i podrška u aplikaciji ili pošaljite nam email na privacy@wichat.app.",
