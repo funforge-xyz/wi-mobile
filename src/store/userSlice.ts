@@ -205,11 +205,11 @@ export const fetchUserPosts = createAsyncThunk(
   }
 );
 
-export const updateProfile = createAsyncThunk(
-  'user/updateProfile',
+export const updateUserProfile = createAsyncThunk(
+  'user/updateUserProfile',
   async (profileData: Partial<UserProfile>, { dispatch }) => {
     const updatedProfile = { ...profileData };
-    dispatch(setProfile(updatedProfile));
+    dispatch(updateProfile(updatedProfile));
     return updatedProfile;
   }
 );
