@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -60,7 +59,7 @@ export default function CustomCameraView({
     })();
   }, [cameraPermission, microphonePermission]);
 
-  
+
 
   const takePicture = async () => {
     if (cameraRef.current && !recording) {
@@ -97,10 +96,10 @@ export default function CustomCameraView({
             quality: '720p' as const,
             maxDuration: 15, // 15 seconds max duration
           });
-          
+
           console.log('Video recorded:', video.uri);
           setRecording(false);
-          
+
           if (video && video.uri) {
             onMediaCaptured(video.uri, 'video');
           } else {
@@ -251,6 +250,30 @@ export default function CustomCameraView({
         </TouchableOpacity>
       </View>
 
+      {/* Max Recording Message */}
+      {cameraMode === 'video' && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 190,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              color: 'white',
+              fontSize: 12,
+              textAlign: 'center',
+              opacity: 0.8,
+            }}
+          >
+            Max recording time: 15 seconds
+          </Text>
+        </View>
+      )}
+
       {/* Mode Selection */}
       <View
         style={{
@@ -270,7 +293,7 @@ export default function CustomCameraView({
           }}
         >
           <TouchableOpacity
-            onPress={() => setCameraMode('photo')}
+            onPress={() => setCameraMode('picture')}
             disabled={recording}
             style={{
               paddingHorizontal: 20,
@@ -312,19 +335,6 @@ export default function CustomCameraView({
             </Text>
           </TouchableOpacity>
         </View>
-        {cameraMode === 'video' && (
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 12,
-              textAlign: 'center',
-              marginTop: 8,
-              opacity: 0.8,
-            }}
-          >
-            Max recording time: 15 seconds
-          </Text>
-        )}
       </View>
 
       {/* Bottom Controls */}

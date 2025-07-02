@@ -42,6 +42,7 @@ export default function CreatePostScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
@@ -50,20 +51,15 @@ export default function CreatePostScreen() {
   const route = useRoute();
   const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
 
-  const previewPlayer = useVideoPlayer(mediaType === 'video' ? mediaUri : '', player => {
-    if (mediaType === 'video') {
-      player.loop = true;
-      player.muted = true;
-      player.pause();
-    }
+  // Initialize video player for video preview - similar to CameraScreen
+  const previewPlayer = useVideoPlayer(mediaUri || '', player => {
+    player.loop = true;
+    player.muted = isMuted;
   });
 
-  const fullscreenPlayer = useVideoPlayer(mediaType === 'video' ? mediaUri : '', player => {
-    if (mediaType === 'video') {
-      player.loop = true;
-      player.muted = false;
-      player.pause();
-    }
+  const fullscreenPlayer = useVideoPlayer(mediaUri || '', player => {
+    player.loop = true;
+    player.muted = false;
   });
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -92,6 +88,13 @@ export default function CreatePostScreen() {
         fullscreenPlayer.play();
       }
       setIsFullscreenPlaying(!isFullscreenPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (previewPlayer) {
+      previewPlayer.muted = !isMuted;
     }
   };
 
@@ -190,34 +193,57 @@ export default function CreatePostScreen() {
             />
           ) : (
             <View style={styles.videoPreviewContainer}>
-              {mediaUri && (
-                <VideoView
-                  player={previewPlayer}
-                  style={styles.mediaPreview}
-                  allowsFullscreen={false}
-                  allowsPictureInPicture={false}
-                  contentFit="cover"
-                />
-              )}
-              <TouchableOpacity 
-                style={styles.playOverlay}
+              <VideoView
+                style={styles.mediaPreview}
+                player={previewPlayer}
+                allowsFullscreen={false}
+                allowsPictureInPicture={false}
+                nativeControls={false}
+                contentFit="cover"
+              />
+              {/* Play/Pause Button Overlay */}
+              <TouchableOpacity
                 onPress={toggleVideoPlay}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: [{ translateX: -30 }, { translateY: -30 }],
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
               >
                 <Ionicons 
                   name={isVideoPlaying ? "pause" : "play"} 
-                  size={40} 
+                  size={30} 
                   color="white" 
                 />
-                <Text style={styles.previewText}>
-                  {isVideoPlaying ? t('addPost.pause', 'Pause') : t('addPost.play', 'Play')}
-                </Text>
               </TouchableOpacity>
+              {/* Mute button */}
               <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={handleBack}
-                >
-                  <Ionicons name="close" size={24} color="white" />
-                </TouchableOpacity>
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={toggleMute}
+              >
+                <Ionicons 
+                  name={isMuted ? "volume-mute" : "volume-high"} 
+                  size={20} 
+                  color="white" 
+                />
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -284,34 +310,45 @@ export default function CreatePostScreen() {
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => {
-				toggleFullscreenPlay();
-				setShowVideoModal(false)
-			  }}
+                if (isFullscreenPlaying) {
+                  fullscreenPlayer.pause();
+                  setIsFullscreenPlaying(false);
+                }
+                setShowVideoModal(false);
+              }}
             >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
-            {mediaUri && (
-              <VideoView
-                player={fullscreenPlayer}
-                style={styles.fullscreenVideo}
-                allowsFullscreen
-                allowsPictureInPicture
-                contentFit="cover"
+            <VideoView
+              style={styles.fullscreenVideo}
+              player={fullscreenPlayer}
+              allowsFullscreen={false}
+              allowsPictureInPicture={false}
+              nativeControls={false}
+              contentFit="cover"
+            />
+            {/* Play/Pause Button Overlay */}
+            <TouchableOpacity
+              onPress={toggleFullscreenPlay}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: [{ translateX: -30 }, { translateY: -30 }],
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons 
+                name={isFullscreenPlaying ? "pause" : "play"} 
+                size={30} 
+                color="white" 
               />
-            )}
-			<TouchableOpacity 
-                style={styles.playOverlay}
-                onPress={toggleFullscreenPlay}
-              >
-                <Ionicons 
-                  name={isFullscreenPlaying ? "pause" : "play"} 
-                  size={40} 
-                  color="white" 
-                />
-                <Text style={styles.previewText}>
-                  {isFullscreenPlaying ? t('addPost.pause', 'Pause') : t('addPost.play', 'Play')}
-                </Text>
-              </TouchableOpacity>
+            </TouchableOpacity>
           </View>
         </Modal>
       )}
