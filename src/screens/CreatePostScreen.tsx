@@ -222,6 +222,7 @@ export default function CreatePostScreen() {
             />
           ) : (
             <View style={styles.videoPreviewContainer}>
+              <View style={{ position: 'relative', width: '100%', height: '100%' }}>
               <VideoView
                 style={styles.mediaPreview}
                 player={previewPlayer}
@@ -229,6 +230,29 @@ export default function CreatePostScreen() {
                 allowsPictureInPicture={false}
                 nativeControls={false}
               />
+
+              {/* Video Progress Bar */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 15,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  height: 4,
+                  borderRadius: 2,
+                }}
+              >
+                <View
+                  style={{
+                    width: `${videoProgress}%`,
+                    backgroundColor: COLORS.primary,
+                    height: 4,
+                    borderRadius: 2,
+                  }}
+                />
+              </View>
+            </View>
               {/* Play/Pause Button Overlay - exact same as CameraScreen */}
               <TouchableOpacity
                 onPress={toggleVideoPlay}
@@ -274,24 +298,7 @@ export default function CreatePostScreen() {
               </TouchableOpacity>
 
               {/* Video Progress Bar */}
-              <View
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  width: '100%',
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  height: 5,
-                }}
-              >
-                <View
-                  style={{
-                    width: `${videoProgress}%`,
-                    backgroundColor: COLORS.primary,
-                    height: 5,
-                  }}
-                />
-              </View>
+              
             </View>
           )}
         </View>
