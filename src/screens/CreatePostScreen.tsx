@@ -231,26 +231,35 @@ export default function CreatePostScreen() {
                 nativeControls={false}
               />
 
-              {/* Video Progress Bar */}
+              {/* Video Counter */}
               <View
                 style={{
                   position: 'absolute',
                   bottom: 15,
                   left: 0,
                   right: 0,
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  height: 4,
-                  borderRadius: 2,
+                  alignItems: 'center',
                 }}
               >
                 <View
                   style={{
-                    width: `${videoProgress}%`,
-                    backgroundColor: COLORS.primary,
-                    height: 4,
-                    borderRadius: 2,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 12,
                   }}
-                />
+                >
+                  <Text
+                    style={{
+                      color: 'white',
+                      fontSize: 14,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {String(Math.floor((videoProgress / 100) * videoDuration / 60)).padStart(2, '0')}:
+                    {String(Math.floor((videoProgress / 100) * videoDuration % 60)).padStart(2, '0')}
+                  </Text>
+                </View>
               </View>
             </View>
               {/* Play/Pause Button Overlay - exact same as CameraScreen */}
@@ -297,7 +306,7 @@ export default function CreatePostScreen() {
                 />
               </TouchableOpacity>
 
-              {/* Video Progress Bar */}
+              
               
             </View>
           )}
