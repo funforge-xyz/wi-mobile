@@ -153,7 +153,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           ]
         );
       } else {
-        await authService.signInWithEmail(email, password);
+        const user = await authService.signInWithEmail(email, password);
+        
+        // Load user's preferred language from Firebase after successful login
+        if (user?.uid) {
+          const { loadUserLanguagePreference } = await import('../store/userSlice');
+          dispatch(loadUserLanguagePreference(user.uid));
+        }
+        
         onLoginSuccess?.();
       }
     } catch (error: any) {

@@ -10,6 +10,7 @@ import {
   setupSignOutCallback,
 } from '../utils/rootUtils';
 import { fetchUserProfile, loadUserLanguagePreference } from '../store/userSlice';
+import { getAuth } from 'firebase/auth';
 
 import LoginScreen from './LoginScreen';
 import OnboardingScreen from './OnboardingScreen';
@@ -36,6 +37,17 @@ export default function RootScreen() {
       if (isLoggedIn) {
         const onboardingDone = await checkOnboardingStatus(settings);
         setShowOnboarding(!onboardingDone);
+
+         // Load user profile and update Redux state
+        dispatch(fetchUserProfile());
+
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+
+        // Load user's preferred language from Firebase
+        if (currentUser?.uid) {
+          dispatch(loadUserLanguagePreference(currentUser.uid));
+        }
       }
 
       const darkMode = await loadDarkModeSettings(settings);

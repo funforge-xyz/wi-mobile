@@ -238,10 +238,8 @@ export const loadUserLanguagePreference = createAsyncThunk(
           const { default: i18n } = await import('../i18n');
           await i18n.changeLanguage(preferredLanguage);
 
-          // Update local storage
-          const { Settings } = await import('../services/storage');
-          const settings = new Settings();
-          await settings.setLanguage(preferredLanguage);
+          // Update local storage via i18n (which handles AsyncStorage automatically)
+          // The i18n.changeLanguage already stores to AsyncStorage via the language detector
 
           console.log('Loaded preferred language from Firebase:', preferredLanguage);
           return preferredLanguage;
