@@ -42,8 +42,9 @@ export default function CustomCameraModal({
 
   useEffect(() => {
     (async () => {
-      const { status } = await CameraView.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
+      const cameraStatus = await CameraView.requestCameraPermissionsAsync();
+      const microphoneStatus = await CameraView.requestMicrophonePermissionsAsync();
+      setHasPermission(cameraStatus.status === 'granted' && microphoneStatus.status === 'granted');
     })();
   }, []);
 
@@ -119,10 +120,13 @@ export default function CustomCameraModal({
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 1,
+          quality: 0.8,
           base64: false,
+          skipProcessing: false,
         });
-        onMediaCaptured(photo.uri, 'image');
+        if (photo && photo.uri) {
+          onMediaCaptured(photo.uri, 'image');
+        }
       } catch (error) {
         console.error('Error taking picture:', error);
         Alert.alert('Error', 'Failed to take picture');
@@ -136,8 +140,11 @@ export default function CustomCameraModal({
         setIsRecording(true);
         const video = await cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
+          quality: '720p',
         });
-        onMediaCaptured(video.uri, 'video');
+        if (video && video.uri) {
+          onMediaCaptured(video.uri, 'video');
+        }
       } catch (error) {
         console.error('Error starting recording:', error);
         setIsRecording(false);

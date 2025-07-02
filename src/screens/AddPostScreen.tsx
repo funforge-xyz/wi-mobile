@@ -113,7 +113,7 @@ export default function AddPostScreen() {
             style: 'destructive',
           },
           {
-            text: t('common.cancel'),
+            text: t('common.cancel', 'Cancel'),
             style: 'cancel',
           },
         ],
