@@ -27,7 +27,7 @@ export default function CustomCameraView({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraType] = useState<'front' | 'back'>('back');
   const [recording, setRecording] = useState(false);
-  const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
+  const [cameraMode, setCameraMode] = useState<'picture' | 'video'>('picture');
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const { t } = useTranslation();
@@ -172,6 +172,7 @@ export default function CustomCameraView({
         }}
         facing={cameraType}
         ref={cameraRef}
+        mode={cameraMode}
       />
 
       {/* Top Controls */}
@@ -257,13 +258,13 @@ export default function CustomCameraView({
               paddingHorizontal: 20,
               paddingVertical: 8,
               borderRadius: 20,
-              backgroundColor: cameraMode === 'photo' ? 'white' : 'transparent',
+              backgroundColor: cameraMode === 'picture' ? 'white' : 'transparent',
               opacity: recording ? 0.5 : 1,
             }}
           >
             <Text
               style={{
-                color: cameraMode === 'photo' ? 'black' : 'white',
+                color: cameraMode === 'picture' ? 'black' : 'white',
                 fontSize: 16,
                 fontWeight: '600',
               }}
@@ -305,7 +306,7 @@ export default function CustomCameraView({
           alignItems: 'center',
         }}
       >
-        {cameraMode === 'photo' ? (
+        {cameraMode === 'picture' ? (
           /* Photo Capture Button */
           <TouchableOpacity
             onPress={takePicture}
