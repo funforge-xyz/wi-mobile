@@ -45,6 +45,7 @@ export default function CreatePostScreen() {
   const [isMuted, setIsMuted] = useState(true);
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
@@ -86,8 +87,11 @@ export default function CreatePostScreen() {
 
       // Set up time update listener for progress
       const timeUpdateUnsubscribe = previewPlayer.addListener('timeUpdate', (payload) => {
-        if (payload.currentTime !== undefined && videoDuration > 0) {
-          setVideoProgress((payload.currentTime / videoDuration) * 100);
+        if (payload.currentTime !== undefined) {
+          setCurrentTime(payload.currentTime);
+          if (videoDuration > 0) {
+            setVideoProgress((payload.currentTime / videoDuration) * 100);
+          }
         }
       });
 
@@ -106,6 +110,16 @@ export default function CreatePostScreen() {
         previewPlayer.play();
       }
       setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
+  const resetVideo = () => {
+    if (previewPlayer) {
+      previewPlayer.seekTo(0);
+      previewPlayer.pause();
+      setIsVideoPlaying(false);
+      setCurrentTime(0);
+      setVideoProgress(0);
     }
   };
 
@@ -256,8 +270,8 @@ export default function CreatePostScreen() {
                       fontWeight: '600',
                     }}
                   >
-                    {String(Math.floor((videoProgress / 100) * videoDuration / 60)).padStart(2, '0')}:
-                    {String(Math.floor((videoProgress / 100) * videoDuration % 60)).padStart(2, '0')}
+                    {String(Math.floor(currentTime / 60)).padStart(2, '0')}:
+                    {String(Math.floor(currentTime % 60)).padStart(2, '0')}
                   </Text>
                 </View>
               </View>
@@ -265,6 +279,7 @@ export default function CreatePostScreen() {
               {/* Play/Pause Button Overlay - exact same as CameraScreen */}
               <TouchableOpacity
                 onPress={toggleVideoPlay}
+                onLongPress={resetVideo}
                 style={{
                   position: 'absolute',
                   top: '50%',
