@@ -32,6 +32,8 @@ export default function AddPostScreen() {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [showCameraModal, setShowCameraModal] = useState(false);
+  
+  console.log('AddPostScreen render - showCameraModal:', showCameraModal);
   const textInputRef = useRef<any>(null);
   const navigation = useNavigation();
 
@@ -94,6 +96,7 @@ export default function AddPostScreen() {
   };
 
   const showMediaPicker = () => {
+    console.log('showMediaPicker called, selectedMedia:', selectedMedia);
     if (selectedMedia) {
       const mediaText = mediaType === 'video' ? 'Video' : 'Photo';
       Alert.alert(
@@ -102,7 +105,10 @@ export default function AddPostScreen() {
         [
           {
             text: t('addPost.openCamera', 'Open Camera'),
-            onPress: () => setShowCameraModal(true),
+            onPress: () => {
+              console.log('Opening camera modal from alert');
+              setShowCameraModal(true);
+            },
           },
           {
             text: t('addPost.removeMedia', `Remove ${mediaText}`),
@@ -121,6 +127,7 @@ export default function AddPostScreen() {
       );
     } else {
       // No media selected - open camera modal directly
+      console.log('No media selected, opening camera modal directly');
       setShowCameraModal(true);
     }
   };

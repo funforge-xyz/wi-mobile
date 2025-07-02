@@ -70,7 +70,11 @@ export default function AddPostForm({
               backgroundColor: currentTheme.surface,
               borderColor: currentTheme.border 
             }]} 
-            onPress={onMediaPress}
+            onPress={() => {
+              console.log('Media button pressed - calling onMediaPress');
+              onMediaPress();
+            }}
+            activeOpacity={0.7}
           >
             {selectedMedia ? (
               <View style={addPostStyles.imagePreviewContainer}>
