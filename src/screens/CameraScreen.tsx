@@ -127,7 +127,7 @@ export default function CameraScreen() {
       left: 20,
       right: 20,
       flexDirection: 'row',
-      justifyContent: 'center',
+      justifyContent: 'flex-end',
       alignItems: 'center',
       zIndex: 10,
     },
