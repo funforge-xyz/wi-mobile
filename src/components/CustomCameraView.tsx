@@ -141,40 +141,45 @@ export default function CustomCameraView({
         setIsRecording(true);
         setRecordingTime(0);
 
-        // Start recording and handle the promise properly
-        const video = await cameraRef.current.recordAsync({
+        // Start recording without awaiting - handle the promise separately
+        cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
-        });
-        
-        console.log('Recording completed:', video.uri);
-        if (video && video.uri) {
-          // Clean up recording state first
+        }).then((video) => {
+          console.log('Recording completed:', video.uri);
+          if (video && video.uri) {
+            // Clean up recording state first
+            setIsRecording(false);
+            // Clear the timer
+            if (recordingTimerRef.current) {
+              clearInterval(recordingTimerRef.current);
+              recordingTimerRef.current = null;
+            }
+            setRecordingTime(0);
+            // Stop the animation
+            recordingAnimationRef.stopAnimation();
+            recordingAnimationRef.setValue(1);
+            
+            // Then trigger the media captured callback
+            onMediaCaptured(video.uri, 'video');
+          }
+        }).catch((error) => {
+          console.error('Error during recording:', error);
           setIsRecording(false);
-          // Clear the timer
+          // Clean up on error
           if (recordingTimerRef.current) {
             clearInterval(recordingTimerRef.current);
             recordingTimerRef.current = null;
           }
           setRecordingTime(0);
-          // Stop the animation
           recordingAnimationRef.stopAnimation();
           recordingAnimationRef.setValue(1);
-          
-          // Then trigger the media captured callback
-          onMediaCaptured(video.uri, 'video');
-        }
+          Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
+        });
+
       } catch (error) {
-        console.error('Error during recording:', error);
+        console.error('Error starting recording:', error);
         setIsRecording(false);
-        // Clean up on error
-        if (recordingTimerRef.current) {
-          clearInterval(recordingTimerRef.current);
-          recordingTimerRef.current = null;
-        }
-        setRecordingTime(0);
-        recordingAnimationRef.stopAnimation();
-        recordingAnimationRef.setValue(1);
         Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
       }
     }
