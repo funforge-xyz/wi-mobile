@@ -325,15 +325,15 @@ const styles = StyleSheet.create({
   },
   mediaPreviewContainer: {
     margin: SPACING.md,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   mediaPreview: {
     width: '100%',
-    height: 200,
+    height: 240,
+    borderRadius: 16,
   },
   videoPreviewContainer: {
     position: 'relative',
