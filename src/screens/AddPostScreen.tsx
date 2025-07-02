@@ -112,7 +112,7 @@ export default function AddPostScreen() {
             },
           },
           {
-            text: t('addPost.removeMedia', `Remove ${mediaText}`),
+            text: t('addPost.removeMedia', 'Remove media'),
             onPress: () => {
               setSelectedMedia(null);
               setMediaType(null);

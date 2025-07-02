@@ -78,43 +78,41 @@ export default function AddPostForm({
           >
             {selectedMedia ? (
               <View style={addPostStyles.imagePreviewContainer}>
-              {mediaType === 'video' ? (
-              <View style={addPostStyles.videoContainer}>
-                <Video
-                  source={{ uri: selectedMedia }}
-                  style={addPostStyles.selectedImage}
-                  useNativeControls
-                  resizeMode={ResizeMode.CONTAIN}
-                  shouldPlay={false}
-                />
-              </View>
-            ) : (
-                 <Image source={{ uri: selectedMedia }} style={addPostStyles.selectedImage} />
-            )}
-                <Text style={[addPostStyles.imagePickerText, { color: currentTheme.text }]}>
-                  {t('addPost.photoSelected', 'Photo Selected')}
-                </Text>
+                {mediaType === 'video' ? (
+                  <View style={addPostStyles.videoContainer}>
+                    <Video
+                      source={{ uri: selectedMedia }}
+                      style={[addPostStyles.selectedImage, { 
+                        width: 'auto',
+                        aspectRatio: undefined,
+                        alignSelf: 'center'
+                      }]}
+                      useNativeControls={false}
+                      resizeMode={ResizeMode.CONTAIN}
+                      shouldPlay={true}
+                      isLooping={true}
+                      isMuted={true}
+                    />
+                  </View>
+                ) : (
+                  <Image source={{ uri: selectedMedia }} style={addPostStyles.selectedImage} />
+                )}
+                <TouchableOpacity
+                  style={[addPostStyles.removeImageButton, { backgroundColor: 'rgba(0,0,0,0.7)' }]}
+                  onPress={onRemoveMedia}
+                >
+                  <Ionicons name="close" size={18} color="white" />
+                </TouchableOpacity>
               </View>
             ) : (
               <View style={addPostStyles.imagePickerContent}>
                 <Ionicons name="camera-outline" size={20} color={currentTheme.textSecondary} />
                 <Text style={[addPostStyles.imagePickerText, { color: currentTheme.textSecondary }]}>
-                  {t('addPost.takePhotoOptional', 'Take Photo (optional)')}
+                  {t('addPost.takePhotoOrVideo', 'Take photo or record video')}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
-
-          {selectedMedia && (
-            <TouchableOpacity
-              onPress={onRemoveMedia}
-              style={addPostStyles.removeImageLink}
-            >
-              <Text style={[addPostStyles.removeImageText, { color: currentTheme.error || COLORS.error }]}>
-                {t('addPost.removePhoto', 'Remove Photo')}
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
 
 

@@ -113,8 +113,14 @@ export default function CustomCameraModal({
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
       }
+      if (recordingTimeout.current) {
+        clearTimeout(recordingTimeout.current);
+      }
     };
   }, [isRecording]);
+
+  const pressStartTime = useRef<number | null>(null);
+  const recordingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -122,15 +128,30 @@ export default function CustomCameraModal({
       onMoveShouldSetPanResponder: () => false,
       
       onPanResponderGrant: () => {
-        // Start recording video on press
-        startRecording();
+        // Record the press start time
+        pressStartTime.current = Date.now();
+        
+        // Set a timeout to start recording after 1 second
+        recordingTimeout.current = setTimeout(() => {
+          startRecording();
+        }, 1000);
       },
       
       onPanResponderRelease: () => {
-        // Stop recording or take photo on release
+        // Clear the recording timeout
+        if (recordingTimeout.current) {
+          clearTimeout(recordingTimeout.current);
+          recordingTimeout.current = null;
+        }
+        
+        const pressEndTime = Date.now();
+        const pressDuration = pressStartTime.current ? pressEndTime - pressStartTime.current : 0;
+        
         if (isRecording) {
+          // Stop recording if currently recording
           stopRecording();
-        } else {
+        } else if (pressDuration < 1000) {
+          // Take photo if press was less than 1 second
           takePicture();
         }
       },
@@ -179,6 +200,13 @@ export default function CustomCameraModal({
       try {
         setIsRecording(false);
         await cameraRef.current.stopRecording();
+        
+        // If we hit the max recording time, close the modal
+        if (recordingTime >= MAX_RECORDING_TIME - 1) {
+          setTimeout(() => {
+            onClose();
+          }, 500); // Small delay to allow video processing
+        }
       } catch (error) {
         console.error('Error stopping recording:', error);
       }
@@ -357,7 +385,7 @@ export default function CustomCameraModal({
             }}>
               {isRecording 
                 ? t('camera.recording', 'Recording... Release to stop')
-                : t('camera.instructions', 'Tap for photo, hold for video')
+                : t('camera.instructions', 'Tap for photo, hold 1s for video')
               }
             </Text>
 
