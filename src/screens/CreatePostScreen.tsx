@@ -43,9 +43,11 @@ export default function CreatePostScreen() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [videoSeconds, setVideoSeconds] = useState(0);
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
+  const videoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -69,12 +71,37 @@ export default function CreatePostScreen() {
 
   const canPost = Boolean(mediaUri);
 
+  // Pause any playing video when screen loads and manage timer
+  useEffect(() => {
+    // Reset video timer
+    setVideoSeconds(0);
+    if (videoTimerRef.current) {
+      clearInterval(videoTimerRef.current);
+      videoTimerRef.current = null;
+    }
+
+    return () => {
+      // Cleanup timer on unmount
+      if (videoTimerRef.current) {
+        clearInterval(videoTimerRef.current);
+      }
+    };
+  }, []);
+
   const toggleVideoPlay = () => {
     if (previewPlayer) {
       if (isVideoPlaying) {
         previewPlayer.pause();
+        if (videoTimerRef.current) {
+          clearInterval(videoTimerRef.current);
+          videoTimerRef.current = null;
+        }
       } else {
         previewPlayer.play();
+        setVideoSeconds(0);
+        videoTimerRef.current = setInterval(() => {
+          setVideoSeconds(prev => prev + 1);
+        }, 1000);
       }
       setIsVideoPlaying(!isVideoPlaying);
     }
@@ -243,6 +270,24 @@ export default function CreatePostScreen() {
                   color="white" 
                 />
               </TouchableOpacity>
+              {/* Video Timer */}
+              {isVideoPlaying && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    left: 10,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 12,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+                    {videoSeconds}s
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </View>

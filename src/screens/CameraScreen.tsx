@@ -46,6 +46,12 @@ export default function CameraScreen() {
 
   const handleNext = () => {
     if (capturedMedia) {
+      // Pause video before navigating
+      if (capturedMedia.type === 'video' && player && isPlaying) {
+        player.pause();
+        setIsPlaying(false);
+      }
+      
       // Navigate to create post screen with the media
       navigation.navigate('CreatePost', { 
         mediaUri: capturedMedia.uri, 

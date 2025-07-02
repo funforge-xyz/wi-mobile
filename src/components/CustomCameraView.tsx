@@ -28,7 +28,9 @@ export default function CustomCameraView({
   const [recording, setRecording] = useState(false);
   const [cameraMode, setCameraMode] = useState<'picture' | 'video'>('picture');
   const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const cameraRef = useRef<CameraView>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -59,6 +61,15 @@ export default function CustomCameraView({
     })();
   }, [cameraPermission, microphonePermission]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
+
 
 
   const takePicture = async () => {
@@ -86,10 +97,21 @@ export default function CustomCameraView({
         console.log('Stopping recording manually...');
         cameraRef.current.stopRecording();
         setRecording(false);
+        setRecordingSeconds(0);
+        if (recordingIntervalRef.current) {
+          clearInterval(recordingIntervalRef.current);
+          recordingIntervalRef.current = null;
+        }
       } else {
         // Start recording
         console.log('Starting recording...');
         setRecording(true);
+        setRecordingSeconds(0);
+
+        // Start timer
+        recordingIntervalRef.current = setInterval(() => {
+          setRecordingSeconds(prev => prev + 1);
+        }, 1000);
 
         try {
           const video = await cameraRef.current.recordAsync({
@@ -99,6 +121,11 @@ export default function CustomCameraView({
 
           console.log('Video recorded:', video.uri);
           setRecording(false);
+          setRecordingSeconds(0);
+          if (recordingIntervalRef.current) {
+            clearInterval(recordingIntervalRef.current);
+            recordingIntervalRef.current = null;
+          }
 
           if (video && video.uri) {
             onMediaCaptured(video.uri, 'video');
@@ -108,6 +135,11 @@ export default function CustomCameraView({
         } catch (error) {
           console.error('Error recording video:', error);
           setRecording(false);
+          setRecordingSeconds(0);
+          if (recordingIntervalRef.current) {
+            clearInterval(recordingIntervalRef.current);
+            recordingIntervalRef.current = null;
+          }
           Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
         }
       }
@@ -206,7 +238,7 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
-        {/* Recording Indicator */}
+        {/* Recording Timer */}
         {recording && (
           <View
             style={{
@@ -228,7 +260,7 @@ export default function CustomCameraView({
               }}
             />
             <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              REC
+              {recordingSeconds}s
             </Text>
           </View>
         )}
