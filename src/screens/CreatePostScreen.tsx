@@ -51,7 +51,7 @@ export default function CreatePostScreen() {
   const route = useRoute();
   const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
 
-  // Initialize video player for video preview - similar to CameraScreen
+  // Initialize video player for video preview - exact same as CameraScreen
   const previewPlayer = useVideoPlayer(mediaUri || '', player => {
     player.loop = true;
     player.muted = isMuted;
@@ -192,14 +192,13 @@ export default function CreatePostScreen() {
               resizeMode="contain"
             />
           ) : (
-            <View style={styles.videoPreviewContainer}>
+            <View style={{ position: 'relative' }}>
               <VideoView
                 style={styles.mediaPreview}
                 player={previewPlayer}
                 allowsFullscreen={false}
                 allowsPictureInPicture={false}
                 nativeControls={false}
-                contentFit="cover"
               />
               {/* Play/Pause Button Overlay */}
               <TouchableOpacity

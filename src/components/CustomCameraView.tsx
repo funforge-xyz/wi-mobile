@@ -255,9 +255,9 @@ export default function CustomCameraView({
         <View
           style={{
             position: 'absolute',
-            bottom: 190,
-            left: 0,
-            right: 0,
+            bottom: 210,
+            left: 20,
+            right: 20,
             alignItems: 'center',
           }}
         >
@@ -267,6 +267,10 @@ export default function CustomCameraView({
               fontSize: 12,
               textAlign: 'center',
               opacity: 0.8,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              borderRadius: 12,
             }}
           >
             Max recording time: 15 seconds
