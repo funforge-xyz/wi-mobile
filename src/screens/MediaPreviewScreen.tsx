@@ -31,7 +31,8 @@ export default function MediaPreviewScreen() {
   const currentTheme = getTheme(isDarkMode);
 
   const handleRetake = () => {
-    navigation.goBack();
+    // Navigate back to camera instead of the previous screen
+    navigation.navigate('Camera' as never);
   };
 
   const handleNext = () => {

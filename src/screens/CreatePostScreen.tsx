@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  ScrollView,
   Switch,
   Modal,
   StyleSheet,
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { useAppSelector } from '../hooks/redux';
@@ -121,7 +121,12 @@ export default function CreatePostScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        keyboardOpeningTime={100}
+        extraScrollHeight={20}
+      >
         {/* Media Preview */}
         <View style={styles.mediaPreviewContainer}>
           {mediaType === 'image' ? (
@@ -154,17 +159,19 @@ export default function CreatePostScreen() {
 
         {/* Description Input */}
         <View style={styles.inputSection}>
-          <TextInput
-            ref={textInputRef}
-            style={[styles.textInput, { color: currentTheme.text }]}
-            placeholder={t('addPost.whatsOnMind', "What's on your mind?")}
-            placeholderTextColor={currentTheme.textSecondary}
-            value={content}
-            onChangeText={setContent}
-            multiline
-            maxLength={500}
-            textAlignVertical="top"
-          />
+          <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border }]}>
+            <TextInput
+              ref={textInputRef}
+              style={[styles.textInput, { color: currentTheme.text }]}
+              placeholder={t('addPost.whatsOnMind', "What's on your mind?")}
+              placeholderTextColor={currentTheme.textSecondary}
+              value={content}
+              onChangeText={setContent}
+              multiline
+              maxLength={500}
+              textAlignVertical="top"
+            />
+          </View>
           <View style={styles.characterCount}>
             <Text style={[styles.characterCountText, { color: currentTheme.textSecondary }]}>
               {content.length}/500
@@ -174,7 +181,7 @@ export default function CreatePostScreen() {
 
         {/* Settings */}
         <View style={styles.settingsSection}>
-          <View style={[styles.settingRow, { borderBottomColor: currentTheme.border }]}>
+          <View style={styles.settingRow}>
             <Text style={[styles.settingLabel, { color: currentTheme.text }]}>
               {t('addPost.allowComments', 'Allow Comments')}
             </Text>
@@ -198,7 +205,7 @@ export default function CreatePostScreen() {
             />
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Video Modal */}
       {mediaType === 'video' && (
@@ -316,15 +323,18 @@ const styles = StyleSheet.create({
   inputSection: {
     margin: SPACING.md,
   },
+  inputContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+  },
   textInput: {
     fontSize: 16,
     fontFamily: FONTS.regular,
     minHeight: 100,
     textAlignVertical: 'top',
-    marginBottom: SPACING.sm,
-    padding: SPACING.sm,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   characterCount: {
     alignItems: 'flex-end',
@@ -342,7 +352,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
   },
   settingLabel: {
     fontSize: 16,

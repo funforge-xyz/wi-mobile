@@ -1,4 +1,5 @@
-
+import React from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
@@ -10,6 +11,8 @@ import NearbyScreen from '../screens/NearbyScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import UserPostsScreen from '../screens/UserPostsScreen';
 
+// Empty component for Add tab
+const EmptyComponent = () => <View />;
 
 const Tab = createBottomTabNavigator();
 
@@ -54,7 +57,7 @@ export default function RootTabNavigator({ isDarkMode }: RootTabNavigatorProps) 
       />
       <Tab.Screen 
         name="Add" 
-        component={() => null}
+        component={EmptyComponent}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
