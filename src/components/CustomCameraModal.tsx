@@ -10,7 +10,7 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
-import { Camera } from 'expo-camera';
+import { CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -30,10 +30,10 @@ export default function CustomCameraModal({
   currentTheme,
 }: CustomCameraModalProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
+  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraView>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingAnimationRef = useRef(new Animated.Value(1)).current;
   const { t } = useTranslation();
@@ -42,7 +42,7 @@ export default function CustomCameraModal({
 
   useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
+      const { status } = await CameraView.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
     })();
   }, []);
@@ -135,7 +135,6 @@ export default function CustomCameraModal({
       try {
         setIsRecording(true);
         const video = await cameraRef.current.recordAsync({
-          quality: Camera.Constants.VideoQuality['720p'],
           maxDuration: MAX_RECORDING_TIME,
         });
         onMediaCaptured(video.uri, 'video');
@@ -159,9 +158,7 @@ export default function CustomCameraModal({
   };
 
   const toggleCameraType = () => {
-    setCameraType(
-      cameraType === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back
-    );
+    setCameraType(cameraType === 'back' ? 'front' : 'back');
   };
 
   if (hasPermission === null) {
@@ -197,9 +194,9 @@ export default function CustomCameraModal({
     <Modal visible={visible} animationType="slide">
       <View style={{ flex: 1, backgroundColor: 'black' }}>
         {/* Camera View */}
-        <Camera
+        <CameraView
           style={{ flex: 1 }}
-          type={cameraType}
+          facing={cameraType}
           ref={cameraRef}
         >
           {/* Header Controls */}
@@ -315,7 +312,7 @@ export default function CustomCameraModal({
               />
             </View>
           </View>
-        </Camera>
+        </CameraView>
       </View>
     </Modal>
   );
