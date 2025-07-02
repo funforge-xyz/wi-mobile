@@ -12,7 +12,9 @@ export default function CameraScreen() {
   const currentTheme = getTheme(isDarkMode);
 
   const handleMediaCaptured = (mediaUri: string, mediaType: 'image' | 'video') => {
-    navigation.navigate('MediaPreview' as never, { 
+    console.log('Media captured, navigating to preview:', mediaUri, mediaType);
+    // Navigate to preview screen immediately
+    navigation.replace('MediaPreview' as never, { 
       mediaUri, 
       mediaType 
     } as never);

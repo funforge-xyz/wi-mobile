@@ -177,7 +177,7 @@ export default function CustomCameraModal({
         });
         console.log('Picture taken:', photo.uri);
         onMediaCaptured(photo.uri, 'image');
-        onClose(); // Close the camera modal after taking picture
+        // Don't close the modal here - let the parent handle navigation
       } catch (error) {
         console.error('Error taking picture:', error);
         Alert.alert(t('common.error'), t('camera.errorTakingPicture', 'Failed to take picture'));
@@ -215,7 +215,7 @@ export default function CustomCameraModal({
 
         console.log('Recording completed:', video.uri);
         onMediaCaptured(video.uri, 'video');
-        onClose(); // Close the camera modal after recording
+        // Don't close the modal here - let the parent handle navigation
       } catch (error) {
         console.error('Error recording video:', error);
         setIsRecording(false);
