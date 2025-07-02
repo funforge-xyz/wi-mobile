@@ -11,6 +11,8 @@ import {
   Modal,
   StyleSheet,
   Dimensions,
+  ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -23,6 +25,7 @@ import { createPost, PostData } from '../utils/postUtils';
 import { getTheme } from '../theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, SPACING, FONTS } from '../config/constants';
+import SuccessModal from '../components/SuccessModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -41,8 +44,10 @@ export default function CreatePostScreen() {
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   const textInputRef = useRef<TextInput>(null);
+  const successAnimation = useRef(new Animated.Value(0)).current;
   
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
@@ -86,16 +91,25 @@ export default function CreatePostScreen() {
         isLikedByUser: false,
       });
 
-      Alert.alert(
-        t('addPost.success', 'Success'),
-        t('addPost.postShared', 'Your post has been shared!'),
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Profile' as never),
-          },
-        ]
-      );
+      // Show success modal
+      setShowSuccessModal(true);
+      Animated.timing(successAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Auto-hide after 2 seconds then navigate
+      setTimeout(() => {
+        Animated.timing(successAnimation, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowSuccessModal(false);
+          navigation.navigate('Profile' as never);
+        });
+      }, 2000);
     } catch (error) {
       console.error('Post creation error:', error);
       Alert.alert(t('common.error'), t('addPost.postFailed'));
@@ -133,7 +147,7 @@ export default function CreatePostScreen() {
             <Image 
               source={{ uri: mediaUri }} 
               style={styles.mediaPreview}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <TouchableOpacity 
@@ -143,7 +157,7 @@ export default function CreatePostScreen() {
               <Video
                 source={{ uri: mediaUri }}
                 style={styles.mediaPreview}
-                resizeMode="cover"
+                resizeMode="contain"
                 shouldPlay={false}
                 isMuted={true}
               />
@@ -234,6 +248,15 @@ export default function CreatePostScreen() {
         </Modal>
       )}
 
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        title={t('addPost.success', 'Success')}
+        message={t('addPost.postShared', 'Your post has been shared!')}
+        animation={successAnimation}
+        currentTheme={currentTheme}
+      />
+
       {/* Bottom Post Button */}
       <View style={[styles.bottomContainer, { backgroundColor: currentTheme.background, borderTopColor: currentTheme.border }]}>
         <TouchableOpacity
@@ -244,9 +267,18 @@ export default function CreatePostScreen() {
           disabled={!canPost || isPosting}
           onPress={handlePost}
         >
-          <Text style={styles.postButtonText}>
-            {isPosting ? t('addPost.posting', 'Posting...') : t('addPost.post', 'Post')}
-          </Text>
+          {isPosting ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="white" />
+              <Text style={[styles.postButtonText, { marginLeft: 8 }]}>
+                {t('addPost.posting', 'Posting...')}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.postButtonText}>
+              {t('addPost.post', 'Post')}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -296,6 +328,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mediaPreview: {
     width: '100%',
@@ -378,5 +412,10 @@ const styles = StyleSheet.create({
   fullscreenVideo: {
     width: width,
     height: height,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
