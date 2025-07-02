@@ -34,16 +34,14 @@ interface CreatePostRouteParams {
 }
 
 export default function CreatePostScreen() {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
-
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
@@ -51,11 +49,17 @@ export default function CreatePostScreen() {
   const previewPlayer = useVideoPlayer(mediaUri, player => {
     player.loop = true;
     player.muted = true;
+	if (mediaType === 'video') {
+		player.pause();
+	}
   });
 
   const fullscreenPlayer = useVideoPlayer(mediaUri, player => {
     player.loop = true;
     player.muted = false;
+	if (mediaType === 'video') {
+		player.pause();
+	}
   });
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -64,6 +68,28 @@ export default function CreatePostScreen() {
   const currentTheme = getTheme(isDarkMode);
 
   const canPost = Boolean(mediaUri);
+
+  const toggleVideoPlay = () => {
+    if (previewPlayer) {
+      if (isVideoPlaying) {
+        previewPlayer.pause();
+      } else {
+        previewPlayer.play();
+      }
+      setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
+  const toggleFullscreenPlay = () => {
+    if (fullscreenPlayer) {
+      if (isFullscreenPlaying) {
+        fullscreenPlayer.pause();
+      } else {
+        fullscreenPlayer.play();
+      }
+      setIsFullscreenPlaying(!isFullscreenPlaying);
+    }
+  };
 
   const handlePost = async () => {
     if (!canPost) {
@@ -159,23 +185,33 @@ export default function CreatePostScreen() {
               resizeMode="contain"
             />
           ) : (
-            <TouchableOpacity 
-              style={styles.videoPreviewContainer}
-              onPress={() => setShowVideoModal(true)}
-            >
+            <View style={styles.videoPreviewContainer}>
               <VideoView
                 player={previewPlayer}
                 style={styles.mediaPreview}
                 allowsFullscreen={false}
                 allowsPictureInPicture={false}
               />
-              <View style={styles.playOverlay}>
-                <Ionicons name="play" size={40} color="white" />
+              <TouchableOpacity 
+                style={styles.playOverlay}
+                onPress={toggleVideoPlay}
+              >
+                <Ionicons 
+                  name={isVideoPlaying ? "pause" : "play"} 
+                  size={40} 
+                  color="white" 
+                />
                 <Text style={styles.previewText}>
-                  {t('addPost.preview', 'Preview')}
+                  {isVideoPlaying ? t('addPost.pause', 'Pause') : t('addPost.play', 'Play')}
                 </Text>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+              <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={handleBack}
+                >
+                  <Ionicons name="close" size={24} color="white" />
+                </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -240,7 +276,10 @@ export default function CreatePostScreen() {
           <View style={styles.videoModal}>
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => setShowVideoModal(false)}
+              onPress={() => {
+				toggleFullscreenPlay();
+				setShowVideoModal(false)
+			  }}
             >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
@@ -250,6 +289,19 @@ export default function CreatePostScreen() {
               allowsFullscreen
               allowsPictureInPicture
             />
+			<TouchableOpacity 
+                style={styles.playOverlay}
+                onPress={toggleFullscreenPlay}
+              >
+                <Ionicons 
+                  name={isFullscreenPlaying ? "pause" : "play"} 
+                  size={40} 
+                  color="white" 
+                />
+                <Text style={styles.previewText}>
+                  {isFullscreenPlaying ? t('addPost.pause', 'Pause') : t('addPost.play', 'Play')}
+                </Text>
+              </TouchableOpacity>
           </View>
         </Modal>
       )}
@@ -340,7 +392,7 @@ const styles = StyleSheet.create({
   mediaPreview: {
     width: '100%',
     height: 240,
-    borderRadius: 16,
+    borderRadius: 8,
   },
   videoPreviewContainer: {
     position: 'relative',
@@ -424,5 +476,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  playButton: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -24 }, { translateY: -24 }],
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

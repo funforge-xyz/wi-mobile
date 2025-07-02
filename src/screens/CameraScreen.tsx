@@ -15,7 +15,7 @@ export default function CameraScreen() {
   const [capturedMedia, setCapturedMedia] = useState<{uri: string, type: 'image' | 'video'} | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   
   const navigation = useNavigation();
   const { theme } = useAppSelector(state => state.theme);
@@ -35,13 +35,13 @@ export default function CameraScreen() {
     console.log(`Media captured: ${type} - ${uri}`);
     setCapturedMedia({ uri, type });
     setShowPreview(true);
-    setIsPlaying(true);
+    setIsPlaying(false);
   };
 
   const handleRetake = () => {
     setCapturedMedia(null);
     setShowPreview(false);
-    setIsPlaying(true);
+    setIsPlaying(false);
   };
 
   const handleNext = () => {
@@ -127,7 +127,7 @@ export default function CameraScreen() {
       left: 20,
       right: 20,
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       alignItems: 'center',
       zIndex: 10,
     },
@@ -166,7 +166,7 @@ export default function CameraScreen() {
           <View style={styles.topControls}>
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={handleCameraClose}
+              onPress={handleRetake}
             >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
@@ -227,13 +227,6 @@ export default function CameraScreen() {
 
           {/* Bottom Controls */}
           <View style={styles.bottomControls}>
-            <TouchableOpacity
-              style={styles.retakeButton}
-              onPress={handleRetake}
-            >
-              <Text style={styles.retakeButtonText}>Retake</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.nextButton}
               onPress={handleNext}
