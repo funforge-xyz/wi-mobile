@@ -172,6 +172,8 @@ export default function CustomCameraView({
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.8,
           base64: false,
+          skipProcessing: false,
+          mirrorImage: false, // Don't mirror front camera images
         });
         console.log('Picture taken:', photo.uri);
         onMediaCaptured(photo.uri, 'image');
@@ -205,12 +207,14 @@ export default function CustomCameraView({
           ])
         ).start();
 
-        await cameraRef.current.recordAsync({
+        const video = await cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
         });
 
-        console.log('Recording completed automatically');
+        console.log('Recording completed automatically:', video.uri);
+        setIsRecording(false);
+        onMediaCaptured(video.uri, 'video');
       } catch (error) {
         console.error('Error recording video:', error);
         setIsRecording(false);
@@ -224,9 +228,12 @@ export default function CustomCameraView({
       try {
         console.log('Stopping recording...');
         setIsRecording(false); // Set this immediately to stop timer and animation
-        const video = await cameraRef.current.stopRecording();
-        console.log('Recording stopped:', video.uri);
-        onMediaCaptured(video.uri, 'video');
+        
+        // Stop the recording
+        cameraRef.current.stopRecording();
+        
+        // Note: The video result will be handled in the recordAsync promise resolution
+        // in the startRecording function
       } catch (error) {
         console.error('Error stopping recording:', error);
         setIsRecording(false);
@@ -302,7 +309,7 @@ export default function CustomCameraView({
       <View
         style={{
           position: 'absolute',
-          top: 50,
+          top: 60,
           left: 20,
           right: 20,
           flexDirection: 'row',
@@ -324,32 +331,8 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={toggleCameraType}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Ionicons name="camera-reverse" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Recording Timer */}
-      {isRecording && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 120,
-            left: 0,
-            right: 0,
-            alignItems: 'center',
-          }}
-        >
+        {/* Recording Timer - moved to center */}
+        {isRecording ? (
           <View
             style={{
               backgroundColor: 'rgba(255,0,0,0.8)',
@@ -373,8 +356,24 @@ export default function CustomCameraView({
               {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
             </Text>
           </View>
-        </View>
-      )}
+        ) : (
+          <View style={{ width: 50 }} />
+        )}
+
+        <TouchableOpacity
+          onPress={toggleCameraType}
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Ionicons name="camera-reverse" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
 
       {/* Bottom Controls */}
       <View
