@@ -46,20 +46,24 @@ export default function CreatePostScreen() {
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
 
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
+
   const previewPlayer = useVideoPlayer(mediaUri, player => {
     player.loop = true;
     player.muted = true;
-	if (mediaType === 'video') {
-		player.pause();
-	}
+    if (mediaType === 'video') {
+      player.pause();
+    }
   });
 
   const fullscreenPlayer = useVideoPlayer(mediaUri, player => {
     player.loop = true;
     player.muted = false;
-	if (mediaType === 'video') {
-		player.pause();
-	}
+    if (mediaType === 'video') {
+      player.pause();
+    }
   });
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -317,27 +321,29 @@ export default function CreatePostScreen() {
 
       {/* Bottom Post Button */}
       <View style={[styles.bottomContainer, { backgroundColor: currentTheme.background, borderTopColor: currentTheme.border }]}>
-        <TouchableOpacity
-          style={[
-            styles.bottomPostButton,
-            !canPost && styles.postButtonDisabled,
-          ]}
-          disabled={!canPost || isPosting}
-          onPress={handlePost}
-        >
-          {isPosting ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="white" />
-              <Text style={[styles.postButtonText, { marginLeft: 8 }]}>
-                {t('addPost.posting', 'Posting...')}
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.bottomPostButton,
+              !canPost && styles.postButtonDisabled,
+            ]}
+            disabled={!canPost || isPosting}
+            onPress={handlePost}
+          >
+            {isPosting ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="white" />
+                <Text style={[styles.postButtonText, { marginLeft: 8 }]}>
+                  {t('addPost.posting', 'Posting...')}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.postButtonText}>
+                {t('addPost.post', 'Post')}
               </Text>
-            </View>
-          ) : (
-            <Text style={styles.postButtonText}>
-              {t('addPost.post', 'Post')}
-            </Text>
-          )}
-        </TouchableOpacity>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -363,12 +369,17 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderTopWidth: 1,
   },
+  bottomButtonContainer: {
+    alignItems: 'flex-end',
+  },
   bottomPostButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 100,
   },
   postButtonDisabled: {
     backgroundColor: COLORS.textSecondary,
