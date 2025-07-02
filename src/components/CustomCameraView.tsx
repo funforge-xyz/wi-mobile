@@ -26,7 +26,6 @@ export default function CustomCameraView({
   onMediaCaptured,
   currentTheme,
 }: CustomCameraViewProps) {
-  console.log('CustomCameraView render');
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
   const [isRecording, setIsRecording] = useState(false);
@@ -90,8 +89,9 @@ export default function CustomCameraView({
           const newTime = prevTime + 1;
           if (newTime >= MAX_RECORDING_TIME) {
             console.log('Max recording time reached, stopping...');
-            stopRecording();
-            return prevTime; // Keep the time at max, don't reset to 0 yet
+            // Don't call stopRecording here as the camera will auto-stop
+            // The recordAsync promise will resolve automatically
+            return MAX_RECORDING_TIME;
           }
           return newTime;
         });
@@ -207,16 +207,22 @@ export default function CustomCameraView({
           ])
         ).start();
 
-        const video = await cameraRef.current.recordAsync({
+        // Start recording without awaiting - we'll handle stopping manually
+        cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
+        }).then((video) => {
+          console.log('Recording completed:', video.uri);
+          if (video && video.uri) {
+            onMediaCaptured(video.uri, 'video');
+          }
+        }).catch((error) => {
+          console.error('Error in recording promise:', error);
+          setIsRecording(false);
         });
 
-        console.log('Recording completed automatically:', video.uri);
-        setIsRecording(false);
-        onMediaCaptured(video.uri, 'video');
       } catch (error) {
-        console.error('Error recording video:', error);
+        console.error('Error starting recording:', error);
         setIsRecording(false);
         Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
       }
@@ -229,11 +235,13 @@ export default function CustomCameraView({
         console.log('Stopping recording...');
         setIsRecording(false); // Set this immediately to stop timer and animation
         
-        // Stop the recording
-        cameraRef.current.stopRecording();
+        // Stop the recording and get the result
+        const video = await cameraRef.current.stopRecording();
+        console.log('Recording stopped with result:', video);
         
-        // Note: The video result will be handled in the recordAsync promise resolution
-        // in the startRecording function
+        if (video && video.uri) {
+          onMediaCaptured(video.uri, 'video');
+        }
       } catch (error) {
         console.error('Error stopping recording:', error);
         setIsRecording(false);

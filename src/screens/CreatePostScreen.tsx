@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -38,17 +37,17 @@ export default function CreatePostScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
-  
+
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
+
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
-  
+
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const { addNewPost } = usePostActions();
@@ -146,7 +145,7 @@ export default function CreatePostScreen() {
           {mediaType === 'image' ? (
             <Image 
               source={{ uri: mediaUri }} 
-              style={styles.mediaPreview}
+              style={[styles.mediaPreview, { borderRadius: 8 }]}
               resizeMode="contain"
             />
           ) : (
@@ -206,7 +205,7 @@ export default function CreatePostScreen() {
               thumbColor={allowComments ? 'white' : currentTheme.textSecondary}
             />
           </View>
-          
+
           <View style={styles.settingRow}>
             <Text style={[styles.settingLabel, { color: currentTheme.text }]}>
               {t('addPost.showLikeCount', 'Show Like Count')}
