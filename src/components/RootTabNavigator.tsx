@@ -9,7 +9,7 @@ import FeedScreen from '../screens/FeedScreen';
 import NearbyScreen from '../screens/NearbyScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import UserPostsScreen from '../screens/UserPostsScreen';
-import CameraScreen from '../screens/CameraScreen';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -54,7 +54,13 @@ export default function RootTabNavigator({ isDarkMode }: RootTabNavigatorProps) 
       />
       <Tab.Screen 
         name="Add" 
-        component={CameraScreen}
+        component={() => null}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Camera' as never);
+          },
+        })}
         options={{ 
           tabBarLabel: t('navigation.add'),
           headerTitle: t('camera.title', 'Camera'),

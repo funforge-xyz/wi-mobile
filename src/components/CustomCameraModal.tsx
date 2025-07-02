@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -48,17 +47,17 @@ export default function CustomCameraModal({
     (async () => {
       try {
         console.log('Requesting camera permissions...');
-        
+
         if (!cameraPermission?.granted) {
           const cameraResult = await requestCameraPermission();
           console.log('Camera permission status:', cameraResult?.status);
         }
-        
+
         if (!microphonePermission?.granted) {
           const micResult = await requestMicrophonePermission();
           console.log('Microphone permission status:', micResult?.status);
         }
-        
+
         const hasPerms = cameraPermission?.granted && microphonePermission?.granted;
         console.log('Has all permissions:', hasPerms);
         setHasPermission(hasPerms);
@@ -129,29 +128,29 @@ export default function CustomCameraModal({
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => false,
-      
+
       onPanResponderGrant: () => {
         // Record the press start time
         pressStartTime.current = Date.now();
-        
+
         // Set a timeout to start recording after 1 second
         recordingTimeout.current = setTimeout(() => {
           startRecording();
         }, 1000);
       },
-      
+
       onPanResponderRelease: () => {
         // Clear the recording timeout
         if (recordingTimeout.current) {
           clearTimeout(recordingTimeout.current);
           recordingTimeout.current = null;
         }
-        
+
         const pressEndTime = Date.now();
         const pressDuration = pressStartTime.current ? pressEndTime - pressStartTime.current : 0;
-        
+
         console.log('Button released - isRecording:', isRecording, 'pressDuration:', pressDuration);
-        
+
         if (isRecording) {
           // Stop recording if currently recording
           console.log('Stopping recording from button release');
@@ -161,7 +160,7 @@ export default function CustomCameraModal({
           console.log('Taking photo');
           takePicture();
         }
-        
+
         // Reset press start time
         pressStartTime.current = null;
       },
@@ -169,19 +168,19 @@ export default function CustomCameraModal({
   ).current;
 
   const takePicture = async () => {
-    if (cameraRef.current) {
+    if (cameraRef.current && !isRecording) {
       try {
+        console.log('Taking picture...');
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.8,
           base64: false,
-          skipProcessing: false,
         });
-        if (photo && photo.uri) {
-          onMediaCaptured(photo.uri, 'image');
-        }
+        console.log('Picture taken:', photo.uri);
+        onMediaCaptured(photo.uri, 'image');
+        onClose(); // Close the camera modal after taking picture
       } catch (error) {
         console.error('Error taking picture:', error);
-        Alert.alert('Error', 'Failed to take picture');
+        Alert.alert(t('common.error'), t('camera.errorTakingPicture', 'Failed to take picture'));
       }
     }
   };
@@ -189,24 +188,38 @@ export default function CustomCameraModal({
   const startRecording = async () => {
     if (cameraRef.current && !isRecording) {
       try {
+        console.log('Starting recording...');
         setIsRecording(true);
+        setRecordingTime(0);
+
+        // Start recording animation
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(recordingAnimationRef, {
+              toValue: 0.3,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(recordingAnimationRef, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
+
         const video = await cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
         });
-        
-        // This will be called when recording stops (either manually or when hitting max duration)
-        console.log('Recording completed, video:', video);
-        setIsRecording(false);
-        
-        if (video && video.uri) {
-          console.log('Saving video with URI:', video.uri);
-          onMediaCaptured(video.uri, 'video');
-        }
+
+        console.log('Recording completed:', video.uri);
+        onMediaCaptured(video.uri, 'video');
+        onClose(); // Close the camera modal after recording
       } catch (error) {
-        console.error('Error during recording:', error);
+        console.error('Error recording video:', error);
         setIsRecording(false);
-        Alert.alert('Error', 'Failed to record video');
+        Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
       }
     }
   };

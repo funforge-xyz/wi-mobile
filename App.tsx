@@ -133,7 +133,26 @@ export default function App() {
               headerShown: false,
             }}
           >
-            <Stack.Screen name="Root" component={RootScreen} />
+            <Stack.Screen 
+          name="Root" 
+          component={RootScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Camera" 
+          component={CameraScreen} 
+          options={{ headerShown: false, presentation: 'fullScreenModal' }} 
+        />
+        <Stack.Screen 
+          name="MediaPreview" 
+          component={MediaPreviewScreen} 
+          options={{ headerShown: false, presentation: 'fullScreenModal' }} 
+        />
+        <Stack.Screen 
+          name="CreatePost" 
+          component={CreatePostScreen} 
+          options={{ headerShown: false }} 
+        />
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
@@ -173,9 +192,6 @@ export default function App() {
           component={PrivacyPolicyScreen} 
           options={{ headerShown: false }} 
         />
-          <Stack.Screen name="Camera" component={CameraScreen} />
-          <Stack.Screen name="MediaPreview" component={MediaPreviewScreen} />
-          <Stack.Screen name="CreatePost" component={CreatePostScreen} />
         </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
