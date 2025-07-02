@@ -9,6 +9,7 @@ import {
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,10 +29,11 @@ export default function CustomCameraView({
   const [recording, setRecording] = useState(false);
   const [cameraMode, setCameraMode] = useState<'picture' | 'video'>('picture');
   const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const cameraRef = useRef<CameraView>(null);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
+  const [zoom, setZoom] = useState(0);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const recordingInterval = useRef<NodeJS.Timeout | null>(null);
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
@@ -61,15 +63,6 @@ export default function CustomCameraView({
     })();
   }, [cameraPermission, microphonePermission]);
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-      }
-    };
-  }, []);
-
 
 
   const takePicture = async () => {
@@ -97,20 +90,14 @@ export default function CustomCameraView({
         console.log('Stopping recording manually...');
         cameraRef.current.stopRecording();
         setRecording(false);
-        setRecordingSeconds(0);
-        if (recordingIntervalRef.current) {
-          clearInterval(recordingIntervalRef.current);
-          recordingIntervalRef.current = null;
-        }
       } else {
         // Start recording
         console.log('Starting recording...');
         setRecording(true);
         setRecordingSeconds(0);
 
-        // Start timer
-        recordingIntervalRef.current = setInterval(() => {
-          setRecordingSeconds(prev => prev + 1);
+        recordingInterval.current = setInterval(() => {
+          setRecordingSeconds((prev) => prev + 1);
         }, 1000);
 
         try {
@@ -119,26 +106,22 @@ export default function CustomCameraView({
             maxDuration: 15, // 15 seconds max duration
           });
 
-          console.log('Video recorded:', video.uri);
+          console.log('Video recording completed:', video);
+          setVideoUri(video.uri);
+          onMediaCaptured(video.uri, 'video');
           setRecording(false);
           setRecordingSeconds(0);
-          if (recordingIntervalRef.current) {
-            clearInterval(recordingIntervalRef.current);
-            recordingIntervalRef.current = null;
-          }
-
-          if (video && video.uri) {
-            onMediaCaptured(video.uri, 'video');
-          } else {
-            Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
+          if (recordingInterval.current) {
+            clearInterval(recordingInterval.current);
+            recordingInterval.current = null;
           }
         } catch (error) {
           console.error('Error recording video:', error);
           setRecording(false);
           setRecordingSeconds(0);
-          if (recordingIntervalRef.current) {
-            clearInterval(recordingIntervalRef.current);
-            recordingIntervalRef.current = null;
+          if (recordingInterval.current) {
+            clearInterval(recordingInterval.current);
+            recordingInterval.current = null;
           }
           Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
         }
@@ -147,8 +130,16 @@ export default function CustomCameraView({
   };
 
   const flipCamera = () => {
-    setCameraType(current => current === 'front' ? 'back' : 'front');
+    setCameraType(current => (current === 'front' ? 'back' : 'front'));
   };
+
+  // Pinch gesture for zoom
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((event) => {
+      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.02));
+      setZoom(newZoom);
+    })
+    .runOnJS(true);
 
   if (hasPermission === null) {
     return (
@@ -199,16 +190,19 @@ export default function CustomCameraView({
       backgroundColor: 'black'
     }}>
       {/* Camera View */}
-      <CameraView
-        style={{ 
-          flex: 1,
-          width: '100%',
-          height: '100%',
-        }}
-        facing={cameraType}
-        ref={cameraRef}
-        mode={cameraMode}
-      />
+      <GestureDetector gesture={pinchGesture}>
+        <CameraView
+          style={{ 
+            flex: 1,
+            width: '100%',
+            height: '100%',
+          }}
+          facing={cameraType}
+          ref={cameraRef}
+          mode={cameraMode}
+          zoom={zoom}
+        />
+      </GestureDetector>
 
       {/* Top Controls */}
       <View
@@ -238,7 +232,7 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
-        {/* Recording Timer */}
+        {/* Recording Indicator */}
         {recording && (
           <View
             style={{
@@ -260,7 +254,7 @@ export default function CustomCameraView({
               }}
             />
             <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              {recordingSeconds}s
+              REC
             </Text>
           </View>
         )}
@@ -372,6 +366,50 @@ export default function CustomCameraView({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Recording Counter */}
+      {recording && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 120,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: 'rgba(255, 0, 0, 0.9)',
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: 'white',
+                marginRight: 8,
+              }}
+            />
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 16,
+                fontWeight: '600',
+              }}
+            >
+              {String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:
+              {String(recordingSeconds % 60).padStart(2, '0')}
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Bottom Controls */}
       <View

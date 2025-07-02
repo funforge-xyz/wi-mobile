@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +15,7 @@ export default function CameraScreen() {
   const [showPreview, setShowPreview] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   const navigation = useNavigation();
   const { theme } = useAppSelector(state => state.theme);
   const currentTheme = getTheme(theme);
@@ -47,11 +46,11 @@ export default function CameraScreen() {
   const handleNext = () => {
     if (capturedMedia) {
       // Pause video before navigating
-      if (capturedMedia.type === 'video' && player && isPlaying) {
+      if (capturedMedia.type === 'video' && player) {
         player.pause();
         setIsPlaying(false);
       }
-      
+
       // Navigate to create post screen with the media
       navigation.navigate('CreatePost', { 
         mediaUri: capturedMedia.uri, 
