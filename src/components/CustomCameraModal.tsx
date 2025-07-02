@@ -324,121 +324,122 @@ export default function CustomCameraModal({
           }}
           facing={cameraType}
           ref={cameraRef}
-        >
-          {/* Header Controls */}
-          <View style={{
+        />
+
+        {/* UI Overlay - Outside CameraView */}
+        {/* Top Controls */}
+        <View
+          style={{
             position: 'absolute',
             top: 50,
-            left: 0,
-            right: 0,
+            left: 20,
+            right: 20,
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 20,
-            zIndex: 1,
-          }}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="close" size={24} color="white" />
-            </TouchableOpacity>
+          }}
+        >
+          <TouchableOpacity
+            onPress={onClose}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
 
-            {/* Recording Timer */}
-            {isRecording && (
-              <View style={{
+          <TouchableOpacity
+            onPress={toggleCameraType}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="camera-reverse" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Recording Timer */}
+        {isRecording && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 120,
+              left: 0,
+              right: 0,
+              alignItems: 'center',
+            }}
+          >
+            <View
+              style={{
                 backgroundColor: 'rgba(255,0,0,0.8)',
                 paddingHorizontal: 12,
                 paddingVertical: 6,
                 borderRadius: 20,
                 flexDirection: 'row',
                 alignItems: 'center',
-              }}>
-                <View style={{
+              }}
+            >
+              <View
+                style={{
                   width: 8,
                   height: 8,
                   borderRadius: 4,
                   backgroundColor: 'white',
                   marginRight: 8,
-                }} />
-                <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                  {`00:${recordingTime.toString().padStart(2, '0')}`}
-                </Text>
-              </View>
-            )}
-
-            <TouchableOpacity
-              onPress={toggleCameraType}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="camera-reverse" size={24} color="white" />
-            </TouchableOpacity>
+                }}
+              />
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+                {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+              </Text>
+            </View>
           </View>
+        )}
 
-          {/* Bottom Controls */}
-          <View style={{
+        {/* Bottom Controls */}
+        <View
+          style={{
             position: 'absolute',
             bottom: 50,
             left: 0,
             right: 0,
             alignItems: 'center',
-          }}>
-            {/* Instructions */}
-            <Text style={{
-              color: 'white',
-              marginBottom: 30,
-              textAlign: 'center',
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              paddingHorizontal: 20,
-              paddingVertical: 8,
-              borderRadius: 20,
-            }}>
-              {isRecording 
-                ? t('camera.recording', 'Recording... Release to stop')
-                : t('camera.instructions', 'Tap for photo, hold 1s for video')
-              }
-            </Text>
-
-            {/* Capture Button */}
-            <View
-              {...panResponder.panHandlers}
+          }}
+        >
+          {/* Capture Button */}
+          <View
+            {...panResponder.panHandlers}
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: 'rgba(255,255,255,0.3)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 4,
+              borderColor: 'white',
+            }}
+          >
+            <Animated.View
               style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: 'rgba(255,255,255,0.3)',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 4,
-                borderColor: 'white',
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: isRecording ? 'red' : 'white',
+                transform: [{ scale: recordingAnimationRef }],
               }}
-            >
-              <Animated.View
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: isRecording ? 'red' : 'white',
-                  transform: [{ scale: recordingAnimationRef }],
-                }}
-              />
-            </View>
+            />
           </View>
-        </CameraView>
+        </View>
       </View>
     </Modal>
   );
