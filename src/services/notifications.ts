@@ -66,9 +66,9 @@ export const registerForPushNotifications = async () => {
 
     // Get the Expo push token with security enabled
     console.log('🎫 Getting Expo push token with security...');
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: process.env.EXPO_PROJECT_ID || undefined, // Add your Expo project ID to .env
-    });
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      process.env.EXPO_PROJECT_ID ? { projectId: process.env.EXPO_PROJECT_ID } : {}
+    );
     const token = tokenData.data;
     
     // Generate access token for secure push notifications

@@ -10,7 +10,7 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -30,7 +30,7 @@ export default function CustomCameraModal({
   currentTheme,
 }: CustomCameraModalProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [cameraType, setCameraType] = useState(CameraType.back);
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const cameraRef = useRef<Camera>(null);
@@ -160,7 +160,7 @@ export default function CustomCameraModal({
 
   const toggleCameraType = () => {
     setCameraType(
-      cameraType === CameraType.back ? CameraType.front : CameraType.back
+      cameraType === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back
     );
   };
 
