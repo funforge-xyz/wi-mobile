@@ -52,8 +52,6 @@ export const compressImage = async (uri: string): Promise<string> => {
 
 export const compressVideo = async (uri: string): Promise<string> => {
   try {
-    const { Video } = await import('expo-av');
-    
     // Get file info to check initial size
     const response = await fetch(uri);
     const blob = await response.blob();

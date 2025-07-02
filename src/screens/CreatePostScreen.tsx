@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
-import { Video } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from '../hooks/usePostActions';
@@ -47,6 +47,16 @@ export default function CreatePostScreen() {
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
+
+  const previewPlayer = useVideoPlayer(mediaUri, player => {
+    player.loop = true;
+    player.muted = true;
+  });
+
+  const fullscreenPlayer = useVideoPlayer(mediaUri, player => {
+    player.loop = true;
+    player.muted = false;
+  });
 
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
@@ -153,12 +163,11 @@ export default function CreatePostScreen() {
               style={styles.videoPreviewContainer}
               onPress={() => setShowVideoModal(true)}
             >
-              <Video
-                source={{ uri: mediaUri }}
+              <VideoView
+                player={previewPlayer}
                 style={styles.mediaPreview}
-                resizeMode="contain"
-                shouldPlay={false}
-                isMuted={true}
+                allowsFullscreen={false}
+                allowsPictureInPicture={false}
               />
               <View style={styles.playOverlay}>
                 <Ionicons name="play" size={40} color="white" />
@@ -235,13 +244,11 @@ export default function CreatePostScreen() {
             >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
-            <Video
-              source={{ uri: mediaUri }}
+            <VideoView
+              player={fullscreenPlayer}
               style={styles.fullscreenVideo}
-              resizeMode="contain"
-              shouldPlay={true}
-              isLooping={true}
-              isMuted={false}
+              allowsFullscreen
+              allowsPictureInPicture
             />
           </View>
         </Modal>

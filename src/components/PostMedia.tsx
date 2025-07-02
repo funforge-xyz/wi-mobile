@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, ViewStyle, View } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 
 interface PostMediaProps {
   mediaURL: string;
@@ -9,17 +9,21 @@ interface PostMediaProps {
 }
 
 export default function PostMedia({ mediaURL, mediaType = 'image', style }: PostMediaProps) {
+  const player = useVideoPlayer(mediaURL, player => {
+    player.loop = false;
+    player.play();
+  });
+
   if (!mediaURL) return null;
 
   if (mediaType === 'video') {
     return (
       <View style={[styles.media, style]}>
-        <Video
-          source={{ uri: mediaURL }}
+        <VideoView
+          player={player}
           style={styles.video}
-          useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay={false}
+          allowsFullscreen
+          allowsPictureInPicture
         />
       </View>
     );
