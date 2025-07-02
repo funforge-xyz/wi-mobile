@@ -10,7 +10,7 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
-import { CameraView } from 'expo-camera';
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -41,15 +41,25 @@ export default function CustomCameraModal({
 
   const MAX_RECORDING_TIME = 15; // 15 seconds
 
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
+
   useEffect(() => {
     (async () => {
       try {
         console.log('Requesting camera permissions...');
-        const cameraStatus = await CameraView.requestCameraPermissionsAsync();
-        console.log('Camera permission status:', cameraStatus.status);
-        const microphoneStatus = await CameraView.requestMicrophonePermissionsAsync();
-        console.log('Microphone permission status:', microphoneStatus.status);
-        const hasPerms = cameraStatus.status === 'granted' && microphoneStatus.status === 'granted';
+        
+        if (!cameraPermission?.granted) {
+          const cameraResult = await requestCameraPermission();
+          console.log('Camera permission status:', cameraResult?.status);
+        }
+        
+        if (!microphonePermission?.granted) {
+          const micResult = await requestMicrophonePermission();
+          console.log('Microphone permission status:', micResult?.status);
+        }
+        
+        const hasPerms = cameraPermission?.granted && microphonePermission?.granted;
         console.log('Has all permissions:', hasPerms);
         setHasPermission(hasPerms);
       } catch (error) {
@@ -57,7 +67,7 @@ export default function CustomCameraModal({
         setHasPermission(false);
       }
     })();
-  }, [visible]);
+  }, [visible, cameraPermission, microphonePermission]);
 
   useEffect(() => {
     if (isRecording) {
