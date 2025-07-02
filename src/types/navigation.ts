@@ -6,7 +6,6 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   DeleteAccount: undefined;
   Terms: undefined;
-  AddPost: undefined;
   ChatImages: { chatId: string };
   SinglePost: { postId: string };
   Profile: { userId: string };
@@ -26,6 +25,15 @@ export type RootStackParamList = {
     userPhotoURL?: string;
   };
   PrivacyPolicy: undefined;
+  Camera: undefined;
+  MediaPreview: {
+    mediaUri: string;
+    mediaType: 'image' | 'video';
+  };
+  CreatePost: {
+    mediaUri: string;
+    mediaType: 'image' | 'video';
+  };
 };
 
 export type BottomTabParamList = {

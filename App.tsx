@@ -21,6 +21,9 @@ import TermsScreen from './src/screens/TermsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import HelpSupportScreen from './src/screens/HelpSupportScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import CameraScreen from './src/screens/CameraScreen';
+import MediaPreviewScreen from './src/screens/MediaPreviewScreen';
+import CreatePostScreen from './src/screens/CreatePostScreen';
 
 // Services
 import { initializeFirebase } from './src/services/firebase';
@@ -170,7 +173,10 @@ export default function App() {
           component={PrivacyPolicyScreen} 
           options={{ headerShown: false }} 
         />
-      </Stack.Navigator>
+          <Stack.Screen name="Camera" component={CameraScreen} />
+          <Stack.Screen name="MediaPreview" component={MediaPreviewScreen} />
+          <Stack.Screen name="CreatePost" component={CreatePostScreen} />
+        </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
     </Provider>
