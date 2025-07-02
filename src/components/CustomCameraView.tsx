@@ -236,6 +236,7 @@ export default function CustomCameraView({
 
         <TouchableOpacity
           onPress={flipCamera}
+          disabled={recording}
           style={{
             width: 50,
             height: 50,
@@ -243,6 +244,7 @@ export default function CustomCameraView({
             backgroundColor: 'rgba(0,0,0,0.6)',
             justifyContent: 'center',
             alignItems: 'center',
+            opacity: recording ? 0.5 : 1,
           }}
         >
           <Ionicons name="camera-reverse" size={24} color="white" />
