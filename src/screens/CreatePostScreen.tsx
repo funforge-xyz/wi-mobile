@@ -43,7 +43,8 @@ export default function CreatePostScreen() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [videoSeconds, setVideoSeconds] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
@@ -73,35 +74,36 @@ export default function CreatePostScreen() {
 
   // Pause any playing video when screen loads and manage timer
   useEffect(() => {
-    // Reset video timer
-    setVideoSeconds(0);
-    if (videoTimerRef.current) {
-      clearInterval(videoTimerRef.current);
-      videoTimerRef.current = null;
-    }
+    if (previewPlayer && mediaType === 'video') {
+      // Set up player status listener
+      const unsubscribe = previewPlayer.addListener('statusChange', (status) => {
+        console.log('Video status changed:', status);
+        if (status === 'readyToPlay') {
+          setIsVideoPlaying(false); // Start paused
+          setVideoDuration(previewPlayer.duration || 15); // Default to 15s if duration not available
+        }
+      });
 
-    return () => {
-      // Cleanup timer on unmount
-      if (videoTimerRef.current) {
-        clearInterval(videoTimerRef.current);
-      }
-    };
-  }, []);
+      // Set up time update listener for progress
+      const timeUpdateUnsubscribe = previewPlayer.addListener('timeUpdate', (payload) => {
+        if (payload.currentTime !== undefined && videoDuration > 0) {
+          setVideoProgress((payload.currentTime / videoDuration) * 100);
+        }
+      });
+
+      return () => {
+        unsubscribe?.remove();
+        timeUpdateUnsubscribe?.remove();
+      };
+    }
+  }, [previewPlayer, mediaType, videoDuration]);
 
   const toggleVideoPlay = () => {
     if (previewPlayer) {
       if (isVideoPlaying) {
         previewPlayer.pause();
-        if (videoTimerRef.current) {
-          clearInterval(videoTimerRef.current);
-          videoTimerRef.current = null;
-        }
       } else {
         previewPlayer.play();
-        setVideoSeconds(0);
-        videoTimerRef.current = setInterval(() => {
-          setVideoSeconds(prev => prev + 1);
-        }, 1000);
       }
       setIsVideoPlaying(!isVideoPlaying);
     }
@@ -270,24 +272,26 @@ export default function CreatePostScreen() {
                   color="white" 
                 />
               </TouchableOpacity>
-              {/* Video Timer */}
-              {isVideoPlaying && (
+
+              {/* Video Progress Bar */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  width: '100%',
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  height: 5,
+                }}
+              >
                 <View
                   style={{
-                    position: 'absolute',
-                    top: 10,
-                    left: 10,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 12,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    width: `${videoProgress}%`,
+                    backgroundColor: COLORS.primary,
+                    height: 5,
                   }}
-                >
-                  <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-                    {videoSeconds}s
-                  </Text>
-                </View>
-              )}
+                />
+              </View>
             </View>
           )}
         </View>

@@ -342,13 +342,14 @@ export default function CustomCameraView({
         </View>
       </View>
 
-      {/* Recording Counter */}
+      {/* Recording Counter - centered with top controls */}
       {recording && (
         <View
           style={{
             position: 'absolute',
             top: 60,
-            right: 80,
+            left: 0,
+            right: 0,
             alignItems: 'center',
           }}
         >
