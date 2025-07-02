@@ -113,19 +113,33 @@ export default function CustomCameraView({
           });
         }, 1000);
 
-        // Start recording
+        // Auto-stop after 5 seconds
+        recordingTimeoutRef.current = setTimeout(async () => {
+          if (cameraRef.current && isRecording) {
+            try {
+              console.log('Auto-stopping recording after 5 seconds...');
+              await cameraRef.current.stopRecording();
+            } catch (error) {
+              console.error('Error auto-stopping recording:', error);
+            }
+          }
+        }, 5000);
+
+        // Start recording - this will resolve when recording stops
         const video = await cameraRef.current.recordAsync({
           quality: '720p' as const,
         });
 
-        // Auto-stop after 5 seconds
-        recordingTimeoutRef.current = setTimeout(async () => {
-          await stopVideoRecording();
-        }, 5000);
-
         console.log('Video recording completed:', video);
         
-        // Reset state and process video
+        // Clear timeouts and reset state
+        if (recordingTimeoutRef.current) {
+          clearTimeout(recordingTimeoutRef.current);
+        }
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+        }
+        
         setIsRecording(false);
         setCountdown(0);
 
@@ -139,28 +153,16 @@ export default function CustomCameraView({
 
       } catch (error) {
         console.error('Error during video recording:', error);
-        setIsRecording(false);
-        setCountdown(0);
-        Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
-      }
-    }
-  };
-
-  const stopVideoRecording = async () => {
-    if (cameraRef.current && isRecording) {
-      try {
-        console.log('Stopping video recording...');
-        await cameraRef.current.stopRecording();
-        
-        // Clear timeouts
+        // Clear timeouts and reset state on error
         if (recordingTimeoutRef.current) {
           clearTimeout(recordingTimeoutRef.current);
         }
         if (countdownIntervalRef.current) {
           clearInterval(countdownIntervalRef.current);
         }
-      } catch (error) {
-        console.error('Error stopping video recording:', error);
+        setIsRecording(false);
+        setCountdown(0);
+        Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
       }
     }
   };
@@ -238,6 +240,7 @@ export default function CustomCameraView({
       >
         <TouchableOpacity
           onPress={onClose}
+          disabled={isRecording}
           style={{
             width: 50,
             height: 50,
@@ -245,6 +248,7 @@ export default function CustomCameraView({
             backgroundColor: 'rgba(0,0,0,0.6)',
             justifyContent: 'center',
             alignItems: 'center',
+            opacity: isRecording ? 0.5 : 1,
           }}
         >
           <Ionicons name="close" size={24} color="white" />
@@ -380,7 +384,7 @@ export default function CustomCameraView({
             />
           </TouchableOpacity>
         ) : (
-          /* Video Controls */
+          /* Video Recording Button */
           <TouchableOpacity
             onPress={startVideoRecording}
             disabled={isRecording}
@@ -388,12 +392,12 @@ export default function CustomCameraView({
               width: 80,
               height: 80,
               borderRadius: 40,
-              backgroundColor: 'rgba(255,255,255,0.3)',
+              backgroundColor: isRecording ? 'rgba(255,0,0,0.8)' : 'rgba(255,255,255,0.3)',
               justifyContent: 'center',
               alignItems: 'center',
               borderWidth: 4,
-              borderColor: 'white',
-              opacity: isRecording ? 0.7 : 1,
+              borderColor: isRecording ? 'red' : 'white',
+              opacity: isRecording ? 1 : 1,
             }}
           >
             <View
