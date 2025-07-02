@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -28,15 +27,10 @@ export default function CustomCameraView({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
   const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
   const cameraRef = useRef<CameraView>(null);
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingAnimationRef = useRef(new Animated.Value(1)).current;
-  const recordingPromiseRef = useRef<Promise<any> | null>(null);
   const { t } = useTranslation();
-
-  const MAX_RECORDING_TIME = 15; // 15 seconds
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
@@ -68,8 +62,8 @@ export default function CustomCameraView({
 
   useEffect(() => {
     if (isRecording) {
-      console.log('Starting recording UI effects...');
-      
+      console.log('Starting recording animation...');
+
       // Start recording animation (pulsing red circle)
       Animated.loop(
         Animated.sequence([
@@ -85,65 +79,12 @@ export default function CustomCameraView({
           }),
         ])
       ).start();
-
-      // Start timer
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingTime((prevTime) => {
-          const newTime = prevTime + 1;
-          console.log('Recording time:', newTime);
-          if (newTime >= MAX_RECORDING_TIME) {
-            console.log('Max recording time reached, stopping...');
-            stopRecording();
-            return MAX_RECORDING_TIME;
-          }
-          return newTime;
-        });
-      }, 1000);
-    }
-
-    // Cleanup function
-    return () => {
-      if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current);
-        recordingTimerRef.current = null;
-      }
-    };
-  }, [isRecording]);
-
-  const cleanupRecording = () => {
-    console.log('Cleaning up recording state...');
-    setIsRecording(false);
-    setRecordingTime(0);
-    
-    // Stop animation
-    recordingAnimationRef.stopAnimation();
-    recordingAnimationRef.setValue(1);
-    
-    // Clear timer
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
-    }
-  };
-
-  const processRecordedVideo = (videoResult: any) => {
-    console.log('Processing recorded video:', videoResult);
-    
-    if (videoResult && videoResult.uri) {
-      console.log('Video URI:', videoResult.uri);
-      console.log('Calling onMediaCaptured with video...');
-      
-      // Clean up first
-      cleanupRecording();
-      
-      // Then trigger the callback
-      onMediaCaptured(videoResult.uri, 'video');
     } else {
-      console.error('No video URI in result:', videoResult);
-      Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
-      cleanupRecording();
+      // Stop animation
+      recordingAnimationRef.stopAnimation();
+      recordingAnimationRef.setValue(1);
     }
-  };
+  }, [isRecording]);
 
   const takePicture = async () => {
     if (cameraRef.current && !isRecording) {
@@ -169,31 +110,32 @@ export default function CustomCameraView({
       try {
         console.log('Starting recording...');
         setIsRecording(true);
-        setRecordingTime(0);
 
         const recordingOptions = {
-          maxDuration: MAX_RECORDING_TIME,
           quality: '720p' as const,
         };
 
         console.log('Recording options:', recordingOptions);
-        
-        // Start recording and store the promise
-        recordingPromiseRef.current = cameraRef.current.recordAsync(recordingOptions);
-        
-        // Wait for recording to complete
-        const video = await recordingPromiseRef.current;
+
+        // Start recording
+        const video = await cameraRef.current.recordAsync(recordingOptions);
         console.log('Recording completed:', video);
-        
-        // Process the video
-        processRecordedVideo(video);
-        
+
+        // Reset state and process video
+        setIsRecording(false);
+
+        if (video && video.uri) {
+          console.log('Video URI:', video.uri);
+          onMediaCaptured(video.uri, 'video');
+        } else {
+          console.error('No video URI in result:', video);
+          Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
+        }
+
       } catch (error) {
         console.error('Error during recording:', error);
-        cleanupRecording();
+        setIsRecording(false);
         Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
-      } finally {
-        recordingPromiseRef.current = null;
       }
     }
   };
@@ -201,30 +143,12 @@ export default function CustomCameraView({
   const stopRecording = async () => {
     if (cameraRef.current && isRecording) {
       try {
-        console.log('Stopping recording manually...');
-        
-        // Stop the recording
+        console.log('Stopping recording...');
         await cameraRef.current.stopRecording();
-        console.log('Recording stopped manually');
-        
-        // The recordAsync promise should resolve now, but let's handle it explicitly
-        if (recordingPromiseRef.current) {
-          try {
-            const video = await recordingPromiseRef.current;
-            console.log('Manual stop - video result:', video);
-            processRecordedVideo(video);
-          } catch (error) {
-            console.error('Error getting video after manual stop:', error);
-            cleanupRecording();
-          }
-        } else {
-          console.log('No recording promise to wait for');
-          cleanupRecording();
-        }
-        
+        console.log('Recording stopped');
       } catch (error) {
         console.error('Error stopping recording:', error);
-        cleanupRecording();
+        setIsRecording(false);
       }
     }
   };
@@ -319,7 +243,7 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
-        {/* Recording Timer */}
+        {/* Recording Indicator */}
         {isRecording && (
           <View
             style={{
@@ -341,7 +265,7 @@ export default function CustomCameraView({
               }}
             />
             <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+              REC
             </Text>
           </View>
         )}
@@ -381,11 +305,13 @@ export default function CustomCameraView({
         >
           <TouchableOpacity
             onPress={() => setCameraMode('photo')}
+            disabled={isRecording}
             style={{
               paddingHorizontal: 20,
               paddingVertical: 8,
               borderRadius: 20,
               backgroundColor: cameraMode === 'photo' ? 'white' : 'transparent',
+              opacity: isRecording ? 0.5 : 1,
             }}
           >
             <Text
@@ -400,11 +326,13 @@ export default function CustomCameraView({
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setCameraMode('video')}
+            disabled={isRecording}
             style={{
               paddingHorizontal: 20,
               paddingVertical: 8,
               borderRadius: 20,
               backgroundColor: cameraMode === 'video' ? 'white' : 'transparent',
+              opacity: isRecording ? 0.5 : 1,
             }}
           >
             <Text
@@ -434,6 +362,7 @@ export default function CustomCameraView({
           /* Photo Capture Button */
           <TouchableOpacity
             onPress={takePicture}
+            disabled={isRecording}
             style={{
               width: 80,
               height: 80,
@@ -443,6 +372,7 @@ export default function CustomCameraView({
               alignItems: 'center',
               borderWidth: 4,
               borderColor: 'white',
+              opacity: isRecording ? 0.5 : 1,
             }}
           >
             <View
