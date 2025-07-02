@@ -140,15 +140,21 @@ export default function CustomCameraView({
         setIsRecording(true);
         setRecordingTime(0);
 
-        const video = await cameraRef.current.recordAsync({
+        // Start recording without awaiting - let it run until stopped
+        cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
+        }).then((video) => {
+          console.log('Recording completed:', video.uri);
+          if (video && video.uri) {
+            setIsRecording(false);
+            onMediaCaptured(video.uri, 'video');
+          }
+        }).catch((error) => {
+          console.error('Error during recording:', error);
+          setIsRecording(false);
+          Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
         });
-
-        console.log('Recording completed:', video.uri);
-        if (video && video.uri) {
-          onMediaCaptured(video.uri, 'video');
-        }
       } catch (error) {
         console.error('Error starting recording:', error);
         setIsRecording(false);
@@ -161,8 +167,8 @@ export default function CustomCameraView({
     if (cameraRef.current && isRecording) {
       try {
         console.log('Stopping recording...');
-        setIsRecording(false);
-        await cameraRef.current.stopRecording();
+        cameraRef.current.stopRecording();
+        // Note: setIsRecording(false) and onMediaCaptured will be called in the recordAsync promise
       } catch (error) {
         console.error('Error stopping recording:', error);
         setIsRecording(false);
@@ -397,66 +403,40 @@ export default function CustomCameraView({
           </TouchableOpacity>
         ) : (
           /* Video Controls */
-          <View style={{ alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={isRecording ? stopRecording : startRecording}
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: 'rgba(255,255,255,0.3)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 4,
+              borderColor: 'white',
+            }}
+          >
             {!isRecording ? (
-              <TouchableOpacity
-                onPress={startRecording}
+              <View
                 style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
-                  backgroundColor: 'rgba(255,255,255,0.3)',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderWidth: 4,
-                  borderColor: 'white',
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: 'red',
                 }}
-              >
-                <View
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: 'red',
-                  }}
-                />
-              </TouchableOpacity>
+              />
             ) : (
-              <TouchableOpacity
-                onPress={stopRecording}
+              <Animated.View
                 style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
-                  backgroundColor: 'rgba(255,255,255,0.3)',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderWidth: 4,
-                  borderColor: 'white',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  backgroundColor: 'red',
+                  transform: [{ scale: recordingAnimationRef }],
                 }}
-              >
-                <Animated.View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    backgroundColor: 'red',
-                    transform: [{ scale: recordingAnimationRef }],
-                  }}
-                />
-              </TouchableOpacity>
+              />
             )}
-            <Text
-              style={{
-                color: 'white',
-                fontSize: 14,
-                fontWeight: '600',
-                marginTop: 8,
-              }}
-            >
-              {isRecording ? 'Stop' : 'Record'}
-            </Text>
-          </View>
+          </TouchableOpacity>
         )}
       </View>
     </View>
