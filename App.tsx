@@ -22,7 +22,7 @@ import NotificationsScreen from './src/screens/NotificationsScreen';
 import HelpSupportScreen from './src/screens/HelpSupportScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import CameraScreen from './src/screens/CameraScreen';
-import MediaPreviewScreen from './src/screens/MediaPreviewScreen';
+
 import CreatePostScreen from './src/screens/CreatePostScreen';
 
 // Services
@@ -143,11 +143,7 @@ export default function App() {
           component={CameraScreen} 
           options={{ headerShown: false, presentation: 'fullScreenModal' }} 
         />
-        <Stack.Screen 
-          name="MediaPreview" 
-          component={MediaPreviewScreen} 
-          options={{ headerShown: false, presentation: 'fullScreenModal' }} 
-        />
+        
         <Stack.Screen 
           name="CreatePost" 
           component={CreatePostScreen} 
