@@ -2,6 +2,7 @@
 import React from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -78,7 +79,7 @@ export default function MediaPreviewScreen() {
           style={styles.nextButton}
           onPress={handleNext}
         >
-          <Ionicons name="arrow-forward" size={24} color="white" />
+          <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -123,11 +124,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nextButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: 80,
+  },
+  nextButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

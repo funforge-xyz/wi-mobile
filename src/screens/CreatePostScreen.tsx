@@ -118,18 +118,7 @@ export default function CreatePostScreen() {
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
           {t('addPost.createPost', 'Create Post')}
         </Text>
-        <TouchableOpacity
-          style={[
-            styles.postButton,
-            !canPost && styles.postButtonDisabled,
-          ]}
-          disabled={!canPost || isPosting}
-          onPress={handlePost}
-        >
-          <Text style={styles.postButtonText}>
-            {isPosting ? t('addPost.posting', 'Posting...') : t('addPost.post', 'Post')}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -237,6 +226,22 @@ export default function CreatePostScreen() {
           </View>
         </Modal>
       )}
+
+      {/* Bottom Post Button */}
+      <View style={[styles.bottomContainer, { backgroundColor: currentTheme.background, borderTopColor: currentTheme.border }]}>
+        <TouchableOpacity
+          style={[
+            styles.bottomPostButton,
+            !canPost && styles.postButtonDisabled,
+          ]}
+          disabled={!canPost || isPosting}
+          onPress={handlePost}
+        >
+          <Text style={styles.postButtonText}>
+            {isPosting ? t('addPost.posting', 'Posting...') : t('addPost.post', 'Post')}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -257,13 +262,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: FONTS.bold,
   },
-  postButton: {
+  bottomContainer: {
+    padding: SPACING.md,
+    borderTopWidth: 1,
+  },
+  bottomPostButton: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: 20,
-    minWidth: 60,
+    paddingVertical: SPACING.md,
+    borderRadius: 25,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   postButtonDisabled: {
     backgroundColor: COLORS.textSecondary,
