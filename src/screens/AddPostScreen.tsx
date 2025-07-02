@@ -120,6 +120,7 @@ export default function AddPostScreen() {
         { cancelable: true }
       );
     } else {
+      // No media selected - open camera modal directly
       setShowCameraModal(true);
     }
   };
