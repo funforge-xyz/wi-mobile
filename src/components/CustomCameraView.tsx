@@ -232,32 +232,7 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
-        {/* Recording Indicator */}
-        {recording && (
-          <View
-            style={{
-              backgroundColor: 'rgba(255,0,0,0.8)',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: 'white',
-                marginRight: 8,
-              }}
-            />
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              REC
-            </Text>
-          </View>
-        )}
+        
 
         <TouchableOpacity
           onPress={flipCamera}
@@ -372,17 +347,16 @@ export default function CustomCameraView({
         <View
           style={{
             position: 'absolute',
-            top: 120,
-            left: 0,
-            right: 0,
+            top: 60,
+            right: 80,
             alignItems: 'center',
           }}
         >
           <View
             style={{
               backgroundColor: 'rgba(255, 0, 0, 0.9)',
-              paddingHorizontal: 16,
-              paddingVertical: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
               borderRadius: 20,
               flexDirection: 'row',
               alignItems: 'center',
