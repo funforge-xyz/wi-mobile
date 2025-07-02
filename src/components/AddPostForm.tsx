@@ -101,7 +101,9 @@ export default function AddPostForm({
                   style={[addPostStyles.removeImageButton, { backgroundColor: 'rgba(0,0,0,0.7)' }]}
                   onPress={onRemoveMedia}
                 >
-                  <Ionicons name="close" size={18} color="white" />
+                  <Text style={[addPostStyles.removeButtonText, { color: 'white' }]}>
+                    {t('addPost.removeMedia', 'Remove media')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             ) : (

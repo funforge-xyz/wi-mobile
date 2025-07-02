@@ -7,6 +7,7 @@ import { authService } from '../services/auth';
 export interface PostData {
   content: string;
   mediaURL: string;
+  mediaType: 'image' | 'video';
   allowComments: boolean;
   showLikeCount: boolean;
 }

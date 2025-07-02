@@ -215,8 +215,8 @@ export default function CustomCameraModal({
     if (cameraRef.current && isRecording) {
       try {
         console.log('Stopping recording...');
+        setIsRecording(false); // Set this immediately to stop timer and animation
         await cameraRef.current.stopRecording();
-        // Don't set isRecording to false here - let startRecording handle the completion
       } catch (error) {
         console.error('Error stopping recording:', error);
         setIsRecording(false);

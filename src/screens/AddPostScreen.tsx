@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Alert,
   Animated,
@@ -6,8 +7,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import * as ImagePicker from 'expo-image-picker';
-import { CameraView } from 'expo-camera';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from '../hooks/usePostActions';
@@ -19,22 +18,29 @@ import AddPostHeader from '../components/AddPostHeader';
 import AddPostForm from '../components/AddPostForm';
 import SuccessModal from '../components/SuccessModal';
 import CustomCameraModal from '../components/CustomCameraModal';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
+interface AddPostScreenRouteParams {
+  mediaUri?: string;
+  mediaType?: 'image' | 'video';
+}
 
 export default function AddPostScreen() {
+  const route = useRoute();
+  const routeParams = route.params as AddPostScreenRouteParams | undefined;
+  
   const [content, setContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0));
-  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(routeParams?.mediaUri || null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(routeParams?.mediaType || null);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [modalKey, setModalKey] = useState(0);
   
-  console.log('AddPostScreen render - showCameraModal:', showCameraModal, 'modalKey:', modalKey);
+  console.log('AddPostScreen render - routeParams:', routeParams);
   const textInputRef = useRef<any>(null);
   const navigation = useNavigation();
 
@@ -43,7 +49,17 @@ export default function AddPostScreen() {
   const { addNewPost } = usePostActions();
 
   const currentTheme = getTheme(isDarkMode);
-  const canPost = Boolean(content.trim() || selectedMedia);
+
+  // For Flutter Wi flow: media is required, but description is optional
+  const canPost = Boolean(selectedMedia);
+
+  // If no media is provided via route params, open camera immediately
+  useEffect(() => {
+    if (!selectedMedia) {
+      console.log('No media provided, opening camera modal');
+      setShowCameraModal(true);
+    }
+  }, [selectedMedia]);
 
   const showSuccessModalWithAnimation = () => {
     setShowSuccessModal(true);
@@ -96,8 +112,19 @@ export default function AddPostScreen() {
     }
   };
 
-  const showMediaPicker = () => {
-    console.log('showMediaPicker called, selectedMedia:', selectedMedia);
+  const handleCameraClose = () => {
+    console.log('Camera modal closing');
+    setShowCameraModal(false);
+    
+    // If no media was captured and we were opening camera because no media was provided,
+    // navigate back since this is a media-first flow
+    if (!selectedMedia && !routeParams?.mediaUri) {
+      console.log('No media captured, navigating back');
+      navigation.goBack();
+    }
+  };
+
+  const showMediaOptions = () => {
     if (selectedMedia) {
       const mediaText = mediaType === 'video' ? 'Video' : 'Photo';
       Alert.alert(
@@ -105,19 +132,12 @@ export default function AddPostScreen() {
         t('addPost.useCameraToAdd', 'Use camera to add media'),
         [
           {
-            text: t('addPost.openCamera', 'Open Camera'),
+            text: t('addPost.openCamera', 'Retake'),
             onPress: () => {
-              console.log('Opening camera modal from alert');
+              console.log('Opening camera modal to retake');
+              setModalKey(prev => prev + 1);
               setShowCameraModal(true);
             },
-          },
-          {
-            text: t('addPost.removeMedia', 'Remove media'),
-            onPress: () => {
-              setSelectedMedia(null);
-              setMediaType(null);
-            },
-            style: 'destructive',
           },
           {
             text: t('common.cancel', 'Cancel'),
@@ -126,17 +146,12 @@ export default function AddPostScreen() {
         ],
         { cancelable: true }
       );
-    } else {
-      // No media selected - open camera modal directly
-      console.log('No media selected, opening camera modal directly');
-      setModalKey(prev => prev + 1);
-      setShowCameraModal(true);
     }
   };
 
   const handlePost = async () => {
     if (!canPost) {
-      Alert.alert(t('common.error'), t('addPost.addContentError', 'Please add some content or an image to your post'));
+      Alert.alert(t('common.error'), t('addPost.mediaRequired', 'Media is required to create a post'));
       return;
     }
 
@@ -149,9 +164,9 @@ export default function AddPostScreen() {
     setIsPosting(true);
     try {
       const postData: PostData = {
-        content,
+        content: content.trim(),
         mediaURL: selectedMedia || '',
-        mediaType: mediaType || undefined,
+        mediaType: mediaType || 'image',
         allowComments,
         showLikeCount,
       };
@@ -209,10 +224,28 @@ export default function AddPostScreen() {
           onContentChange={setContent}
           selectedMedia={selectedMedia}
           mediaType={mediaType}
-          onMediaPress={showMediaPicker}
+          onMediaPress={showMediaOptions}
           onRemoveMedia={() => {
-            setSelectedMedia(null);
-            setMediaType(null);
+            // In Flutter Wi flow, removing media means going back since media is required
+            Alert.alert(
+              t('addPost.removeMedia', 'Remove Media'),
+              t('addPost.removeMediaWarning', 'Media is required for posts. Removing it will close this screen.'),
+              [
+                {
+                  text: t('common.cancel', 'Cancel'),
+                  style: 'cancel',
+                },
+                {
+                  text: t('addPost.removeAndClose', 'Remove & Close'),
+                  style: 'destructive',
+                  onPress: () => {
+                    setSelectedMedia(null);
+                    setMediaType(null);
+                    navigation.goBack();
+                  },
+                },
+              ]
+            );
           }}
           allowComments={allowComments}
           onAllowCommentsToggle={() => setAllowComments(!allowComments)}
@@ -226,10 +259,7 @@ export default function AddPostScreen() {
       <CustomCameraModal
         key={modalKey}
         visible={showCameraModal}
-        onClose={() => {
-          console.log('Camera modal closing');
-          setShowCameraModal(false);
-        }}
+        onClose={handleCameraClose}
         onMediaCaptured={handleMediaCapture}
         currentTheme={currentTheme}
       />
