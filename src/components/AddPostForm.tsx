@@ -11,6 +11,7 @@ import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { addPostStyles } from '../styles/AddPostStyles';
+import { COLORS } from '../config/constants';
 
 interface AddPostFormProps {
   content: string;
