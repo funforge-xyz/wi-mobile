@@ -143,6 +143,15 @@
     "title": "Create Post",
     "whatsOnMind": "What's on your mind?",
     "addPhoto": "Add Photo",
+    "addMedia": "Add Photo/Video",
+    "takePhoto": "Take Photo",
+    "removePhoto": "Remove Photo",
+    "removeMedia": "Remove Media",
+    "selectPhoto": "Select Photo",
+    "selectMedia": "Select Media",
+    "useCameraToAdd": "Use camera to add media",
+    "openCamera": "Open Camera",
+    "video": "Video",
     "addVideo": "Add Video",
     "location": "Add Location",
     "post": "Post",
@@ -342,7 +351,7 @@
     "camera": "Camera",
     "gallery": "Gallery",
     "failedToSend": "Failed to send message",
-    "failedToLoad": "Failed to load messages"
+    "failedToLoad": "Failed toload messages"
   },
   "onboarding": {
     "welcome": "Welcome to Wi Chat",
@@ -509,5 +518,10 @@
     "contactTitle": "10. Contact Us",
     "contactText": "If you have any questions about this privacy policy, please contact us through the Help & Support section in the app or email us at privacy@wichat.app.",
     "lastUpdated": "Last Updated: {{date}}"
+  },
+  "camera": {
+    "permissionRequired": "Camera permission is required",
+    "recording": "Recording... Release to stop",
+    "instructions": "Tap for photo, hold for video"
   }
 }

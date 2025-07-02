@@ -7,16 +7,18 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as ImagePicker from 'expo-image-picker';
+import { Camera } from 'expo-camera';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from '../hooks/usePostActions';
-import { compressImage } from '../utils/imageUtils';
+import { compressImage, compressVideo } from '../utils/imageUtils';
 import { createPost, PostData } from '../utils/postUtils';
 import { addPostStyles } from '../styles/AddPostStyles';
 import { getTheme } from '../theme';
 import AddPostHeader from '../components/AddPostHeader';
 import AddPostForm from '../components/AddPostForm';
 import SuccessModal from '../components/SuccessModal';
+import CustomCameraModal from '../components/CustomCameraModal';
 import { useNavigation } from '@react-navigation/native';
 
 export default function AddPostScreen() {
@@ -27,7 +29,9 @@ export default function AddPostScreen() {
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0));
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const textInputRef = useRef<any>(null);
   const navigation = useNavigation();
 
@@ -36,7 +40,7 @@ export default function AddPostScreen() {
   const { addNewPost } = usePostActions();
 
   const currentTheme = getTheme(isDarkMode);
-  const canPost = Boolean(content.trim() || selectedImage);
+  const canPost = Boolean(content.trim() || selectedMedia);
 
   const showSuccessModalWithAnimation = () => {
     setShowSuccessModal(true);
@@ -61,51 +65,51 @@ export default function AddPostScreen() {
 
   const resetForm = () => {
     setContent('');
-    setSelectedImage(null);
+    setSelectedMedia(null);
+    setMediaType(null);
     setAllowComments(true);
     setShowLikeCount(true);
   };
 
-  const handleCameraCapture = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access the camera is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const asset = result.assets[0];
-
-      try {
-        const compressedUri = await compressImage(asset.uri);
-        setSelectedImage(compressedUri);
-      } catch (error) {
-        console.error('Image processing error:', error);
-        Alert.alert('Image Too Large', 'Unable to compress image below 5MB. Please take a photo with better lighting or closer subject.');
+  const handleMediaCapture = async (mediaUri: string, type: 'image' | 'video') => {
+    try {
+      let compressedUri = mediaUri;
+      
+      if (type === 'image') {
+        compressedUri = await compressImage(mediaUri);
+      } else if (type === 'video') {
+        compressedUri = await compressVideo(mediaUri);
       }
+      
+      setSelectedMedia(compressedUri);
+      setMediaType(type);
+      setShowCameraModal(false);
+    } catch (error) {
+      console.error('Media processing error:', error);
+      const errorMessage = type === 'image' 
+        ? 'Unable to compress image below 5MB. Please take a photo with better lighting or closer subject.'
+        : 'Unable to compress video below 50MB. Please record a shorter video.';
+      Alert.alert('Media Too Large', errorMessage);
     }
   };
 
-  const showImagePicker = () => {
-    if (selectedImage) {
+  const showMediaPicker = () => {
+    if (selectedMedia) {
+      const mediaText = mediaType === 'video' ? 'Video' : 'Photo';
       Alert.alert(
-        t('addPost.selectPhoto', 'Select Photo'),
-        t('addPost.useCameraToAdd', 'Use camera to add a photo'),
+        t('addPost.selectMedia', `Select ${mediaText}`),
+        t('addPost.useCameraToAdd', 'Use camera to add media'),
         [
           {
-            text: t('addPost.takePhoto', 'Take Photo'),
-            onPress: handleCameraCapture,
+            text: t('addPost.openCamera', 'Open Camera'),
+            onPress: () => setShowCameraModal(true),
           },
           {
-            text: t('addPost.removePhoto', 'Remove Photo'),
-            onPress: () => setSelectedImage(''),
+            text: t('addPost.removeMedia', `Remove ${mediaText}`),
+            onPress: () => {
+              setSelectedMedia(null);
+              setMediaType(null);
+            },
             style: 'destructive',
           },
           {
@@ -116,21 +120,7 @@ export default function AddPostScreen() {
         { cancelable: true }
       );
     } else {
-      Alert.alert(
-        t('addPost.selectPhoto', 'Select Photo'),
-        t('addPost.useCameraToAdd', 'Use camera to add a photo'),
-        [
-          {
-            text: t('addPost.takePhoto', 'Take Photo'),
-            onPress: handleCameraCapture,
-          },
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-        ],
-        { cancelable: true }
-      );
+      setShowCameraModal(true);
     }
   };
 
@@ -150,7 +140,8 @@ export default function AddPostScreen() {
     try {
       const postData: PostData = {
         content,
-        mediaURL: selectedImage || '',
+        mediaURL: selectedMedia || '',
+        mediaType: mediaType || undefined,
         allowComments,
         showLikeCount,
       };
@@ -166,8 +157,8 @@ export default function AddPostScreen() {
       addNewPost({
         id: newPostId,
         content: content.trim(),
-        mediaURL: selectedImage || '',
-        mediaType: 'image',
+        mediaURL: selectedMedia || '',
+        mediaType: mediaType || 'image',
         createdAt: new Date().toISOString(),
         likesCount: 0,
         commentsCount: 0,
@@ -206,9 +197,13 @@ export default function AddPostScreen() {
         <AddPostForm
           content={content}
           onContentChange={setContent}
-          selectedImage={selectedImage}
-          onImagePress={showImagePicker}
-          onRemoveImage={() => setSelectedImage('')}
+          selectedMedia={selectedMedia}
+          mediaType={mediaType}
+          onMediaPress={showMediaPicker}
+          onRemoveMedia={() => {
+            setSelectedMedia(null);
+            setMediaType(null);
+          }}
           allowComments={allowComments}
           onAllowCommentsToggle={() => setAllowComments(!allowComments)}
           showLikeCount={showLikeCount}
@@ -217,6 +212,13 @@ export default function AddPostScreen() {
           textInputRef={textInputRef}
         />
       </KeyboardAwareScrollView>
+
+      <CustomCameraModal
+        visible={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onMediaCaptured={handleMediaCapture}
+        currentTheme={currentTheme}
+      />
 
       <SuccessModal
         visible={showSuccessModal}

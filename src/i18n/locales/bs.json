@@ -141,8 +141,16 @@
   "addPost": {
     "title": "Napravite objavu",
     "whatsOnMind": "Šta vam je na umu?",
-    "addPhoto": "Dodajte fotografiju",
-    "addVideo": "Dodajte video",
+    "addPhoto": "Dodaj sliku",
+    "addMedia": "Dodaj sliku/video",
+    "takePhoto": "Uslikaj",
+    "removePhoto": "Ukloni sliku",
+    "removeMedia": "Ukloni medij",
+    "selectPhoto": "Odaberi sliku",
+    "selectMedia": "Odaberi medij",
+    "useCameraToAdd": "Koristi kameru za dodavanje medija",
+    "openCamera": "Otvori kameru",
+    "video": "Video",
     "location": "Dodajte lokaciju",
     "post": "Objavi",
     "posting": "Objavljivanje...",
@@ -159,7 +167,7 @@
     "loginRequired": "Morate biti prijavljeni da biste kreirali objavu",
     "uploadFailed": "Neuspješno otpremanje fotografije",
     "success": "Uspješno",
-    "postShared": "Vaša objava je podjeljena!",
+    "postShared": "Vaš post je podijeljen!",
     "private": "Privatno",
     "public": "Javno",
     "privateDescription": "Samo vi možete vidjeti ovu objavu",
@@ -509,5 +517,10 @@
     "contactTitle": "10. Kontaktirajte nas",
     "contactText": "Ako imate bilo kakva pitanja o ovoj politici privatnosti, molimo kontaktirajte nas kroz sekciju Pomoć i podrška u aplikaciji ili pošaljite nam email na privacy@wichat.app.",
     "lastUpdated": "Posljednja izmjena: {{date}}"
+  },
+  "camera": {
+    "permissionRequired": "Potrebna je dozvola za kameru",
+    "recording": "Snima se... Otpustite da zaustavite",
+    "instructions": "Dodirnite za sliku, držite za video"
   }
 }

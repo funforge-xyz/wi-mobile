@@ -1,36 +1,39 @@
-
+import React from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
+  Text,
   Image,
+  Switch,
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../config/constants';
-import { addPostStyles } from '../styles/AddPostStyles';
 import { useTranslation } from 'react-i18next';
+import { addPostStyles } from '../styles/AddPostStyles';
 
 interface AddPostFormProps {
   content: string;
   onContentChange: (text: string) => void;
-  selectedImage: string | null;
-  onImagePress: () => void;
-  onRemoveImage: () => void;
+  selectedMedia: string | null;
+  mediaType: 'image' | 'video' | null;
+  onMediaPress: () => void;
+  onRemoveMedia: () => void;
   allowComments: boolean;
   onAllowCommentsToggle: () => void;
   showLikeCount: boolean;
   onShowLikeCountToggle: () => void;
   currentTheme: any;
-  textInputRef?: any;
+  textInputRef: any;
 }
 
 export default function AddPostForm({
   content,
   onContentChange,
-  selectedImage,
-  onImagePress,
-  onRemoveImage,
+  selectedMedia,
+  mediaType,
+  onMediaPress,
+  onRemoveMedia,
   allowComments,
   onAllowCommentsToggle,
   showLikeCount,
@@ -66,11 +69,23 @@ export default function AddPostForm({
               backgroundColor: currentTheme.surface,
               borderColor: currentTheme.border 
             }]} 
-            onPress={onImagePress}
+            onPress={onMediaPress}
           >
-            {selectedImage ? (
+            {selectedMedia ? (
               <View style={addPostStyles.imagePreviewContainer}>
-                <Image source={{ uri: selectedImage }} style={addPostStyles.selectedImage} />
+              {mediaType === 'video' ? (
+              <View style={addPostStyles.videoContainer}>
+                <Video
+                  source={{ uri: selectedMedia }}
+                  style={addPostStyles.selectedImage}
+                  useNativeControls
+                  resizeMode={ResizeMode.CONTAIN}
+                  shouldPlay={false}
+                />
+              </View>
+            ) : (
+                 <Image source={{ uri: selectedMedia }} style={addPostStyles.selectedImage} />
+            )}
                 <Text style={[addPostStyles.imagePickerText, { color: currentTheme.text }]}>
                   {t('addPost.photoSelected', 'Photo Selected')}
                 </Text>
@@ -85,9 +100,9 @@ export default function AddPostForm({
             )}
           </TouchableOpacity>
 
-          {selectedImage && (
+          {selectedMedia && (
             <TouchableOpacity
-              onPress={onRemoveImage}
+              onPress={onRemoveMedia}
               style={addPostStyles.removeImageLink}
             >
               <Text style={[addPostStyles.removeImageText, { color: currentTheme.error || COLORS.error }]}>
@@ -97,7 +112,7 @@ export default function AddPostForm({
           )}
         </View>
 
-        
+
 
         <View style={[addPostStyles.optionsContainer, { backgroundColor: currentTheme.surface }]}>
           <TouchableOpacity style={addPostStyles.option} onPress={onAllowCommentsToggle}>

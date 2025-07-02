@@ -69,7 +69,8 @@ export default function PostItem({ post, onLike, currentTheme, navigation, showI
 
       {post.mediaURL && (
         <PostMedia 
-          mediaURL={post.mediaURL} 
+          mediaURL={post.mediaURL}
+          mediaType={post.mediaType}
           style={styles.media}
           showBorderRadius={showImageBorderRadius}
         />

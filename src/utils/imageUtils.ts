@@ -49,3 +49,33 @@ export const compressImage = async (uri: string): Promise<string> => {
     throw error;
   }
 };
+
+export const compressVideo = async (uri: string): Promise<string> => {
+  try {
+    const { Video } = await import('expo-av');
+    
+    // Get file info to check initial size
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const initialSize = blob.size;
+
+    console.log('Initial video size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
+
+    // For videos under 50MB, return as is
+    if (initialSize <= 52428800) { // 50MB = 52428800 bytes
+      console.log('Video is already under 50MB, no compression needed');
+      return uri;
+    }
+
+    // For larger videos, we'll use a basic compression approach
+    // Since expo-video doesn't have built-in compression, we'll rely on the camera settings
+    // to keep videos small during recording
+    console.log('Video compression may be needed - consider reducing recording quality');
+    
+    // Return the original URI since we're limiting recording time and quality in camera
+    return uri;
+  } catch (error) {
+    console.error('Video compression error:', error);
+    throw error;
+  }
+};

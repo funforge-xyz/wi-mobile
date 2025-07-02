@@ -1,71 +1,48 @@
-import { useState, useEffect } from 'react';
-import {
-  View,
-  Image,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
-import { SPACING } from '../config/constants';
-import SkeletonLoader from './SkeletonLoader';
-
-const { width } = Dimensions.get('window');
+import React from 'react';
+import { Image, StyleSheet, ViewStyle, View } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 
 interface PostMediaProps {
   mediaURL: string;
-  style?: any;
-  showBorderRadius?: boolean;
+  mediaType?: 'image' | 'video';
+  style?: ViewStyle;
 }
 
-export default function PostMedia({ mediaURL, style, showBorderRadius = true }: PostMediaProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+export default function PostMedia({ mediaURL, mediaType = 'image', style }: PostMediaProps) {
+  if (!mediaURL) return null;
 
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-  }, [mediaURL]);
-
-  return (
-    <View style={[styles.mediaContainer, style]}>
-      <View style={[styles.postImage, { position: 'relative', borderRadius: showBorderRadius ? 8 : 0 }]}>
-        {loading && !error && (
-          <SkeletonLoader
-            width="100%"
-            height={300}
-            borderRadius={0}
-            style={{ position: 'absolute' }}
-          />
-        )}
-        <Image
+  if (mediaType === 'video') {
+    return (
+      <View style={[styles.media, style]}>
+        <Video
           source={{ uri: mediaURL }}
-          style={[styles.image, { opacity: loading || error ? 0 : 1 }]}
-          resizeMode="cover"
-          onLoadStart={() => {
-            setLoading(true);
-            setError(false);
-          }}
-          onLoad={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            setError(true);
-          }}
+          style={styles.video}
+          useNativeControls
+          resizeMode={ResizeMode.CONTAIN}
+          shouldPlay={false}
         />
       </View>
-    </View>
+    );
+  }
+
+  return (
+    <Image
+      source={{ uri: mediaURL }}
+      style={[styles.media, style]}
+      resizeMode="cover"
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  mediaContainer: {
-    marginBottom: SPACING.sm,
-  },
-  postImage: {
+  media: {
     width: '100%',
-    minHeight: 200,
-    overflow: 'hidden',
+    height: 200,
+    borderRadius: 8,
   },
-  image: {
+  video: {
     width: '100%',
-    aspectRatio: 1,
-  }
+    height: '100%',
+    borderRadius: 8,
+  },
 });

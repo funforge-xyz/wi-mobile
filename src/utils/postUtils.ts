@@ -25,15 +25,19 @@ export const createPost = async (
       throw new Error(t('addPost.loginRequired', 'You must be logged in to create a post'));
     }
 
-    let mediaURL = '';
-
-    // Upload image if selected
+    // Upload media if provided
+    let downloadURL = '';
     if (postData.mediaURL) {
       try {
-        mediaURL = await storageService.uploadPostImage(currentUser.uid, postData.mediaURL);
+        downloadURL = await storageService.uploadPostMedia(
+          currentUser.uid, 
+          postData.mediaURL, 
+          postData.mediaType || 'image'
+        );
+        console.log('Media uploaded successfully:', downloadURL);
       } catch (uploadError) {
-        console.error('Image upload error:', uploadError);
-        throw new Error(t('addPost.uploadFailed', 'Failed to upload image'));
+        console.error('Media upload failed:', uploadError);
+        throw new Error(t('addPost.mediaUploadFailed', 'Failed to upload media'));
       }
     }
 
@@ -44,8 +48,8 @@ export const createPost = async (
     const newPostDoc = await addDoc(postsCollection, {
       authorId: currentUser.uid,
       content: postData.content.trim(),
-      mediaURL: mediaURL || null,
-      thumbURL: mediaURL || null,
+      mediaURL: downloadURL || null,
+      thumbURL: downloadURL || null,
       allowComments: postData.allowComments,
       showLikeCount: postData.showLikeCount,
       createdAt: serverTimestamp(),

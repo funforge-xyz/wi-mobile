@@ -208,6 +208,26 @@ export class StorageService {
     }
   }
 
+  async uploadPostMedia(userId: string, mediaUri: string, mediaType: 'image' | 'video'): Promise<string> {
+    try {
+      const response = await fetch(mediaUri);
+      const blob = await response.blob();
+
+      const storage = getStorage();
+      const extension = mediaType === 'video' ? 'mp4' : 'jpg';
+      const folderName = mediaType === 'video' ? 'post-videos' : 'post-images';
+      const mediaRef = ref(storage, `${folderName}/${userId}/${Date.now()}.${extension}`);
+
+      await uploadBytes(mediaRef, blob);
+      const downloadURL = await getDownloadURL(mediaRef);
+
+      return downloadURL;
+    } catch (error) {
+      console.error(`Error uploading post ${mediaType}:`, error);
+      throw error;
+    }
+  }
+
   async deleteProfilePicture(photoURL: string, thumbnailURL?: string): Promise<void> {
     try {
       if (!photoURL || !photoURL.includes('firebase')) {

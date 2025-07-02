@@ -94,6 +94,7 @@ export default function UserPostItem({
       {item.mediaURL && (
         <PostMedia
           mediaURL={item.mediaURL}
+          mediaType={item.mediaType}
           style={styles.postMedia}
         />
       )}
