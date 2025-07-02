@@ -25,7 +25,7 @@ export default function CustomCameraView({
   currentTheme,
 }: CustomCameraViewProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
+  const [cameraType] = useState<'front' | 'back'>('back');
   const [isRecording, setIsRecording] = useState(false);
   const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
   const cameraRef = useRef<CameraView>(null);
@@ -153,10 +153,6 @@ export default function CustomCameraView({
     }
   };
 
-  const toggleCameraType = () => {
-    setCameraType(cameraType === 'back' ? 'front' : 'back');
-  };
-
   if (hasPermission === null) {
     return (
       <View style={{ 
@@ -211,7 +207,6 @@ export default function CustomCameraView({
           flex: 1,
           width: '100%',
           height: '100%',
-          transform: cameraType === 'front' ? [{ scaleX: -1 }] : undefined,
         }}
         facing={cameraType}
         ref={cameraRef}
@@ -270,19 +265,7 @@ export default function CustomCameraView({
           </View>
         )}
 
-        <TouchableOpacity
-          onPress={toggleCameraType}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Ionicons name="camera-reverse" size={24} color="white" />
-        </TouchableOpacity>
+        <View style={{ width: 50 }} />
       </View>
 
       {/* Mode Selection */}
