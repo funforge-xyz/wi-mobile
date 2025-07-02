@@ -88,12 +88,12 @@ export default function CameraScreen() {
     },
     image: {
       width: width,
-      height: height * 0.8,
-      resizeMode: 'contain',
+      height: height,
+      resizeMode: 'cover',
     },
     video: {
       width: width,
-      height: height * 0.8,
+      height: height,
     },
     topControls: {
       position: 'absolute',

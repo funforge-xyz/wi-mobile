@@ -50,18 +50,18 @@ export default function CreatePostScreen() {
   const route = useRoute();
   const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
 
-  const previewPlayer = useVideoPlayer(mediaUri, player => {
-    player.loop = true;
-    player.muted = true;
+  const previewPlayer = useVideoPlayer(mediaType === 'video' ? mediaUri : '', player => {
     if (mediaType === 'video') {
+      player.loop = true;
+      player.muted = true;
       player.pause();
     }
   });
 
-  const fullscreenPlayer = useVideoPlayer(mediaUri, player => {
-    player.loop = true;
-    player.muted = false;
+  const fullscreenPlayer = useVideoPlayer(mediaType === 'video' ? mediaUri : '', player => {
     if (mediaType === 'video') {
+      player.loop = true;
+      player.muted = false;
       player.pause();
     }
   });
@@ -190,12 +190,15 @@ export default function CreatePostScreen() {
             />
           ) : (
             <View style={styles.videoPreviewContainer}>
-              <VideoView
-                player={previewPlayer}
-                style={styles.mediaPreview}
-                allowsFullscreen={false}
-                allowsPictureInPicture={false}
-              />
+              {mediaUri && (
+                <VideoView
+                  player={previewPlayer}
+                  style={styles.mediaPreview}
+                  allowsFullscreen={false}
+                  allowsPictureInPicture={false}
+                  contentFit="cover"
+                />
+              )}
               <TouchableOpacity 
                 style={styles.playOverlay}
                 onPress={toggleVideoPlay}
@@ -287,12 +290,15 @@ export default function CreatePostScreen() {
             >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
-            <VideoView
-              player={fullscreenPlayer}
-              style={styles.fullscreenVideo}
-              allowsFullscreen
-              allowsPictureInPicture
-            />
+            {mediaUri && (
+              <VideoView
+                player={fullscreenPlayer}
+                style={styles.fullscreenVideo}
+                allowsFullscreen
+                allowsPictureInPicture
+                contentFit="cover"
+              />
+            )}
 			<TouchableOpacity 
                 style={styles.playOverlay}
                 onPress={toggleFullscreenPlay}
