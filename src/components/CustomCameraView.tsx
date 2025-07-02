@@ -30,7 +30,6 @@ export default function CustomCameraView({
   const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
-  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -61,14 +60,7 @@ export default function CustomCameraView({
     })();
   }, [cameraPermission, microphonePermission]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (recordingTimeoutRef.current) {
-        clearTimeout(recordingTimeoutRef.current);
-      }
-    };
-  }, []);
+  
 
   const takePicture = async () => {
     if (cameraRef.current && !recording) {
@@ -92,34 +84,24 @@ export default function CustomCameraView({
     if (cameraRef.current) {
       if (recording) {
         // Stop recording
+        console.log('Stopping recording manually...');
         cameraRef.current.stopRecording();
         setRecording(false);
-        if (recordingTimeoutRef.current) {
-          clearTimeout(recordingTimeoutRef.current);
-        }
       } else {
         // Start recording
+        console.log('Starting recording...');
         setRecording(true);
-        
-        // Auto-stop after 15 seconds
-        recordingTimeoutRef.current = setTimeout(() => {
-          if (cameraRef.current && recording) {
-            cameraRef.current.stopRecording();
-          }
-        }, 15000);
 
         try {
           const video = await cameraRef.current.recordAsync({
             quality: '720p' as const,
+            maxDuration: 15, // 15 seconds max duration
           });
-          setVideoUri(video.uri);
+          
+          console.log('Video recorded:', video.uri);
           setRecording(false);
-          if (recordingTimeoutRef.current) {
-            clearTimeout(recordingTimeoutRef.current);
-          }
           
           if (video && video.uri) {
-            console.log('Video recorded:', video.uri);
             onMediaCaptured(video.uri, 'video');
           } else {
             Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
@@ -127,9 +109,6 @@ export default function CustomCameraView({
         } catch (error) {
           console.error('Error recording video:', error);
           setRecording(false);
-          if (recordingTimeoutRef.current) {
-            clearTimeout(recordingTimeoutRef.current);
-          }
           Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
         }
       }
