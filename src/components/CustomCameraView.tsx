@@ -25,7 +25,7 @@ export default function CustomCameraView({
   currentTheme,
 }: CustomCameraViewProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [cameraType] = useState<'front' | 'back'>('back');
+  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
   const [recording, setRecording] = useState(false);
   const [cameraMode, setCameraMode] = useState<'picture' | 'video'>('picture');
   const [videoUri, setVideoUri] = useState<string | null>(null);
@@ -113,6 +113,10 @@ export default function CustomCameraView({
         }
       }
     }
+  };
+
+  const flipCamera = () => {
+    setCameraType(current => current === 'front' ? 'back' : 'front');
   };
 
   if (hasPermission === null) {
@@ -230,7 +234,21 @@ export default function CustomCameraView({
           </View>
         )}
 
-        <View style={{ width: 50 }} />
+        <TouchableOpacity
+          onPress={flipCamera}
+          disabled={recording}
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            opacity: recording ? 0.5 : 1,
+          }}
+        >
+          <Ionicons name="camera-reverse" size={24} color="white" />
+        </TouchableOpacity>
       </View>
 
       {/* Mode Selection */}
@@ -290,10 +308,23 @@ export default function CustomCameraView({
                 fontWeight: '600',
               }}
             >
-              Video (15s max)
+              Video
             </Text>
           </TouchableOpacity>
         </View>
+        {cameraMode === 'video' && (
+          <Text
+            style={{
+              color: 'white',
+              fontSize: 12,
+              textAlign: 'center',
+              marginTop: 8,
+              opacity: 0.8,
+            }}
+          >
+            Max recording time: 15 seconds
+          </Text>
+        )}
       </View>
 
       {/* Bottom Controls */}

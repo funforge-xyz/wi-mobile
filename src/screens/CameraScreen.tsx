@@ -15,6 +15,7 @@ export default function CameraScreen() {
   const [capturedMedia, setCapturedMedia] = useState<{uri: string, type: 'image' | 'video'} | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   
   const navigation = useNavigation();
   const { theme } = useAppSelector(state => state.theme);
@@ -34,11 +35,13 @@ export default function CameraScreen() {
     console.log(`Media captured: ${type} - ${uri}`);
     setCapturedMedia({ uri, type });
     setShowPreview(true);
+    setIsPlaying(true);
   };
 
   const handleRetake = () => {
     setCapturedMedia(null);
     setShowPreview(false);
+    setIsPlaying(true);
   };
 
   const handleNext = () => {
@@ -55,6 +58,17 @@ export default function CameraScreen() {
     setIsMuted(!isMuted);
     if (player) {
       player.muted = !isMuted;
+    }
+  };
+
+  const togglePlayPause = () => {
+    if (player) {
+      if (isPlaying) {
+        player.pause();
+      } else {
+        player.play();
+      }
+      setIsPlaying(!isPlaying);
     }
   };
 
@@ -177,13 +191,37 @@ export default function CameraScreen() {
             {capturedMedia.type === 'image' ? (
               <Image source={{ uri: capturedMedia.uri }} style={styles.image} />
             ) : (
-              <VideoView
-                style={styles.video}
-                player={player}
-                allowsFullscreen={false}
-                allowsPictureInPicture={false}
-                nativeControls={false}
-              />
+              <View style={{ position: 'relative' }}>
+                <VideoView
+                  style={styles.video}
+                  player={player}
+                  allowsFullscreen={false}
+                  allowsPictureInPicture={false}
+                  nativeControls={false}
+                />
+                {/* Play/Pause Button Overlay */}
+                <TouchableOpacity
+                  onPress={togglePlayPause}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: [{ translateX: -30 }, { translateY: -30 }],
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Ionicons 
+                    name={isPlaying ? "pause" : "play"} 
+                    size={30} 
+                    color="white" 
+                  />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
 
