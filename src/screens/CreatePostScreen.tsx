@@ -52,7 +52,7 @@ export default function CreatePostScreen() {
   const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
 
   // Initialize video player for video preview - exact same as CameraScreen
-  const previewPlayer = useVideoPlayer(mediaUri || '', player => {
+  const previewPlayer = useVideoPlayer(mediaUri && mediaType === 'video' ? mediaUri : '', player => {
     player.loop = true;
     player.muted = isMuted;
   });
@@ -192,7 +192,7 @@ export default function CreatePostScreen() {
               resizeMode="contain"
             />
           ) : (
-            <View style={{ position: 'relative' }}>
+            <View style={styles.videoPreviewContainer}>
               <VideoView
                 style={styles.mediaPreview}
                 player={previewPlayer}
@@ -200,7 +200,7 @@ export default function CreatePostScreen() {
                 allowsPictureInPicture={false}
                 nativeControls={false}
               />
-              {/* Play/Pause Button Overlay */}
+              {/* Play/Pause Button Overlay - exact same as CameraScreen */}
               <TouchableOpacity
                 onPress={toggleVideoPlay}
                 style={{
@@ -222,7 +222,7 @@ export default function CreatePostScreen() {
                   color="white" 
                 />
               </TouchableOpacity>
-              {/* Mute button */}
+              {/* Mute button - exact same as CameraScreen */}
               <TouchableOpacity
                 style={{
                   position: 'absolute',
@@ -449,6 +449,10 @@ const styles = StyleSheet.create({
   },
   videoPreviewContainer: {
     position: 'relative',
+    width: '100%',
+    height: 240,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   playOverlay: {
     position: 'absolute',
