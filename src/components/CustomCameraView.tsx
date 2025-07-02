@@ -1,10 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
   Text,
   Alert,
-  Animated,
   Dimensions,
 } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
@@ -28,8 +28,10 @@ export default function CustomCameraView({
   const [cameraType] = useState<'front' | 'back'>('back');
   const [isRecording, setIsRecording] = useState(false);
   const [cameraMode, setCameraMode] = useState<'photo' | 'video'>('photo');
+  const [countdown, setCountdown] = useState(0);
   const cameraRef = useRef<CameraView>(null);
-  const recordingAnimationRef = useRef(new Animated.Value(1)).current;
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -60,31 +62,17 @@ export default function CustomCameraView({
     })();
   }, [cameraPermission, microphonePermission]);
 
+  // Cleanup timeouts on unmount
   useEffect(() => {
-    if (isRecording) {
-      console.log('Starting recording animation...');
-
-      // Start recording animation (pulsing red circle)
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(recordingAnimationRef, {
-            toValue: 0.7,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(recordingAnimationRef, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      // Stop animation
-      recordingAnimationRef.stopAnimation();
-      recordingAnimationRef.setValue(1);
-    }
-  }, [isRecording]);
+    return () => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, []);
 
   const takePicture = async () => {
     if (cameraRef.current && !isRecording) {
@@ -105,24 +93,41 @@ export default function CustomCameraView({
     }
   };
 
-  const startRecording = async () => {
+  const startVideoRecording = async () => {
     if (cameraRef.current && !isRecording) {
       try {
-        console.log('Starting recording...');
+        console.log('Starting 5-second video recording...');
         setIsRecording(true);
+        setCountdown(5);
 
-        const recordingOptions = {
-          quality: '720p' as const,
-        };
-
-        console.log('Recording options:', recordingOptions);
+        // Start countdown
+        countdownIntervalRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
 
         // Start recording
-        const video = await cameraRef.current.recordAsync(recordingOptions);
-        console.log('Recording completed:', video);
+        const video = await cameraRef.current.recordAsync({
+          quality: '720p' as const,
+        });
 
+        // Auto-stop after 5 seconds
+        recordingTimeoutRef.current = setTimeout(async () => {
+          await stopVideoRecording();
+        }, 5000);
+
+        console.log('Video recording completed:', video);
+        
         // Reset state and process video
         setIsRecording(false);
+        setCountdown(0);
 
         if (video && video.uri) {
           console.log('Video URI:', video.uri);
@@ -133,22 +138,29 @@ export default function CustomCameraView({
         }
 
       } catch (error) {
-        console.error('Error during recording:', error);
+        console.error('Error during video recording:', error);
         setIsRecording(false);
+        setCountdown(0);
         Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
       }
     }
   };
 
-  const stopRecording = async () => {
+  const stopVideoRecording = async () => {
     if (cameraRef.current && isRecording) {
       try {
-        console.log('Stopping recording...');
+        console.log('Stopping video recording...');
         await cameraRef.current.stopRecording();
-        console.log('Recording stopped');
+        
+        // Clear timeouts
+        if (recordingTimeoutRef.current) {
+          clearTimeout(recordingTimeoutRef.current);
+        }
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+        }
       } catch (error) {
-        console.error('Error stopping recording:', error);
-        setIsRecording(false);
+        console.error('Error stopping video recording:', error);
       }
     }
   };
@@ -260,7 +272,7 @@ export default function CustomCameraView({
               }}
             />
             <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              REC
+              {countdown > 0 ? countdown : 'REC'}
             </Text>
           </View>
         )}
@@ -325,7 +337,7 @@ export default function CustomCameraView({
                 fontWeight: '600',
               }}
             >
-              Video
+              Video (5s)
             </Text>
           </TouchableOpacity>
         </View>
@@ -370,7 +382,8 @@ export default function CustomCameraView({
         ) : (
           /* Video Controls */
           <TouchableOpacity
-            onPress={isRecording ? stopRecording : startRecording}
+            onPress={startVideoRecording}
+            disabled={isRecording}
             style={{
               width: 80,
               height: 80,
@@ -380,28 +393,17 @@ export default function CustomCameraView({
               alignItems: 'center',
               borderWidth: 4,
               borderColor: 'white',
+              opacity: isRecording ? 0.7 : 1,
             }}
           >
-            {!isRecording ? (
-              <View
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: 'red',
-                }}
-              />
-            ) : (
-              <Animated.View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  backgroundColor: 'red',
-                  transform: [{ scale: recordingAnimationRef }],
-                }}
-              />
-            )}
+            <View
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: isRecording ? 8 : 30,
+                backgroundColor: 'red',
+              }}
+            />
           </TouchableOpacity>
         )}
       </View>
