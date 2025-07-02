@@ -29,6 +29,7 @@ export default function CustomCameraModal({
   onMediaCaptured,
   currentTheme,
 }: CustomCameraModalProps) {
+  console.log('CustomCameraModal render - visible:', visible);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
   const [isRecording, setIsRecording] = useState(false);
@@ -42,11 +43,21 @@ export default function CustomCameraModal({
 
   useEffect(() => {
     (async () => {
-      const cameraStatus = await CameraView.requestCameraPermissionsAsync();
-      const microphoneStatus = await CameraView.requestMicrophonePermissionsAsync();
-      setHasPermission(cameraStatus.status === 'granted' && microphoneStatus.status === 'granted');
+      try {
+        console.log('Requesting camera permissions...');
+        const cameraStatus = await CameraView.requestCameraPermissionsAsync();
+        console.log('Camera permission status:', cameraStatus.status);
+        const microphoneStatus = await CameraView.requestMicrophonePermissionsAsync();
+        console.log('Microphone permission status:', microphoneStatus.status);
+        const hasPerms = cameraStatus.status === 'granted' && microphoneStatus.status === 'granted';
+        console.log('Has all permissions:', hasPerms);
+        setHasPermission(hasPerms);
+      } catch (error) {
+        console.error('Error requesting permissions:', error);
+        setHasPermission(false);
+      }
     })();
-  }, []);
+  }, [visible]);
 
   useEffect(() => {
     if (isRecording) {
@@ -169,13 +180,41 @@ export default function CustomCameraModal({
   };
 
   if (hasPermission === null) {
-    return <View />;
+    return (
+      <Modal 
+        visible={visible} 
+        animationType="slide"
+        presentationStyle="fullScreen"
+        statusBarTranslucent={true}
+      >
+        <View style={{ 
+          flex: 1, 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          backgroundColor: 'black' 
+        }}>
+          <Text style={{ color: 'white', fontSize: 18 }}>
+            {t('camera.loading', 'Loading camera...')}
+          </Text>
+        </View>
+      </Modal>
+    );
   }
 
   if (hasPermission === false) {
     return (
-      <Modal visible={visible} animationType="slide">
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: currentTheme.background }}>
+      <Modal 
+        visible={visible} 
+        animationType="slide"
+        presentationStyle="fullScreen"
+        statusBarTranslucent={true}
+      >
+        <View style={{ 
+          flex: 1, 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          backgroundColor: currentTheme.background 
+        }}>
           <Text style={{ color: currentTheme.text, marginBottom: 20 }}>
             {t('camera.permissionRequired', 'Camera permission is required')}
           </Text>
@@ -198,11 +237,29 @@ export default function CustomCameraModal({
   }
 
   return (
-    <Modal visible={visible} animationType="slide">
-      <View style={{ flex: 1, backgroundColor: 'black' }}>
+    <Modal 
+      visible={visible} 
+      animationType="slide"
+      presentationStyle="fullScreen"
+      statusBarTranslucent={true}
+    >
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: 'black',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999 
+      }}>
         {/* Camera View */}
         <CameraView
-          style={{ flex: 1 }}
+          style={{ 
+            flex: 1,
+            width: '100%',
+            height: '100%'
+          }}
           facing={cameraType}
           ref={cameraRef}
         >

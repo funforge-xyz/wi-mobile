@@ -32,8 +32,9 @@ export default function AddPostScreen() {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [showCameraModal, setShowCameraModal] = useState(false);
+  const [modalKey, setModalKey] = useState(0);
   
-  console.log('AddPostScreen render - showCameraModal:', showCameraModal);
+  console.log('AddPostScreen render - showCameraModal:', showCameraModal, 'modalKey:', modalKey);
   const textInputRef = useRef<any>(null);
   const navigation = useNavigation();
 
@@ -128,6 +129,7 @@ export default function AddPostScreen() {
     } else {
       // No media selected - open camera modal directly
       console.log('No media selected, opening camera modal directly');
+      setModalKey(prev => prev + 1);
       setShowCameraModal(true);
     }
   };
@@ -222,8 +224,12 @@ export default function AddPostScreen() {
       </KeyboardAwareScrollView>
 
       <CustomCameraModal
+        key={modalKey}
         visible={showCameraModal}
-        onClose={() => setShowCameraModal(false)}
+        onClose={() => {
+          console.log('Camera modal closing');
+          setShowCameraModal(false);
+        }}
         onMediaCaptured={handleMediaCapture}
         currentTheme={currentTheme}
       />
