@@ -13,8 +13,8 @@ export default function CameraScreen() {
 
   const handleMediaCaptured = (mediaUri: string, mediaType: 'image' | 'video') => {
     console.log('Media captured, navigating to preview:', mediaUri, mediaType);
-    // Navigate to preview screen (pushes to stack)
-    navigation.navigate('MediaPreview' as never, { 
+    // Navigate to preview screen - using replace to avoid stack issues
+    navigation.replace('MediaPreview' as never, { 
       mediaUri, 
       mediaType 
     } as never);
