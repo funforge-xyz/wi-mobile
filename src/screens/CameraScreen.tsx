@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { useAppSelector } from '../hooks/redux';
 import { getTheme } from '../theme';
-import CustomCameraModal from '../components/CustomCameraModal';
+import CustomCameraView from '../components/CustomCameraView';
 import { useNavigation } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
@@ -98,8 +98,7 @@ export default function CameraScreen() {
         </View>
       ) : (
         // Camera Mode
-        <CustomCameraModal
-          visible={cameraVisible}
+        <CustomCameraView
           onClose={handleCameraClose}
           onMediaCaptured={handleMediaCaptured}
           currentTheme={currentTheme}
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
   },
   topControls: {
     position: 'absolute',
-    top: 60,
+    top: 50,
     left: 20,
     right: 20,
     flexDirection: 'row',
@@ -133,7 +132,7 @@ const styles = StyleSheet.create({
   },
   bottomControls: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 50,
     left: 20,
     right: 20,
     flexDirection: 'row',
