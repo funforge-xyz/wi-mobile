@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
 import { toggleTheme } from '../store/themeSlice';
+import { setLanguage } from '../store/languageSlice';
 import LoginHeader from '../components/LoginHeader';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
 
@@ -35,9 +36,18 @@ export default function ForgotPasswordScreen() {
     setShowLanguageModal(true);
   };
 
-  const handleLanguageChange = (code: string) => {
-    i18n.changeLanguage(code);
-    setShowLanguageModal(false);
+  const handleLanguageChange = async (code: string) => {
+    try {
+      await i18n.changeLanguage(code);
+      setShowLanguageModal(false);
+
+      // Update Redux state
+      dispatch(setLanguage(code));
+
+      // Note: Don't save to storage for forgot password screen since user isn't logged in
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
   };
 
   const handleThemeToggle = () => {

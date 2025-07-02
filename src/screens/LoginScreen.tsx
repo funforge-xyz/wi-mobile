@@ -56,9 +56,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       // Update Redux state
       dispatch(setLanguage(code));
 
-      // Store language preference locally only (not in Firebase for login screen)
-      const settings = new Settings();
-      await settings.setLanguage(code);
+      // Note: Don't save to storage for login screen since user isn't logged in
     } catch (error) {
       console.error('Failed to change language:', error);
     }
