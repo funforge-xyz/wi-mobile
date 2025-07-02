@@ -205,13 +205,12 @@ export default function CustomCameraView({
           ])
         ).start();
 
-        const video = await cameraRef.current.recordAsync({
+        await cameraRef.current.recordAsync({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
         });
 
-        console.log('Recording completed:', video.uri);
-        onMediaCaptured(video.uri, 'video');
+        console.log('Recording completed automatically');
       } catch (error) {
         console.error('Error recording video:', error);
         setIsRecording(false);
@@ -225,7 +224,9 @@ export default function CustomCameraView({
       try {
         console.log('Stopping recording...');
         setIsRecording(false); // Set this immediately to stop timer and animation
-        await cameraRef.current.stopRecording();
+        const video = await cameraRef.current.stopRecording();
+        console.log('Recording stopped:', video.uri);
+        onMediaCaptured(video.uri, 'video');
       } catch (error) {
         console.error('Error stopping recording:', error);
         setIsRecording(false);

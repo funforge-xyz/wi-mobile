@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Video } from 'expo-av';
+import { Video, AVPlaybackStatus } from 'expo-av';
 import { useAppSelector } from '../hooks/redux';
 import { getTheme } from '../theme';
 import CustomCameraView from '../components/CustomCameraView';
@@ -22,6 +22,8 @@ export default function CameraScreen() {
     uri: string;
     type: 'image' | 'video';
   } | null>(null);
+  const [videoStatus, setVideoStatus] = useState<AVPlaybackStatus | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   const handleMediaCaptured = (mediaUri: string, mediaType: 'image' | 'video') => {
     console.log('Media captured, showing preview:', mediaUri, mediaType);
@@ -51,6 +53,22 @@ export default function CameraScreen() {
     }
   };
 
+  const togglePlayPause = () => {
+    if (videoStatus && 'isLoaded' in videoStatus && videoStatus.isLoaded) {
+      if (videoStatus.isPlaying) {
+        // Video is playing, pause it
+        setVideoStatus({ ...videoStatus, isPlaying: false });
+      } else {
+        // Video is paused, play it
+        setVideoStatus({ ...videoStatus, isPlaying: true });
+      }
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
       {previewMode && capturedMedia ? (
@@ -69,9 +87,10 @@ export default function CameraScreen() {
                 source={{ uri: capturedMedia.uri }}
                 style={styles.media}
                 resizeMode="contain"
-                shouldPlay={true}
+                shouldPlay={videoStatus?.isLoaded ? videoStatus.isPlaying : true}
                 isLooping={true}
-                isMuted={false}
+                isMuted={isMuted}
+                onPlaybackStatusUpdate={setVideoStatus}
               />
             )}
           </View>
@@ -85,6 +104,32 @@ export default function CameraScreen() {
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
           </View>
+
+          {/* Video Controls (only for video) */}
+          {capturedMedia.type === 'video' && (
+            <View style={styles.videoControls}>
+              <TouchableOpacity
+                style={styles.videoControlButton}
+                onPress={togglePlayPause}
+              >
+                <Ionicons 
+                  name={videoStatus?.isLoaded && videoStatus.isPlaying ? "pause" : "play"} 
+                  size={24} 
+                  color="white" 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.videoControlButton}
+                onPress={toggleMute}
+              >
+                <Ionicons 
+                  name={isMuted ? "volume-mute" : "volume-high"} 
+                  size={24} 
+                  color="white" 
+                />
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Bottom Controls */}
           <View style={styles.bottomControls}>
@@ -159,5 +204,20 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  videoControls: {
+    position: 'absolute',
+    bottom: 150,
+    left: 20,
+    flexDirection: 'row',
+    gap: 15,
+  },
+  videoControlButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
