@@ -51,3 +51,5 @@ package-lock.json
 .expo
 
 google-services.json
+
+.env

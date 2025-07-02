@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from './firebase';
+import { EXPO_PROJECT_ID } from 'react-native-dotenv';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -67,7 +68,7 @@ export const registerForPushNotifications = async () => {
     // Get the Expo push token with security enabled
     console.log('🎫 Getting Expo push token with security...');
     const tokenData = await Notifications.getExpoPushTokenAsync(
-      process.env.EXPO_PROJECT_ID ? { projectId: process.env.EXPO_PROJECT_ID } : {}
+      EXPO_PROJECT_ID ? { projectId: EXPO_PROJECT_ID } : {}
     );
     const token = tokenData.data;
     
