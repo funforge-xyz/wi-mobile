@@ -112,9 +112,11 @@ export default function CustomCameraModal({
     return () => {
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
       }
       if (recordingTimeout.current) {
         clearTimeout(recordingTimeout.current);
+        recordingTimeout.current = null;
       }
     };
   }, [isRecording]);
@@ -147,13 +149,20 @@ export default function CustomCameraModal({
         const pressEndTime = Date.now();
         const pressDuration = pressStartTime.current ? pressEndTime - pressStartTime.current : 0;
         
+        console.log('Button released - isRecording:', isRecording, 'pressDuration:', pressDuration);
+        
         if (isRecording) {
           // Stop recording if currently recording
+          console.log('Stopping recording from button release');
           stopRecording();
         } else if (pressDuration < 1000) {
-          // Take photo if press was less than 1 second
+          // Take photo if press was less than 1 second and not recording
+          console.log('Taking photo');
           takePicture();
         }
+        
+        // Reset press start time
+        pressStartTime.current = null;
       },
     })
   ).current;
@@ -198,8 +207,9 @@ export default function CustomCameraModal({
   const stopRecording = async () => {
     if (cameraRef.current && isRecording) {
       try {
-        setIsRecording(false);
+        console.log('Stopping recording...');
         await cameraRef.current.stopRecording();
+        setIsRecording(false);
         
         // If we hit the max recording time, close the modal
         if (recordingTime >= MAX_RECORDING_TIME - 1) {
@@ -209,6 +219,7 @@ export default function CustomCameraModal({
         }
       } catch (error) {
         console.error('Error stopping recording:', error);
+        setIsRecording(false);
       }
     }
   };
