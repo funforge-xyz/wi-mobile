@@ -10,11 +10,14 @@ export default function CameraScreen() {
   const navigation = useNavigation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const currentTheme = getTheme(isDarkMode);
+  const [cameraVisible, setCameraVisible] = useState(true);
 
   const handleMediaCaptured = (mediaUri: string, mediaType: 'image' | 'video') => {
     console.log('Media captured, navigating to preview:', mediaUri, mediaType);
-    // Navigate to preview screen - using replace to avoid stack issues
-    navigation.replace('MediaPreview' as never, { 
+    // Close the camera modal first, then navigate
+    setCameraVisible(false);
+    // Navigate to preview screen
+    navigation.navigate('MediaPreview' as never, { 
       mediaUri, 
       mediaType 
     } as never);
@@ -28,7 +31,7 @@ export default function CameraScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
       <CustomCameraModal
-        visible={true}
+        visible={cameraVisible}
         onClose={handleCameraClose}
         onMediaCaptured={handleMediaCaptured}
         currentTheme={currentTheme}
