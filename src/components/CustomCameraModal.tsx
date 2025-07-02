@@ -92,8 +92,9 @@ export default function CustomCameraModal({
         setRecordingTime((prevTime) => {
           const newTime = prevTime + 1;
           if (newTime >= MAX_RECORDING_TIME) {
+            console.log('Max recording time reached, stopping...');
             stopRecording();
-            return 0;
+            return prevTime; // Keep the time at max, don't reset to 0 yet
           }
           return newTime;
         });
@@ -193,13 +194,19 @@ export default function CustomCameraModal({
           maxDuration: MAX_RECORDING_TIME,
           quality: '720p',
         });
+        
+        // This will be called when recording stops (either manually or when hitting max duration)
+        console.log('Recording completed, video:', video);
+        setIsRecording(false);
+        
         if (video && video.uri) {
+          console.log('Saving video with URI:', video.uri);
           onMediaCaptured(video.uri, 'video');
         }
       } catch (error) {
-        console.error('Error starting recording:', error);
+        console.error('Error during recording:', error);
         setIsRecording(false);
-        Alert.alert('Error', 'Failed to start recording');
+        Alert.alert('Error', 'Failed to record video');
       }
     }
   };
@@ -209,14 +216,7 @@ export default function CustomCameraModal({
       try {
         console.log('Stopping recording...');
         await cameraRef.current.stopRecording();
-        setIsRecording(false);
-        
-        // If we hit the max recording time, close the modal
-        if (recordingTime >= MAX_RECORDING_TIME - 1) {
-          setTimeout(() => {
-            onClose();
-          }, 500); // Small delay to allow video processing
-        }
+        // Don't set isRecording to false here - let startRecording handle the completion
       } catch (error) {
         console.error('Error stopping recording:', error);
         setIsRecording(false);
