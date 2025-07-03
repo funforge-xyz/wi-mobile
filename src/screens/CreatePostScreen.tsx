@@ -46,6 +46,7 @@ export default function CreatePostScreen() {
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [showPostingOverlay, setShowPostingOverlay] = useState(false);
 
   const textInputRef = useRef<TextInput>(null);
   const successAnimation = useRef(new Animated.Value(0)).current;
@@ -171,6 +172,7 @@ export default function CreatePostScreen() {
     }
 
     setIsPosting(true);
+    setShowPostingOverlay(true);
     try {
       // Determine post type based on media
       let postType: 'picture' | 'video' | 'text' = 'text';
@@ -231,6 +233,7 @@ export default function CreatePostScreen() {
           useNativeDriver: true,
         }).start(() => {
           setShowSuccessModal(false);
+          setShowPostingOverlay(false);
           // Navigate to Profile tab with refetch parameter after successful post creation
           navigation.navigate('Root', { 
             screen: 'Profile', 
@@ -243,6 +246,7 @@ export default function CreatePostScreen() {
       Alert.alert(t('common.error'), t('addPost.postFailed'));
     } finally {
       setIsPosting(false);
+      setShowPostingOverlay(false);
     }
   };
 
@@ -484,6 +488,26 @@ export default function CreatePostScreen() {
         currentTheme={currentTheme}
       />
 
+      {/* Posting Overlay Modal */}
+      <Modal
+        visible={showPostingOverlay}
+        transparent={true}
+        animationType="fade"
+        statusBarTranslucent={true}
+      >
+        <View style={styles.postingOverlay}>
+          <View style={[styles.postingModal, { backgroundColor: currentTheme.surface }]}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={[styles.postingText, { color: currentTheme.text }]}>
+              {t('addPost.posting', 'Posting...')}
+            </Text>
+            <Text style={[styles.postingSubtext, { color: currentTheme.textSecondary }]}>
+              {t('addPost.pleaseWait', 'Please wait while we share your post')}
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* Bottom Post Button */}
       <View style={[styles.bottomContainer, { backgroundColor: currentTheme.background, borderTopColor: currentTheme.border }]}>
         <View style={styles.bottomButtonContainer}>
@@ -674,5 +698,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  postingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  postingModal: {
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginHorizontal: SPACING.lg,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  postingText: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    marginTop: SPACING.md,
+    textAlign: 'center',
+  },
+  postingSubtext: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginTop: SPACING.xs,
+    textAlign: 'center',
   },
 });
