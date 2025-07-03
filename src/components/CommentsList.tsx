@@ -250,7 +250,7 @@ export default function CommentsList({
 
   if (!allowComments) {
     return (
-      <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
+      <View style={styles.commentsSection}>
         <Text style={[styles.commentsDisabledText, { color: currentTheme.textSecondary }]}>
           {t('singlePost.commentsDisabled')}
         </Text>
@@ -271,7 +271,7 @@ export default function CommentsList({
   }, {} as Record<string, Comment[]>);
 
   return (
-    <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
+    <View style={styles.commentsSection}>
       <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
         {t('singlePost.comments')} ({comments.length})
       </Text>
@@ -287,7 +287,7 @@ export default function CommentsList({
 
             {/* Replies Section */}
             {repliesMap[comment.id] && repliesMap[comment.id].length > 0 && expandedComments.has(comment.id) && (
-              <View style={[styles.repliesContainer, { backgroundColor: currentTheme.background }]}>
+              <View style={styles.repliesContainer}>
                 {repliesMap[comment.id].map((reply) => renderComment(reply, comment))}
               </View>
             )}
@@ -306,10 +306,9 @@ export default function CommentsList({
 
 const styles = StyleSheet.create({
   commentsSection: {
-    margin: SPACING.md,
-    marginTop: 0,
-    padding: SPACING.md,
-    borderRadius: 12,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.md,
   },
   sectionTitle: {
     fontSize: 18,
@@ -326,8 +325,7 @@ const styles = StyleSheet.create({
   repliesContainer: {
     marginTop: SPACING.xs,
     marginLeft: SPACING.md,
-    padding: SPACING.sm,
-    borderRadius: 12,
+    paddingLeft: SPACING.sm,
   },
   replyComment: {
     marginLeft: SPACING.sm,

@@ -58,10 +58,8 @@ export default function SinglePostDisplay({
   onVideoPlayPause,
   onVideoMuteToggle,
 }: SinglePostDisplayProps) {
-  const mediaHeight = post.mediaType === 'video' ? width * 0.75 : width * 0.6; // 4:3 for video, adjust for images
-
   return (
-    <View style={{ backgroundColor: currentTheme.surface }}>
+    <View style={{ backgroundColor: currentTheme.background }}>
       {/* Header with padding */}
       <View style={styles.headerContainer}>
         <PostHeader
@@ -84,11 +82,11 @@ export default function SinglePostDisplay({
         </View>
       ) : null}
 
-      {/* Media - Full width, no padding */}
+      {/* Media - Full width, no padding, automatic height */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
           {post.mediaType === 'video' && videoPlayer ? (
-            <View style={[styles.videoContainer, { height: mediaHeight }]}>
+            <View style={styles.videoContainer}>
               <VideoView
                 player={videoPlayer}
                 style={styles.video}
@@ -129,7 +127,7 @@ export default function SinglePostDisplay({
             <PostMedia 
               mediaURL={post.mediaURL} 
               mediaType={post.mediaType}
-              style={[styles.image, { height: mediaHeight }]}
+              style={styles.image}
             />
           )}
         </View>
@@ -167,6 +165,7 @@ const styles = StyleSheet.create({
   videoContainer: {
     position: 'relative',
     width: '100%',
+    aspectRatio: 16/9, // Default aspect ratio, will adjust based on video
     backgroundColor: 'black',
   },
   video: {
