@@ -24,17 +24,17 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
 
   if (mediaType === 'video') {
     return (
-      <View style={[styles.media, style]}>
+      <View style={[styles.mediaContainer, style]}>
         {thumbnailURL ? (
           <Image
             source={{ uri: thumbnailURL }}
-            style={[styles.media, style]}
-            resizeMode="cover"
+            style={styles.media}
+            resizeMode="contain"
           />
         ) : (
           <VideoView
             player={player}
-            style={[styles.video, style]}
+            style={styles.video}
             allowsFullscreen
             allowsPictureInPicture
           />
@@ -44,24 +44,30 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
   }
 
   return (
-    <Image
-      source={{ uri: mediaURL }}
-      style={[styles.media, style]}
-      resizeMode="cover"
-      onLoad={onLoad}
-    />
+    <View style={[styles.mediaContainer, style]}>
+      <Image
+        source={{ uri: mediaURL }}
+        style={styles.media}
+        resizeMode="contain"
+        onLoad={onLoad}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  media: {
+  mediaContainer: {
+    flexDirection: 'row',
     width: '100%',
-    minHeight: 200,
+  },
+  media: {
+    flex: 1,
+    aspectRatio: 1, // Default 1:1 aspect ratio - can be adjusted based on actual image dimensions
     borderRadius: 0,
   },
   video: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
+    aspectRatio: 16/9, // Default 16:9 aspect ratio for videos
     borderRadius: 0,
   },
 });
