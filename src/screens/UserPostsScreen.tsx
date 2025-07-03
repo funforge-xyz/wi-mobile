@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FlatList, RefreshControl, Alert, Image, View, Text, TouchableOpacity } from 'react-native';
+import { FlatList, RefreshControl, Alert, Image, View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -7,13 +7,14 @@ import { fetchUserProfile, fetchUserPosts, updatePostLike } from '../store/userS
 import { useDataRefresh } from '../hooks/useDataRefresh';
 import { useTranslation } from 'react-i18next';
 
-import UserPostItem from '../components/UserPostItem';
 import UserPostsEmptyState from '../components/UserPostsEmptyState';
 import UserPostsSkeleton from '../components/UserPostsSkeleton';
 import { styles } from '../styles/UserPostsStyles';
 import { getTheme } from '../theme';
 import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
 import UserPostsProfileDisplay from '../components/UserPostsProfileDisplay';
+
+const { width } = Dimensions.get('window');
 
 interface UserPost {
   id: string;
@@ -119,17 +120,44 @@ export default function UserPostsScreen({ navigation }: any) {
     navigation.navigate('ProfileSettings');
   };
 
-  const renderPostItem = ({ item }: { item: UserPost }) => {
-    console.log('Rendering post item:', item.id, item.content);
+  const renderPostItem = ({ item, index }: { item: UserPost; index: number }) => {
+    const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
+    const thumbnailUrl = item.thumbnailURL || item.mediaURL;
+    
     return (
-      <UserPostItem
-        item={item}
-        currentTheme={currentTheme}
-        styles={styles}
+      <TouchableOpacity
+        style={[
+          styles.gridItem,
+          { 
+            width: itemWidth, 
+            height: itemWidth,
+            marginRight: (index + 1) % 3 === 0 ? 0 : 1,
+            marginBottom: 1,
+          }
+        ]}
         onPress={() => handlePostPress(item)}
-        onLike={handleLike}
-        formatTimeAgo={(date) => formatTimeAgo(date, t)}
-      />
+      >
+        {thumbnailUrl ? (
+          <Image
+            source={{ uri: thumbnailUrl }}
+            style={styles.gridItemImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.gridItemPlaceholder, { backgroundColor: currentTheme.surface }]}>
+            <Ionicons 
+              name="image-outline" 
+              size={24} 
+              color={currentTheme.textSecondary} 
+            />
+          </View>
+        )}
+        {item.mediaType === 'video' && (
+          <View style={styles.videoIndicator}>
+            <Ionicons name="play" size={12} color="white" />
+          </View>
+        )}
+      </TouchableOpacity>
     );
   };
 
@@ -169,13 +197,15 @@ export default function UserPostsScreen({ navigation }: any) {
             data={posts}
             keyExtractor={(item) => item.id}
             renderItem={renderPostItem}
+            numColumns={3}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             ListHeaderComponent={renderProfileHeader}
             ListEmptyComponent={renderEmptyState}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.gridContent}
+            columnWrapperStyle={styles.gridRow}
           />
         </>
       )}

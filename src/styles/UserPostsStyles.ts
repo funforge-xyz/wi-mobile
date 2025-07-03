@@ -163,4 +163,36 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  gridContent: {
+    paddingHorizontal: 0,
+    paddingTop: SPACING.sm,
+  },
+  gridRow: {
+    justifyContent: 'flex-start',
+  },
+  gridItem: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  gridItemImage: {
+    width: '100%',
+    height: '100%',
+  },
+  gridItemPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
