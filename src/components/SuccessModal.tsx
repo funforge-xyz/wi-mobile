@@ -1,5 +1,5 @@
 
-import { View, Text, Modal, Animated } from 'react-native';
+import { View, Text, Modal, Animated, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
 import { addPostStyles } from '../styles/AddPostStyles';
@@ -10,6 +10,7 @@ interface SuccessModalProps {
   message: string;
   animation: Animated.Value;
   currentTheme: any;
+  isLoading?: boolean;
 }
 
 export default function SuccessModal({
@@ -18,6 +19,7 @@ export default function SuccessModal({
   message,
   animation,
   currentTheme,
+  isLoading = false,
 }: SuccessModalProps) {
   return (
     <Modal
@@ -45,14 +47,20 @@ export default function SuccessModal({
           ]}
         >
           <View style={addPostStyles.successIconContainer}>
-            <Ionicons name="checkmark-circle" size={60} color={COLORS.success} />
+            {isLoading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <Ionicons name="checkmark-circle" size={60} color={COLORS.success} />
+            )}
           </View>
           <Text style={[addPostStyles.successTitle, { color: currentTheme.text }]}>
             {title}
           </Text>
-          <Text style={[addPostStyles.successMessage, { color: currentTheme.textSecondary }]}>
-            {message}
-          </Text>
+          {message && (
+            <Text style={[addPostStyles.successMessage, { color: currentTheme.textSecondary }]}>
+              {message}
+            </Text>
+          )}
         </Animated.View>
       </View>
     </Modal>
