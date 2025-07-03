@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import UserPostsEmptyState from '../components/UserPostsEmptyState';
 import UserPostsSkeleton from '../components/UserPostsSkeleton';
+import UserPostsGridItem from '../components/UserPostsGridItem';
 import { styles } from '../styles/UserPostsStyles';
 import { getTheme } from '../theme';
 import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
@@ -122,76 +123,14 @@ export default function UserPostsScreen({ navigation }: any) {
   };
 
   const renderPostItem = ({ item, index }: { item: UserPost; index: number }) => {
-    const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
-    const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
-    const thumbnailUrl = item.thumbnailURL || item.mediaURL;
-    const [imageLoading, setImageLoading] = useState(true);
-    
-    // Debug logging for video thumbnails
-    if (item.mediaType === 'video') {
-      console.log('Video post:', {
-        id: item.id,
-        thumbnailURL: item.thumbnailURL,
-        mediaURL: item.mediaURL,
-        finalUrl: thumbnailUrl,
-        fullItem: item
-      });
-    }
-    
     return (
-      <TouchableOpacity
-        style={[
-          styles.gridItem,
-          { 
-            width: itemWidth, 
-            height: itemHeight,
-            marginRight: (index + 1) % 3 === 0 ? 0 : 1,
-            marginBottom: 1,
-          }
-        ]}
-        onPress={() => handlePostPress(item)}
-      >
-        {thumbnailUrl ? (
-          <>
-            {imageLoading && (
-              <View style={[
-                styles.gridItemSkeleton,
-                { 
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: currentTheme.skeleton,
-                  zIndex: 1
-                }
-              ]}>
-                <View style={styles.skeletonShimmer} />
-              </View>
-            )}
-            <Image
-              source={{ uri: thumbnailUrl }}
-              style={styles.gridItemImage}
-              resizeMode="cover"
-              onLoad={() => setImageLoading(false)}
-              onError={() => setImageLoading(false)}
-            />
-          </>
-        ) : (
-          <View style={[styles.gridItemPlaceholder, { backgroundColor: currentTheme.surface }]}>
-            <Ionicons 
-              name="image-outline" 
-              size={24} 
-              color={currentTheme.textSecondary} 
-            />
-          </View>
-        )}
-        {item.mediaType === 'video' && (
-          <View style={styles.videoIndicator}>
-            <Ionicons name="play" size={12} color="white" />
-          </View>
-        )}
-      </TouchableOpacity>
+      <UserPostsGridItem
+        item={item}
+        index={index}
+        onPress={handlePostPress}
+        currentTheme={currentTheme}
+        styles={styles}
+      />
     );
   };
 
