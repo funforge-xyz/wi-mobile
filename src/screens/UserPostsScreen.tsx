@@ -35,7 +35,7 @@ interface UserPost {
   isLikedByUser?: boolean;
 }
 
-export default function UserPostsScreen({ navigation }: any) {
+export default function UserPostsScreen({ route, navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { profile, posts = [], postsLoading, lastProfileFetch, lastPostsFetch } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
@@ -43,6 +43,9 @@ export default function UserPostsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
 
   const currentTheme = getTheme(isDarkMode);
+
+  // Check if we should refetch due to new post creation
+  const shouldRefetchAfterNewPost = route?.params?.refetchAfterNewPost;
 
   // Use data refresh hook to automatically refresh when screen is focused
   const loadInitialData = async () => {
@@ -65,8 +68,16 @@ export default function UserPostsScreen({ navigation }: any) {
   useDataRefresh({
     fetchData: loadInitialData,
     lastFetch: Math.max(lastProfileFetch, lastPostsFetch),
-    refreshThreshold: 5 * 60 * 1000 // 5 minutes
+    refreshThreshold: shouldRefetchAfterNewPost ? 0 : 5 * 60 * 1000 // Always refresh if coming from new post, otherwise 5 minutes
   });
+
+  // Clear the refetch parameter after using it
+  useEffect(() => {
+    if (shouldRefetchAfterNewPost) {
+      // Reset the navigation params to prevent unnecessary refetches
+      navigation.setParams({ refetchAfterNewPost: undefined });
+    }
+  }, [shouldRefetchAfterNewPost, navigation]);
 
   // Listen for auth state changes to load fresh data for new user
   useEffect(() => {

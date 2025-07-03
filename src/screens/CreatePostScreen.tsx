@@ -231,7 +231,8 @@ export default function CreatePostScreen() {
           useNativeDriver: true,
         }).start(() => {
           setShowSuccessModal(false);
-          navigation.navigate('Profile' as never);
+          // Navigate to UserPostsScreen with refetch parameter after successful post creation
+          navigation.navigate('UserPosts', { refetchAfterNewPost: true } as never);
         });
       }, 2000);
     } catch (error) {
