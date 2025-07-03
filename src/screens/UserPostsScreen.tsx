@@ -131,7 +131,8 @@ export default function UserPostsScreen({ navigation }: any) {
         id: item.id,
         thumbnailURL: item.thumbnailURL,
         mediaURL: item.mediaURL,
-        finalUrl: thumbnailUrl
+        finalUrl: thumbnailUrl,
+        fullItem: item
       });
     }
     
@@ -165,7 +166,7 @@ export default function UserPostsScreen({ navigation }: any) {
         )}
         {item.mediaType === 'video' && (
           <View style={styles.videoIndicator}>
-            <Ionicons name="play-circle" size={16} color="white" />
+            <Ionicons name="play" size={12} color="white" />
           </View>
         )}
       </TouchableOpacity>

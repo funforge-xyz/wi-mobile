@@ -19,19 +19,25 @@ export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps)
     const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio
 
     return (
-      <SkeletonLoader
+      <View
         key={index}
-        width={itemWidth}
-        height={itemHeight}
-        borderRadius={0}
         style={[
-          styles.gridSkeletonItem,
           {
+            width: itemWidth,
+            height: itemHeight,
             marginRight: (index + 1) % 3 === 0 ? 0 : 1,
             marginBottom: 1,
+            backgroundColor: currentTheme.skeleton,
+            overflow: 'hidden',
           }
         ]}
-      />
+      >
+        <SkeletonLoader
+          width={itemWidth}
+          height={itemHeight}
+          borderRadius={0}
+        />
+      </View>
     );
   };
 
@@ -90,7 +96,7 @@ export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps)
     <View style={styles.container}>
       {renderProfileHeader()}
       <View style={styles.gridContainer}>
-        {Array.from({ length: count }, (_, index) => renderSkeletonGridItem(index))}
+        {Array.from({ length: 9 }, (_, index) => renderSkeletonGridItem(index))}
       </View>
     </View>
   );
