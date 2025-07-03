@@ -14,8 +14,8 @@ export default function SinglePostSkeleton() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <SkeletonLoader width={24} height={24} borderRadius={12} />
-        <SkeletonLoader width={80} height={20} borderRadius={10} />
-        <SkeletonLoader width={24} height={24} borderRadius={12} />
+        <SkeletonLoader width={100} height={18} borderRadius={9} />
+        <View style={{ width: 24 }} />
       </View>
 
       {/* Post Container */}
