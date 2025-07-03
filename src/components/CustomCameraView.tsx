@@ -140,7 +140,7 @@ export default function CustomCameraView({
   // Pinch gesture for zoom
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
-      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.02));
+      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.005)); // Slower zoom speed
       setZoom(newZoom);
     })
     .runOnJS(true);
@@ -199,8 +199,8 @@ export default function CustomCameraView({
           <CameraView
             style={{ 
               width: width,
-              height: width * 1.25, // 5:4 aspect ratio (width * 5/4)
-              maxHeight: height,
+              height: width * 0.8, // 5:4 aspect ratio (width * 4/5) - this gives proper proportions
+              maxHeight: height * 0.7, // Limit height to avoid stretching
             }}
             facing={cameraType}
             ref={cameraRef}

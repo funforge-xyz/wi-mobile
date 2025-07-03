@@ -37,6 +37,7 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
             style={styles.video}
             allowsFullscreen
             allowsPictureInPicture
+            contentFit="contain"
           />
         )}
       </View>
@@ -62,12 +63,12 @@ const styles = StyleSheet.create({
   },
   media: {
     flex: 1,
-    aspectRatio: 5/4, // 5:4 aspect ratio for photos
+    aspectRatio: 4 / 3,
     borderRadius: 0,
   },
   video: {
     flex: 1,
-    aspectRatio: 5/4, // 5:4 aspect ratio for videos
+    aspectRatio: 4 / 3,
     borderRadius: 0,
   },
 });
