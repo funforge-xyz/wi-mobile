@@ -226,11 +226,18 @@ export class StorageService {
         try {
           // Generate thumbnail for video
           const thumbnailBlob = await this.createVideoThumbnail(mediaUri);
-          const thumbnailRef = ref(storage, `post-videos/${userId}/${timestamp}_thumb.jpg`);
-          await uploadBytes(thumbnailRef, thumbnailBlob);
-          const thumbnailUrl = await getDownloadURL(thumbnailRef);
-
-          return { mediaUrl, thumbnailUrl };
+          
+          // Check if we got a valid thumbnail (not a placeholder)
+          if (thumbnailBlob && thumbnailBlob.size > 100) { // Only upload if we have a real thumbnail
+            const thumbnailRef = ref(storage, `post-videos/${userId}/${timestamp}_thumb.jpg`);
+            await uploadBytes(thumbnailRef, thumbnailBlob);
+            const thumbnailUrl = await getDownloadURL(thumbnailRef);
+            console.log('Thumbnail uploaded successfully:', thumbnailUrl);
+            return { mediaUrl, thumbnailUrl };
+          } else {
+            console.log('Placeholder thumbnail created, skipping upload');
+            return { mediaUrl };
+          }
         } catch (thumbnailError) {
           console.warn('Failed to create video thumbnail, proceeding without thumbnail:', thumbnailError);
           // Return video URL without thumbnail
@@ -286,21 +293,9 @@ export class StorageService {
   }
 
   private async createPlaceholderThumbnail(): Promise<Blob> {
-    // Create a simple 1x1 pixel transparent image as placeholder
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = 'rgba(0,0,0,0.1)';
-      ctx.fillRect(0, 0, 1, 1);
-    }
-    
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        resolve(blob || new Blob());
-      }, 'image/jpeg', 0.8);
-    });
+    // Create a small placeholder blob to indicate no thumbnail
+    // This will be detected by size check and not uploaded
+    return new Blob(['placeholder'], { type: 'image/jpeg' });
   }
 
   async deleteProfilePicture(photoURL: string, thumbnailURL?: string): Promise<void> {
