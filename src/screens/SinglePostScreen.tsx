@@ -87,7 +87,15 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const userPosts = useAppSelector((state) => state.user.posts);
   const dispatch = useAppDispatch();
 
-  const { postId, isOwnPost = false } = route.params;
+  // Validate route params to prevent undefined errors
+  const { postId, isOwnPost = false } = route?.params || {};
+  
+  // Early return if postId is not provided
+  if (!postId) {
+    console.error('SinglePostScreen: postId is required');
+    navigation.goBack();
+    return null;
+  }
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [likes, setLikes] = useState<Like[]>([]);
@@ -170,9 +178,9 @@ export default function SinglePostScreen({ route, navigation }: any) {
       const postData = await loadPost(postId);
 
       if (postData) {
-        setEditedContent(postData.content);
-        setEditedAllowComments(postData.allowComments);
-        setEditedShowLikeCount(postData.showLikeCount);
+        setEditedContent(postData.content || '');
+        setEditedAllowComments(postData.allowComments !== false);
+        setEditedShowLikeCount(postData.showLikeCount !== false);
         setPost(postData);
         // Comments and likes will be loaded after currentUser is set
       } else {
@@ -227,7 +235,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   };
 
   const handleAddComment = async (commentText: string) => {
-    if (!commentText.trim() || !currentUser) return;
+    if (!commentText || !commentText.trim() || !currentUser) return;
 
     try {
       setSubmittingComment(true);
@@ -380,8 +388,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const handleEditPost = () => {
     if (post) {
       setEditedContent(post.content || '');
-      setEditedAllowComments(post.allowComments);
-      setEditedShowLikeCount(post.showLikeCount);
+      setEditedAllowComments(post.allowComments !== false);
+      setEditedShowLikeCount(post.showLikeCount !== false);
     }
     setIsEditing(true);
   };
