@@ -42,7 +42,7 @@ export default function CreatePostScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
