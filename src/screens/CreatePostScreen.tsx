@@ -39,7 +39,7 @@ export default function CreatePostScreen() {
   const [allowComments, setAllowComments] = useState(true);
   const [showLikeCount, setShowLikeCount] = useState(true);
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPostingModal, setShowPostingModal] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -47,7 +47,7 @@ export default function CreatePostScreen() {
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const textInputRef = useRef<TextInput>(null);
-  const successAnimation = useRef(new Animated.Value(0)).current;
+  const modalAnimation = useRef(new Animated.Value(0)).current;
   const videoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const navigation = useNavigation();
@@ -170,7 +170,15 @@ export default function CreatePostScreen() {
     }
 
     setIsPosting(true);
-    setShowSuccessModal(true);
+    setShowPostingModal(true);
+    
+    // Start modal animation
+    Animated.timing(modalAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
     try {
       // Determine post type based on media
       let postType: 'picture' | 'video' | 'text' = 'text';
@@ -215,22 +223,17 @@ export default function CreatePostScreen() {
         isLikedByUser: false,
       });
 
-      // Show success modal
-      setShowSuccessModal(true);
-      Animated.timing(successAnimation, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      // Set posting to false to show success state
+      setIsPosting(false);
 
       // Auto-hide after 2 seconds then navigate
       setTimeout(() => {
-        Animated.timing(successAnimation, {
+        Animated.timing(modalAnimation, {
           toValue: 0,
           duration: 300,
           useNativeDriver: true,
         }).start(() => {
-          setShowSuccessModal(false);
+          setShowPostingModal(false);
           // Navigate to Profile tab with refetch parameter after successful post creation
           navigation.navigate('Root', { 
             screen: 'Profile', 
@@ -243,7 +246,8 @@ export default function CreatePostScreen() {
       Alert.alert(t('common.error'), t('addPost.postFailed'));
     } finally {
       setIsPosting(false);
-      setShowSuccessModal(false);
+      setShowPostingModal(false);
+      modalAnimation.setValue(0);
     }
   };
 
@@ -476,12 +480,12 @@ export default function CreatePostScreen() {
         </Modal>
       )}
 
-      {/* Success Modal */}
+      {/* Posting Modal */}
       <SuccessModal
-        visible={showSuccessModal}
+        visible={showPostingModal}
         title={isPosting ? t('addPost.posting', 'Posting...') : t('addPost.success', 'Success')}
         message={isPosting ? '' : t('addPost.postShared', 'Your post has been shared!')}
-        animation={successAnimation}
+        animation={modalAnimation}
         currentTheme={currentTheme}
         isLoading={isPosting}
       />
