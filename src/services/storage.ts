@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getFirestore } from './firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 
 export class Settings {
   private static readonly ONBOARDING_DONE_KEY = 'onboarding_done';
@@ -260,17 +261,6 @@ export class StorageService {
 
   private async createVideoThumbnail(videoUri: string): Promise<Blob> {
     try {
-      // Try to import VideoThumbnails
-      const VideoThumbnailsModule = await import('expo-video-thumbnails').catch(() => null);
-      
-      if (!VideoThumbnailsModule || !VideoThumbnailsModule.VideoThumbnails) {
-        console.warn('expo-video-thumbnails not available, skipping thumbnail generation');
-        // Return a placeholder or create a simple colored blob
-        return this.createPlaceholderThumbnail();
-      }
-
-      const { VideoThumbnails } = VideoThumbnailsModule;
-
       // Generate thumbnail from first frame (time: 0)
       const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
         time: 0, // First frame
