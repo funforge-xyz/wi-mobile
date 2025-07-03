@@ -49,6 +49,7 @@ import {
   handleComment,
 } from '../utils/singlePostUtils';
 import { Animated } from 'react-native';
+import { VideoView, useVideoPlayer } from 'expo-video';
 
 interface Post {
   id: string;
@@ -119,12 +120,27 @@ export default function SinglePostScreen({ route, navigation }: any) {
     authorName: string;
   } | null>(null);
   const [newlyAddedReplyParentId, setNewlyAddedReplyParentId] = useState<string | undefined>(undefined);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
   const commentInputRef = useRef<TextInput>(null);
 
   const { t } = useTranslation();
 
   const currentTheme = getTheme(isDarkMode);
   const singlePostStyles = createSinglePostStyles(isDarkMode);
+
+  // Initialize video player for video posts
+  const videoPlayer = useVideoPlayer(
+    post?.mediaURL && post?.mediaType === 'video' ? post.mediaURL : '', 
+    player => {
+      player.loop = true;
+      player.muted = isVideoMuted;
+      if (post?.mediaType === 'video') {
+        player.play();
+        setIsVideoPlaying(true);
+      }
+    }
+  );
 
   useEffect(() => {
     const initializeData = async () => {
@@ -324,6 +340,22 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   const handleCancelReply = () => {
     setReplyToComment(null);
+  };
+
+  const handleVideoPlayPause = () => {
+    if (isVideoPlaying) {
+      videoPlayer.pause();
+      setIsVideoPlaying(false);
+    } else {
+      videoPlayer.play();
+      setIsVideoPlaying(true);
+    }
+  };
+
+  const handleVideoMuteToggle = () => {
+    const newMutedState = !isVideoMuted;
+    setIsVideoMuted(newMutedState);
+    videoPlayer.muted = newMutedState;
   };
 
   const handleLikeComment = async (commentId: string, parentCommentId: string | undefined, isCurrentlyLiked: boolean, t: any) => {
@@ -608,6 +640,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
               onLikePress={handleLikePress}
               onCommentPress={() => {}}
               currentTheme={currentTheme}
+              videoPlayer={videoPlayer}
+              isVideoPlaying={isVideoPlaying}
+              isVideoMuted={isVideoMuted}
+              onVideoPlayPause={handleVideoPlayPause}
+              onVideoMuteToggle={handleVideoMuteToggle}
             />
 
             <CommentsList
