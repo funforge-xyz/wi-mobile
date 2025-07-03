@@ -73,6 +73,8 @@ export default function CustomCameraView({
           quality: 0.8,
           base64: false,
           skipProcessing: false,
+          // Maintain 5:4 aspect ratio
+          aspect: [5, 4],
         });
         console.log('Picture taken:', photo.uri);
         onMediaCaptured(photo.uri, 'image');
@@ -104,6 +106,8 @@ export default function CustomCameraView({
           const video = await cameraRef.current.recordAsync({
             quality: '720p' as const,
             maxDuration: 15, // 15 seconds max duration
+            // Maintain 5:4 aspect ratio for video
+            videoBitrate: 1000000, // 1 Mbps for good quality
           });
 
           console.log('Video recording completed:', video);
@@ -189,20 +193,22 @@ export default function CustomCameraView({
       flex: 1, 
       backgroundColor: 'black'
     }}>
-      {/* Camera View */}
-      <GestureDetector gesture={pinchGesture}>
-        <CameraView
-          style={{ 
-            flex: 1,
-            width: '100%',
-            height: '100%',
-          }}
-          facing={cameraType}
-          ref={cameraRef}
-          mode={cameraMode}
-          zoom={zoom}
-        />
-      </GestureDetector>
+      {/* Camera View with 5:4 aspect ratio */}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
+        <GestureDetector gesture={pinchGesture}>
+          <CameraView
+            style={{ 
+              width: width,
+              height: width * 1.25, // 5:4 aspect ratio (width * 5/4)
+              maxHeight: height,
+            }}
+            facing={cameraType}
+            ref={cameraRef}
+            mode={cameraMode}
+            zoom={zoom}
+          />
+        </GestureDetector>
+      </View>
 
       {/* Top Controls */}
       <View
@@ -274,7 +280,7 @@ export default function CustomCameraView({
               borderRadius: 12,
             }}
           >
-            Max recording time: 15 seconds
+            5:4 ratio • Max recording: 15 seconds
           </Text>
         </View>
       )}

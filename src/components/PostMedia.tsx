@@ -62,12 +62,12 @@ const styles = StyleSheet.create({
   },
   media: {
     flex: 1,
-    aspectRatio: 1, // Default 1:1 aspect ratio - can be adjusted based on actual image dimensions
+    aspectRatio: 5/4, // 5:4 aspect ratio for photos
     borderRadius: 0,
   },
   video: {
     flex: 1,
-    aspectRatio: 16/9, // Default 16:9 aspect ratio for videos
+    aspectRatio: 5/4, // 5:4 aspect ratio for videos
     borderRadius: 0,
   },
 });
