@@ -125,6 +125,16 @@ export default function UserPostsScreen({ navigation }: any) {
     const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
     const thumbnailUrl = item.thumbnailURL || item.mediaURL;
     
+    // Debug logging for video thumbnails
+    if (item.mediaType === 'video') {
+      console.log('Video post:', {
+        id: item.id,
+        thumbnailURL: item.thumbnailURL,
+        mediaURL: item.mediaURL,
+        finalUrl: thumbnailUrl
+      });
+    }
+    
     return (
       <TouchableOpacity
         style={[
@@ -155,7 +165,7 @@ export default function UserPostsScreen({ navigation }: any) {
         )}
         {item.mediaType === 'video' && (
           <View style={styles.videoIndicator}>
-            <Ionicons name="play" size={12} color="white" />
+            <Ionicons name="play-circle" size={16} color="white" />
           </View>
         )}
       </TouchableOpacity>
