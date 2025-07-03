@@ -232,8 +232,14 @@ export class StorageService {
             const thumbnailRef = ref(storage, `post-videos/${userId}/${timestamp}_thumb.jpg`);
             await uploadBytes(thumbnailRef, thumbnailBlob);
             const thumbnailUrl = await getDownloadURL(thumbnailRef);
-            console.log('Thumbnail uploaded successfully:', thumbnailUrl);
-            return { mediaUrl, thumbnailUrl };
+            
+            if (thumbnailUrl) {
+              console.log('Thumbnail uploaded successfully:', thumbnailUrl);
+              return { mediaUrl, thumbnailUrl };
+            } else {
+              console.warn('Thumbnail URL is empty, proceeding without thumbnail');
+              return { mediaUrl };
+            }
           } else {
             console.log('Placeholder thumbnail created, skipping upload');
             return { mediaUrl };
