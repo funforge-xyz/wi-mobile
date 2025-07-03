@@ -208,22 +208,63 @@ export class StorageService {
     }
   }
 
-  async uploadPostMedia(userId: string, mediaUri: string, mediaType: 'image' | 'video'): Promise<string> {
+  async uploadPostMedia(userId: string, mediaUri: string, mediaType: 'image' | 'video'): Promise<{ mediaUrl: string; thumbnailUrl?: string }> {
     try {
       const response = await fetch(mediaUri);
       const blob = await response.blob();
 
       const storage = getStorage();
+      const timestamp = Date.now();
       const extension = mediaType === 'video' ? 'mp4' : 'jpg';
       const folderName = mediaType === 'video' ? 'post-videos' : 'post-images';
-      const mediaRef = ref(storage, `${folderName}/${userId}/${Date.now()}.${extension}`);
+      const mediaRef = ref(storage, `${folderName}/${userId}/${timestamp}.${extension}`);
 
       await uploadBytes(mediaRef, blob);
-      const downloadURL = await getDownloadURL(mediaRef);
+      const mediaUrl = await getDownloadURL(mediaRef);
 
-      return downloadURL;
+      if (mediaType === 'video') {
+        // Generate thumbnail for video
+        const thumbnailBlob = await this.createVideoThumbnail(mediaUri);
+        const thumbnailRef = ref(storage, `post-videos/${userId}/${timestamp}_thumb.jpg`);
+        await uploadBytes(thumbnailRef, thumbnailBlob);
+        const thumbnailUrl = await getDownloadURL(thumbnailRef);
+
+        return { mediaUrl, thumbnailUrl };
+      }
+
+      return { mediaUrl };
     } catch (error) {
       console.error(`Error uploading post ${mediaType}:`, error);
+      throw error;
+    }
+  }
+
+  private async createVideoThumbnail(videoUri: string): Promise<Blob> {
+    try {
+      const { VideoThumbnails } = await import('expo-video-thumbnails');
+
+      // Generate thumbnail from first frame (time: 0)
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+        time: 0, // First frame
+        quality: 0.8,
+      });
+
+      // Compress the thumbnail using existing image manipulation
+      const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+      
+      const result = await manipulateAsync(
+        uri,
+        [{ resize: { width: 600 } }], // Resize to reasonable size
+        {
+          compress: 0.8,
+          format: SaveFormat.JPEG,
+        }
+      );
+
+      const response = await fetch(result.uri);
+      return await response.blob();
+    } catch (error) {
+      console.error('Error creating video thumbnail:', error);
       throw error;
     }
   }

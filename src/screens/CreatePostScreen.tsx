@@ -191,6 +191,7 @@ export default function CreatePostScreen() {
         content: content.trim(),
         mediaURL: mediaUri,
         mediaType: mediaType,
+        thumbnailURL: undefined, // Will be set by Firebase after upload
         createdAt: new Date().toISOString(),
         likesCount: 0,
         commentsCount: 0,

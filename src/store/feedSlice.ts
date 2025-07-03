@@ -1,4 +1,3 @@
-
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface FeedPost {
@@ -9,6 +8,7 @@ export interface FeedPost {
   content: string;
   mediaURL?: string;
   mediaType?: 'image' | 'video';
+  thumbnailURL?: string;
   createdAt: string;
   likesCount: number;
   commentsCount: number;

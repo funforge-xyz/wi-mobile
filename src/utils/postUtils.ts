@@ -28,14 +28,18 @@ export const createPost = async (
 
     // Upload media if provided
     let downloadURL = '';
+    let thumbURL = '';
     if (postData.mediaURL) {
       try {
-        downloadURL = await storageService.uploadPostMedia(
+        const uploadResult = await storageService.uploadPostMedia(
           currentUser.uid, 
           postData.mediaURL, 
           postData.mediaType || 'image'
         );
+        downloadURL = uploadResult.mediaUrl;
+        thumbURL = uploadResult.thumbnailUrl;
         console.log('Media uploaded successfully:', downloadURL);
+        console.log('Thumbnail uploaded successfully:', thumbURL);
       } catch (uploadError) {
         console.error('Media upload failed:', uploadError);
         throw new Error(t('addPost.mediaUploadFailed', 'Failed to upload media'));
@@ -50,7 +54,7 @@ export const createPost = async (
       authorId: currentUser.uid,
       content: postData.content.trim(),
       mediaURL: downloadURL || null,
-      thumbURL: downloadURL || null,
+      thumbURL: thumbURL || null,
       allowComments: postData.allowComments,
       showLikeCount: postData.showLikeCount,
       createdAt: serverTimestamp(),
