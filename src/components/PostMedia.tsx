@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
   },
   media: {
     flex: 1,
-    aspectRatio: 4 / 3,
+    aspectRatio: 5 / 4, // 5:4 aspect ratio
     borderRadius: 0,
   },
   video: {
     flex: 1,
-    aspectRatio: 4 / 3,
+    aspectRatio: 5 / 4, // 5:4 aspect ratio
     borderRadius: 0,
   },
 });
