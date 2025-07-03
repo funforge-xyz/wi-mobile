@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.sm,
-    borderTopWidth: 1,
   },
   actionButton: {
     flexDirection: 'row',
