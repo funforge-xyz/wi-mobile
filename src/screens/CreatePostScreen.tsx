@@ -476,12 +476,7 @@ export default function CreatePostScreen() {
             onPress={handlePost}
           >
             {isPosting ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="white" />
-                <Text style={[styles.postButtonText, { marginLeft: 8 }]}>
-                  {t('addPost.posting', 'Posting...')}
-                </Text>
-              </View>
+              <ActivityIndicator size="small" color="white" />
             ) : (
               <Text style={styles.postButtonText}>
                 {t('addPost.post', 'Post')}
