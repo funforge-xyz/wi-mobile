@@ -29,7 +29,7 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
           <Image
             source={{ uri: thumbnailURL }}
             style={[styles.media, style]}
-            resizeMode="contain"
+            resizeMode="cover"
           />
         ) : (
           <VideoView
@@ -47,7 +47,7 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
     <Image
       source={{ uri: mediaURL }}
       style={[styles.media, style]}
-      resizeMode="contain"
+      resizeMode="cover"
       onLoad={onLoad}
     />
   );
@@ -56,7 +56,7 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
 const styles = StyleSheet.create({
   media: {
     width: '100%',
-    aspectRatio: 1,
+    minHeight: 200,
     borderRadius: 0,
   },
   video: {
