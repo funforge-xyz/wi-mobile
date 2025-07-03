@@ -82,11 +82,13 @@ export default function CreatePostScreen() {
         if (status === 'readyToPlay') {
           setIsVideoPlaying(false); // Start paused
           setVideoDuration(previewPlayer.duration || 15); // Default to 15s if duration not available
+          setCurrentTime(0); // Reset current time
         }
       });
 
       // Set up time update listener for progress
       const timeUpdateUnsubscribe = previewPlayer.addListener('timeUpdate', (payload) => {
+        console.log('Time update:', payload.currentTime); // Debug log
         if (payload.currentTime !== undefined) {
           setCurrentTime(payload.currentTime);
           if (videoDuration > 0) {
@@ -101,6 +103,27 @@ export default function CreatePostScreen() {
       };
     }
   }, [previewPlayer, mediaType, videoDuration]);
+
+  // Add a manual timer as backup when video is playing
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isVideoPlaying && previewPlayer) {
+      interval = setInterval(() => {
+        const playerCurrentTime = previewPlayer.currentTime || 0;
+        setCurrentTime(playerCurrentTime);
+        if (videoDuration > 0) {
+          setVideoProgress((playerCurrentTime / videoDuration) * 100);
+        }
+      }, 100); // Update every 100ms for smooth counter
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isVideoPlaying, previewPlayer, videoDuration]);
 
   const toggleVideoPlay = () => {
     if (previewPlayer) {
