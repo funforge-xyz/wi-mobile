@@ -24,6 +24,11 @@ export interface Post {
   userId: string;
   content: string;
   attachments?: Attachment[];
+  mediaURL?: string;
+  mediaType?: 'image' | 'video';
+  thumbnailURL?: string;
+  fileExtension?: string;
+  postType: 'picture' | 'video' | 'text';
   likesCount: number;
   commentsCount: number;
   createdAt: Date;

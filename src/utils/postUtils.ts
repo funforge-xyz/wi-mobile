@@ -8,6 +8,8 @@ export interface PostData {
   content: string;
   mediaURL: string;
   mediaType: 'image' | 'video';
+  fileExtension?: string;
+  postType: 'picture' | 'video' | 'text';
   allowComments: boolean;
   showLikeCount: boolean;
 }
@@ -46,6 +48,13 @@ export const createPost = async (
       }
     }
 
+    // Extract file extension from media URL
+    let fileExtension = '';
+    if (postData.mediaURL) {
+      const urlParts = postData.mediaURL.split('.');
+      fileExtension = urlParts[urlParts.length - 1].toLowerCase();
+    }
+
     // Create post in Firestore
     const firestore = getFirestore();
     const postsCollection = collection(firestore, 'posts');
@@ -54,7 +63,10 @@ export const createPost = async (
       authorId: currentUser.uid,
       content: postData.content.trim(),
       mediaURL: downloadURL || null,
-      thumbURL: thumbURL || null,
+      thumbnailURL: thumbURL || null,
+      mediaType: postData.mediaType || null,
+      fileExtension: fileExtension || null,
+      postType: postData.postType || 'text',
       allowComments: postData.allowComments,
       showLikeCount: postData.showLikeCount,
       createdAt: serverTimestamp(),

@@ -9,6 +9,8 @@ export interface FeedPost {
   mediaURL?: string;
   mediaType?: 'image' | 'video';
   thumbnailURL?: string;
+  fileExtension?: string;
+  postType: 'picture' | 'video' | 'text';
   createdAt: string;
   likesCount: number;
   commentsCount: number;

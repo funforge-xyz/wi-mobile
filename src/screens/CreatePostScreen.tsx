@@ -107,7 +107,7 @@ export default function CreatePostScreen() {
   // Add a manual timer as backup when video is playing
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    
+
     if (isVideoPlaying && previewPlayer) {
       interval = setInterval(() => {
         const playerCurrentTime = previewPlayer.currentTime || 0;
@@ -172,10 +172,25 @@ export default function CreatePostScreen() {
 
     setIsPosting(true);
     try {
+      // Determine post type based on media
+      let postType: 'picture' | 'video' | 'text' = 'text';
+      if (mediaUri) {
+        postType = mediaType === 'video' ? 'video' : 'picture';
+      }
+
+      // Extract file extension
+      let fileExtension = '';
+      if (mediaUri) {
+        const urlParts = mediaUri.split('.');
+        fileExtension = urlParts[urlParts.length - 1].toLowerCase();
+      }
+
       const postData: PostData = {
         content: content.trim(),
         mediaURL: mediaUri,
         mediaType: mediaType,
+        fileExtension: fileExtension,
+        postType: postType,
         allowComments,
         showLikeCount,
       };
@@ -345,8 +360,8 @@ export default function CreatePostScreen() {
                 />
               </TouchableOpacity>
 
-              
-              
+
+
             </View>
           )}
         </View>

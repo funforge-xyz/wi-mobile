@@ -58,6 +58,9 @@ interface Post {
   content: string;
   mediaURL?: string;
   mediaType?: 'image' | 'video';
+  thumbnailURL?: string;
+  fileExtension?: string;
+  postType: 'picture' | 'video' | 'text';
   createdAt: Date;
   showLikeCount: boolean;
   allowComments: boolean;
