@@ -244,10 +244,16 @@ export default function CreatePostScreen() {
     } catch (error) {
       console.error('Post creation error:', error);
       Alert.alert(t('common.error'), t('addPost.postFailed'));
-    } finally {
-      setIsPosting(false);
-      setShowPostingModal(false);
-      modalAnimation.setValue(0);
+      
+      // Hide modal on error
+      Animated.timing(modalAnimation, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowPostingModal(false);
+        setIsPosting(false);
+      });
     }
   };
 
