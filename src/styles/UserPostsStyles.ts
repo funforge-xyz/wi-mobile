@@ -27,9 +27,8 @@ export const styles = StyleSheet.create({
     paddingTop: SPACING.sm,
   },
   profileHeader: {
-    padding: SPACING.md,
+    paddingVertical: SPACING.md,
     marginBottom: SPACING.sm,
-    borderRadius: 12,
   },
   profileRow: {
     flexDirection: 'row',

@@ -25,7 +25,7 @@ export default function UserPostsProfileDisplay({ profile, posts, currentTheme, 
   const { t } = useTranslation();
 
   return (
-    <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface, marginHorizontal: 16 }]}>
+    <View style={[styles.profileHeader, { paddingHorizontal: 16 }]}>
       <View style={styles.profileRow}>
         {(profile?.thumbnailURL || profile?.photoURL) && (profile?.thumbnailURL || profile?.photoURL)?.trim() !== '' ? (
           <AvatarImage

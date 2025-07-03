@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import SkeletonLoader from './SkeletonLoader';
 
 interface UserPost {
   id: string;
@@ -79,11 +80,14 @@ export default function UserPostsGridItem({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: currentTheme.skeleton,
                 zIndex: 1
               }
             ]}>
-              <View style={styles.skeletonShimmer} />
+              <SkeletonLoader
+                width={itemWidth}
+                height={itemHeight}
+                borderRadius={0}
+              />
             </View>
           )}
           <Image
