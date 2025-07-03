@@ -23,6 +23,7 @@ interface UserPost {
   authorPhotoURL: string;
   content: string;
   mediaURL?: string;
+  thumbnailURL?: string;
   mediaType?: 'image' | 'video';
   createdAt: Date | string;
   likesCount: number;

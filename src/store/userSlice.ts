@@ -22,6 +22,7 @@ export interface UserPost {
   authorPhotoURL: string;
   content: string;
   mediaURL?: string;
+  thumbnailURL?: string;
   mediaType?: 'image' | 'video';
   createdAt: string; // ISO string format for Redux serialization
   likesCount: number;
@@ -180,6 +181,7 @@ export const fetchUserPosts = createAsyncThunk(
               currentUserData.thumbnailURL || currentUserData.photoURL || '',
             content: postData.content || '',
             mediaURL: postData.mediaURL || '',
+            thumbnailURL: postData.thumbnailURL || '',
             mediaType: postData.mediaType || 'image',
             createdAt: formatFirestoreDate(postData.createdAt),
             likesCount: typeof postData.likesCount === 'number' ? postData.likesCount : likesSnapshot.size,
