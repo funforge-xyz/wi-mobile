@@ -223,13 +223,19 @@ export class StorageService {
       const mediaUrl = await getDownloadURL(mediaRef);
 
       if (mediaType === 'video') {
-        // Generate thumbnail for video
-        const thumbnailBlob = await this.createVideoThumbnail(mediaUri);
-        const thumbnailRef = ref(storage, `post-videos/${userId}/${timestamp}_thumb.jpg`);
-        await uploadBytes(thumbnailRef, thumbnailBlob);
-        const thumbnailUrl = await getDownloadURL(thumbnailRef);
+        try {
+          // Generate thumbnail for video
+          const thumbnailBlob = await this.createVideoThumbnail(mediaUri);
+          const thumbnailRef = ref(storage, `post-videos/${userId}/${timestamp}_thumb.jpg`);
+          await uploadBytes(thumbnailRef, thumbnailBlob);
+          const thumbnailUrl = await getDownloadURL(thumbnailRef);
 
-        return { mediaUrl, thumbnailUrl };
+          return { mediaUrl, thumbnailUrl };
+        } catch (thumbnailError) {
+          console.warn('Failed to create video thumbnail, proceeding without thumbnail:', thumbnailError);
+          // Return video URL without thumbnail
+          return { mediaUrl };
+        }
       }
 
       return { mediaUrl };
@@ -241,7 +247,16 @@ export class StorageService {
 
   private async createVideoThumbnail(videoUri: string): Promise<Blob> {
     try {
-      const { VideoThumbnails } = await import('expo-video-thumbnails');
+      // Try to import VideoThumbnails
+      const VideoThumbnailsModule = await import('expo-video-thumbnails').catch(() => null);
+      
+      if (!VideoThumbnailsModule || !VideoThumbnailsModule.VideoThumbnails) {
+        console.warn('expo-video-thumbnails not available, skipping thumbnail generation');
+        // Return a placeholder or create a simple colored blob
+        return this.createPlaceholderThumbnail();
+      }
+
+      const { VideoThumbnails } = VideoThumbnailsModule;
 
       // Generate thumbnail from first frame (time: 0)
       const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
@@ -265,8 +280,27 @@ export class StorageService {
       return await response.blob();
     } catch (error) {
       console.error('Error creating video thumbnail:', error);
-      throw error;
+      // Return placeholder instead of throwing
+      return this.createPlaceholderThumbnail();
     }
+  }
+
+  private async createPlaceholderThumbnail(): Promise<Blob> {
+    // Create a simple 1x1 pixel transparent image as placeholder
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.fillRect(0, 0, 1, 1);
+    }
+    
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob || new Blob());
+      }, 'image/jpeg', 0.8);
+    });
   }
 
   async deleteProfilePicture(photoURL: string, thumbnailURL?: string): Promise<void> {
