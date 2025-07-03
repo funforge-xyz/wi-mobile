@@ -199,14 +199,14 @@ export default function CreatePostScreen() {
         return fallback ? t(key, fallback) : t(key);
       };
 
-      const newPostId = await createPost(postData, translateWrapper);
+      const newPost = await createPost(postData, translateWrapper);
 
       addNewPost({
-        id: newPostId,
+        id: newPost.id,
         content: content.trim(),
-        mediaURL: mediaUri,
+        mediaURL: newPost.mediaURL || mediaUri,
         mediaType: mediaType,
-        thumbnailURL: undefined, // Will be set by Firebase after upload
+        thumbnailURL: newPost.thumbnailURL, // Use thumbnailURL from upload result
         createdAt: new Date().toISOString(),
         likesCount: 0,
         commentsCount: 0,

@@ -250,6 +250,9 @@ export class StorageService {
           // Return video URL without thumbnail
           return { mediaUrl };
         }
+      } else {
+        // For images, thumbnailUrl should be the same as mediaUrl
+        return { mediaUrl, thumbnailUrl: mediaUrl };
       }
 
       return { mediaUrl };
