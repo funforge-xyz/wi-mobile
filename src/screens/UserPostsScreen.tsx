@@ -125,6 +125,7 @@ export default function UserPostsScreen({ navigation }: any) {
     const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
     const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
     const thumbnailUrl = item.thumbnailURL || item.mediaURL;
+    const [imageLoading, setImageLoading] = useState(true);
     
     // Debug logging for video thumbnails
     if (item.mediaType === 'video') {
@@ -151,11 +152,31 @@ export default function UserPostsScreen({ navigation }: any) {
         onPress={() => handlePostPress(item)}
       >
         {thumbnailUrl ? (
-          <Image
-            source={{ uri: thumbnailUrl }}
-            style={styles.gridItemImage}
-            resizeMode="cover"
-          />
+          <>
+            {imageLoading && (
+              <View style={[
+                styles.gridItemSkeleton,
+                { 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: currentTheme.skeleton,
+                  zIndex: 1
+                }
+              ]}>
+                <View style={styles.skeletonShimmer} />
+              </View>
+            )}
+            <Image
+              source={{ uri: thumbnailUrl }}
+              style={styles.gridItemImage}
+              resizeMode="cover"
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+            />
+          </>
         ) : (
           <View style={[styles.gridItemPlaceholder, { backgroundColor: currentTheme.surface }]}>
             <Ionicons 
