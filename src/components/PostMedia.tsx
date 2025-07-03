@@ -11,9 +11,10 @@ interface PostMediaProps {
   isPlaying?: boolean;
   togglePlay?: () => void;
   post?: any;
+  onLoad?: () => void;
 }
 
-export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbnailURL, isPlaying, togglePlay, post }: PostMediaProps) {
+export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbnailURL, isPlaying, togglePlay, post, onLoad }: PostMediaProps) {
   const player = useVideoPlayer(mediaURL, player => {
     player.loop = false;
     player.play();
@@ -47,6 +48,7 @@ export default function PostMedia({ mediaURL, mediaType = 'image', style, thumbn
       source={{ uri: mediaURL }}
       style={[styles.media, style]}
       resizeMode="contain"
+      onLoad={onLoad}
     />
   );
 }
@@ -55,11 +57,11 @@ const styles = StyleSheet.create({
   media: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 8,
+    borderRadius: 0,
   },
   video: {
     width: '100%',
     height: '100%',
-    borderRadius: 8,
+    borderRadius: 0,
   },
 });

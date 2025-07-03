@@ -61,16 +61,18 @@ export default function SinglePostSkeleton() {
             style={styles.contentLine}
           />
         </View>
+      </View>
 
-        {/* Post Media */}
-        <SkeletonLoader
-          width="100%"
-          height={200}
-          borderRadius={8}
-          style={styles.postMedia}
-        />
+      {/* Post Media - Full width */}
+      <SkeletonLoader
+        width="100%"
+        height={300}
+        borderRadius={0}
+        style={styles.postMedia}
+      />
 
-        {/* Post Actions */}
+      {/* Post Actions Container */}
+      <View style={[styles.actionsOuterContainer, { backgroundColor: currentTheme.surface }]}>
         <View style={styles.actionsContainer}>
           <View style={styles.actionItem}>
             <SkeletonLoader
@@ -157,6 +159,7 @@ const styles = StyleSheet.create({
   postContainer: {
     margin: SPACING.md,
     padding: SPACING.md,
+    paddingBottom: 0,
     borderRadius: 16,
   },
   postHeader: {
@@ -185,7 +188,13 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   postMedia: {
-    marginBottom: SPACING.md,
+    marginBottom: 0,
+  },
+  actionsOuterContainer: {
+    margin: SPACING.md,
+    marginTop: 0,
+    padding: SPACING.md,
+    borderRadius: 16,
   },
   actionsContainer: {
     flexDirection: 'row',

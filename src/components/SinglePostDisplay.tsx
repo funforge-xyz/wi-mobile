@@ -1,4 +1,3 @@
-
 import {
   View,
   StyleSheet,
@@ -12,6 +11,8 @@ import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import PostActions from './PostActions';
+import React, { useState } from 'react';
+import SkeletonLoader from './SkeletonLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -58,6 +59,8 @@ export default function SinglePostDisplay({
   onVideoPlayPause,
   onVideoMuteToggle,
 }: SinglePostDisplayProps) {
+  const [isMediaLoading, setIsMediaLoading] = useState(true);
+
   return (
     <View style={{ backgroundColor: currentTheme.background }}>
       {/* Header with padding */}
@@ -85,8 +88,16 @@ export default function SinglePostDisplay({
       {/* Media - Full width, no padding, automatic height */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
+          {isMediaLoading && (
+            <SkeletonLoader
+              width={width}
+              height={300}
+              borderRadius={0}
+              style={styles.mediaLoadingSkeleton}
+            />
+          )}
           {post.mediaType === 'video' && videoPlayer ? (
-            <View style={styles.videoContainer}>
+            <View style={[styles.videoContainer, isMediaLoading && { display: 'none' }]}>
               <VideoView
                 player={videoPlayer}
                 style={styles.video}
@@ -94,40 +105,44 @@ export default function SinglePostDisplay({
                 allowsPictureInPicture={false}
                 nativeControls={false}
                 contentFit="contain"
+                onLoad={() => setIsMediaLoading(false)}
               />
-              
-              {/* Video Controls Overlay */}
-              <View style={styles.videoControls}>
-                {/* Play/Pause Button */}
-                <TouchableOpacity
-                  style={styles.playButton}
-                  onPress={onVideoPlayPause}
-                >
-                  <Ionicons 
-                    name={isVideoPlaying ? "pause" : "play"} 
-                    size={30} 
-                    color="white" 
-                  />
-                </TouchableOpacity>
 
-                {/* Mute Button */}
-                <TouchableOpacity
-                  style={styles.muteButton}
-                  onPress={onVideoMuteToggle}
-                >
-                  <Ionicons 
-                    name={isVideoMuted ? "volume-mute" : "volume-high"} 
-                    size={24} 
-                    color="white" 
-                  />
-                </TouchableOpacity>
-              </View>
+              {/* Video Controls Overlay - Only show when not loading */}
+              {!isMediaLoading && (
+                <View style={styles.videoControls}>
+                  {/* Play/Pause Button */}
+                  <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={onVideoPlayPause}
+                  >
+                    <Ionicons 
+                      name={isVideoPlaying ? "pause" : "play"} 
+                      size={30} 
+                      color="white" 
+                    />
+                  </TouchableOpacity>
+
+                  {/* Mute/Unmute Button */}
+                  <TouchableOpacity
+                    style={styles.muteButton}
+                    onPress={onVideoMuteToggle}
+                  >
+                    <Ionicons 
+                      name={isVideoMuted ? "volume-mute" : "volume-high"} 
+                      size={24} 
+                      color="white" 
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           ) : (
-            <PostMedia 
-              mediaURL={post.mediaURL} 
+            <PostMedia
+              mediaURL={post.mediaURL}
               mediaType={post.mediaType}
-              style={styles.image}
+              style={[styles.media, isMediaLoading && { display: 'none' }]}
+              onLoad={() => setIsMediaLoading(false)}
             />
           )}
         </View>
@@ -151,16 +166,63 @@ export default function SinglePostDisplay({
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
+  container: {
+    backgroundColor: 'transparent',
+  },
+  postContainer: {
+    margin: SPACING.md,
     padding: SPACING.md,
-    paddingBottom: SPACING.sm,
+    paddingBottom: 0,
+    borderRadius: 16,
+  },
+  postHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  authorInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatar: {
+    marginRight: SPACING.sm,
+  },
+  authorDetails: {
+    flex: 1,
+  },
+  authorName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  timestamp: {
+    fontSize: 12,
+    opacity: 0.7,
   },
   contentContainer: {
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  contentText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   mediaContainer: {
+    marginLeft: -SPACING.md,
+    marginRight: -SPACING.md,
+    marginBottom: SPACING.md,
+    borderRadius: 0,
+    overflow: 'hidden',
+  },
+  media: {
     width: '100%',
+    aspectRatio: 1,
+  },
+  mediaLoadingSkeleton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 1,
   },
   videoContainer: {
     position: 'relative',
@@ -171,10 +233,6 @@ const styles = StyleSheet.create({
   video: {
     width: '100%',
     height: '100%',
-  },
-  image: {
-    width: '100%',
-    resizeMode: 'contain',
   },
   videoControls: {
     position: 'absolute',
@@ -205,7 +263,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionsContainer: {
-    padding: SPACING.md,
-    paddingTop: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.md,
   },
 });
