@@ -137,10 +137,10 @@ export default function CustomCameraView({
     setCameraType(current => (current === 'front' ? 'back' : 'front'));
   };
 
-  // Pinch gesture for zoom
+  // Pinch gesture for zoom - slower and more controlled
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
-      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.005)); // Slower zoom speed
+      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.005));
       setZoom(newZoom);
     })
     .runOnJS(true);
@@ -199,13 +199,15 @@ export default function CustomCameraView({
           <CameraView
             style={{ 
               width: width,
-              height: width * 0.8, // 5:4 aspect ratio (width * 4/5) - this gives proper proportions
-              maxHeight: height * 0.7, // Limit height to avoid stretching
+              height: width * 1.25, // 5:4 aspect ratio (width * 5/4)
+              maxHeight: height,
             }}
             facing={cameraType}
             ref={cameraRef}
             mode={cameraMode}
             zoom={zoom}
+            // Use contain to show full image without stretching
+            contentFit="contain"
           />
         </GestureDetector>
       </View>
@@ -238,7 +240,7 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
-        
+
 
         <TouchableOpacity
           onPress={flipCamera}
