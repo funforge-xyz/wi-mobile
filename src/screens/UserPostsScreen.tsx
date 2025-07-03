@@ -122,6 +122,7 @@ export default function UserPostsScreen({ navigation }: any) {
 
   const renderPostItem = ({ item, index }: { item: UserPost; index: number }) => {
     const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
+    const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
     const thumbnailUrl = item.thumbnailURL || item.mediaURL;
     
     return (
@@ -130,7 +131,7 @@ export default function UserPostsScreen({ navigation }: any) {
           styles.gridItem,
           { 
             width: itemWidth, 
-            height: itemWidth,
+            height: itemHeight,
             marginRight: (index + 1) % 3 === 0 ? 0 : 1,
             marginBottom: 1,
           }

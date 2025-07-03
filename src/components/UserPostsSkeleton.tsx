@@ -1,4 +1,3 @@
-
 import { View, StyleSheet, Dimensions } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
@@ -11,99 +10,33 @@ interface UserPostsSkeletonProps {
   count?: number;
 }
 
-export default function UserPostsSkeleton({ count = 3 }: UserPostsSkeletonProps) {
+export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-
   const currentTheme = getTheme(isDarkMode);
 
-  const renderSkeletonPost = (index: number) => (
-    <View key={index} style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
-      {/* Post Header */}
-      <View style={styles.postHeader}>
-        <View style={styles.postAuthorInfo}>
-          <SkeletonLoader
-            width={40}
-            height={40}
-            borderRadius={20}
-            style={styles.avatar}
-          />
-          <View style={styles.authorDetails}>
-            <SkeletonLoader
-              width={120}
-              height={16}
-              borderRadius={8}
-              style={styles.authorName}
-            />
-            <SkeletonLoader
-              width={80}
-              height={12}
-              borderRadius={6}
-              style={styles.timestamp}
-            />
-          </View>
-        </View>
-      </View>
+  const renderSkeletonGridItem = (index: number) => {
+    const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
+    const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio
 
-      {/* Post Content */}
-      <View style={styles.contentContainer}>
-        <SkeletonLoader
-          width={width - (SPACING.md * 4)}
-          height={16}
-          borderRadius={8}
-          style={styles.contentLine}
-        />
-        <SkeletonLoader
-          width={width - (SPACING.md * 6)}
-          height={16}
-          borderRadius={8}
-          style={styles.contentLine}
-        />
-      </View>
-
-      {/* Post Media */}
+    return (
       <SkeletonLoader
-        width={width - (SPACING.md * 4)}
-        height={200}
-        borderRadius={8}
-        style={styles.postMedia}
+        key={index}
+        width={itemWidth}
+        height={itemHeight}
+        borderRadius={0}
+        style={[
+          styles.gridSkeletonItem,
+          {
+            marginRight: (index + 1) % 3 === 0 ? 0 : 1,
+            marginBottom: 1,
+          }
+        ]}
       />
-
-      {/* Post Stats */}
-      <View style={styles.postStats}>
-        <View style={styles.statItem}>
-          <SkeletonLoader
-            width={16}
-            height={16}
-            borderRadius={8}
-            style={styles.statIcon}
-          />
-          <SkeletonLoader
-            width={20}
-            height={12}
-            borderRadius={6}
-            style={styles.statText}
-          />
-        </View>
-        <View style={styles.statItem}>
-          <SkeletonLoader
-            width={16}
-            height={16}
-            borderRadius={8}
-            style={styles.statIcon}
-          />
-          <SkeletonLoader
-            width={15}
-            height={12}
-            borderRadius={6}
-            style={styles.statText}
-          />
-        </View>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderProfileHeader = () => (
-    <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface }]}>
+    <View style={[styles.profileHeader, { backgroundColor: currentTheme.surface, marginHorizontal: 16 }]}>
       <View style={styles.profileRow}>
         <SkeletonLoader
           width={60}
@@ -156,7 +89,9 @@ export default function UserPostsSkeleton({ count = 3 }: UserPostsSkeletonProps)
   return (
     <View style={styles.container}>
       {renderProfileHeader()}
-      {Array.from({ length: count }, (_, index) => renderSkeletonPost(index))}
+      <View style={styles.gridContainer}>
+        {Array.from({ length: count }, (_, index) => renderSkeletonGridItem(index))}
+      </View>
     </View>
   );
 }
@@ -164,7 +99,6 @@ export default function UserPostsSkeleton({ count = 3 }: UserPostsSkeletonProps)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: SPACING.md,
     paddingTop: SPACING.sm,
   },
   profileHeader: {
@@ -197,51 +131,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   statLabel: {},
-  postContainer: {
-    padding: SPACING.md,
-    marginVertical: SPACING.xs,
-    borderRadius: 12,
-  },
-  postHeader: {
+  gridContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
+    flexWrap: 'wrap',
+    paddingHorizontal: 0,
   },
-  postAuthorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  gridSkeletonItem: {
+    backgroundColor: '#f0f0f0',
   },
-  avatar: {
-    marginRight: SPACING.sm,
-  },
-  authorDetails: {
-    flex: 1,
-  },
-  authorName: {
-    marginBottom: SPACING.xs,
-  },
-  timestamp: {},
-  contentContainer: {
-    marginBottom: SPACING.sm,
-  },
-  contentLine: {
-    marginBottom: SPACING.xs,
-  },
-  postMedia: {
-    marginBottom: SPACING.sm,
-  },
-  postStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: SPACING.md,
-  },
-  statIcon: {
-    marginRight: SPACING.xs,
-  },
-  statText: {},
 });
