@@ -88,16 +88,8 @@ export default function SinglePostDisplay({
       {/* Media - Full width, no padding, automatic height */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
-          {isMediaLoading && (
-            <SkeletonLoader
-              width={width}
-              height={300}
-              borderRadius={0}
-              style={styles.mediaLoadingSkeleton}
-            />
-          )}
           {post.mediaType === 'video' && videoPlayer ? (
-            <View style={[styles.videoContainer, isMediaLoading && { display: 'none' }]}>
+            <View style={styles.videoContainer}>
               <VideoView
                 player={videoPlayer}
                 style={styles.video}
@@ -108,40 +100,37 @@ export default function SinglePostDisplay({
                 onLoad={() => setIsMediaLoading(false)}
               />
 
-              {/* Video Controls Overlay - Only show when not loading */}
-              {!isMediaLoading && (
-                <View style={styles.videoControls}>
-                  {/* Play/Pause Button */}
-                  <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={onVideoPlayPause}
-                  >
-                    <Ionicons 
-                      name={isVideoPlaying ? "pause" : "play"} 
-                      size={30} 
-                      color="white" 
-                    />
-                  </TouchableOpacity>
+              {/* Video Controls Overlay */}
+              <View style={styles.videoControls}>
+                {/* Play/Pause Button */}
+                <TouchableOpacity
+                  style={styles.playButton}
+                  onPress={onVideoPlayPause}
+                >
+                  <Ionicons 
+                    name={isVideoPlaying ? "pause" : "play"} 
+                    size={30} 
+                    color="white" 
+                  />
+                </TouchableOpacity>
 
-                  {/* Mute/Unmute Button */}
-                  <TouchableOpacity
-                    style={styles.muteButton}
-                    onPress={onVideoMuteToggle}
-                  >
-                    <Ionicons 
-                      name={isVideoMuted ? "volume-mute" : "volume-high"} 
-                      size={24} 
-                      color="white" 
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
+                {/* Mute/Unmute Button */}
+                <TouchableOpacity
+                  style={styles.muteButton}
+                  onPress={onVideoMuteToggle}
+                >
+                  <Ionicons 
+                    name={isVideoMuted ? "volume-mute" : "volume-high"} 
+                    size={24} 
+                    color="white" 
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <PostMedia
               mediaURL={post.mediaURL}
               mediaType={post.mediaType}
-              style={[styles.media, isMediaLoading && { display: 'none' }]}
               onLoad={() => setIsMediaLoading(false)}
             />
           )}
@@ -213,9 +202,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderRadius: 0,
     overflow: 'hidden',
+    flexDirection: 'row',
   },
   media: {
-    width: '100%',
+    flex: 1,
     aspectRatio: 1,
   },
   mediaLoadingSkeleton: {
@@ -226,8 +216,8 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     position: 'relative',
-    width: '100%',
-    aspectRatio: 16/9, // Default aspect ratio, will adjust based on video
+    flex: 1,
+    aspectRatio: 16/9,
     backgroundColor: 'black',
   },
   video: {
