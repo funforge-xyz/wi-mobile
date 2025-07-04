@@ -9,7 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../config/constants';
+import { COLORS, SPACING } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import { 
   onSnapshot,
