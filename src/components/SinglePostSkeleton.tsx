@@ -63,13 +63,15 @@ export default function SinglePostSkeleton() {
         />
       </View>
 
-      {/* Post Media - Full width, no padding */}
-      <SkeletonLoader
-        width="100%"
-        height={400}
-        borderRadius={0}
-        style={styles.postMedia}
-      />
+      {/* Post Media - Full width, no padding, 4:5 aspect ratio */}
+      <View style={styles.mediaContainer}>
+        <SkeletonLoader
+          width="100%"
+          height="100%"
+          borderRadius={0}
+          style={styles.postMedia}
+        />
+      </View>
 
       {/* Post Actions with padding */}
       <View style={[styles.actionsContainer, { backgroundColor: currentTheme.background }]}>
@@ -185,6 +187,11 @@ const styles = StyleSheet.create({
   },
   contentLine: {
     marginBottom: SPACING.xs,
+  },
+  mediaContainer: {
+    width: '100%',
+    aspectRatio: 4/5,
+    marginBottom: 0,
   },
   postMedia: {
     marginBottom: 0,

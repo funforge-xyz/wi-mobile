@@ -93,8 +93,8 @@ export default function SinglePostDisplay({
           {isMediaLoading && (
             <View style={styles.mediaLoadingSkeleton}>
               <SkeletonLoader
-                width="100%"
-                height="100%"
+                width={width}
+                height={width * 5/4}
                 borderRadius={0}
               />
             </View>
@@ -112,7 +112,9 @@ export default function SinglePostDisplay({
                 allowsPictureInPicture={false}
                 nativeControls={false}
                 contentFit="cover"
+                onLoadStart={() => setIsMediaLoading(true)}
                 onLoad={() => setIsMediaLoading(false)}
+                onError={() => setIsMediaLoading(false)}
               />
 
               {/* Video Controls Overlay */}
@@ -233,7 +235,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 1,
+    zIndex: 10,
+    backgroundColor: 'transparent',
   },
   videoContainer: {
     position: 'relative',
