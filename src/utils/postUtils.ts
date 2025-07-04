@@ -6,12 +6,13 @@ import { authService } from '../services/auth';
 
 export interface PostData {
   content: string;
-  mediaURL: string;
-  mediaType: 'image' | 'video';
+  mediaURL?: string;
+  mediaType?: 'image' | 'video';
   fileExtension?: string;
   postType: 'picture' | 'video' | 'text';
   allowComments: boolean;
   showLikeCount: boolean;
+  isFrontCamera?: boolean;
 }
 
 export const createPost = async (
@@ -70,6 +71,7 @@ export const createPost = async (
       allowComments: postData.allowComments,
       showLikeCount: postData.showLikeCount,
       createdAt: serverTimestamp(),
+      ...(postData.isFrontCamera !== undefined && { isFrontCamera: postData.isFrontCamera }),
     });
 
     return newPostDoc.id;

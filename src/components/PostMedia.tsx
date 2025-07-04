@@ -5,6 +5,50 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface PostMediaProps {
   mediaURL: string;
+  mediaType: 'image' | 'video';
+  thumbnailURL?: string;
+  isFrontCamera?: boolean;
+  style?: ViewStyle;
+  onPress?: () => void;
+}
+
+export default function PostMedia({ 
+  mediaURL, 
+  mediaType, 
+  thumbnailURL, 
+  isFrontCamera, 
+  style, 
+  onPress 
+}: PostMediaProps) {
+  const mediaStyle = [
+    style,
+    isFrontCamera && { transform: [{ scaleX: -1 }] }
+  ];
+
+  if (mediaType === 'image') {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+        <Image
+          source={{ uri: mediaURL }}
+          style={mediaStyle}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
+    );
+  }
+
+  // Video rendering logic would go here
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+      <View style={mediaStyle}>
+        {/* Video player implementation */}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+interface PostMediaProps {
+  mediaURL: string;
   mediaType?: 'image' | 'video';
   style?: ViewStyle;
   thumbnailURL?: string;

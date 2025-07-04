@@ -15,7 +15,7 @@ const { width, height } = Dimensions.get('window');
 
 interface CustomCameraViewProps {
   onClose: () => void;
-  onMediaCaptured: (uri: string, type: 'image' | 'video') => void;
+  onMediaCaptured: (uri: string, type: 'image' | 'video', isFrontCamera?: boolean) => void;
   currentTheme: any;
 }
 
@@ -77,7 +77,7 @@ export default function CustomCameraView({
           aspect: [4, 5],
         });
         console.log('Picture taken:', photo.uri);
-        onMediaCaptured(photo.uri, 'image');
+        onMediaCaptured(photo.uri, 'image', cameraType === 'front');
       } catch (error) {
         console.error('Error taking picture:', error);
         Alert.alert(t('common.error'), t('camera.errorTakingPicture', 'Failed to take picture'));
@@ -111,7 +111,7 @@ export default function CustomCameraView({
 
           console.log('Video recording completed:', video);
           setVideoUri(video.uri);
-          onMediaCaptured(video.uri, 'video');
+          onMediaCaptured(video.uri, 'video', cameraType === 'front');
           setRecording(false);
           setRecordingSeconds(0);
           if (recordingInterval.current) {

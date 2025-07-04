@@ -28,6 +28,7 @@ interface ConnectionPost {
   isLikedByUser: boolean;
   isAuthorOnline: boolean;
   isFromConnection: boolean;
+  isFrontCamera?: boolean;
 }
 
 interface PostItemProps {
@@ -68,9 +69,10 @@ export default function PostItem({ post, onLike, currentTheme, navigation, showI
       )}
 
       {post.mediaURL && (
-        <PostMedia 
+        <PostMedia
           mediaURL={post.mediaURL}
           mediaType={post.mediaType}
+          isFrontCamera={post.isFrontCamera}
           style={styles.media}
           showBorderRadius={showImageBorderRadius}
         />

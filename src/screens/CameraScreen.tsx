@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 const { width, height } = Dimensions.get('window');
 
 export default function CameraScreen() {
-  const [capturedMedia, setCapturedMedia] = useState<{uri: string, type: 'image' | 'video'} | null>(null);
+  const [capturedMedia, setCapturedMedia] = useState<{uri: string, type: 'image' | 'video', isFrontCamera?: boolean} | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -30,9 +30,9 @@ export default function CameraScreen() {
     navigation.goBack();
   };
 
-  const handleMediaCaptured = (uri: string, type: 'image' | 'video') => {
-    console.log(`Media captured: ${type} - ${uri}`);
-    setCapturedMedia({ uri, type });
+  const handleMediaCaptured = (uri: string, type: 'image' | 'video', isFrontCamera?: boolean) => {
+    console.log(`Media captured: ${type} - ${uri} - Front camera: ${isFrontCamera}`);
+    setCapturedMedia({ uri, type, isFrontCamera });
     setShowPreview(true);
     setIsPlaying(false);
   };
@@ -54,7 +54,8 @@ export default function CameraScreen() {
       // Navigate to create post screen with the media
       navigation.navigate('CreatePost', { 
         mediaUri: capturedMedia.uri, 
-        mediaType: capturedMedia.type 
+        mediaType: capturedMedia.type,
+        isFrontCamera: capturedMedia.isFrontCamera
       });
     }
   };
@@ -196,13 +197,19 @@ export default function CameraScreen() {
             {capturedMedia.type === 'image' ? (
               <Image
                 source={{ uri: capturedMedia.uri }}
-                style={styles.image}
+                style={[
+                  styles.image,
+                  capturedMedia.isFrontCamera && { transform: [{ scaleX: -1 }] }
+                ]}
                 resizeMode="contain"
               />
             ) : (
               <View style={{ position: 'relative' }}>
                 <VideoView
-                  style={styles.video}
+                  style={[
+                    styles.video,
+                    capturedMedia.isFrontCamera && { transform: [{ scaleX: -1 }] }
+                  ]}
                   player={player}
                   allowsFullscreen={false}
                   allowsPictureInPicture={false}

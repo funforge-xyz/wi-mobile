@@ -31,6 +31,7 @@ const { width, height } = Dimensions.get('window');
 interface CreatePostRouteParams {
   mediaUri: string;
   mediaType: 'image' | 'video';
+  isFrontCamera?: boolean;
 }
 
 export default function CreatePostScreen() {
@@ -52,7 +53,7 @@ export default function CreatePostScreen() {
 
   const navigation = useNavigation();
   const route = useRoute();
-  const { mediaUri, mediaType } = route.params as CreatePostRouteParams;
+  const { mediaUri, mediaType, isFrontCamera } = route.params as CreatePostRouteParams;
 
   // Initialize video player for video preview - exact same as CameraScreen
   const previewPlayer = useVideoPlayer(mediaUri && mediaType === 'video' ? mediaUri : '', player => {
@@ -201,6 +202,7 @@ export default function CreatePostScreen() {
         postType: postType,
         allowComments,
         showLikeCount,
+        isFrontCamera: isFrontCamera,
       };
 
       const translateWrapper = (key: string, fallback?: string) => {
@@ -285,14 +287,21 @@ export default function CreatePostScreen() {
           {mediaType === 'image' ? (
             <Image 
               source={{ uri: mediaUri }} 
-              style={[styles.mediaPreview, { borderRadius: 8 }]}
+              style={[
+                styles.mediaPreview, 
+                { borderRadius: 8 },
+                isFrontCamera && { transform: [{ scaleX: -1 }] }
+              ]}
               resizeMode="contain"
             />
           ) : (
             <View style={styles.videoPreviewContainer}>
               <View style={{ position: 'relative', width: '100%', height: '100%' }}>
               <VideoView
-                style={styles.mediaPreview}
+                style={[
+                  styles.mediaPreview,
+                  isFrontCamera && { transform: [{ scaleX: -1 }] }
+                ]}
                 player={previewPlayer}
                 allowsFullscreen={false}
                 allowsPictureInPicture={false}
