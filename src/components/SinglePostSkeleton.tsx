@@ -140,28 +140,6 @@ export default function SinglePostSkeleton() {
           </View>
         ))}
       </View>
-
-      {/* Comment Input - Fixed at bottom */}
-      <View style={[styles.commentInput, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
-        <SkeletonLoader
-          width={32}
-          height={32}
-          borderRadius={16}
-          style={styles.inputAvatar}
-        />
-        <SkeletonLoader
-          width="70%"
-          height={36}
-          borderRadius={18}
-          style={styles.inputField}
-        />
-        <SkeletonLoader
-          width={32}
-          height={32}
-          borderRadius={16}
-          style={styles.sendButton}
-        />
-      </View>
     </View>
   );
 }
@@ -250,19 +228,4 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   commentText: {},
-  commentInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderTopWidth: 1,
-  },
-  inputAvatar: {
-    marginRight: SPACING.sm,
-  },
-  inputField: {
-    flex: 1,
-    marginRight: SPACING.sm,
-  },
-  sendButton: {},
 });
