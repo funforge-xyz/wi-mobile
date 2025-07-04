@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -47,6 +47,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [messageUnsubscribe, setMessageUnsubscribe] = useState<(() => void) | null>(null);
+  const messagesListRef = useRef<any>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -185,6 +186,11 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         translateWrapper
       );
 
+      // Scroll to top (latest message) for inverted list
+      setTimeout(() => {
+        messagesListRef.current?.scrollToTop();
+      }, 100);
+
     } catch (error) {
       console.error('Error sending message:', error);
       setNewMessage(messageToSend);
@@ -282,6 +288,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         />
       ) : (
         <ChatMessagesList
+          ref={messagesListRef}
           messages={messages}
           currentUserId={getCurrentUserId()}
           currentTheme={currentTheme}

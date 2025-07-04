@@ -1,5 +1,5 @@
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { FlatList, ActivityIndicator, View } from 'react-native';
 import { SPACING, COLORS } from '../config/constants';
 import ChatMessage from './ChatMessage';
@@ -24,16 +24,22 @@ interface ChatMessagesListProps {
   loadingMore?: boolean;
 }
 
-export default function ChatMessagesList({
+export default forwardRef<any, ChatMessagesListProps>(function ChatMessagesList({
   messages,
   currentUserId,
   currentTheme,
   onLoadMore,
   hasMoreMessages = false,
   loadingMore = false,
-}: ChatMessagesListProps) {
+}, ref) {
   const flatListRef = useRef<FlatList>(null);
   const [isScrollingUp, setIsScrollingUp] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    scrollToTop: () => {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
+  }));
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => (
     <ChatMessage
@@ -76,7 +82,7 @@ export default function ChatMessagesList({
       showsVerticalScrollIndicator={false}
     />
   );
-}
+});
 
 const styles = {
   messagesList: {
