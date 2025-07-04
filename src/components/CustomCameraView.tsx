@@ -330,7 +330,7 @@ export default function CustomCameraView({
         </View>
       </View>
 
-      {/* Max Recording Message */}
+      {/* Max Recording Message or Recording Counter */}
       {cameraMode === 'video' && (
         <View
           style={{
@@ -341,20 +341,53 @@ export default function CustomCameraView({
             alignItems: 'center',
           }}
         >
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 12,
-              textAlign: 'center',
-              opacity: 0.8,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              borderRadius: 12,
-            }}
-          >
-            {t('camera.maxRecording')}
-          </Text>
+          {recording ? (
+            <View
+              style={{
+                backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: 'white',
+                  marginRight: 8,
+                }}
+              />
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}
+              >
+                {String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:
+                {String(recordingSeconds % 60).padStart(2, '0')}
+              </Text>
+            </View>
+          ) : (
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 12,
+                textAlign: 'center',
+                opacity: 0.8,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                borderRadius: 12,
+              }}
+            >
+              {t('camera.maxRecording')}
+            </Text>
+          )}
         </View>
       )}
 
@@ -421,48 +454,7 @@ export default function CustomCameraView({
         </View>
       </View>
 
-      {/* Recording Counter - positioned over video area */}
-      {recording && (
-        <View
-          style={{
-            position: 'absolute',
-            top: height * 0.1 + 20, // Position relative to video area top
-            right: 20,
-            zIndex: 15,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: 'rgba(255, 0, 0, 0.9)',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: 'white',
-                marginRight: 8,
-              }}
-            />
-            <Text
-              style={{
-                color: 'white',
-                fontSize: 16,
-                fontWeight: '600',
-              }}
-            >
-              {String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:
-              {String(recordingSeconds % 60).padStart(2, '0')}
-            </Text>
-          </View>
-        </View>
-      )}
+      
 
       {/* Bottom Controls */}
       <View
