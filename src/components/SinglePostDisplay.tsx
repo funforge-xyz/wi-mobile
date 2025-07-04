@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   contentContainer: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   contentText: {
     fontSize: 14,
@@ -312,6 +312,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
 });
