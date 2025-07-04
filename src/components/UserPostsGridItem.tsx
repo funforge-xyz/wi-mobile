@@ -45,17 +45,6 @@ export default function UserPostsGridItem({
   const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
   const thumbnailUrl = item.thumbnailURL || item.mediaURL;
 
-  // Debug logging for video thumbnails
-  if (item.mediaType === 'video') {
-    console.log('Video post:', {
-      id: item.id,
-      thumbnailURL: item.thumbnailURL,
-      mediaURL: item.mediaURL,
-      finalUrl: thumbnailUrl,
-      fullItem: item
-    });
-  }
-
   return (
     <TouchableOpacity
       style={[
