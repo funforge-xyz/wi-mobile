@@ -421,12 +421,12 @@ export default function CustomCameraView({
         </View>
       </View>
 
-      {/* Recording Counter - top right corner */}
+      {/* Recording Counter - positioned over video area */}
       {recording && (
         <View
           style={{
             position: 'absolute',
-            top: 60,
+            top: height * 0.1 + 20, // Position relative to video area top
             right: 20,
             zIndex: 15,
           }}
