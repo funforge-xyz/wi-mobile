@@ -62,9 +62,7 @@ const styles = {
   inputContainer: {
     flexDirection: 'row' as const,
     alignItems: 'flex-end' as const,
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.lg,
+    padding: SPACING.md,
     borderTopWidth: 1,
   },
   textInput: {
