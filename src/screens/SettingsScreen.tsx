@@ -261,7 +261,7 @@ export default function SettingsScreen() {
     setIsLoading(false);
   };
 
-  
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
@@ -376,7 +376,7 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        
+
       </ScrollView>
 
       {/* Edit Profile Modal */}
