@@ -93,7 +93,10 @@ export default function SinglePostDisplay({
             <View style={styles.videoContainer}>
               <VideoView
                 player={videoPlayer}
-                style={styles.video}
+                style={[
+                  styles.video,
+                  post.isFrontCamera && { transform: [{ scaleX: -1 }] }
+                ]}
                 allowsFullscreen={false}
                 allowsPictureInPicture={false}
                 nativeControls={false}
