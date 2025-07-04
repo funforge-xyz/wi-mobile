@@ -28,6 +28,7 @@ interface Post {
   showLikeCount: boolean;
   allowComments: boolean;
   isPrivate?: boolean;
+  isFrontCamera?: boolean;
 }
 
 interface SinglePostDisplayProps {
@@ -132,6 +133,7 @@ export default function SinglePostDisplay({
               mediaURL={post.mediaURL}
               mediaType={post.mediaType}
               onLoad={() => setIsMediaLoading(false)}
+              isFrontCamera={post.isFrontCamera}
             />
           )}
         </View>

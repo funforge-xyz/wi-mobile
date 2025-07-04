@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { useAppSelector } from '../hooks/redux';
@@ -14,13 +15,12 @@ export default function SinglePostSkeleton() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
         <SkeletonLoader width={24} height={24} borderRadius={12} />
-        <SkeletonLoader width={100} height={18} borderRadius={9} />
-        <View style={{ width: 24 }} />
+        <View style={{ flex: 1 }} />
+        <SkeletonLoader width={24} height={24} borderRadius={12} />
       </View>
 
-      {/* Post Container */}
-      <View style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
-        {/* Post Header */}
+      {/* Post Header with padding */}
+      <View style={[styles.postHeaderContainer, { backgroundColor: currentTheme.background }]}>
         <View style={styles.postHeader}>
           <View style={styles.authorInfo}>
             <SkeletonLoader
@@ -45,40 +45,40 @@ export default function SinglePostSkeleton() {
             </View>
           </View>
         </View>
-
-        {/* Post Content */}
-        <View style={styles.contentContainer}>
-          <SkeletonLoader
-            width="100%"
-            height={16}
-            borderRadius={8}
-            style={styles.contentLine}
-          />
-          <SkeletonLoader
-            width="80%"
-            height={16}
-            borderRadius={8}
-            style={styles.contentLine}
-          />
-        </View>
       </View>
 
-      {/* Post Media - Full width */}
+      {/* Post Content with padding */}
+      <View style={[styles.contentContainer, { backgroundColor: currentTheme.background }]}>
+        <SkeletonLoader
+          width="100%"
+          height={16}
+          borderRadius={8}
+          style={styles.contentLine}
+        />
+        <SkeletonLoader
+          width="80%"
+          height={16}
+          borderRadius={8}
+          style={styles.contentLine}
+        />
+      </View>
+
+      {/* Post Media - Full width, no padding */}
       <SkeletonLoader
         width="100%"
-        height={300}
+        height={400}
         borderRadius={0}
         style={styles.postMedia}
       />
 
-      {/* Post Actions Container */}
-      <View style={[styles.actionsOuterContainer, { backgroundColor: currentTheme.surface }]}>
-        <View style={styles.actionsContainer}>
+      {/* Post Actions with padding */}
+      <View style={[styles.actionsContainer, { backgroundColor: currentTheme.background }]}>
+        <View style={styles.actionRow}>
           <View style={styles.actionItem}>
             <SkeletonLoader
-              width={20}
-              height={20}
-              borderRadius={10}
+              width={24}
+              height={24}
+              borderRadius={12}
               style={styles.actionIcon}
             />
             <SkeletonLoader
@@ -90,9 +90,9 @@ export default function SinglePostSkeleton() {
           </View>
           <View style={styles.actionItem}>
             <SkeletonLoader
-              width={20}
-              height={20}
-              borderRadius={10}
+              width={24}
+              height={24}
+              borderRadius={12}
               style={styles.actionIcon}
             />
             <SkeletonLoader
@@ -105,8 +105,8 @@ export default function SinglePostSkeleton() {
         </View>
       </View>
 
-      {/* Comments Section */}
-      <View style={[styles.commentsSection, { backgroundColor: currentTheme.surface }]}>
+      {/* Comments Section with padding */}
+      <View style={[styles.commentsSection, { backgroundColor: currentTheme.background }]}>
         <SkeletonLoader
           width={120}
           height={18}
@@ -140,6 +140,28 @@ export default function SinglePostSkeleton() {
           </View>
         ))}
       </View>
+
+      {/* Comment Input - Fixed at bottom */}
+      <View style={[styles.commentInput, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
+        <SkeletonLoader
+          width={32}
+          height={32}
+          borderRadius={16}
+          style={styles.inputAvatar}
+        />
+        <SkeletonLoader
+          width="70%"
+          height={36}
+          borderRadius={18}
+          style={styles.inputField}
+        />
+        <SkeletonLoader
+          width={32}
+          height={32}
+          borderRadius={16}
+          style={styles.sendButton}
+        />
+      </View>
     </View>
   );
 }
@@ -156,16 +178,14 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
   },
-  postContainer: {
-    margin: SPACING.md,
-    padding: SPACING.md,
-    paddingBottom: 0,
-    borderRadius: 16,
+  postHeaderContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
   },
   postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
   },
   authorInfo: {
     flexDirection: 'row',
@@ -182,7 +202,8 @@ const styles = StyleSheet.create({
   },
   timestamp: {},
   contentContainer: {
-    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.md,
   },
   contentLine: {
     marginBottom: SPACING.xs,
@@ -190,13 +211,11 @@ const styles = StyleSheet.create({
   postMedia: {
     marginBottom: 0,
   },
-  actionsOuterContainer: {
-    margin: SPACING.md,
-    marginTop: 0,
-    padding: SPACING.md,
-    borderRadius: 16,
-  },
   actionsContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -210,10 +229,9 @@ const styles = StyleSheet.create({
   },
   actionText: {},
   commentsSection: {
-    margin: SPACING.md,
-    marginTop: 0,
-    padding: SPACING.md,
-    borderRadius: 16,
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
   },
   commentsTitle: {
     marginBottom: SPACING.md,
@@ -232,4 +250,19 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   commentText: {},
+  commentInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderTopWidth: 1,
+  },
+  inputAvatar: {
+    marginRight: SPACING.sm,
+  },
+  inputField: {
+    flex: 1,
+    marginRight: SPACING.sm,
+  },
+  sendButton: {},
 });

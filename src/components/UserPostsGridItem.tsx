@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +19,7 @@ interface UserPost {
   allowComments: boolean;
   isPrivate: boolean;
   isLikedByUser?: boolean;
+  isFrontCamera?: boolean;
 }
 
 interface UserPostsGridItemProps {
@@ -32,19 +32,19 @@ interface UserPostsGridItemProps {
 
 const { width } = Dimensions.get('window');
 
-export default function UserPostsGridItem({ 
-  item, 
-  index, 
-  onPress, 
-  currentTheme, 
-  styles 
+export default function UserPostsGridItem({
+  item,
+  index,
+  onPress,
+  currentTheme,
+  styles,
 }: UserPostsGridItemProps) {
   const [imageLoading, setImageLoading] = useState(true);
-  
+
   const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
   const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
   const thumbnailUrl = item.thumbnailURL || item.mediaURL;
-  
+
   // Debug logging for video thumbnails
   if (item.mediaType === 'video') {
     console.log('Video post:', {
@@ -55,13 +55,13 @@ export default function UserPostsGridItem({
       fullItem: item
     });
   }
-  
+
   return (
     <TouchableOpacity
       style={[
         styles.gridItem,
-        { 
-          width: itemWidth, 
+        {
+          width: itemWidth,
           height: itemHeight,
           marginRight: (index + 1) % 3 === 0 ? 0 : 1,
           marginBottom: 1,
@@ -74,7 +74,7 @@ export default function UserPostsGridItem({
           {imageLoading && (
             <View style={[
               styles.gridItemSkeleton,
-              { 
+              {
                 position: 'absolute',
                 top: 0,
                 left: 0,
@@ -92,7 +92,7 @@ export default function UserPostsGridItem({
           )}
           <Image
             source={{ uri: thumbnailUrl }}
-            style={styles.gridItemImage}
+            style={[styles.gridItemImage, item.isFrontCamera && { transform: [{ scaleX: -1 }] }]}
             resizeMode="cover"
             onLoad={() => setImageLoading(false)}
             onError={() => setImageLoading(false)}
@@ -100,10 +100,10 @@ export default function UserPostsGridItem({
         </>
       ) : (
         <View style={[styles.gridItemPlaceholder, { backgroundColor: currentTheme.surface }]}>
-          <Ionicons 
-            name="image-outline" 
-            size={24} 
-            color={currentTheme.textSecondary} 
+          <Ionicons
+            name="image-outline"
+            size={24}
+            color={currentTheme.textSecondary}
           />
         </View>
       )}
