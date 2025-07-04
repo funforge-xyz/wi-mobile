@@ -64,17 +64,39 @@ export default function SinglePostDisplay({
   onVideoPlayPause,
   onVideoMuteToggle,
 }: SinglePostDisplayProps) {
-  const [mediaLoaded, setMediaLoaded] = useState(false);
+  const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
+  const [lastTap, setLastTap] = useState<number | null>(null);
   const likeAnimationScale = useRef(new Animated.Value(1)).current;
   const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
 
   console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
 
   useEffect(() => {
-   if(!isVideoLoading) {
-    setIsMediaLoading(!!isVideoLoading);
-   }
+    if (!isVideoLoading) {
+      setIsMediaLoading(!!isVideoLoading);
+    }
   }, [isVideoLoading]);
+
+  const triggerLikeAnimation = () => {
+    // Reset animation values
+    likeAnimationScale.setValue(0);
+    likeAnimationOpacity.setValue(1);
+
+    // Animate scale and opacity
+    Animated.parallel([
+      Animated.timing(likeAnimationScale, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(likeAnimationOpacity, {
+        toValue: 0,
+        duration: 300,
+        delay: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const handleDoubleTap = () => {
     const now = Date.now();
@@ -84,6 +106,7 @@ export default function SinglePostDisplay({
       // This is a double tap - only like if not already liked
       if (!liked) {
         onLikePress();
+        triggerLikeAnimation();
       }
       setLastTap(null);
     } else {
@@ -120,6 +143,17 @@ export default function SinglePostDisplay({
       {post.mediaURL && (
         <TouchableWithoutFeedback onPress={handleDoubleTap}>
           <View style={styles.mediaContainer}>
+          {/* Animated heart overlay */}
+          <Animated.View style={[
+            styles.likeAnimationOverlay,
+            {
+              opacity: likeAnimationOpacity,
+              transform: [{ scale: likeAnimationScale }]
+            }
+          ]}>
+            <Ionicons name="heart" size={80} color="white" />
+          </Animated.View>
+
           {/* Shimmer skeleton overlay while loading */}
           {isMediaLoading && (
             <View style={styles.mediaLoadingSkeleton}>
@@ -315,5 +349,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
     marginBottom: SPACING.sm,
+  },
+  likeAnimationOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+    pointerEvents: 'none',
   },
 });
