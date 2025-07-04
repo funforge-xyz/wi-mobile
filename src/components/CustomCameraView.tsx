@@ -193,21 +193,21 @@ export default function CustomCameraView({
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center', 
-        backgroundColor: currentTheme.background 
+        backgroundColor: 'black' 
       }}>
-        <Text style={{ color: currentTheme.text, marginBottom: 20 }}>
+        <Text style={{ color: 'white', marginBottom: 20 }}>
           {t('camera.permissionRequired')}
         </Text>
         <TouchableOpacity
           style={{
-            backgroundColor: currentTheme.primary,
+            backgroundColor: 'white',
             paddingHorizontal: 20,
             paddingVertical: 10,
             borderRadius: 8,
           }}
           onPress={onClose}
         >
-          <Text style={{ color: currentTheme.background }}>
+          <Text style={{ color: 'black' }}>
             {t('common.close')}
           </Text>
         </TouchableOpacity>
@@ -218,10 +218,10 @@ export default function CustomCameraView({
   return (
     <View style={{ 
       flex: 1, 
-      backgroundColor: currentTheme.background
+      backgroundColor: 'black'
     }}>
       {/* Camera View with 4:5 aspect ratio */}
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: currentTheme.background }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
         <GestureDetector gesture={pinchGesture}>
           <CameraView
             style={{ 
