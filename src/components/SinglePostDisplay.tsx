@@ -179,7 +179,7 @@ export default function SinglePostDisplay({
                   transform: [{ scale: likeAnimationScale }]
                 }
               ]}>
-                <Ionicons name="heart" size={80} color="white" />
+                <Ionicons name="heart" size={80} color="red" />
               </Animated.View>
 
               {/* Video Controls Overlay */}

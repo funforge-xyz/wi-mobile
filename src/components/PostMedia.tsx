@@ -47,7 +47,7 @@ export default function PostMedia({
   ];
 
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
-  
+
   const touchProps = onDoubleTap 
     ? { onPress: onDoubleTap }
     : { onPress: onPress, activeOpacity: 0.9 };
@@ -85,7 +85,7 @@ export default function PostMedia({
                             transform: [{ scale: likeAnimationScale }]
                           }
                         ]}>
-                          <Ionicons name="heart" size={80} color="white" />
+                          <Ionicons name="heart" size={80} color="red" />
                         </Animated.View>
                       )}
     </View>
@@ -119,7 +119,7 @@ export default function PostMedia({
             transform: [{ scale: likeAnimationScale }]
           }
         ]}>
-          <Ionicons name="heart" size={80} color="white" />
+          <Ionicons name="heart" size={80} color="red" />
         </Animated.View>
       )}
     </View>
