@@ -211,8 +211,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       
       if (olderMessages.length > 0) {
         setMessages(prevMessages => {
-          const newMessages = [...olderMessages, ...prevMessages];
+          // Create a Set of existing message IDs to prevent duplicates
+          const existingIds = new Set(prevMessages.map(msg => msg.id));
+          
+          // Filter out any messages that already exist
+          const uniqueOlderMessages = olderMessages.filter(msg => !existingIds.has(msg.id));
+          
+          const newMessages = [...uniqueOlderMessages, ...prevMessages];
           console.log('Total messages after load more:', newMessages.length);
+          console.log('Unique older messages added:', uniqueOlderMessages.length);
           return newMessages;
         });
       }

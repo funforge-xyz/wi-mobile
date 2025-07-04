@@ -35,7 +35,7 @@ export default function ChatMessagesList({
   const flatListRef = useRef<FlatList>(null);
   const [isScrollingUp, setIsScrollingUp] = useState(false);
 
-  const renderMessage = ({ item }: { item: Message }) => (
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => (
     <ChatMessage
       message={item}
       isMyMessage={item.senderId === currentUserId}
@@ -90,7 +90,7 @@ export default function ChatMessagesList({
     <FlatList
       ref={flatListRef}
       data={messages}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item, index) => `${item.id}-${index}`}
       renderItem={renderMessage}
       style={styles.messagesList}
       contentContainerStyle={styles.messagesContent}
