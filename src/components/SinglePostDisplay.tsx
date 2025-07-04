@@ -86,9 +86,20 @@ export default function SinglePostDisplay({
         </View>
       ) : null}
 
-      {/* Media - Full width, no padding, automatic height */}
+      {/* Media - Full width, no padding, 4:5 aspect ratio */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
+          {/* Shimmer skeleton overlay while loading */}
+          {isMediaLoading && (
+            <View style={styles.mediaLoadingSkeleton}>
+              <SkeletonLoader
+                width="100%"
+                height="100%"
+                borderRadius={0}
+              />
+            </View>
+          )}
+
           {post.mediaType === 'video' && videoPlayer ? (
             <View style={styles.videoContainer}>
               <VideoView
@@ -100,36 +111,38 @@ export default function SinglePostDisplay({
                 allowsFullscreen={false}
                 allowsPictureInPicture={false}
                 nativeControls={false}
-                contentFit="contain"
+                contentFit="cover"
                 onLoad={() => setIsMediaLoading(false)}
               />
 
               {/* Video Controls Overlay */}
-              <View style={styles.videoControls}>
-                {/* Play/Pause Button */}
-                <TouchableOpacity
-                  style={styles.playButton}
-                  onPress={onVideoPlayPause}
-                >
-                  <Ionicons 
-                    name={isVideoPlaying ? "pause" : "play"} 
-                    size={30} 
-                    color="white" 
-                  />
-                </TouchableOpacity>
+              {!isMediaLoading && (
+                <View style={styles.videoControls}>
+                  {/* Play/Pause Button */}
+                  <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={onVideoPlayPause}
+                  >
+                    <Ionicons 
+                      name={isVideoPlaying ? "pause" : "play"} 
+                      size={30} 
+                      color="white" 
+                    />
+                  </TouchableOpacity>
 
-                {/* Mute/Unmute Button */}
-                <TouchableOpacity
-                  style={styles.muteButton}
-                  onPress={onVideoMuteToggle}
-                >
-                  <Ionicons 
-                    name={isVideoMuted ? "volume-mute" : "volume-high"} 
-                    size={24} 
-                    color="white" 
-                  />
-                </TouchableOpacity>
-              </View>
+                  {/* Mute/Unmute Button */}
+                  <TouchableOpacity
+                    style={styles.muteButton}
+                    onPress={onVideoMuteToggle}
+                  >
+                    <Ionicons 
+                      name={isVideoMuted ? "volume-mute" : "volume-high"} 
+                      size={24} 
+                      color="white" 
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           ) : (
             <PostMedia
@@ -137,6 +150,7 @@ export default function SinglePostDisplay({
               mediaType={post.mediaType}
               onLoad={() => setIsMediaLoading(false)}
               isFrontCamera={post.isFrontCamera}
+              style={styles.media}
             />
           )}
         </View>
@@ -202,27 +216,29 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   mediaContainer: {
-    marginLeft: -SPACING.md,
-    marginRight: -SPACING.md,
+    width: '100%',
+    aspectRatio: 4/5,
     marginBottom: SPACING.md,
     borderRadius: 0,
     overflow: 'hidden',
-    flexDirection: 'row',
+    backgroundColor: 'black',
   },
   media: {
-    flex: 1,
-    aspectRatio: 1,
+    width: '100%',
+    height: '100%',
   },
   mediaLoadingSkeleton: {
     position: 'absolute',
     top: 0,
     left: 0,
+    right: 0,
+    bottom: 0,
     zIndex: 1,
   },
   videoContainer: {
     position: 'relative',
-    flex: 1,
-    aspectRatio: 16/9,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'black',
   },
   video: {

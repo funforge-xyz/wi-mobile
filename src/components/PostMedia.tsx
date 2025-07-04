@@ -71,7 +71,7 @@ export default function PostMedia({
         <Image
           source={{ uri: mediaURL }}
           style={styles.media}
-          resizeMode="contain"
+          resizeMode="cover"
           onLoad={onLoad}
         />
       </View>
@@ -81,17 +81,17 @@ export default function PostMedia({
 
 const styles = StyleSheet.create({
   mediaContainer: {
-    flexDirection: 'row',
     width: '100%',
+    height: '100%',
   },
   media: {
-    flex: 1,
-    aspectRatio: 4 / 5, // 4:5 aspect ratio
+    width: '100%',
+    height: '100%',
     borderRadius: 0,
   },
   video: {
-    flex: 1,
-    aspectRatio: 4 / 5, // 4:5 aspect ratio
+    width: '100%',
+    height: '100%',
     borderRadius: 0,
   },
 });
