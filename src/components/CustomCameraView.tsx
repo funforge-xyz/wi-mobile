@@ -198,9 +198,9 @@ export default function CustomCameraView({
         <GestureDetector gesture={pinchGesture}>
           <CameraView
             style={{ 
-              width: width,
-              height: width * 1.25, // 4:5 aspect ratio (width * 5/4) - full screen width
-              maxHeight: height * 0.8,
+              width: Math.min(width, height * 0.8), // Use smaller dimension to prevent stretching
+              height: Math.min(width, height * 0.8) * 1.25, // 4:5 aspect ratio
+              borderRadius: 8,
             }}
             facing={cameraType}
             ref={cameraRef}
