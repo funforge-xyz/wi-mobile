@@ -282,7 +282,17 @@ export default function CustomCameraView({
               marginRight: 10,
             }}
           >
-            <Ionicons name={flash === 'off' ? "flash-off" : flash === 'on' ? "flash" : "flash-auto"} size={24} color="white" />
+            <Ionicons name={flash === 'off' ? "flash-off" : "flash"} size={24} color="white" />
+            {flash === 'auto' && (
+              <Text style={{
+                position: 'absolute',
+                fontSize: 10,
+                color: 'white',
+                fontWeight: 'bold',
+                bottom: 2,
+                right: 2,
+              }}>A</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
