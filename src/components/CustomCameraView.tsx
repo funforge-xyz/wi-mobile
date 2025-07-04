@@ -289,8 +289,8 @@ export default function CustomCameraView({
                 fontSize: 10,
                 color: 'white',
                 fontWeight: 'bold',
-                bottom: 2,
-                right: 2,
+                bottom: 8,
+                right: 8,
               }}>A</Text>
             )}
           </TouchableOpacity>
