@@ -11,7 +11,7 @@ import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import PostActions from './PostActions';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SkeletonLoader from './SkeletonLoader';
 
 const { width } = Dimensions.get('window');
@@ -41,6 +41,7 @@ interface SinglePostDisplayProps {
   currentTheme: any;
   videoPlayer?: any;
   isVideoPlaying?: boolean;
+  isVideoLoading?: boolean;
   isVideoMuted?: boolean;
   onVideoPlayPause?: () => void;
   onVideoMuteToggle?: () => void;
@@ -59,10 +60,17 @@ export default function SinglePostDisplay({
   isVideoMuted,
   onVideoPlayPause,
   onVideoMuteToggle,
+  isVideoLoading
 }: SinglePostDisplayProps) {
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
   
   console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
+
+  useEffect(() => {
+   if(!isVideoLoading) {
+    setIsMediaLoading(!!isVideoLoading);
+   }
+  }, [isVideoLoading]);
 
   return (
     <View style={{ backgroundColor: currentTheme.background }}>
@@ -114,18 +122,6 @@ export default function SinglePostDisplay({
                 allowsPictureInPicture={false}
                 nativeControls={false}
                 contentFit="cover"
-                onLoad={() => {
-                  console.log('Video loaded successfully');
-                  setIsMediaLoading(false);
-                }}
-                onError={(error) => {
-                  console.log('Video load error:', error);
-                  setIsMediaLoading(false);
-                }}
-                onReadyForDisplay={() => {
-                  console.log('Video ready for display');
-                  setIsMediaLoading(false);
-                }}
               />
 
               {/* Video Controls Overlay */}

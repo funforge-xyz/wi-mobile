@@ -50,6 +50,7 @@ import {
 } from '../utils/singlePostUtils';
 import { Animated } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { useEvent } from 'expo';
 
 interface Post {
   id: string;
@@ -141,6 +142,8 @@ export default function SinglePostScreen({ route, navigation }: any) {
       }
     }
   );
+
+  const { isPlaying } = useEvent(videoPlayer, 'playingChange', { isPlaying: videoPlayer.playing });
 
   useEffect(() => {
     const initializeData = async () => {
@@ -642,6 +645,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
               currentTheme={currentTheme}
               videoPlayer={videoPlayer}
               isVideoPlaying={isVideoPlaying}
+              isVideoLoading={!!isVideoPlaying && !isPlaying}
               isVideoMuted={isVideoMuted}
               onVideoPlayPause={handleVideoPlayPause}
               onVideoMuteToggle={handleVideoMuteToggle}
