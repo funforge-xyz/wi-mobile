@@ -221,7 +221,8 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           // Filter out any messages that already exist
           const uniqueOlderMessages = olderMessages.filter(msg => !existingIds.has(msg.id));
           
-          const newMessages = [...uniqueOlderMessages, ...prevMessages];
+          // For inverted list: newer messages go at the beginning, older at the end
+          const newMessages = [...prevMessages, ...uniqueOlderMessages];
           console.log('Total messages after load more:', newMessages.length);
           console.log('Unique older messages added:', uniqueOlderMessages.length);
           return newMessages;

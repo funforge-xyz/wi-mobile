@@ -67,8 +67,8 @@ export const setupMessageListener = (
         });
       });
 
-      // Reverse to show chronological order (oldest first)
-      setMessages(messagesData.reverse());
+      // Keep descending order for inverted FlatList (newest first)
+      setMessages(messagesData);
       if (onLoadComplete) onLoadComplete();
     }, (error) => {
       console.error('Error listening to messages:', error);
@@ -90,7 +90,7 @@ export const loadMoreMessages = async (
 ): Promise<Message[]> => {
   try {
     console.log('Loading more messages for chatRoom:', chatRoomId, 'before:', lastMessage.createdAt);
-    
+
     const db = getFirestore();
     const messagesRef = collection(db, 'chats', chatRoomId, 'messages');
 
@@ -127,7 +127,7 @@ export const loadMoreMessages = async (
 
     // Reverse to maintain chronological order (oldest first)
     const reversedMessages = olderMessages.reverse();
-    
+
     return reversedMessages;
   } catch (error) {
     console.error('Error loading more messages:', error);
