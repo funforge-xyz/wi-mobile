@@ -271,7 +271,7 @@ export default function CreatePostScreen() {
           <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
-          {t('addPost.createPost', 'Create Post')}
+          {t('addPost.createPost')}
         </Text>
         <View style={{ width: 24 }} />
       </View>

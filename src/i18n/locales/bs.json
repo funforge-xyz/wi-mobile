@@ -140,6 +140,7 @@
   },
   "addPost": {
     "title": "Napravite objavu",
+    "createPost": "Napravi objavu",
     "whatsOnMind": "Šta vam je na umu?",
     "addPhoto": "Dodaj sliku",
     "addMedia": "Dodaj sliku/video",

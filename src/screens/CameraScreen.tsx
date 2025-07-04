@@ -83,11 +83,11 @@ export default function CameraScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: 'black',
+      backgroundColor: currentTheme.background,
     },
     previewContainer: {
       flex: 1,
-      backgroundColor: 'black',
+      backgroundColor: currentTheme.background,
     },
     mediaContainer: {
       flex: 1,

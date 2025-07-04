@@ -141,6 +141,7 @@
   },
   "addPost": {
     "title": "Create Post",
+    "createPost": "Create Post",
     "whatsOnMind": "What's on your mind?",
     "addPhoto": "Add Photo",
     "addMedia": "Add Photo/Video",

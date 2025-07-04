@@ -218,10 +218,10 @@ export default function CustomCameraView({
   return (
     <View style={{ 
       flex: 1, 
-      backgroundColor: 'black'
+      backgroundColor: currentTheme.background
     }}>
       {/* Camera View with 4:5 aspect ratio */}
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: currentTheme.background }}>
         <GestureDetector gesture={pinchGesture}>
           <CameraView
             style={{ 
@@ -421,15 +421,14 @@ export default function CustomCameraView({
         </View>
       </View>
 
-      {/* Recording Counter - centered with top controls */}
+      {/* Recording Counter - top right corner */}
       {recording && (
         <View
           style={{
             position: 'absolute',
             top: 60,
-            left: 0,
-            right: 0,
-            alignItems: 'center',
+            right: 20,
+            zIndex: 15,
           }}
         >
           <View
