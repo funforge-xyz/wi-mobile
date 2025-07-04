@@ -80,7 +80,7 @@ export default function CustomCameraView({
         onMediaCaptured(photo.uri, 'image', cameraType === 'front');
       } catch (error) {
         console.error('Error taking picture:', error);
-        Alert.alert(t('common.error'), t('camera.errorTakingPicture', 'Failed to take picture'));
+        Alert.alert(t('common.error'), t('camera.errorTakingPicture'));
       }
     }
   };
@@ -126,7 +126,7 @@ export default function CustomCameraView({
             clearInterval(recordingInterval.current);
             recordingInterval.current = null;
           }
-          Alert.alert(t('common.error'), t('camera.errorRecordingVideo', 'Failed to record video'));
+          Alert.alert(t('common.error'), t('camera.errorRecordingVideo'));
         }
       }
     }
@@ -181,7 +181,7 @@ export default function CustomCameraView({
         backgroundColor: 'black' 
       }}>
         <Text style={{ color: 'white', fontSize: 18 }}>
-          {t('camera.loading', 'Loading camera...')}
+          {t('camera.loading')}
         </Text>
       </View>
     );
@@ -196,7 +196,7 @@ export default function CustomCameraView({
         backgroundColor: currentTheme.background 
       }}>
         <Text style={{ color: currentTheme.text, marginBottom: 20 }}>
-          {t('camera.permissionRequired', 'Camera permission is required')}
+          {t('camera.permissionRequired')}
         </Text>
         <TouchableOpacity
           style={{
@@ -208,7 +208,7 @@ export default function CustomCameraView({
           onPress={onClose}
         >
           <Text style={{ color: currentTheme.background }}>
-            {t('common.close', 'Close')}
+            {t('common.close')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -353,7 +353,7 @@ export default function CustomCameraView({
               borderRadius: 12,
             }}
           >
-            Max recording: 15 seconds
+            {t('camera.maxRecording')}
           </Text>
         </View>
       )}
@@ -394,7 +394,7 @@ export default function CustomCameraView({
                 fontWeight: '600',
               }}
             >
-              Photo
+              {t('camera.photo')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -415,7 +415,7 @@ export default function CustomCameraView({
                 fontWeight: '600',
               }}
             >
-              Video
+              {t('camera.video')}
             </Text>
           </TouchableOpacity>
         </View>

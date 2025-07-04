@@ -523,6 +523,15 @@
   "camera": {
     "permissionRequired": "Potrebna je dozvola za kameru",
     "recording": "Snima se... Otpustite da zaustavite",
-    "instructions": "Dodirnite za sliku, držite za video"
+    "instructions": "Dodirnite za sliku, držite za video",
+    "loading": "Učitavanje kamere...",
+    "close": "Zatvori",
+    "photo": "Fotografija",
+    "video": "Video",
+    "maxRecording": "Maksimalno snimanje: 15 sekundi",
+    "next": "Sljedeće",
+    "retake": "Ponovi",
+    "errorTakingPicture": "Greška pri slikanju",
+    "errorRecordingVideo": "Greška pri snimanju videa"
   }
 }

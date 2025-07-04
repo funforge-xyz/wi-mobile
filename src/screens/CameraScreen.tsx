@@ -7,6 +7,7 @@ import { useAppSelector } from '../hooks/redux';
 import { getTheme } from '../theme';
 import CustomCameraView from '../components/CustomCameraView';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const { width, height } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ export default function CameraScreen() {
   const navigation = useNavigation();
   const { theme } = useAppSelector(state => state.theme);
   const currentTheme = getTheme(theme);
+  const { t } = useTranslation();
 
   // Initialize video player for video preview
   const player = useVideoPlayer(capturedMedia?.uri || '', player => {
@@ -247,7 +249,7 @@ export default function CameraScreen() {
               style={styles.nextButton}
               onPress={handleNext}
             >
-              <Text style={styles.nextButtonText}>Next</Text>
+              <Text style={styles.nextButtonText}>{t('camera.next')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -524,6 +524,15 @@
   "camera": {
     "permissionRequired": "Camera permission is required",
     "recording": "Recording... Release to stop",
-    "instructions": "Tap for photo, hold for video"
+    "instructions": "Tap for photo, hold for video",
+    "loading": "Loading camera...",
+    "close": "Close",
+    "photo": "Photo",
+    "video": "Video",
+    "maxRecording": "Max recording: 15 seconds",
+    "next": "Next",
+    "retake": "Retake",
+    "errorTakingPicture": "Failed to take picture",
+    "errorRecordingVideo": "Failed to record video"
   }
 }
