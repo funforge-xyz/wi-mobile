@@ -55,13 +55,15 @@ export default function ChatMessagesList({
 
   const handleScroll = (event: any) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-    const isScrollingToTop = contentOffset.y < 100;
-    const isAtBottom = contentOffset.y >= (contentSize.height - layoutMeasurement.height - 100);
+    const scrollPosition = contentOffset.y;
+    const isNearTop = scrollPosition < 200; // Increased threshold for better UX
+    const isAtBottom = scrollPosition >= (contentSize.height - layoutMeasurement.height - 100);
     
-    setIsScrollingUp(isScrollingToTop && !isAtBottom);
+    setIsScrollingUp(isNearTop && !isAtBottom);
     
     // Load more messages when scrolled close to top
-    if (isScrollingToTop && hasMoreMessages && !loadingMore && onLoadMore) {
+    if (isNearTop && hasMoreMessages && !loadingMore && onLoadMore) {
+      console.log('Triggering load more - scroll position:', scrollPosition);
       onLoadMore();
     }
   };
@@ -96,8 +98,8 @@ export default function ChatMessagesList({
       scrollEventThrottle={16}
       ListHeaderComponent={renderHeader}
       maintainVisibleContentPosition={{
-        minIndexForVisible: 0,
-        autoscrollToTopThreshold: 100,
+        minIndexForVisible: 1,
+        autoscrollToTopThreshold: 200,
       }}
       onContentSizeChange={() => {
         // Always scroll to end when content size changes (new message added)

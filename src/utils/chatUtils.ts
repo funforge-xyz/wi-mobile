@@ -89,6 +89,8 @@ export const loadMoreMessages = async (
   limit: number = 30
 ): Promise<Message[]> => {
   try {
+    console.log('Loading more messages for chatRoom:', chatRoomId, 'before:', lastMessage.createdAt);
+    
     const db = getFirestore();
     const messagesRef = collection(db, 'chats', chatRoomId, 'messages');
 
@@ -121,8 +123,12 @@ export const loadMoreMessages = async (
       });
     });
 
-    // Reverse to maintain chronological order
-    return olderMessages.reverse();
+    console.log('Fetched', olderMessages.length, 'older messages');
+
+    // Reverse to maintain chronological order (oldest first)
+    const reversedMessages = olderMessages.reverse();
+    
+    return reversedMessages;
   } catch (error) {
     console.error('Error loading more messages:', error);
     return [];

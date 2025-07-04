@@ -46,6 +46,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received'>('none');
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [messageUnsubscribe, setMessageUnsubscribe] = useState<(() => void) | null>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -78,6 +79,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
     return () => {
       appStateSubscription?.remove();
+      // Clean up message listener
+      if (messageUnsubscribe) {
+        messageUnsubscribe();
+      }
     };
   }, []);
 
@@ -120,19 +125,24 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       const roomId = createChatRoomId(currentUserId, userId);
       setChatRoomId(roomId);
 
-      // Set up real-time message listener with pagination
-      setupMessageListener(
+      // Set up real-time message listener for initial 30 messages
+      const unsubscribe = setupMessageListener(
         roomId,
         (newMessages) => {
+          console.log('Initial messages loaded:', newMessages.length);
           setMessages(newMessages);
           // Check if we got less than the limit, meaning no more messages
           if (newMessages.length < 30) {
             setHasMoreMessages(false);
+          } else {
+            setHasMoreMessages(true);
           }
         },
         () => setLoading(false),
         30 // Initial limit
       );
+
+      setMessageUnsubscribe(() => unsubscribe);
 
       // Set up online status listener for the other user
       setupOnlineStatusListener(userId, setUserOnlineStatus);
@@ -184,19 +194,32 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   };
 
   const handleLoadMore = async () => {
-    if (loadingMore || !hasMoreMessages || messages.length === 0) return;
+    if (loadingMore || !hasMoreMessages || messages.length === 0) {
+      console.log('LoadMore blocked:', { loadingMore, hasMoreMessages, messagesLength: messages.length });
+      return;
+    }
     
+    console.log('Loading more messages...');
     setLoadingMore(true);
+    
     try {
       const oldestMessage = messages[0];
+      console.log('Oldest message timestamp:', oldestMessage.createdAt);
+      
       const olderMessages = await loadMoreMessages(chatRoomId, oldestMessage, 30);
+      console.log('Loaded older messages:', olderMessages.length);
       
       if (olderMessages.length > 0) {
-        setMessages(prevMessages => [...olderMessages, ...prevMessages]);
+        setMessages(prevMessages => {
+          const newMessages = [...olderMessages, ...prevMessages];
+          console.log('Total messages after load more:', newMessages.length);
+          return newMessages;
+        });
       }
       
       // If we got less than the limit, no more messages available
       if (olderMessages.length < 30) {
+        console.log('No more messages available');
         setHasMoreMessages(false);
       }
     } catch (error) {
