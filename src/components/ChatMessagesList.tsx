@@ -54,12 +54,9 @@ export default function ChatMessagesList({
   };
 
   const handleScroll = (event: any) => {
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const { contentOffset } = event.nativeEvent;
     const scrollPosition = contentOffset.y;
-    const isNearTop = scrollPosition < 200; // Increased threshold for better UX
-    const isAtBottom = scrollPosition >= (contentSize.height - layoutMeasurement.height - 100);
-    
-    setIsScrollingUp(isNearTop && !isAtBottom);
+    const isNearTop = scrollPosition < 100;
     
     // Load more messages when scrolled close to top
     if (isNearTop && hasMoreMessages && !loadingMore && onLoadMore) {
@@ -69,19 +66,18 @@ export default function ChatMessagesList({
   };
 
   useEffect(() => {
-    // Auto-scroll to bottom for new messages, but not when loading older ones
+    // Only scroll to bottom on initial load or when a new message is sent/received
     if (messages.length > 0) {
-      // Check if the last message is recent (within last 5 seconds) to determine if it's a new message
       const lastMessage = messages[messages.length - 1];
       const now = new Date();
       const messageTime = lastMessage.createdAt;
       const timeDiff = now.getTime() - messageTime.getTime();
       
-      // If it's a very recent message (likely just sent/received), scroll to bottom
-      if (timeDiff < 5000 || !isScrollingUp) {
+      // Only auto-scroll for very recent messages (new messages)
+      if (timeDiff < 2000) {
         setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }, 50);
       }
     }
   }, [messages.length]);
@@ -97,18 +93,7 @@ export default function ChatMessagesList({
       onScroll={handleScroll}
       scrollEventThrottle={16}
       ListHeaderComponent={renderHeader}
-      maintainVisibleContentPosition={{
-        minIndexForVisible: 1,
-        autoscrollToTopThreshold: 200,
-      }}
-      onContentSizeChange={() => {
-        // Always scroll to end when content size changes (new message added)
-        if (messages.length > 0) {
-          setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          }, 50);
-        }
-      }}
+      
     />
   );
 }
