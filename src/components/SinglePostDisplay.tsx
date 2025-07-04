@@ -61,6 +61,8 @@ export default function SinglePostDisplay({
   onVideoMuteToggle,
 }: SinglePostDisplayProps) {
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
+  
+  console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
 
   return (
     <View style={{ backgroundColor: currentTheme.background }}>
@@ -112,10 +114,6 @@ export default function SinglePostDisplay({
                 allowsPictureInPicture={false}
                 nativeControls={false}
                 contentFit="cover"
-                onLoadStart={() => {
-                  console.log('Video load started');
-                  setIsMediaLoading(true);
-                }}
                 onLoad={() => {
                   console.log('Video loaded successfully');
                   setIsMediaLoading(false);

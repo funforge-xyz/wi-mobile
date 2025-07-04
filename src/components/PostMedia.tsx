@@ -67,14 +67,19 @@ export default function PostMedia({
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-      <View style={[styles.mediaContainer, mediaStyle]}>
-        <Image
-          source={{ uri: mediaURL }}
-          style={styles.media}
-          resizeMode="cover"
-          onLoad={onLoad}
-        />
-      </View>
+      <Image
+        source={{ uri: mediaURL }}
+        style={mediaStyle}
+        resizeMode="cover"
+        onLoad={() => {
+          console.log('Image loaded successfully');
+          onLoad?.();
+        }}
+        onError={(error) => {
+          console.log('Image load error:', error);
+          onLoad?.();
+        }}
+      />
     </TouchableOpacity>
   );
 }
