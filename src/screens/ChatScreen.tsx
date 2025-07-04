@@ -138,13 +138,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
             setHasMoreMessages(true);
           }
           
-          // Scroll to bottom after initial messages load
-          setTimeout(() => {
-            setLoading(false);
-          }, 100);
+          setLoading(false);
         },
         () => {
-          // Don't set loading false here, wait for messages callback
+          setLoading(false);
         },
         30 // Initial limit
       );

@@ -43,44 +43,28 @@ export default function ChatMessagesList({
     />
   );
 
-  const renderHeader = () => {
+  const renderFooter = () => {
     if (!hasMoreMessages || !loadingMore) return null;
     
     return (
-      <View style={styles.loadingHeader}>
+      <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color={COLORS.primary} />
       </View>
     );
   };
 
   const handleScroll = (event: any) => {
-    const { contentOffset } = event.nativeEvent;
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     const scrollPosition = contentOffset.y;
-    const isNearTop = scrollPosition < 100;
+    // For inverted list, check if we're near the bottom (which shows older messages)
+    const isNearBottom = scrollPosition >= (contentSize.height - layoutMeasurement.height - 100);
     
-    // Load more messages when scrolled close to top
-    if (isNearTop && hasMoreMessages && !loadingMore && onLoadMore) {
+    // Load more messages when scrolled close to bottom (older messages)
+    if (isNearBottom && hasMoreMessages && !loadingMore && onLoadMore) {
       console.log('Triggering load more - scroll position:', scrollPosition);
       onLoadMore();
     }
   };
-
-  useEffect(() => {
-    // Only scroll to bottom on initial load or when a new message is sent/received
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const now = new Date();
-      const messageTime = lastMessage.createdAt;
-      const timeDiff = now.getTime() - messageTime.getTime();
-      
-      // Only auto-scroll for very recent messages (new messages)
-      if (timeDiff < 2000) {
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: false });
-        }, 50);
-      }
-    }
-  }, [messages.length]);
 
   return (
     <FlatList
@@ -92,8 +76,9 @@ export default function ChatMessagesList({
       contentContainerStyle={styles.messagesContent}
       onScroll={handleScroll}
       scrollEventThrottle={16}
-      ListHeaderComponent={renderHeader}
-      
+      ListFooterComponent={renderFooter}
+      inverted
+      showsVerticalScrollIndicator={false}
     />
   );
 }
@@ -106,7 +91,7 @@ const styles = {
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
   },
-  loadingHeader: {
+  loadingFooter: {
     paddingVertical: SPACING.md,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
