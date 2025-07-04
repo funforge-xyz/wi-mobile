@@ -141,43 +141,46 @@ export default function SinglePostDisplay({
 
       {/* Media - Full width, no padding, 4:5 aspect ratio */}
       {post.mediaURL && (
-        <TouchableWithoutFeedback onPress={handleDoubleTap}>
-          <View style={styles.mediaContainer}>
-          {/* Animated heart overlay */}
-          <Animated.View style={[
-            styles.likeAnimationOverlay,
-            {
-              opacity: likeAnimationOpacity,
-              transform: [{ scale: likeAnimationScale }]
-            }
-          ]}>
-            <Ionicons name="heart" size={80} color="white" />
-          </Animated.View>
-
+        <View style={styles.mediaContainer}>
           {/* Shimmer skeleton overlay while loading */}
           {isMediaLoading && (
-            <View style={styles.mediaLoadingSkeleton}>
-              <SkeletonLoader
-                width={width}
-                height={width * 5/4}
-                borderRadius={0}
-              />
-            </View>
+            <TouchableWithoutFeedback onPress={handleDoubleTap}>
+              <View style={styles.mediaLoadingSkeleton}>
+                <SkeletonLoader
+                  width={width}
+                  height={width * 5/4}
+                  borderRadius={0}
+                />
+              </View>
+            </TouchableWithoutFeedback>
           )}
 
           {post.mediaType === 'video' && videoPlayer ? (
             <View style={styles.videoContainer}>
-              <VideoView
-                player={videoPlayer}
-                style={[
-                  styles.video,
-                  post.isFrontCamera && { transform: [{ scaleX: -1 }] }
-                ]}
-                allowsFullscreen={false}
-                allowsPictureInPicture={false}
-                nativeControls={false}
-                contentFit="cover"
-              />
+              <TouchableWithoutFeedback onPress={handleDoubleTap}>
+                <VideoView
+                  player={videoPlayer}
+                  style={[
+                    styles.video,
+                    post.isFrontCamera && { transform: [{ scaleX: -1 }] }
+                  ]}
+                  allowsFullscreen={false}
+                  allowsPictureInPicture={false}
+                  nativeControls={false}
+                  contentFit="cover"
+                />
+              </TouchableWithoutFeedback>
+
+              {/* Animated heart overlay for video */}
+              <Animated.View style={[
+                styles.likeAnimationOverlay,
+                {
+                  opacity: likeAnimationOpacity,
+                  transform: [{ scale: likeAnimationScale }]
+                }
+              ]}>
+                <Ionicons name="heart" size={80} color="white" />
+              </Animated.View>
 
               {/* Video Controls Overlay */}
               {!isMediaLoading && (
@@ -215,10 +218,12 @@ export default function SinglePostDisplay({
               onLoad={() => setIsMediaLoading(false)}
               isFrontCamera={post.isFrontCamera}
               style={styles.media}
+              onDoubleTap={handleDoubleTap}
+              likeAnimationOpacity={likeAnimationOpacity}
+              likeAnimationScale={likeAnimationScale}
             />
           )}
-          </View>
-        </TouchableWithoutFeedback>
+        </View>
       )}
 
       {/* Actions with padding */}

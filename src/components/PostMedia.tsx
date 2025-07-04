@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, ViewStyle, View, TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity, StyleSheet, View, Dimensions, TouchableWithoutFeedback, Animated } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,6 +14,9 @@ interface PostMediaProps {
   togglePlay?: () => void;
   post?: any;
   onLoad?: () => void;
+  onDoubleTap?: () => void;
+  likeAnimationOpacity?: Animated.Value;
+  likeAnimationScale?: Animated.Value;
 }
 
 export default function PostMedia({ 
@@ -26,7 +29,10 @@ export default function PostMedia({
   isPlaying,
   togglePlay,
   post,
-  onLoad 
+  onLoad,
+  onDoubleTap,
+  likeAnimationOpacity,
+  likeAnimationScale
 }: PostMediaProps) {
   const player = useVideoPlayer(mediaURL, player => {
     player.loop = false;
@@ -40,9 +46,17 @@ export default function PostMedia({
     isFrontCamera && { transform: [{ scaleX: -1 }] }
   ];
 
+  const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
+  
+  const touchProps = onDoubleTap 
+    ? { onPress: onDoubleTap }
+    : { onPress: onPress, activeOpacity: 0.9 };
+
+
   if (mediaType === 'video') {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+      <View style={styles.mediaContainer}>
+      <TouchComponent {...touchProps}>
         <View style={[styles.mediaContainer, mediaStyle]}>
           {thumbnailURL ? (
             <Image
@@ -61,26 +75,54 @@ export default function PostMedia({
             />
           )}
         </View>
-      </TouchableOpacity>
+      </TouchComponent>
+                      {/* Animated heart overlay for images */}
+                      {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
+                        <Animated.View style={[
+                          styles.likeAnimationOverlay,
+                          {
+                            opacity: likeAnimationOpacity,
+                            transform: [{ scale: likeAnimationScale }]
+                          }
+                        ]}>
+                          <Ionicons name="heart" size={80} color="white" />
+                        </Animated.View>
+                      )}
+    </View>
     );
   }
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-      <Image
-        source={{ uri: mediaURL }}
-        style={mediaStyle}
-        resizeMode="cover"
-        onLoad={() => {
-          console.log('Image loaded successfully');
-          onLoad?.();
-        }}
-        onError={(error) => {
-          console.log('Image load error:', error);
-          onLoad?.();
-        }}
-      />
-    </TouchableOpacity>
+    <View style={styles.mediaContainer}>
+      <TouchComponent {...touchProps}>
+        <Image
+          source={{ uri: mediaURL }}
+          style={mediaStyle}
+          resizeMode="cover"
+          onLoad={() => {
+            console.log('Image loaded successfully');
+            onLoad?.();
+          }}
+          onError={(error) => {
+            console.log('Image load error:', error);
+            onLoad?.();
+          }}
+        />
+      </TouchComponent>
+
+      {/* Animated heart overlay for images */}
+      {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
+        <Animated.View style={[
+          styles.likeAnimationOverlay,
+          {
+            opacity: likeAnimationOpacity,
+            transform: [{ scale: likeAnimationScale }]
+          }
+        ]}>
+          <Ionicons name="heart" size={80} color="white" />
+        </Animated.View>
+      )}
+    </View>
   );
 }
 
@@ -99,4 +141,14 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 0,
   },
+  likeAnimationOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  }
 });
