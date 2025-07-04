@@ -19,8 +19,8 @@ export default function SinglePostSkeleton() {
         <SkeletonLoader width={24} height={24} borderRadius={12} />
       </View>
 
-      {/* Post Header with padding */}
-      <View style={[styles.postHeaderContainer, { backgroundColor: currentTheme.background }]}>
+      {/* Post Header with padding - matches SinglePostDisplay headerContainer */}
+      <View style={[styles.headerContainer, { backgroundColor: currentTheme.background }]}>
         <View style={styles.postHeader}>
           <View style={styles.authorInfo}>
             <SkeletonLoader
@@ -47,7 +47,7 @@ export default function SinglePostSkeleton() {
         </View>
       </View>
 
-      {/* Post Content with padding */}
+      {/* Post Content with padding - matches SinglePostDisplay contentContainer */}
       <View style={[styles.contentContainer, { backgroundColor: currentTheme.background }]}>
         <SkeletonLoader
           width="100%"
@@ -63,7 +63,7 @@ export default function SinglePostSkeleton() {
         />
       </View>
 
-      {/* Post Media - Full width, no padding, 4:5 aspect ratio */}
+      {/* Post Media - Full width, no padding, 4:5 aspect ratio - matches SinglePostDisplay mediaContainer */}
       <View style={styles.mediaContainer}>
         <SkeletonLoader
           width="100%"
@@ -73,7 +73,7 @@ export default function SinglePostSkeleton() {
         />
       </View>
 
-      {/* Post Actions with padding */}
+      {/* Post Actions with padding - matches SinglePostDisplay actionsContainer */}
       <View style={[styles.actionsContainer, { backgroundColor: currentTheme.background }]}>
         <View style={styles.actionRow}>
           <View style={styles.actionItem}>
@@ -158,10 +158,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
   },
-  postHeaderContainer: {
+  headerContainer: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
-    paddingBottom: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   postHeader: {
     flexDirection: 'row',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   timestamp: {},
   contentContainer: {
     paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.md,
+    marginBottom: SPACING.md,
   },
   contentLine: {
     marginBottom: SPACING.xs,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
+    paddingBottom: SPACING.md,
   },
   actionRow: {
     flexDirection: 'row',

@@ -131,11 +131,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   // Initialize video player for video posts
   const videoPlayer = useVideoPlayer(
-    post?.mediaURL && post?.mediaType === 'video' ? post.mediaURL : '', 
+    post?.mediaURL && post?.mediaType === 'video' ? post.mediaURL : null, 
     player => {
       player.loop = true;
       player.muted = isVideoMuted;
-      if (post?.mediaType === 'video') {
+      if (post?.mediaType === 'video' && post?.mediaURL) {
         player.play();
         setIsVideoPlaying(true);
       }

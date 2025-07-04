@@ -60,7 +60,7 @@ export default function SinglePostDisplay({
   onVideoPlayPause,
   onVideoMuteToggle,
 }: SinglePostDisplayProps) {
-  const [isMediaLoading, setIsMediaLoading] = useState(true);
+  const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
 
   return (
     <View style={{ backgroundColor: currentTheme.background }}>
@@ -112,9 +112,22 @@ export default function SinglePostDisplay({
                 allowsPictureInPicture={false}
                 nativeControls={false}
                 contentFit="cover"
-                onLoadStart={() => setIsMediaLoading(true)}
-                onLoad={() => setIsMediaLoading(false)}
-                onError={() => setIsMediaLoading(false)}
+                onLoadStart={() => {
+                  console.log('Video load started');
+                  setIsMediaLoading(true);
+                }}
+                onLoad={() => {
+                  console.log('Video loaded successfully');
+                  setIsMediaLoading(false);
+                }}
+                onError={(error) => {
+                  console.log('Video load error:', error);
+                  setIsMediaLoading(false);
+                }}
+                onReadyForDisplay={() => {
+                  console.log('Video ready for display');
+                  setIsMediaLoading(false);
+                }}
               />
 
               {/* Video Controls Overlay */}
