@@ -194,7 +194,11 @@ export default function CameraScreen() {
           {/* Media Display */}
           <View style={styles.mediaContainer}>
             {capturedMedia.type === 'image' ? (
-              <Image source={{ uri: capturedMedia.uri }} style={styles.image} />
+              <Image
+                source={{ uri: capturedMedia.uri }}
+                style={styles.image}
+                resizeMode="contain"
+              />
             ) : (
               <View style={{ position: 'relative' }}>
                 <VideoView
