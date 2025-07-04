@@ -73,8 +73,8 @@ export default function CustomCameraView({
           quality: 0.8,
           base64: false,
           skipProcessing: false,
-          // Maintain 5:4 aspect ratio
-          aspect: [5, 4],
+          // Maintain 4:5 aspect ratio
+          aspect: [4, 5],
         });
         console.log('Picture taken:', photo.uri);
         onMediaCaptured(photo.uri, 'image');
@@ -193,14 +193,14 @@ export default function CustomCameraView({
       flex: 1, 
       backgroundColor: 'black'
     }}>
-      {/* Camera View with 5:4 aspect ratio */}
+      {/* Camera View with 4:5 aspect ratio */}
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
         <GestureDetector gesture={pinchGesture}>
           <CameraView
             style={{ 
               width: width,
-              height: width * 0.8, // 5:4 aspect ratio (width * 4/5) - proper proportions
-              maxHeight: height * 0.6,
+              height: width * 1.25, // 4:5 aspect ratio (width * 5/4) - full screen width
+              maxHeight: height * 0.8,
             }}
             facing={cameraType}
             ref={cameraRef}
@@ -280,7 +280,7 @@ export default function CustomCameraView({
               borderRadius: 12,
             }}
           >
-            5:4 ratio • Max recording: 15 seconds
+            4:5 ratio • Max recording: 15 seconds
           </Text>
         </View>
       )}
