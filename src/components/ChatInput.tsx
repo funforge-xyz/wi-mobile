@@ -1,5 +1,5 @@
 
-import { TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
@@ -58,21 +58,21 @@ export default function ChatInput({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   inputContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'flex-end' as const,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     padding: SPACING.md,
     borderTopWidth: 1,
   },
   textInput: {
     flex: 1,
-    maxHeight: 100,
+    borderWidth: 1,
+    borderRadius: 20,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderRadius: 20,
-    borderWidth: 1,
     marginRight: SPACING.sm,
+    maxHeight: 100,
     fontSize: 16,
     fontFamily: FONTS.regular,
   },
@@ -80,7 +80,7 @@ const styles = {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-};
+});
