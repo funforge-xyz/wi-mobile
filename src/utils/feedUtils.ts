@@ -1,6 +1,6 @@
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc, startAfter } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc, startAfter, GeoPoint } from 'firebase/firestore';
 import { GeoFirestore } from 'geofirestore';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';

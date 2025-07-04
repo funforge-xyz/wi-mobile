@@ -1,6 +1,7 @@
 
 import { getFirestore, collection, getDocs, doc, updateDoc, GeoPoint } from 'firebase/firestore';
 import { GeoFirestore } from 'geofirestore';
+import { encodeGeohash } from './geohashUtils';
 
 // Utility function to migrate existing user location data to GeoFirestore format
 export const migrateUserLocationsToGeoFirestore = async (): Promise<void> => {
@@ -17,8 +18,10 @@ export const migrateUserLocationsToGeoFirestore = async (): Promise<void> => {
 
       // Check if user has location but no coordinates (GeoPoint)
       if (location && location.latitude && location.longitude && !userData.coordinates) {
+        const geohash = encodeGeohash({ latitude: location.latitude, longitude: location.longitude });
         const updatePromise = updateDoc(doc(firestore, 'users', userDoc.id), {
-          coordinates: new GeoPoint(location.latitude, location.longitude)
+          coordinates: new GeoPoint(location.latitude, location.longitude),
+          geohash: geohash
         });
         updatePromises.push(updatePromise);
       }

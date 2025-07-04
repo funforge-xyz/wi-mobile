@@ -3,6 +3,7 @@ import * as TaskManager from 'expo-task-manager';
 import { getFirestore, doc, updateDoc, GeoPoint } from 'firebase/firestore';
 import { GeoFirestore } from 'geofirestore';
 import { getAuth } from './firebase';
+import { encodeGeohash } from '../utils/geohashUtils';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -278,12 +279,11 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const { wifiService } = await import('./wifiService');
     const wifiInfo = await wifiService.getCurrentWifiInfo();
 
+    const geohash = encodeGeohash({ latitude, longitude });
+    
     const updateData: any = {
       coordinates: new GeoPoint(latitude, longitude),
-      location: {
-        latitude,
-        longitude,
-      },
+      geohash: geohash,
       lastUpdatedLocation: new Date(),
       lastSeen: new Date(), // Add last seen for online status
     };
