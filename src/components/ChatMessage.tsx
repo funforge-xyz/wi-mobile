@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.xs,
     padding: SPACING.sm,
     borderRadius: 16,
+    minWidth: 120, // Ensure minimum width for timestamp
   },
   myMessage: {
     alignSelf: 'flex-end',

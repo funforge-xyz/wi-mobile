@@ -2,6 +2,7 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
 import { SPACING } from '../config/constants';
@@ -63,6 +64,7 @@ export default function SinglePostDisplay({
   isVideoLoading
 }: SinglePostDisplayProps) {
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
+  const [lastTap, setLastTap] = useState<number | null>(null);
   
   console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
 
@@ -71,6 +73,24 @@ export default function SinglePostDisplay({
     setIsMediaLoading(!!isVideoLoading);
    }
   }, [isVideoLoading]);
+
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    
+    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+      // This is a double tap - only like if not already liked
+      if (!liked) {
+        onLikePress();
+      }
+      setLastTap(null);
+    } else {
+      // This is a single tap - just record the time
+      setLastTap(now);
+      // Clear the tap after delay
+      setTimeout(() => setLastTap(null), DOUBLE_PRESS_DELAY);
+    }
+  };
 
   return (
     <View style={{ backgroundColor: currentTheme.background }}>
@@ -98,7 +118,8 @@ export default function SinglePostDisplay({
 
       {/* Media - Full width, no padding, 4:5 aspect ratio */}
       {post.mediaURL && (
-        <View style={styles.mediaContainer}>
+        <TouchableWithoutFeedback onPress={handleDoubleTap}>
+          <View style={styles.mediaContainer}>
           {/* Shimmer skeleton overlay while loading */}
           {isMediaLoading && (
             <View style={styles.mediaLoadingSkeleton}>
@@ -162,7 +183,8 @@ export default function SinglePostDisplay({
               style={styles.media}
             />
           )}
-        </View>
+          </View>
+        </TouchableWithoutFeedback>
       )}
 
       {/* Actions with padding */}
