@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { SPACING } from '../config/constants';
 import { VideoView } from 'expo-video';
@@ -12,7 +13,7 @@ import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import PostActions from './PostActions';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SkeletonLoader from './SkeletonLoader';
 
 const { width } = Dimensions.get('window');
@@ -58,14 +59,15 @@ export default function SinglePostDisplay({
   currentTheme,
   videoPlayer,
   isVideoPlaying,
+  isVideoLoading,
   isVideoMuted,
   onVideoPlayPause,
   onVideoMuteToggle,
-  isVideoLoading
 }: SinglePostDisplayProps) {
-  const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
-  const [lastTap, setLastTap] = useState<number | null>(null);
-  
+  const [mediaLoaded, setMediaLoaded] = useState(false);
+  const likeAnimationScale = useRef(new Animated.Value(1)).current;
+  const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
+
   console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export default function SinglePostDisplay({
   const handleDoubleTap = () => {
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
-    
+
     if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
       // This is a double tap - only like if not already liked
       if (!liked) {

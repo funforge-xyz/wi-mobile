@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   mediaContainer: {
     width: '100%',
     aspectRatio: 4/5,
-    marginBottom: 0,
+    marginBottom: SPACING.md,
   },
   postMedia: {
     marginBottom: 0,
