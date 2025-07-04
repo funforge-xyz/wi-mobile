@@ -206,6 +206,7 @@ export default function CustomCameraView({
             ref={cameraRef}
             mode={cameraMode}
             zoom={zoom}
+            onCameraReady={() => setZoom(0.15)}
           />
         </GestureDetector>
       </View>
