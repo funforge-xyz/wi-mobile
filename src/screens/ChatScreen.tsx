@@ -207,8 +207,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     setLoadingMore(true);
     
     try {
-      const oldestMessage = messages[0];
+      // Get the oldest message (last item in array for inverted list)
+      const oldestMessage = messages[messages.length - 1];
       console.log('Oldest message timestamp:', oldestMessage.createdAt);
+      console.log('Current messages length:', messages.length);
       
       const olderMessages = await loadMoreMessages(chatRoomId, oldestMessage, 30);
       console.log('Loaded older messages:', olderMessages.length);
@@ -221,7 +223,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           // Filter out any messages that already exist
           const uniqueOlderMessages = olderMessages.filter(msg => !existingIds.has(msg.id));
           
-          // For inverted list: newer messages go at the beginning, older at the end
+          // For inverted list: append older messages to the end of array
           const newMessages = [...prevMessages, ...uniqueOlderMessages];
           console.log('Total messages after load more:', newMessages.length);
           console.log('Unique older messages added:', uniqueOlderMessages.length);

@@ -53,15 +53,10 @@ export default function ChatMessagesList({
     );
   };
 
-  const handleScroll = (event: any) => {
-    const { contentOffset } = event.nativeEvent;
-    const scrollPosition = contentOffset.y;
-    // For inverted list, check if we're near the top (negative scroll shows older messages)
-    const isNearTop = scrollPosition <= 100;
-    
-    // Load more messages when scrolled close to top (older messages in inverted list)
-    if (isNearTop && hasMoreMessages && !loadingMore && onLoadMore) {
-      console.log('Triggering load more - scroll position:', scrollPosition);
+  const handleEndReached = () => {
+    // For inverted list, onEndReached triggers when user scrolls to older messages
+    if (hasMoreMessages && !loadingMore && onLoadMore) {
+      console.log('Triggering load more via onEndReached');
       onLoadMore();
     }
   };
@@ -74,8 +69,8 @@ export default function ChatMessagesList({
       renderItem={renderMessage}
       style={styles.messagesList}
       contentContainerStyle={styles.messagesContent}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.1}
       ListFooterComponent={renderFooter}
       inverted
       showsVerticalScrollIndicator={false}

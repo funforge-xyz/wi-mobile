@@ -51,7 +51,16 @@ export const setupMessageListener = (
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const messagesData: Message[] = [];
+      const seenIds = new Set<string>();
+      
       snapshot.forEach((doc) => {
+        // Check for duplicates
+        if (seenIds.has(doc.id)) {
+          console.warn('Duplicate message detected:', doc.id);
+          return;
+        }
+        seenIds.add(doc.id);
+        
         const data = doc.data();
         messagesData.push({
           id: doc.id,
@@ -67,6 +76,7 @@ export const setupMessageListener = (
         });
       });
 
+      console.log('Real-time listener loaded messages:', messagesData.length);
       // Keep descending order for inverted FlatList (newest first)
       setMessages(messagesData);
       if (onLoadComplete) onLoadComplete();
@@ -106,8 +116,16 @@ export const loadMoreMessages = async (
 
     const snapshot = await getDocs(q);
     const olderMessages: Message[] = [];
+    const seenIds = new Set<string>();
 
     snapshot.forEach((doc) => {
+      // Check for duplicates
+      if (seenIds.has(doc.id)) {
+        console.warn('Duplicate message in loadMore detected:', doc.id);
+        return;
+      }
+      seenIds.add(doc.id);
+      
       const data = doc.data();
       olderMessages.push({
         id: doc.id,
@@ -124,11 +142,9 @@ export const loadMoreMessages = async (
     });
 
     console.log('Fetched', olderMessages.length, 'older messages');
-
-    // Reverse to maintain chronological order (oldest first)
-    const reversedMessages = olderMessages.reverse();
-
-    return reversedMessages;
+    
+    // Return messages in descending order (newest first) to match inverted FlatList
+    return olderMessages;
   } catch (error) {
     console.error('Error loading more messages:', error);
     return [];
