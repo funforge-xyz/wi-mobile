@@ -31,9 +31,10 @@ export default function CustomCameraView({
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const { t } = useTranslation();
-  const [zoom, setZoom] = useState(0);
+  const [zoom, setZoom] = useState(0.15);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const recordingInterval = useRef<NodeJS.Timeout | null>(null);
+  const [flash, setFlash] = useState<'off' | 'on' | 'auto'>('off');
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
@@ -73,7 +74,6 @@ export default function CustomCameraView({
           quality: 0.8,
           base64: false,
           skipProcessing: false,
-          // Maintain 4:5 aspect ratio
           aspect: [4, 5],
         });
         console.log('Picture taken:', photo.uri);
@@ -106,7 +106,6 @@ export default function CustomCameraView({
           const video = await cameraRef.current.recordAsync({
             quality: '720p' as const,
             maxDuration: 15, // 15 seconds max duration
-            // Maintain 5:4 aspect ratio for video
             videoBitrate: 1000000, // 1 Mbps for good quality
           });
 
@@ -137,10 +136,29 @@ export default function CustomCameraView({
     setCameraType(current => (current === 'front' ? 'back' : 'front'));
   };
 
+  const toggleFlash = () => {
+    setFlash(current => {
+      switch (current) {
+        case 'off':
+          return 'on';
+        case 'on':
+          return 'auto';
+        case 'auto':
+          return 'off';
+        default:
+          return 'off';
+      }
+    });
+  };
+
+  const resetZoom = () => {
+    setZoom(0.15);
+  };
+
   // Pinch gesture for zoom - faster and more responsive
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
-      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.02));
+      const newZoom = Math.max(0.15, Math.min(1, zoom + (event.scale - 1) * 0.02));
       setZoom(newZoom);
     })
     .runOnJS(true);
@@ -206,6 +224,7 @@ export default function CustomCameraView({
             ref={cameraRef}
             mode={cameraMode}
             zoom={zoom}
+            flash={flash}
             onCameraReady={() => setZoom(0.15)}
           />
         </GestureDetector>
@@ -239,23 +258,57 @@ export default function CustomCameraView({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
 
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity
+            onPress={toggleFlash}
+            disabled={recording}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: recording ? 0.5 : 1,
+              marginRight: 10,
+            }}
+          >
+            <Ionicons name={flash === 'off' ? "flash-off" : flash === 'on' ? "flash" : "flash-auto"} size={24} color="white" />
+          </TouchableOpacity>
 
+          <TouchableOpacity
+            onPress={resetZoom}
+            disabled={recording}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: recording ? 0.5 : 1,
+              marginRight: 10,
+            }}
+          >
+            <Ionicons name="resize" size={24} color="white" />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={flipCamera}
-          disabled={recording}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            opacity: recording ? 0.5 : 1,
-          }}
-        >
-          <Ionicons name="camera-reverse" size={24} color="white" />
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={flipCamera}
+            disabled={recording}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: recording ? 0.5 : 1,
+            }}
+          >
+            <Ionicons name="camera-reverse" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Max Recording Message */}
@@ -281,7 +334,7 @@ export default function CustomCameraView({
               borderRadius: 12,
             }}
           >
-            4:5 ratio • Max recording: 15 seconds
+            Max recording: 15 seconds
           </Text>
         </View>
       )}
