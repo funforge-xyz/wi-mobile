@@ -274,7 +274,7 @@ export default function SettingsScreen() {
         <SettingsSection title={t('settings.appearance')} currentTheme={currentTheme}>
           <SettingsToggleRow
             icon={isDarkMode ? 'moon' : 'sunny'}
-            title={t('settings.darkMode')}
+            title={isDarkMode ? t('settings.darkMode') : t('settings.lightMode')}
             description={isDarkMode ? t('settings.darkModeEnabled') : t('settings.lightModeEnabled')}
             value={isDarkMode}
             onValueChange={handleToggleTheme}
