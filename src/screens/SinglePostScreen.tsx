@@ -90,7 +90,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   // Validate route params to prevent undefined errors
   const { postId, isOwnPost = false } = route?.params || {};
-  
+
   // Early return if postId is not provided
   if (!postId) {
     console.error('SinglePostScreen: postId is required');
@@ -526,7 +526,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
       // Calculate how many comments will be deleted
       let deletedCommentsCount = 1; // The comment itself
-      
+
       // Update local comments state immediately
       if (commentToDelete.parentCommentId) {
         // This is a reply - remove it from the comments array and update parent's reply count
@@ -546,7 +546,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         // Count how many replies this comment has before deleting
         const repliesToDelete = comments.filter(comment => comment.parentCommentId === commentToDelete.id);
         deletedCommentsCount += repliesToDelete.length; // Add the number of replies
-        
+
         setComments(prevComments => {
           return prevComments.filter(comment => 
             comment.id !== commentToDelete.id && comment.parentCommentId !== commentToDelete.id
@@ -647,32 +647,44 @@ export default function SinglePostScreen({ route, navigation }: any) {
               onVideoMuteToggle={handleVideoMuteToggle}
             />
 
-            <CommentsList
-              comments={comments}
-              allowComments={post.allowComments}
-              currentUserId={currentUser?.uid}
-              postAuthorId={post.authorId}
-              onDeleteComment={handleDeleteComment}
-              onLikeComment={handleLikeComment}
-              onReplyToComment={handleReplyToComment}
-              onShowReplies={handleShowReplies}
-              currentTheme={currentTheme}
-              newlyAddedReplyParentId={newlyAddedReplyParentId}
-            />
+            {/* Comments Section */}
+            <View style={[{ 
+              paddingHorizontal: SPACING.md, 
+              paddingTop: SPACING.md,
+              backgroundColor: currentTheme.background 
+            }]}>
+              <CommentsList
+                comments={comments}
+                allowComments={post.allowComments}
+                currentUserId={currentUser?.uid}
+                postAuthorId={post.authorId}
+                onDeleteComment={handleDeleteComment}
+                onLikeComment={handleLikeComment}
+                onReplyToComment={handleReplyToComment}
+                onShowReplies={handleShowReplies}
+                currentTheme={currentTheme}
+                newlyAddedReplyParentId={newlyAddedReplyParentId}
+              />
+            </View>
           </KeyboardAwareScrollView>
 
           {/* Comment Input - Fixed at bottom with keyboard awareness */}
           {post.allowComments && currentUser && (
-            <CommentInput
-              ref={commentInputRef}
-              value={commentText}
-              onChangeText={setCommentText}
-              onSubmit={() => handleAddComment(commentText)}
-              isSubmitting={submittingComment}
-              currentTheme={currentTheme}
-              replyToComment={replyToComment}
-              onCancelReply={handleCancelReply}
-            />
+            <View style={[{ 
+              backgroundColor: currentTheme.background,
+              paddingTop: SPACING.sm 
+            }]}>
+              <CommentInput
+                ref={commentInputRef}
+                value={commentText}
+                onChangeText={setCommentText}
+                onSubmit={() => handleAddComment(commentText)}
+                isSubmitting={submittingComment}
+                currentTheme={currentTheme}
+                replyToComment={replyToComment}
+                onCancelReply={handleCancelReply}
+              />
+            </View>
           )}
         </View>
       </KeyboardAvoidingView>

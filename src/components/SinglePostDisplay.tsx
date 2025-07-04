@@ -282,4 +282,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.md,
   },
+  headerContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+    marginBottom: SPACING.md,
+  },
 });
