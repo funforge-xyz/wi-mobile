@@ -31,7 +31,7 @@ export default function CustomCameraView({
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const { t } = useTranslation();
-  const [zoom, setZoom] = useState(0.15);
+  const [zoom, setZoom] = useState(0);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const recordingInterval = useRef<NodeJS.Timeout | null>(null);
   const [flash, setFlash] = useState<'off' | 'on' | 'auto'>('off');
@@ -133,6 +133,11 @@ export default function CustomCameraView({
   };
 
   const flipCamera = () => {
+    if(cameraType === 'front') {
+      setZoom(0.15);
+    } else {
+      setZoom(0.05);
+    }
     setCameraType(current => (current === 'front' ? 'back' : 'front'));
   };
 
@@ -152,13 +157,17 @@ export default function CustomCameraView({
   };
 
   const resetZoom = () => {
-    setZoom(0.15);
+    if(cameraType === 'back') {
+      setZoom(0.15);
+    } else {
+      setZoom(0.05);
+    }
   };
 
   // Pinch gesture for zoom - faster and more responsive
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
-      const newZoom = Math.max(0.15, Math.min(1, zoom + (event.scale - 1) * 0.02));
+      const newZoom = Math.max(0, Math.min(1, zoom + (event.scale - 1) * 0.005));
       setZoom(newZoom);
     })
     .runOnJS(true);
@@ -223,8 +232,8 @@ export default function CustomCameraView({
             facing={cameraType}
             ref={cameraRef}
             mode={cameraMode}
-            zoom={zoom}
             flash={flash}
+            zoom={zoom}
             onCameraReady={() => setZoom(0.15)}
           />
         </GestureDetector>
