@@ -234,7 +234,7 @@ export default function CustomCameraView({
             mode={cameraMode}
             flash={flash}
             zoom={zoom}
-            onCameraReady={() => setZoom(0.15)}
+            onCameraReady={() => setTimeout(() => setZoom(0.15), 0)}
           />
         </GestureDetector>
       </View>
