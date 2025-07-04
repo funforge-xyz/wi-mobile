@@ -99,6 +99,7 @@ export default function SinglePostDisplay({
   };
 
   const handleDoubleTap = () => {
+    if(isMediaLoading) return;
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
 
