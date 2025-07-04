@@ -63,7 +63,7 @@ const styles = {
     flexDirection: 'row' as const,
     alignItems: 'flex-end' as const,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.lg,
     borderTopWidth: 1,
   },

@@ -85,10 +85,8 @@ export default function SinglePostDisplay({
       }
       setLastTap(null);
     } else {
-      // This is a single tap - just record the time
+      // This is a single tap - record the time
       setLastTap(now);
-      // Clear the tap after delay
-      setTimeout(() => setLastTap(null), DOUBLE_PRESS_DELAY);
     }
   };
 
