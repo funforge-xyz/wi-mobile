@@ -19,9 +19,9 @@ interface NearbyState {
   loading: boolean;
   refreshing: boolean;
   loadingMore: boolean;
-  lastDoc: QueryDocumentSnapshot | null;
   hasMore: boolean;
   error: string | null;
+  currentPage: number;
 }
 
 const initialState: NearbyState = {
@@ -29,19 +29,28 @@ const initialState: NearbyState = {
   loading: false,
   refreshing: false,
   loadingMore: false,
-  lastDoc: null,
   hasMore: true,
   error: null,
+  currentPage: 0,
 };
 
 // Async thunk for loading nearby users
 export const loadNearbyUsers = createAsyncThunk(
   'nearby/loadUsers',
-  async (params: { currentUserId: string; reset?: boolean; lastDoc?: QueryDocumentSnapshot | null }, { rejectWithValue }) => {
+  async (params: { currentUserId: string; reset?: boolean; page?: number }, { rejectWithValue, getState }) => {
     try {
       const nearbyUtils = await import('../utils/nearbyUtils');
-      const result = await nearbyUtils.loadNearbyUsers(params.currentUserId, params.lastDoc || null, 50);
-      return { ...result, reset: params.reset };
+      const state = getState() as any;
+      const currentPage = params.reset ? 0 : (params.page ?? state.nearby.currentPage);
+      
+      const result = await nearbyUtils.loadNearbyUsers(params.currentUserId, null, 50, currentPage);
+      
+      return { 
+        users: result.users, 
+        hasMore: result.hasMore,
+        reset: params.reset,
+        page: currentPage
+      };
     } catch (error) {
       console.error('Error loading nearby users:', error);
       return rejectWithValue('Failed to load nearby users');
@@ -58,9 +67,9 @@ const nearbySlice = createSlice({
       state.loading = false;
       state.refreshing = false;
       state.loadingMore = false;
-      state.lastDoc = null;
       state.hasMore = true;
       state.error = null;
+      state.currentPage = 0;
     },
     removeBlockedUser: (state, action: PayloadAction<string>) => {
       state.users = state.users.filter(user => user.id !== action.payload);
@@ -77,9 +86,9 @@ const nearbySlice = createSlice({
       state.loading = false;
       state.refreshing = false;
       state.loadingMore = false;
-      state.lastDoc = null;
       state.hasMore = true;
       state.error = null;
+      state.currentPage = 0;
     },
   },
   extraReducers: (builder) => {
@@ -94,7 +103,7 @@ const nearbySlice = createSlice({
         }
       })
       .addCase(loadNearbyUsers.fulfilled, (state, action) => {
-        const { users, lastDoc, hasMore, reset } = action.payload;
+        const { users, hasMore, reset, page } = action.payload;
         
         state.loading = false;
         state.refreshing = false;
@@ -103,11 +112,12 @@ const nearbySlice = createSlice({
         
         if (reset) {
           state.users = users;
+          state.currentPage = 0;
         } else {
           state.users = [...state.users, ...users];
+          state.currentPage = page + 1;
         }
         
-        state.lastDoc = lastDoc;
         state.hasMore = hasMore;
       })
       .addCase(loadNearbyUsers.rejected, (state, action) => {

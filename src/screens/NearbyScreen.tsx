@@ -22,7 +22,8 @@ import type { NearbyUser } from '../store/nearbySlice';
 export default function NearbyScreen({ navigation, route }: any) {
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const { users, loading, refreshing, loadingMore, lastDoc, hasMore, error } = useAppSelector((state) => state.nearby);
+  const { users, loading, refreshing, loadingMore, hasMore, error, currentPage } = useAppSelector((state) => state.nearby);
+  const currentUser = useAppSelector((state) => state.user.user);
   const { t } = useTranslation();
 
   const currentTheme = getTheme(isDarkMode);
@@ -69,7 +70,7 @@ export default function NearbyScreen({ navigation, route }: any) {
       await dispatch(loadNearbyUsers({ 
         currentUserId: currentUser.uid, 
         reset,
-        lastDoc: reset ? null : lastDoc 
+        page: 1
       })).unwrap();
     } catch (error) {
       console.error('Error loading data:', error);
@@ -86,11 +87,21 @@ export default function NearbyScreen({ navigation, route }: any) {
     if (loadingMore || !hasMore) return;
 
     try {
-      await loadData(false);
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      await dispatch(loadNearbyUsers({ 
+        currentUserId: currentUser?.uid || '', 
+        reset: false, 
+        page: currentPage + 1
+      })).unwrap();
     } catch (error) {
       console.error('Error loading more users:', error);
     }
-  }, [loadingMore, hasMore, lastDoc]);
+  }, [loadingMore, hasMore, currentPage]);
 
   const handleUserPress = async (user: NearbyUser) => {
     try {

@@ -101,7 +101,8 @@ export const loadNearbyUsersWithRedux = async (
 export const loadNearbyUsers = async (
   currentUserId: string,
   lastDoc: QueryDocumentSnapshot | null = null,
-  pageSize: number = 50
+  pageSize: number = 50,
+  page: number = 0
 ): Promise<{ users: NearbyUser[], lastDoc: QueryDocumentSnapshot | null, hasMore: boolean }> => {
   try {
     const firebase = await import('../services/firebase');
@@ -178,26 +179,15 @@ export const loadNearbyUsers = async (
     const minLon = currentUserLocation.longitude - lonDelta;
     const maxLon = currentUserLocation.longitude + lonDelta;
 
-    // Build the base query
+    // Build the base query with increased limit for filtering
+    const fetchLimit = Math.max(pageSize * 3, 150); // Ensure we get enough data to filter
     let usersQuery = query(
       collection(firestore, 'users'),
       where('location.latitude', '>=', minLat),
       where('location.latitude', '<=', maxLat),
       orderBy('location.latitude'),
-      limit(pageSize * 3) // Get more to account for filtering
+      limit(fetchLimit)
     );
-
-    // Add pagination
-    if (lastDoc) {
-      usersQuery = query(
-        collection(firestore, 'users'),
-        where('location.latitude', '>=', minLat),
-        where('location.latitude', '<=', maxLat),
-        orderBy('location.latitude'),
-        startAfter(lastDoc),
-        limit(pageSize * 3)
-      );
-    }
 
     const usersSnapshot = await getDocs(usersQuery, { source: 'server' });
     const nearbyUsers: NearbyUser[] = [];
@@ -290,14 +280,15 @@ export const loadNearbyUsers = async (
       return (a.distance || 0) - (b.distance || 0);
     });
 
-    // Take only the requested page size
-    const paginatedUsers = sortedUsers.slice(0, pageSize);
-    const hasMore = usersSnapshot.docs.length >= pageSize * 3 && paginatedUsers.length === pageSize;
-    const newLastDoc = usersSnapshot.docs.length > 0 ? usersSnapshot.docs[usersSnapshot.docs.length - 1] : null;
+    // Apply pagination based on page number
+    const startIndex = page * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+    const hasMore = sortedUsers.length > endIndex;
 
     return {
       users: paginatedUsers,
-      lastDoc: newLastDoc,
+      lastDoc: null, // Not needed for page-based pagination
       hasMore
     };
 
