@@ -42,11 +42,11 @@ export default function NearbyScreen({ navigation, route }: any) {
   // Selective refresh when screen comes into focus (for blocked user flow)
   useFocusEffect(
     useCallback(() => {
-      // Only refresh if coming from block user flow OR if we have existing data and should refresh
-      if (shouldRefetchAfterBlock || (nearbyUsers.length > 0 && shouldRefetchAfterBlock === undefined)) {
+      // Only refresh if coming from block user flow
+      if (shouldRefetchAfterBlock) {
         loadData(true);
       }
-    }, [shouldRefetchAfterBlock, nearbyUsers.length])
+    }, [shouldRefetchAfterBlock])
   );
 
   // Clear the refetch parameter after using it
