@@ -20,7 +20,7 @@ import { getTheme } from '../theme';
 import { NearbyUser, loadNearbyUsers, handleMessageUser } from '../utils/nearbyUtils';
 import { QueryDocumentSnapshot } from 'firebase/firestore';
 
-export default function NearbyScreen({ navigation }: any) {
+export default function NearbyScreen({ navigation, route }: any) {
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -30,21 +30,32 @@ export default function NearbyScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
+  // Get refetch parameter from route params
+  const shouldRefetchAfterBlock = route?.params?.refetchAfterBlock;
+
   const currentTheme = getTheme(isDarkMode);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  // Refresh data when screen comes into focus (for blocked user flow)
+  // Selective refresh when screen comes into focus (for blocked user flow)
   useFocusEffect(
     useCallback(() => {
-      // Only refresh if we have existing data (not initial load)
-      if (nearbyUsers.length > 0) {
+      // Only refresh if coming from block user flow OR if we have existing data and should refresh
+      if (shouldRefetchAfterBlock || (nearbyUsers.length > 0 && shouldRefetchAfterBlock === undefined)) {
         loadData(true);
       }
-    }, [])
+    }, [shouldRefetchAfterBlock, nearbyUsers.length])
   );
+
+  // Clear the refetch parameter after using it
+  useEffect(() => {
+    if (shouldRefetchAfterBlock) {
+      // Reset the navigation params to prevent unnecessary refetches
+      navigation.setParams({ refetchAfterBlock: undefined });
+    }
+  }, [shouldRefetchAfterBlock, navigation]);
 
   // Clear local state when auth state changes (user logs out/in)
   useEffect(() => {

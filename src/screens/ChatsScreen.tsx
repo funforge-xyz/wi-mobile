@@ -156,7 +156,13 @@ export default function ChatsScreen({ navigation }: any) {
     setSelectedConnection(null);
     // Navigate to NearbyScreen (People tab)
     navigation.navigate('Root', { 
-      screen: 'People'
+      screen: 'People',
+      params: {
+        screen: 'Nearby',
+        params: {
+          refetchAfterBlock: true,
+        }
+      }
     });
   };
 
