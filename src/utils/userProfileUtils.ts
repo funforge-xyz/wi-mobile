@@ -51,12 +51,33 @@ export const handleBlockUserAction = async (
   onSuccess: () => void
 ) => {
   try {
-    const { blockUser } = await import('./chatsUtils');
-    await blockUser(userId);
+    const { getAuth, getFirestore } = await import('../services/firebase');
+    const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
+
+    const auth = getAuth();
+    const firestore = getFirestore();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+
+    // Add to blockedUsers collection
+    await addDoc(collection(firestore, 'blockedUsers'), {
+      blockerUserId: currentUser.uid,
+      blockedUserId: userId,
+      createdAt: serverTimestamp(),
+    });
+
+    // Update Redux state to remove blocked user from nearby list
+    const { store } = await import('../store');
+    const { removeBlockedUser } = await import('../store/nearbySlice');
+    store.dispatch(removeBlockedUser(userId));
+
     onSuccess();
   } catch (error) {
     console.error('Error blocking user:', error);
-    Alert.alert('Error', t('userProfile.failedToBlock'));
+    throw new Error(t('userProfile.failedToBlock'));
   }
 };
 

@@ -109,31 +109,39 @@ export const handleStartChat = (connection: Connection, navigation: any) => {
   });
 };
 
-export const blockUser = async (userId: string, connectionId?: string) => {
+export const blockUser = async (userId: string, connectionId: string) => {
   try {
-    const { getAuth } = await import('../services/firebase');
+    const { getAuth, getFirestore } = await import('../services/firebase');
+    const { addDoc, collection, serverTimestamp, doc, updateDoc } = await import('firebase/firestore');
+
     const auth = getAuth();
+    const firestore = getFirestore();
     const currentUser = auth.currentUser;
 
-    if (!currentUser) return;
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
 
-    const firestore = getFirestore();
-
-    // Add to blocked users
+    // Add to blockedUsers collection
     await addDoc(collection(firestore, 'blockedUsers'), {
       blockerUserId: currentUser.uid,
       blockedUserId: userId,
-      blockedAt: new Date()
+      createdAt: serverTimestamp(),
     });
 
-    // Update connection status if connectionId is provided
-    if (connectionId) {
-      await updateDoc(doc(firestore, 'connections', connectionId), {
-        status: 'blocked',
-        blockedAt: new Date(),
-        blockedBy: currentUser.uid
-      });
-    }
+    // Update connection status to blocked
+    const connectionRef = doc(firestore, 'connections', connectionId);
+    await updateDoc(connectionRef, {
+      status: 'blocked',
+      updatedAt: serverTimestamp(),
+    });
+
+    // Update Redux state to remove blocked user from nearby list
+    const { store } = await import('../store');
+    const { removeBlockedUser } = await import('../store/nearbySlice');
+    store.dispatch(removeBlockedUser(userId));
+
+    console.log('User blocked successfully');
   } catch (error) {
     console.error('Error blocking user:', error);
     throw error;

@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -8,8 +7,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import NearbySkeleton from '../components/NearbySkeleton';
 import NearbyHeader from '../components/NearbyHeader';
 import NearbyUserItem from '../components/NearbyUserItem';
@@ -17,42 +15,31 @@ import NearbyEmptyState from '../components/NearbyEmptyState';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/NearbyStyles';
 import { getTheme } from '../theme';
-import { NearbyUser, loadNearbyUsers, handleMessageUser } from '../utils/nearbyUtils';
-import { QueryDocumentSnapshot } from 'firebase/firestore';
+import { handleMessageUser } from '../utils/nearbyUtils';
+import { loadNearbyUsers, setRefreshing } from '../store/nearbySlice';
+import type { NearbyUser } from '../store/nearbySlice';
 
 export default function NearbyScreen({ navigation, route }: any) {
-  const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const { users, loading, refreshing, loadingMore, lastDoc, hasMore, error } = useAppSelector((state) => state.nearby);
   const { t } = useTranslation();
 
   const currentTheme = getTheme(isDarkMode);
 
-  // Refresh when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      loadData(true);
-    }, [])
-  );
+  // Initial load on mount
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  // Clear local state when auth state changes (user logs out/in)
+  // Clear nearby data when auth state changes (user logs out/in)
   useEffect(() => {
     const setupAuthListener = async () => {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
-      
+
       const unsubscribe = auth.onAuthStateChanged((user) => {
-        if (!user) {
-          // User logged out, clear local state
-          setNearbyUsers([]);
-          setLoading(true);
-          setLastDoc(null);
-          setHasMore(true);
-        } else {
+        if (user) {
           // User logged in, load fresh data
           loadData();
         }
@@ -73,62 +60,35 @@ export default function NearbyScreen({ navigation, route }: any) {
 
   const loadData = async (reset: boolean = true) => {
     try {
-      if (reset) {
-        setLoading(true);
-        setNearbyUsers([]);
-        setLastDoc(null);
-        setHasMore(true);
-      }
-      await loadNearbyUsersData(reset);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      Alert.alert('Error', 'Failed to load data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadNearbyUsersData = async (reset: boolean = true) => {
-    try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
       if (!currentUser) return;
 
-      const currentLastDoc = reset ? null : lastDoc;
-      const result = await loadNearbyUsers(currentUser.uid, currentLastDoc, 50);
-
-      if (reset) {
-        setNearbyUsers(result.users);
-      } else {
-        setNearbyUsers(prev => [...prev, ...result.users]);
-      }
-
-      setLastDoc(result.lastDoc);
-      setHasMore(result.hasMore);
+      await dispatch(loadNearbyUsers({ 
+        currentUserId: currentUser.uid, 
+        reset,
+        lastDoc: reset ? null : lastDoc 
+      })).unwrap();
     } catch (error) {
-      console.error('Error loading users:', error);
-      throw error;
+      console.error('Error loading data:', error);
+      Alert.alert('Error', 'Failed to load data');
     }
   };
 
   const onRefresh = async () => {
-    setRefreshing(true);
+    dispatch(setRefreshing(true));
     await loadData(true);
-    setRefreshing(false);
   };
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
 
-    setLoadingMore(true);
     try {
-      await loadNearbyUsersData(false);
+      await loadData(false);
     } catch (error) {
       console.error('Error loading more users:', error);
-    } finally {
-      setLoadingMore(false);
     }
   }, [loadingMore, hasMore, lastDoc]);
 
@@ -160,7 +120,7 @@ export default function NearbyScreen({ navigation, route }: any) {
 
   const renderFooter = () => {
     if (!loadingMore) return null;
-    
+
     return (
       <View style={{ padding: 20, alignItems: 'center' }}>
         <ActivityIndicator size="small" color={currentTheme.primary} />
@@ -180,7 +140,7 @@ export default function NearbyScreen({ navigation, route }: any) {
         <NearbySkeleton count={5} />
       ) : (
         <FlatList
-          data={nearbyUsers}
+          data={users}
           keyExtractor={(item) => item.id}
           renderItem={renderUserItem}
           refreshControl={
@@ -194,7 +154,7 @@ export default function NearbyScreen({ navigation, route }: any) {
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
-            nearbyUsers.length === 0
+            users.length === 0
               ? styles.emptyContainer
               : styles.listContent
           }

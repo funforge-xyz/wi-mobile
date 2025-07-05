@@ -5,6 +5,7 @@ import userReducer from './userSlice';
 import feedReducer from './feedSlice';
 import connectionsReducer from './connectionsSlice';
 import languageReducer from './languageSlice';
+import nearbyReducer from './nearbySlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     feed: feedReducer,
     connections: connectionsReducer,
     language: languageReducer,
+    nearby: nearbyReducer,
   },
 });
 

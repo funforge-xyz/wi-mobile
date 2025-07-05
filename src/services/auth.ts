@@ -503,3 +503,30 @@ export class AuthService {
 }
 
 export const authService = new AuthService();
+
+export const logout = async (): Promise<void> => {
+  try {
+    const { getAuth } = await import('./firebase');
+    const { logout: userLogout } = await import('../store/userSlice');
+    const { logout: connectionsLogout } = await import('../store/connectionsSlice');
+    const { clearFeedData } = await import('../store/feedSlice');
+    const { logout: nearbyLogout } = await import('../store/nearbySlice');
+    const { store } = await import('../store');
+
+    const auth = getAuth();
+
+    // Clear Redux state first
+    store.dispatch(userLogout());
+    store.dispatch(connectionsLogout());
+    store.dispatch(clearFeedData());
+    store.dispatch(nearbyLogout());
+
+    // Then sign out from Firebase
+    await auth.signOut();
+
+    console.log('User logged out successfully');
+  } catch (error) {
+    console.error('Error during logout:', error);
+    throw error;
+  }
+};

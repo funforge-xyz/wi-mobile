@@ -1,7 +1,32 @@
-
-import { getFirestore } from '../services/firebase';
-import { getAuth } from '../services/firebase';
-import { collection, getDocs, doc, getDoc, query, where, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  getDocs, 
+  doc, 
+  getDoc, 
+  startAfter,
+  QueryDocumentSnapshot,
+} from 'firebase/firestore';
+import { 
+  getFirestore, 
+  GeoPoint, 
+  Timestamp 
+} from 'firebase/firestore';
+import { getNetworkStateAsync } from 'expo-network';
+import { AppDispatch } from '../store';
+import { 
+  setLoading, 
+  setRefreshing, 
+  setLoadingMore, 
+  setUsers, 
+  appendUsers, 
+  setLastDoc, 
+  setHasMore, 
+  setError 
+} from '../store/nearbySlice';
 
 export interface NearbyUser {
   id: string;
@@ -10,9 +35,9 @@ export interface NearbyUser {
   email: string;
   photoURL: string;
   bio: string;
-  isOnline?: boolean;
+  isOnline: boolean;
   distance?: number;
-  isSameNetwork?: boolean;
+  isSameNetwork: boolean;
 }
 
 // Function to calculate distance between two coordinates using Haversine formula
@@ -33,9 +58,49 @@ function deg2rad(deg: number) {
   return deg * (Math.PI/180);
 }
 
+export const loadNearbyUsersWithRedux = async (
+  currentUserId: string,
+  dispatch: AppDispatch,
+  lastDoc: QueryDocumentSnapshot | null = null,
+  pageSize: number = 50,
+  isRefresh: boolean = false,
+  isLoadMore: boolean = false
+): Promise<void> => {
+  try {
+    if (isRefresh) {
+      dispatch(setRefreshing(true));
+    } else if (isLoadMore) {
+      dispatch(setLoadingMore(true));
+    } else {
+      dispatch(setLoading(true));
+    }
+
+    dispatch(setError(null));
+
+    const result = await loadNearbyUsers(currentUserId, lastDoc, pageSize);
+
+    if (isRefresh || (!isLoadMore && !lastDoc)) {
+      dispatch(setUsers(result.users));
+    } else {
+      dispatch(appendUsers(result.users));
+    }
+
+    dispatch(setLastDoc(result.lastDoc));
+    dispatch(setHasMore(result.hasMore));
+
+  } catch (error) {
+    console.error('Error loading nearby users:', error);
+    dispatch(setError('Failed to load nearby users'));
+  } finally {
+    dispatch(setLoading(false));
+    dispatch(setRefreshing(false));
+    dispatch(setLoadingMore(false));
+  }
+};
+
 export const loadNearbyUsers = async (
   currentUserId: string,
-  lastDoc?: QueryDocumentSnapshot | null,
+  lastDoc: QueryDocumentSnapshot | null = null,
   pageSize: number = 50
 ): Promise<{ users: NearbyUser[], lastDoc: QueryDocumentSnapshot | null, hasMore: boolean }> => {
   try {
