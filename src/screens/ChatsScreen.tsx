@@ -12,6 +12,7 @@ import ChatsEmptyState from '../components/ChatsEmptyState';
 import ChatsSkeleton from '../components/ChatsSkeleton';
 import RequestsSkeleton from '../components/RequestsSkeleton';
 import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal';
+import BlockUserSuccessModal from '../components/BlockUserSuccessModal';
 import { createChatsStyles, getTheme } from '../styles/ChatsStyles';
 import {
   ConnectionRequest,
@@ -150,6 +151,15 @@ export default function ChatsScreen({ navigation }: any) {
     setSelectedConnection(null);
   };
 
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    setSelectedConnection(null);
+    // Navigate to NearbyScreen (People tab)
+    navigation.navigate('Root', { 
+      screen: 'People'
+    });
+  };
+
   const handleCancelBlock = () => {
     setShowBlockModal(false);
     setSelectedConnection(null);
@@ -269,6 +279,12 @@ export default function ChatsScreen({ navigation }: any) {
         visible={showBlockModal}
         onConfirm={handleConfirmBlock}
         onCancel={handleCancelBlock}
+        currentTheme={currentTheme}
+      />
+
+      <BlockUserSuccessModal
+        visible={showSuccessModal}
+        onClose={handleSuccessModalClose}
         currentTheme={currentTheme}
       />
     </SafeAreaView>

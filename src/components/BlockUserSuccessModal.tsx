@@ -3,6 +3,7 @@ import { View, Text, Modal, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 
 interface BlockUserSuccessModalProps {
   visible: boolean;
@@ -18,6 +19,17 @@ export default function BlockUserSuccessModal({
   animation,
 }: BlockUserSuccessModalProps) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000); // Auto-close after 2 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [visible, onClose]);
+
   const animatedStyle = animation ? {
     transform: [
       {
@@ -108,15 +120,6 @@ export default function BlockUserSuccessModal({
           <Text style={[styles.message, { color: currentTheme.textSecondary }]}>
             {t('userProfile.userBlockedMessage')}
           </Text>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={onClose}
-          >
-            <Text style={styles.buttonText}>
-              {t('common.ok')}
-            </Text>
-          </TouchableOpacity>
         </Animated.View>
       </View>
     </Modal>

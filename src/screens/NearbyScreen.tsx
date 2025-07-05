@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAppSelector } from '../hooks/redux';
 import NearbySkeleton from '../components/NearbySkeleton';
 import NearbyHeader from '../components/NearbyHeader';
@@ -34,6 +35,16 @@ export default function NearbyScreen({ navigation }: any) {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Refresh data when screen comes into focus (for blocked user flow)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if we have existing data (not initial load)
+      if (nearbyUsers.length > 0) {
+        loadData(true);
+      }
+    }, [nearbyUsers.length])
+  );
 
   // Clear local state when auth state changes (user logs out/in)
   useEffect(() => {
