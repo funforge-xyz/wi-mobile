@@ -1,9 +1,7 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
-import { getFirestore, doc, updateDoc, GeoPoint } from 'firebase/firestore';
-import { GeoFirestore } from 'geofirestore';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { getAuth } from './firebase';
-import { encodeGeohash } from '../utils/geohashUtils';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -278,12 +276,12 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     // Get enhanced WiFi network info
     const { wifiService } = await import('./wifiService');
     const wifiInfo = await wifiService.getCurrentWifiInfo();
-
-    const geohash = encodeGeohash({ latitude, longitude });
     
     const updateData: any = {
-      coordinates: new GeoPoint(latitude, longitude),
-      geohash: geohash,
+      location: {
+        latitude,
+        longitude
+      },
       lastUpdatedLocation: new Date(),
       lastSeen: new Date(), // Add last seen for online status
     };
@@ -300,8 +298,7 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     await updateDoc(userRef, updateData);
 
     console.log('User location and network updated in Firestore:', { 
-      latitude, 
-      longitude, 
+      location: { latitude, longitude }, 
       networkId: wifiInfo.networkId
     });
   } catch (error) {

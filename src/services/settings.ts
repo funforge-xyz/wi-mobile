@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface AppSettings {
   sameNetworkMatching: boolean;
-  trackingRadius: number;
+  trackingRadius: number; // in meters
   locationTrackingEnabled: boolean;
   pushNotificationsEnabled: boolean;
   darkMode: boolean;

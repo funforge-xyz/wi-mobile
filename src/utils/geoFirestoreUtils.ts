@@ -1,10 +1,21 @@
 
-import { getFirestore, collection, getDocs, doc, updateDoc, GeoPoint } from 'firebase/firestore';
-import { GeoFirestore } from 'geofirestore';
-import { encodeGeohash } from './geohashUtils';
+import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
 
-// Utility function to migrate existing user location data to GeoFirestore format
-export const migrateUserLocationsToGeoFirestore = async (): Promise<void> => {
+// Simple distance calculation using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+// Utility function to migrate existing user location data to simple format
+export const migrateUserLocationsToSimpleFormat = async (): Promise<void> => {
   try {
     const firestore = getFirestore();
     const usersRef = collection(firestore, 'users');
@@ -14,47 +25,81 @@ export const migrateUserLocationsToGeoFirestore = async (): Promise<void> => {
 
     snapshot.docs.forEach((userDoc) => {
       const userData = userDoc.data();
-      const location = userData.location;
-
-      // Check if user has location but no coordinates (GeoPoint)
-      if (location && location.latitude && location.longitude && !userData.coordinates) {
-        const geohash = encodeGeohash({ latitude: location.latitude, longitude: location.longitude });
-        const updatePromise = updateDoc(doc(firestore, 'users', userDoc.id), {
-          coordinates: new GeoPoint(location.latitude, location.longitude),
-          geohash: geohash
-        });
-        updatePromises.push(updatePromise);
+      
+      // Check if user has coordinates or geohash but no simple location
+      if ((userData.coordinates || userData.geohash) && !userData.location) {
+        let latitude, longitude;
+        
+        if (userData.coordinates) {
+          latitude = userData.coordinates.latitude;
+          longitude = userData.coordinates.longitude;
+        } else if (userData.location && userData.location.latitude) {
+          // Already in correct format
+          return;
+        }
+        
+        if (latitude && longitude) {
+          const updatePromise = updateDoc(doc(firestore, 'users', userDoc.id), {
+            location: {
+              latitude,
+              longitude
+            },
+            // Remove old fields
+            coordinates: null,
+            geohash: null
+          });
+          updatePromises.push(updatePromise);
+        }
       }
     });
 
     await Promise.all(updatePromises);
-    console.log(`Migrated ${updatePromises.length} user locations to GeoFirestore format`);
+    console.log(`Migrated ${updatePromises.length} user locations to simple format`);
   } catch (error) {
     console.error('Error migrating user locations:', error);
   }
 };
 
-// Utility function to check if GeoFirestore is working properly
-export const testGeoFirestore = async (
+// Utility function to get nearby users using simple distance calculation
+export const getNearbyUsers = async (
   userLocation: { latitude: number; longitude: number },
-  radiusKm: number = 5
-): Promise<boolean> => {
+  radiusKm: number,
+  currentUserId: string
+): Promise<any[]> => {
   try {
     const firestore = getFirestore();
-    const geofirestore = new GeoFirestore(firestore);
-    const geocollection = geofirestore.collection('users');
+    const usersRef = collection(firestore, 'users');
     
-    const geoQuery = geocollection.near({
-      center: new GeoPoint(userLocation.latitude, userLocation.longitude),
-      radius: radiusKm
+    // Get all users (in production, you might want to add some filtering)
+    const snapshot = await getDocs(usersRef);
+    const nearbyUsers: any[] = [];
+    
+    snapshot.docs.forEach((doc) => {
+      if (doc.id !== currentUserId) {
+        const userData = doc.data();
+        if (userData.location && userData.location.latitude && userData.location.longitude) {
+          const distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            userData.location.latitude,
+            userData.location.longitude
+          );
+          
+          if (distance <= radiusKm) {
+            nearbyUsers.push({
+              ...userData,
+              id: doc.id,
+              distance
+            });
+          }
+        }
+      }
     });
 
-    await geoQuery.limit(1).get();
-    console.log('GeoFirestore test successful');
-    return true;
+    return nearbyUsers.sort((a, b) => a.distance - b.distance);
   } catch (error) {
-    console.error('GeoFirestore test failed:', error);
-    return false;
+    console.error('Error getting nearby users:', error);
+    return [];
   }
 };
 
@@ -65,27 +110,29 @@ export const getNearbyUsersCount = async (
   currentUserId: string
 ): Promise<number> => {
   try {
-    const firestore = getFirestore();
-    const geofirestore = new GeoFirestore(firestore);
-    const geocollection = geofirestore.collection('users');
-    
-    const geoQuery = geocollection.near({
-      center: new GeoPoint(userLocation.latitude, userLocation.longitude),
-      radius: radiusKm
-    });
-
-    const snapshot = await geoQuery.get();
-    let count = 0;
-    
-    snapshot.docs.forEach((doc) => {
-      if (doc.id !== currentUserId) {
-        count++;
-      }
-    });
-
-    return count;
+    const nearbyUsers = await getNearbyUsers(userLocation, radiusKm, currentUserId);
+    return nearbyUsers.length;
   } catch (error) {
     console.error('Error getting nearby users count:', error);
     return 0;
+  }
+};
+
+// Test function to verify the simple location system works
+export const testSimpleLocationSystem = async (
+  userLocation: { latitude: number; longitude: number },
+  radiusKm: number = 5
+): Promise<boolean> => {
+  try {
+    const firestore = getFirestore();
+    const usersRef = collection(firestore, 'users');
+    
+    // Test by getting a small sample
+    const snapshot = await getDocs(query(usersRef));
+    console.log('Simple location system test successful');
+    return true;
+  } catch (error) {
+    console.error('Simple location system test failed:', error);
+    return false;
   }
 };
