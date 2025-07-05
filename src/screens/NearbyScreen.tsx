@@ -5,6 +5,8 @@ import {
   Alert,
   ActivityIndicator,
   View,
+  Text,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -65,16 +67,23 @@ export default function NearbyScreen({ navigation, route }: any) {
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('No current user found');
+        return;
+      }
 
-      await dispatch(loadNearbyUsers({ 
+      console.log('Loading nearby users for user:', currentUser.uid);
+      
+      const result = await dispatch(loadNearbyUsers({ 
         currentUserId: currentUser.uid, 
         reset,
         page: 1
       })).unwrap();
+      
+      console.log('Successfully loaded nearby users:', result);
     } catch (error) {
-      console.error('Error loading data:', error);
-      Alert.alert('Error', 'Failed to load data');
+      console.error('Error loading nearby users:', error);
+      dispatch(setError(error instanceof Error ? error.message : 'Failed to load nearby users'));
     }
   };
 
@@ -149,6 +158,23 @@ export default function NearbyScreen({ navigation, route }: any) {
 
       {loading ? (
         <NearbySkeleton count={5} />
+      ) : error ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ color: currentTheme.text, textAlign: 'center', marginBottom: 16 }}>
+            {error}
+          </Text>
+          <TouchableOpacity
+            onPressed={() => loadData(true)}
+            style={{
+              backgroundColor: currentTheme.primary,
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: 'white' }}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           data={users}

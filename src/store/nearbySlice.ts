@@ -39,21 +39,29 @@ export const loadNearbyUsers = createAsyncThunk(
   'nearby/loadUsers',
   async (params: { currentUserId: string; reset?: boolean; page?: number }, { rejectWithValue, getState }) => {
     try {
+      if (!params.currentUserId) {
+        throw new Error('User ID is required');
+      }
+
       const nearbyUtils = await import('../utils/nearbyUtils');
       const state = getState() as any;
-      const currentPage = params.reset ? 0 : (params.page ?? state.nearby.currentPage);
+      const currentPage = params.reset ? 1 : (params.page ?? (state.nearby.currentPage + 1));
+      
+      console.log('Loading nearby users:', { currentUserId: params.currentUserId, page: currentPage, reset: params.reset });
       
       const result = await nearbyUtils.loadNearbyUsers(params.currentUserId, null, 50, currentPage);
       
+      console.log('Nearby users result:', result);
+      
       return { 
-        users: result.users, 
-        hasMore: result.hasMore,
-        reset: params.reset,
+        users: result.users || [], 
+        hasMore: result.hasMore || false,
+        reset: params.reset || false,
         page: currentPage
       };
     } catch (error) {
       console.error('Error loading nearby users:', error);
-      return rejectWithValue('Failed to load nearby users');
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to load nearby users');
     }
   }
 );
@@ -95,16 +103,21 @@ const nearbySlice = createSlice({
     builder
       .addCase(loadNearbyUsers.pending, (state, action) => {
         const { reset } = action.meta.arg;
+        state.error = null;
+        
         if (reset) {
           state.loading = true;
-          state.error = null;
+          state.refreshing = false;
+          state.loadingMore = false;
         } else {
           state.loadingMore = true;
+          state.loading = false;
         }
       })
       .addCase(loadNearbyUsers.fulfilled, (state, action) => {
         const { users, hasMore, reset, page } = action.payload;
         
+        // Clear all loading states
         state.loading = false;
         state.refreshing = false;
         state.loadingMore = false;
@@ -112,19 +125,28 @@ const nearbySlice = createSlice({
         
         if (reset) {
           state.users = users;
-          state.currentPage = 0;
+          state.currentPage = page;
         } else {
           state.users = [...state.users, ...users];
-          state.currentPage = page + 1;
+          state.currentPage = page;
         }
         
         state.hasMore = hasMore;
       })
       .addCase(loadNearbyUsers.rejected, (state, action) => {
+        console.error('loadNearbyUsers rejected:', action.payload);
+        
+        // Clear all loading states on error
         state.loading = false;
         state.refreshing = false;
         state.loadingMore = false;
         state.error = action.payload as string;
+        
+        // If this was the initial load and it failed, ensure we don't show skeleton forever
+        if (state.users.length === 0) {
+          state.users = [];
+          state.hasMore = false;
+        }
       });
   },
 });
