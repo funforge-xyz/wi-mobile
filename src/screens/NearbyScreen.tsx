@@ -30,33 +30,14 @@ export default function NearbyScreen({ navigation, route }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
-  // Get refetch parameter from route params
-  const shouldRefetchAfterBlock = route?.params?.refetchAfterBlock;
-
   const currentTheme = getTheme(isDarkMode);
 
-  // useEffect(() => {
-  //   loadData();
-  // }, []);
-
-  // Selective refresh when screen comes into focus (for blocked user flow)
+  // Refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       loadData(true);
     }, [])
   );
-
-  // Clear the refetch parameter after using it
-  useEffect(() => {
-    if (shouldRefetchAfterBlock) {
-      // Reset the navigation params to prevent unnecessary refetches
-      const timeoutId = setTimeout(() => {
-        navigation.setParams({ refetchAfterBlock: undefined });
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [shouldRefetchAfterBlock, navigation]);
 
   // Clear local state when auth state changes (user logs out/in)
   useEffect(() => {

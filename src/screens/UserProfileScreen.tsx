@@ -92,13 +92,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     setShowSuccessModal(false);
     // Navigate to NearbyScreen (People tab)
     navigation.navigate('Root', { 
-      screen: 'People',
-      params: {
-        screen: 'Nearby',
-        params: {
-          refetchAfterBlock: true,
-        }
-      }
+      screen: 'People'
     });
   };
 
