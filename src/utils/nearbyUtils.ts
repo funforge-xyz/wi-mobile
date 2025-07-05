@@ -104,14 +104,14 @@ export const loadNearbyUsers = async (
   pageSize: number = 50
 ): Promise<{ users: NearbyUser[], lastDoc: QueryDocumentSnapshot | null, hasMore: boolean }> => {
   try {
-    const auth = getAuth();
+    const firebase = await import('../services/firebase');
+    const firestore = firebase.getFirestore();
+    const auth = firebase.getAuth();
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
       throw new Error('User not authenticated');
     }
-
-    const firestore = getFirestore();
 
     // Get current user's data including location and settings
     const userDocRef = doc(firestore, 'users', currentUser.uid);

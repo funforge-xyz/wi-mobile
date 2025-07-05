@@ -39,8 +39,8 @@ export const loadNearbyUsers = createAsyncThunk(
   'nearby/loadUsers',
   async (params: { currentUserId: string; reset?: boolean; lastDoc?: QueryDocumentSnapshot | null }, { rejectWithValue }) => {
     try {
-      const { loadNearbyUsers: loadNearbyUsersUtil } = await import('../utils/nearbyUtils');
-      const result = await loadNearbyUsersUtil(params.currentUserId, params.lastDoc || null, 50);
+      const nearbyUtils = await import('../utils/nearbyUtils');
+      const result = await nearbyUtils.loadNearbyUsers(params.currentUserId, params.lastDoc || null, 50);
       return { ...result, reset: params.reset };
     } catch (error) {
       console.error('Error loading nearby users:', error);
