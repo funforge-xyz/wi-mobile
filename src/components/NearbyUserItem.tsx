@@ -52,18 +52,11 @@ export default function NearbyUserItem({
               </Text>
             )}
           </Text>
-          {user.bio ? (
-            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]} numberOfLines={2}>
-              {user.bio}
+          {user.isSameNetwork && (
+            <Text style={[styles.userBio, { color: currentTheme.textSecondary }]}>
+              Same Network
             </Text>
-          ) : null}
-          <Text style={[styles.userBio, { color: currentTheme.textSecondary }]}>
-            {user.isSameNetwork ? 'Same Network' : 
-              user.distance < 1 
-                ? `${Math.round(user.distance * 1000)}m away`
-                : `${user.distance.toFixed(1)}km away`
-            }
-          </Text>
+          )}
         </View>
       </View>
       <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
