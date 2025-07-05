@@ -77,13 +77,13 @@ export default function NearbyScreen({ navigation, route }: any) {
       const result = await dispatch(loadNearbyUsers({ 
         currentUserId: currentUser.uid, 
         reset,
-        page: 1
+        page: reset ? 0 : currentPage
       })).unwrap();
       
       console.log('Successfully loaded nearby users:', result);
     } catch (error) {
       console.error('Error loading nearby users:', error);
-      dispatch(setError(error instanceof Error ? error.message : 'Failed to load nearby users'));
+      // Don't dispatch setError here since the thunk already handles it
     }
   };
 
@@ -103,14 +103,14 @@ export default function NearbyScreen({ navigation, route }: any) {
       if (!currentUser) return;
 
       await dispatch(loadNearbyUsers({ 
-        currentUserId: currentUser?.uid || '', 
+        currentUserId: currentUser.uid, 
         reset: false, 
         page: currentPage + 1
       })).unwrap();
     } catch (error) {
       console.error('Error loading more users:', error);
     }
-  }, [loadingMore, hasMore, currentPage]);
+  }, [dispatch, loadingMore, hasMore, currentPage]);
 
   const handleUserPress = async (user: NearbyUser) => {
     try {
@@ -164,7 +164,7 @@ export default function NearbyScreen({ navigation, route }: any) {
             {error}
           </Text>
           <TouchableOpacity
-            onPressed={() => loadData(true)}
+            onPress={() => loadData(true)}
             style={{
               backgroundColor: currentTheme.primary,
               paddingHorizontal: 20,

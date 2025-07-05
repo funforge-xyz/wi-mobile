@@ -45,7 +45,7 @@ export const loadNearbyUsers = createAsyncThunk(
 
       const nearbyUtils = await import('../utils/nearbyUtils');
       const state = getState() as any;
-      const currentPage = params.reset ? 1 : (params.page ?? (state.nearby.currentPage + 1));
+      const currentPage = params.reset ? 0 : (params.page ?? (state.nearby.currentPage));
       
       console.log('Loading nearby users:', { currentUserId: params.currentUserId, page: currentPage, reset: params.reset });
       
