@@ -53,7 +53,11 @@ export default function NearbyScreen({ navigation, route }: any) {
   useEffect(() => {
     if (shouldRefetchAfterBlock) {
       // Reset the navigation params to prevent unnecessary refetches
-      navigation.setParams({ refetchAfterBlock: undefined });
+      const timeoutId = setTimeout(() => {
+        navigation.setParams({ refetchAfterBlock: undefined });
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [shouldRefetchAfterBlock, navigation]);
 
