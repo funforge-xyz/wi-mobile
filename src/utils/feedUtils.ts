@@ -247,7 +247,7 @@ export const getFeedPosts = async (
     // Get blocked users, connections, and all users in parallel
     const [blockedUsersQuery, connectionsQuery, usersQuery] = await Promise.all([
       getDocs(query(
-        collection(firestore, 'blocks'),
+        collection(firestore, 'blockedUsers'),
         where('blockerId', '==', currentUser.uid)
       )),
       getDocs(query(
