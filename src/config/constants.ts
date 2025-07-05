@@ -9,7 +9,7 @@ export const COLORS = {
   textSecondary: '#8E8E93',
   border: '#E5E5EA',
   error: '#FF3B30',
-  success: '#34C759',
+  success: '#4CAF50',
   warning: '#FF9500',
   shimmer: '#F5F5F5',
   // Dark theme colors

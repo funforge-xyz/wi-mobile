@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal';
+import BlockUserSuccessModal from '../components/BlockUserSuccessModal';
 import UserProfileHeader from '../components/UserProfileHeader';
 import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserProfileActions from '../components/UserProfileActions';
@@ -46,6 +47,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   });
   const [loading, setLoading] = useState(true);
   const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const currentTheme = getTheme(isDarkMode);
@@ -79,9 +81,19 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     await handleBlockUserAction(
       profile.id,
       t,
-      () => navigation.goBack()
+      () => {
+        setShowBlockModal(false);
+        setShowSuccessModal(true);
+      }
     );
-    setShowBlockModal(false);
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    // Navigate to NearbyScreen (People tab)
+    navigation.navigate('Root', { 
+      screen: 'People'
+    });
   };
 
   const handleCancelBlock = () => {
@@ -122,6 +134,12 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         visible={showBlockModal}
         onConfirm={handleConfirmBlock}
         onCancel={handleCancelBlock}
+        currentTheme={currentTheme}
+      />
+
+      <BlockUserSuccessModal
+        visible={showSuccessModal}
+        onClose={handleSuccessModalClose}
         currentTheme={currentTheme}
       />
     </SafeAreaView>

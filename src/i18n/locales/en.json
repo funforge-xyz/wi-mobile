@@ -477,6 +477,8 @@
     "blockUser": "Block User",
     "blockUserConfirmation": "Are you sure you want to block this user? They will be removed from your connections and you won't see them in nearby feeds.",
     "userBlocked": "User has been blocked",
+    "userBlockedSuccess": "User Blocked Successfully",
+    "userBlockedMessage": "The user has been blocked and removed from your connections. You won't see them in nearby feeds anymore.",
     "failedToBlock": "Failed to block user",
     "failedToLoadProfile": "Failed to load user profile"
   },

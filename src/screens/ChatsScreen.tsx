@@ -1,3 +1,7 @@
+The code modifications involve adding a success modal state, updating the block confirmation handler to show the success modal and navigate to the NearbyScreen, and adding a handler to close the success modal.
+```
+
+```replit_final_file
 import { useState, useEffect, useCallback } from 'react';
 import { FlatList, RefreshControl, AppState, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +36,7 @@ export default function ChatsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
@@ -65,7 +70,7 @@ export default function ChatsScreen({ navigation }: any) {
           setLoading(true);
           return;
         }
-        
+
         // User is logged in, set up data listeners
         setupRealtimeListeners(setConnectionRequests, setConnections, setLoading)
           .then(({ unsubscribeRequests: reqUnsub, unsubscribeConnections: connUnsub }) => {
@@ -139,7 +144,8 @@ export default function ChatsScreen({ navigation }: any) {
     if (selectedConnection) {
       try {
         await blockUser(selectedConnection.userId, selectedConnection.id);
-        Alert.alert(t('common.done'), t('userProfile.userBlocked'));
+        setShowBlockModal(false);
+        setShowSuccessModal(true);
       } catch (error) {
         Alert.alert('Error', t('userProfile.failedToBlock'));
       }

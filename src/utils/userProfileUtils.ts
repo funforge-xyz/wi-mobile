@@ -1,4 +1,3 @@
-
 import { Alert } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
@@ -47,15 +46,13 @@ export const loadUserProfileData = async (
 };
 
 export const handleBlockUserAction = async (
-  profileId: string,
+  userId: string,
   t: (key: string) => string,
   onSuccess: () => void
 ) => {
   try {
     const { blockUser } = await import('./chatsUtils');
-    await blockUser(profileId);
-
-    Alert.alert(t('common.done'), t('userProfile.userBlocked'));
+    await blockUser(userId);
     onSuccess();
   } catch (error) {
     console.error('Error blocking user:', error);
