@@ -35,18 +35,15 @@ export default function NearbyScreen({ navigation, route }: any) {
 
   const currentTheme = getTheme(isDarkMode);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // useEffect(() => {
+  //   loadData();
+  // }, []);
 
   // Selective refresh when screen comes into focus (for blocked user flow)
   useFocusEffect(
     useCallback(() => {
-      // Only refresh if coming from block user flow
-      if (shouldRefetchAfterBlock) {
-        loadData(true);
-      }
-    }, [shouldRefetchAfterBlock])
+      loadData(true);
+    }, [])
   );
 
   // Clear the refetch parameter after using it
