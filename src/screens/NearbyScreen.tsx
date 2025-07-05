@@ -43,7 +43,7 @@ export default function NearbyScreen({ navigation }: any) {
       if (nearbyUsers.length > 0) {
         loadData(true);
       }
-    }, [nearbyUsers.length])
+    }, [])
   );
 
   // Clear local state when auth state changes (user logs out/in)
