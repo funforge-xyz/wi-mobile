@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import {
   FlatList,
   RefreshControl,
   Alert,
+  ActivityIndicator,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector } from '../hooks/redux';
@@ -14,11 +17,15 @@ import { useTranslation } from 'react-i18next';
 import { styles } from '../styles/NearbyStyles';
 import { getTheme } from '../theme';
 import { NearbyUser, loadNearbyUsers, handleMessageUser } from '../utils/nearbyUtils';
+import { QueryDocumentSnapshot } from 'firebase/firestore';
 
 export default function NearbyScreen({ navigation }: any) {
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
+  const [hasMore, setHasMore] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -39,6 +46,8 @@ export default function NearbyScreen({ navigation }: any) {
           // User logged out, clear local state
           setNearbyUsers([]);
           setLoading(true);
+          setLastDoc(null);
+          setHasMore(true);
         } else {
           // User logged in, load fresh data
           loadData();
@@ -58,10 +67,15 @@ export default function NearbyScreen({ navigation }: any) {
     };
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (reset: boolean = true) => {
     try {
-      setLoading(true);
-      await loadNearbyUsersData();
+      if (reset) {
+        setLoading(true);
+        setNearbyUsers([]);
+        setLastDoc(null);
+        setHasMore(true);
+      }
+      await loadNearbyUsersData(reset);
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Error', 'Failed to load data');
@@ -70,7 +84,7 @@ export default function NearbyScreen({ navigation }: any) {
     }
   };
 
-  const loadNearbyUsersData = async () => {
+  const loadNearbyUsersData = async (reset: boolean = true) => {
     try {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
@@ -78,8 +92,17 @@ export default function NearbyScreen({ navigation }: any) {
 
       if (!currentUser) return;
 
-      const users = await loadNearbyUsers(currentUser.uid);
-      setNearbyUsers(users);
+      const currentLastDoc = reset ? null : lastDoc;
+      const result = await loadNearbyUsers(currentUser.uid, currentLastDoc, 50);
+
+      if (reset) {
+        setNearbyUsers(result.users);
+      } else {
+        setNearbyUsers(prev => [...prev, ...result.users]);
+      }
+
+      setLastDoc(result.lastDoc);
+      setHasMore(result.hasMore);
     } catch (error) {
       console.error('Error loading users:', error);
       throw error;
@@ -88,9 +111,22 @@ export default function NearbyScreen({ navigation }: any) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    await loadData(true);
     setRefreshing(false);
   };
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      await loadNearbyUsersData(false);
+    } catch (error) {
+      console.error('Error loading more users:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, lastDoc]);
 
   const handleUserPress = async (user: NearbyUser) => {
     try {
@@ -118,6 +154,16 @@ export default function NearbyScreen({ navigation }: any) {
     />
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    
+    return (
+      <View style={{ padding: 20, alignItems: 'center' }}>
+        <ActivityIndicator size="small" color={currentTheme.primary} />
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <NearbyHeader
@@ -136,6 +182,9 @@ export default function NearbyScreen({ navigation }: any) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
           ListEmptyComponent={
             <NearbyEmptyState currentTheme={currentTheme} t={t} />
           }

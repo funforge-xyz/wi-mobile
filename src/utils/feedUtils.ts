@@ -1,12 +1,11 @@
 import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where, setDoc, deleteDoc, addDoc, startAfter, GeoPoint } from 'firebase/firestore';
-import { GeoFirestore } from 'geofirestore';
-import { Alert } from 'react-native';
+import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, startAfter } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
-// Calculate distance between two coordinates using Haversine formula
-export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+// Simple distance calculation using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371; // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -15,8 +14,7 @@ export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
     Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c; // Distance in kilometers
-  return distance;
+  return R * c;
 };
 
 export const updateUserLastSeen = async () => {
@@ -107,51 +105,7 @@ export const handleLikePost = async (postId: string, liked: boolean, posts: any[
   }
 };
 
-// Helper function to get nearby users using GeoFirestore
 const getNearbyUsers = async (
-  currentUserLocation: { latitude: number; longitude: number },
-  radiusKm: number,
-  currentUserId: string
-): Promise<string[]> => {
-  try {
-    const firestore = getFirestore();
-    const geofirestore = new GeoFirestore(firestore);
-    const geocollection = geofirestore.collection('users');
-
-    // Import GeoPoint from firebase/firestore
-    const { GeoPoint } = await import('firebase/firestore');
-
-    // Create the GeoQuery
-    const geoQuery = geocollection.near({
-      center: new GeoPoint(currentUserLocation.latitude, currentUserLocation.longitude),
-      radius: radiusKm
-    });
-
-    // Execute the query
-    const snapshot = await geoQuery.get();
-    const nearbyUserIds: string[] = [];
-
-    snapshot.docs.forEach((doc) => {
-      const userId = doc.id;
-      // Exclude current user
-      if (userId !== currentUserId) {
-        nearbyUserIds.push(userId);
-      }
-    });
-
-    console.log(`Found ${nearbyUserIds.length} nearby users within ${radiusKm}km using GeoFirestore`);
-    return nearbyUserIds;
-  } catch (error) {
-    console.error('Error fetching nearby users with GeoFirestore:', error);
-
-    // Fallback to manual bounding box query if GeoFirestore fails
-    console.log('Falling back to manual geospatial query...');
-    return await getNearbyUsersFallback(currentUserLocation, radiusKm, currentUserId);
-  }
-};
-
-// Fallback function using manual bounding box calculation
-const getNearbyUsersFallback = async (
   currentUserLocation: { latitude: number; longitude: number },
   radiusKm: number,
   currentUserId: string
@@ -204,65 +158,75 @@ const getNearbyUsersFallback = async (
       }
     });
 
-    console.log(`Fallback: Found ${nearbyUserIds.length} nearby users within ${radiusKm}km`);
+    console.log(`Found ${nearbyUserIds.length} nearby users within ${radiusKm}km`);
     return nearbyUserIds;
   } catch (error) {
-    console.error('Error in fallback nearby users query:', error);
+    console.error('Error in nearby users query:', error);
     return [];
   }
 };
 
-// Helper function to get posts in batches of 10
-const getPostsBatch = async (
-  userIds: string[],
-  batchStartIndex: number,
-  lastTimestamp: Date | null = null
-): Promise<any[]> => {
-  try {
-    const firestore = getFirestore();
-    const batchSize = 10;
-    const userBatch = userIds.slice(batchStartIndex, batchStartIndex + batchSize);
+// Helper function to get posts in batches
+const getPostsInBatches = async (userIds: string[], lastTimestamp?: any, pageSize: number = 10) => {
+  if (userIds.length === 0) {
+    return { posts: [], hasMore: false, lastTimestamp: null };
+  }
 
-    if (userBatch.length === 0) {
-      return [];
-    }
+  const firestore = getFirestore();
+  const batchSize = 10; // Firestore 'in' query limit
+  const allPosts: any[] = [];
 
-    const queryConstraints = [
-      where('authorId', 'in', userBatch),
+  // Process user IDs in batches of 10
+  for (let i = 0; i < userIds.length; i += batchSize) {
+    const batch = userIds.slice(i, i + batchSize);
+
+    let postsQuery = query(
+      collection(firestore, 'posts'),
+      where('authorId', 'in', batch),
       orderBy('createdAt', 'desc'),
-      limit(10)
-    ];
+      limit(pageSize)
+    );
 
-    // Add timestamp filter for pagination
     if (lastTimestamp) {
-      queryConstraints.splice(-1, 0, startAfter(lastTimestamp)); // Insert before limit
+      postsQuery = query(
+        collection(firestore, 'posts'),
+        where('authorId', 'in', batch),
+        orderBy('createdAt', 'desc'),
+        startAfter(lastTimestamp),
+        limit(pageSize)
+      );
     }
 
-    const postsQuery = query(collection(firestore, 'posts'), ...queryConstraints);
-    const postsSnapshot = await getDocs(postsQuery);
+    const snapshot = await getDocs(postsQuery);
+    const posts = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-    const posts: any[] = [];
-    postsSnapshot.forEach(doc => {
-      const postData = doc.data();
-      posts.push({ id: doc.id, ...postData });
-    });
-
-    const limitedPosts = posts;
-
-    console.log(`Fetched ${limitedPosts.length} posts from batch starting at index ${batchStartIndex}`);
-    return limitedPosts;
-  } catch (error) {
-    console.error('Error fetching posts batch:', error);
-    return [];
+    allPosts.push(...posts);
   }
+
+  // Sort all posts by timestamp
+  allPosts.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+
+  // Take only the requested page size
+  const paginatedPosts = allPosts.slice(0, pageSize);
+  const hasMore = allPosts.length >= pageSize;
+  const newLastTimestamp = paginatedPosts.length > 0 ? paginatedPosts[paginatedPosts.length - 1].createdAt : null;
+
+  return {
+    posts: paginatedPosts,
+    hasMore,
+    lastTimestamp: newLastTimestamp
+  };
 };
 
-export const loadConnectionPosts = async (
-  lastTimestamp: Date | null = null,
-  limit: number = 10,
-  userRadius: number,
-  currentUserLocation: { latitude: number; longitude: number } | null
-): Promise<{ posts: ConnectionPost[]; hasMore: boolean; lastTimestamp: Date | null }> => {
+export const getFeedPosts = async (
+  userRadius: number = 5,
+  currentUserLocation: { latitude: number; longitude: number } | null,
+  lastTimestamp?: any,
+  pageSize: number = 10
+) => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -273,14 +237,14 @@ export const loadConnectionPosts = async (
 
     const firestore = getFirestore();
 
-    // Get user settings for same network matching preference
+    // Get user settings and current network info
     const userDocRef = doc(firestore, 'users', currentUser.uid);
     const userDoc = await getDoc(userDocRef);
     const userData = userDoc.data();
     const sameNetworkMatchingEnabled = userData?.sameNetworkMatching ?? true;
     const currentUserNetworkId = userData?.currentNetworkId;
 
-    // Get blocked users and existing connections in parallel
+    // Get blocked users, connections, and all users in parallel
     const [blockedUsersQuery, connectionsQuery, usersQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blocks'),
@@ -288,8 +252,7 @@ export const loadConnectionPosts = async (
       )),
       getDocs(query(
         collection(firestore, 'connections'),
-        where('participants', 'array-contains', currentUser.uid),
-        where('status', '==', 'accepted')
+        where('participants', 'array-contains', currentUser.uid)
       )),
       getDocs(collection(firestore, 'users'))
     ]);
@@ -336,13 +299,13 @@ export const loadConnectionPosts = async (
       }
 
       // Check location-based criteria for non-same-network users
-      if (!currentUserLocation || !user.coordinates) return false;
+      if (!currentUserLocation || !user.location) return false;
 
       const distance = calculateDistance(
         currentUserLocation.latitude,
         currentUserLocation.longitude,
-        user.coordinates.latitude,
-        user.coordinates.longitude
+        user.location.latitude,
+        user.location.longitude
       );
 
       return distance <= userRadius;
@@ -362,18 +325,18 @@ export const loadConnectionPosts = async (
       if (!userA.isSameNetwork && userB.isSameNetwork) return 1;
 
       // Secondary sort: distance ASC (closer users first)
-      if (currentUserLocation && userA.coordinates && userB.coordinates) {
+      if (currentUserLocation && userA.location && userB.location) {
         const distanceA = calculateDistance(
           currentUserLocation.latitude,
           currentUserLocation.longitude,
-          userA.coordinates.latitude,
-          userA.coordinates.longitude
+          userA.location.latitude,
+          userA.location.longitude
         );
         const distanceB = calculateDistance(
           currentUserLocation.latitude,
           currentUserLocation.longitude,
-          userB.coordinates.latitude,
-          userB.coordinates.longitude
+          userB.location.latitude,
+          userB.location.longitude
         );
         return distanceA - distanceB;
       }
@@ -381,99 +344,13 @@ export const loadConnectionPosts = async (
       return 0;
     });
 
-    // Handle Firestore 'in' query limitation by batching
-    const batchSize = 10;
-    const allPosts: ConnectionPost[] = [];
-    let totalFetched = 0;
-
-    for (let i = 0; i < sortedUserIds.length && totalFetched < limit; i += batchSize) {
-      const batch = sortedUserIds.slice(i, i + batchSize);
-
-      let postsQuery = query(
-        collection(firestore, 'posts'),
-        where('authorId', 'in', batch),
-        orderBy('createdAt', 'desc'),
-        limit(limit - totalFetched)
-      );
-
-      if (lastTimestamp) {
-        postsQuery = query(
-          collection(firestore, 'posts'),
-          where('authorId', 'in', batch),
-          orderBy('createdAt', 'desc'),
-          startAfter(lastTimestamp),
-          limit(limit - totalFetched)
-        );
-      }
-
-      const postsSnapshot = await getDocs(postsQuery);
-
-      for (const postDoc of postsSnapshot.docs) {
-        const postData = postDoc.data();
-        const author = users.get(postData.authorId);
-
-        if (!author) continue;
-
-        // Check if user liked this post
-        const likeQuery = query(
-          collection(firestore, 'likes'),
-          where('postId', '==', postDoc.id),
-          where('userId', '==', currentUser.uid)
-        );
-        const likeSnapshot = await getDocs(likeQuery);
-        const isLikedByUser = !likeSnapshot.empty;
-
-        allPosts.push({
-          id: postDoc.id,
-          authorId: postData.authorId,
-          authorName: author.name || 'Unknown User',
-          authorPhotoURL: author.photoURL || '',
-          content: postData.content || '',
-          mediaURL: postData.mediaURL,
-          mediaType: postData.mediaType,
-          createdAt: postData.createdAt.toDate(),
-          likesCount: postData.likesCount || 0,
-          commentsCount: postData.commentsCount || 0,
-          showLikeCount: postData.showLikeCount ?? true,
-          allowComments: postData.allowComments ?? true,
-          isLikedByUser,
-          isAuthorOnline: author.isOnline || false,
-          isFromConnection: true,
-        });
-      }
-
-      totalFetched = allPosts.length;
-      if (postsSnapshot.docs.length < (limit - totalFetched)) {
-        break; // No more posts in this batch
-      }
-    }
-
-    // Apply Flutter-style sorting to final posts: network priority first, then time
-    const sortedPosts = allPosts.sort((a, b) => {
-      const authorA = users.get(a.authorId);
-      const authorB = users.get(b.authorId);
-
-      // Primary: Network priority (same network posts first)
-      if (authorA.isSameNetwork && !authorB.isSameNetwork) return -1;
-      if (!authorA.isSameNetwork && authorB.isSameNetwork) return 1;
-
-      // Secondary: Creation time DESC (newest first within same network group)
-      return b.createdAt.getTime() - a.createdAt.getTime();
-    });
-
-    const hasMore = allPosts.length === limit;
-    const newLastTimestamp = sortedPosts.length > 0 
-      ? sortedPosts[sortedPosts.length - 1].createdAt 
-      : null;
-
-    return { 
-      posts: sortedPosts, 
-      hasMore, 
-      lastTimestamp: newLastTimestamp 
-    };
+    // Get posts from eligible users
+    return await getPostsInBatches(sortedUserIds, lastTimestamp, pageSize);
 
   } catch (error) {
-    console.error('Error loading connection posts:', error);
+    console.error('Error loading feed posts:', error);
     return { posts: [], hasMore: false, lastTimestamp: null };
   }
 };
+
+import { setDoc, deleteDoc, addDoc } from 'firebase/firestore';

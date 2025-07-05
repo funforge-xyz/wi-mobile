@@ -1,7 +1,7 @@
-import { getFirestore, GeoPoint } from '../services/firebase';
+
+import { getFirestore } from '../services/firebase';
 import { getAuth } from '../services/firebase';
-import { collection, getDocs, doc, getDoc, query, where, setDoc, deleteDoc, orderBy, limit } from 'firebase/firestore';
-import { GeoFirestore } from 'geofirestore';
+import { collection, getDocs, doc, getDoc, query, where, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
 
 export interface NearbyUser {
   id: string;
@@ -11,12 +11,33 @@ export interface NearbyUser {
   photoURL: string;
   bio: string;
   isOnline?: boolean;
+  distance?: number;
+  isSameNetwork?: boolean;
+}
+
+// Function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg: number) {
+  return deg * (Math.PI/180);
 }
 
 export const loadNearbyUsers = async (
-  userRadius: number,
-  currentUserLocation: { latitude: number; longitude: number } | null
-): Promise<NearbyUser[]> => {
+  currentUserId: string,
+  lastDoc?: QueryDocumentSnapshot | null,
+  pageSize: number = 50
+): Promise<{ users: NearbyUser[], lastDoc: QueryDocumentSnapshot | null, hasMore: boolean }> => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -27,15 +48,26 @@ export const loadNearbyUsers = async (
 
     const firestore = getFirestore();
 
-    // Get user settings and current network info
+    // Get current user's data including location and settings
     const userDocRef = doc(firestore, 'users', currentUser.uid);
     const userDoc = await getDoc(userDocRef);
     const userData = userDoc.data();
-    const sameNetworkMatchingEnabled = userData?.sameNetworkMatching ?? true;
-    const currentUserNetworkId = userData?.currentNetworkId;
 
-    // Get blocked users, connections, and all users in parallel
-    const [blockedUsersQuery, connectionsQuery, usersQuery] = await Promise.all([
+    if (!userData) {
+      throw new Error('User data not found');
+    }
+
+    const currentUserLocation = userData.location;
+    const currentUserRadius = userData.radius || 100; // Default 100km
+    const sameNetworkMatchingEnabled = userData.sameNetworkMatching ?? true;
+    const currentUserNetworkId = userData.currentNetworkId;
+
+    if (!currentUserLocation || !currentUserLocation.latitude || !currentUserLocation.longitude) {
+      return { users: [], lastDoc: null, hasMore: false };
+    }
+
+    // Get blocked users and connections in parallel
+    const [blockedUsersQuery, connectionsQuery, connectionRequestsQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blocks'),
         where('blockerId', '==', currentUser.uid)
@@ -44,7 +76,10 @@ export const loadNearbyUsers = async (
         collection(firestore, 'connections'),
         where('participants', 'array-contains', currentUser.uid)
       )),
-      getDocs(collection(firestore, 'users'))
+      getDocs(query(
+        collection(firestore, 'connectionRequests'),
+        where('participants', 'array-contains', currentUser.uid)
+      ))
     ]);
 
     const blockedUserIds = new Set(
@@ -57,19 +92,61 @@ export const loadNearbyUsers = async (
       )
     );
 
+    const requestedUserIds = new Set(
+      connectionRequestsQuery.docs.flatMap(doc => 
+        doc.data().participants.filter((id: string) => id !== currentUser.uid)
+      )
+    );
+
+    // Calculate bounding box for location-based filtering
+    const latDelta = currentUserRadius / 111.32; // 1 degree lat ≈ 111.32 km
+    const lonDelta = currentUserRadius / (111.32 * Math.cos(currentUserLocation.latitude * Math.PI / 180));
+
+    const minLat = currentUserLocation.latitude - latDelta;
+    const maxLat = currentUserLocation.latitude + latDelta;
+    const minLon = currentUserLocation.longitude - lonDelta;
+    const maxLon = currentUserLocation.longitude + lonDelta;
+
+    // Build the base query
+    let usersQuery = query(
+      collection(firestore, 'users'),
+      where('location.latitude', '>=', minLat),
+      where('location.latitude', '<=', maxLat),
+      orderBy('location.latitude'),
+      limit(pageSize * 3) // Get more to account for filtering
+    );
+
+    // Add pagination
+    if (lastDoc) {
+      usersQuery = query(
+        collection(firestore, 'users'),
+        where('location.latitude', '>=', minLat),
+        where('location.latitude', '<=', maxLat),
+        orderBy('location.latitude'),
+        startAfter(lastDoc),
+        limit(pageSize * 3)
+      );
+    }
+
+    const usersSnapshot = await getDocs(usersQuery);
     const nearbyUsers: NearbyUser[] = [];
     const now = new Date();
     const onlineThreshold = 2 * 60 * 1000; // 2 minutes
 
-    // Flutter-style filtering: users within bounding box OR same network
-    usersQuery.docs.forEach(doc => {
-      const userId = doc.id;
-      const user = doc.data();
+    usersSnapshot.docs.forEach(userDocSnap => {
+      const userId = userDocSnap.id;
+      const user = userDocSnap.data();
 
-      // Skip current user, blocked users, and existing connections
+      // Skip current user, blocked users, connected users, and users with pending requests
       if (userId === currentUser.uid || 
           blockedUserIds.has(userId) || 
-          connectedUserIds.has(userId)) {
+          connectedUserIds.has(userId) ||
+          requestedUserIds.has(userId)) {
+        return;
+      }
+
+      // Check if user has valid location
+      if (!user.location || !user.location.latitude || !user.location.longitude) {
         return;
       }
 
@@ -81,47 +158,52 @@ export const loadNearbyUsers = async (
                            currentUserNetworkId && 
                            user.currentNetworkId === currentUserNetworkId;
 
-      // Flutter logic: Include if (within bounding box AND within time frame) OR same network
       let shouldInclude = false;
       let distance = 0;
 
       if (isSameNetwork) {
-        // Always include same network users (like Flutter)
+        // Always include same network users
         shouldInclude = true;
-        // Calculate distance for sorting even if same network
-        if (currentUserLocation && user.coordinates) {
-          distance = calculateDistance(
-            currentUserLocation.latitude,
-            currentUserLocation.longitude,
-            user.coordinates.latitude,
-            user.coordinates.longitude
-          );
-        }
-      } else if (currentUserLocation && user.coordinates) {
-        // For non-same-network users, check distance and recent location update
         distance = calculateDistance(
           currentUserLocation.latitude,
           currentUserLocation.longitude,
-          user.coordinates.latitude,
-          user.coordinates.longitude
+          user.location.latitude,
+          user.location.longitude
         );
+      } else {
+        // For non-same-network users, check distance and longitude bounds
+        if (user.location.longitude >= minLon && user.location.longitude <= maxLon) {
+          // Calculate precise distance using Haversine formula
+          distance = calculateDistance(
+            currentUserLocation.latitude,
+            currentUserLocation.longitude,
+            user.location.latitude,
+            user.location.longitude
+          );
 
-        // Check if user has updated location recently (Flutter checks lastUpdatedLocation >= date_frame)
-        const lastLocationUpdate = user.lastUpdatedLocation?.toDate();
-        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-        const hasRecentLocationUpdate = lastLocationUpdate && lastLocationUpdate >= fiveMinutesAgo;
+          // Get user's radius preference, use smaller of the two or default
+          const userRadius = user.radius || 100;
+          const effectiveRadius = Math.min(currentUserRadius, userRadius);
 
-        shouldInclude = distance <= userRadius && hasRecentLocationUpdate;
+          // Check if user has updated location recently
+          const lastLocationUpdate = user.lastUpdatedLocation?.toDate();
+          const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+          const hasRecentLocationUpdate = lastLocationUpdate && lastLocationUpdate >= fiveMinutesAgo;
+
+          shouldInclude = distance <= effectiveRadius && hasRecentLocationUpdate;
+        }
       }
 
       if (shouldInclude) {
         nearbyUsers.push({
           id: userId,
-          name: user.name || 'Unknown User',
+          firstName: user.firstName || 'Unknown',
+          lastName: user.lastName || 'User',
+          email: user.email || '',
           photoURL: user.photoURL || '',
-          lastSeen: lastSeen || new Date(0),
-          distance,
+          bio: user.bio || '',
           isOnline,
+          distance,
           isSameNetwork: isSameNetwork || false,
         });
       }
@@ -134,17 +216,25 @@ export const loadNearbyUsers = async (
       if (!a.isSameNetwork && b.isSameNetwork) return 1;
 
       // Secondary sort: by distance ASC (closer users first)
-      return a.distance - b.distance;
+      return (a.distance || 0) - (b.distance || 0);
     });
 
-    return sortedUsers;
+    // Take only the requested page size
+    const paginatedUsers = sortedUsers.slice(0, pageSize);
+    const hasMore = usersSnapshot.docs.length >= pageSize * 3 && paginatedUsers.length === pageSize;
+    const newLastDoc = usersSnapshot.docs.length > 0 ? usersSnapshot.docs[usersSnapshot.docs.length - 1] : null;
+
+    return {
+      users: paginatedUsers,
+      lastDoc: newLastDoc,
+      hasMore
+    };
 
   } catch (error) {
     console.error('Error loading nearby users:', error);
-    return [];
+    return { users: [], lastDoc: null, hasMore: false };
   }
 };
-
 
 export const formatLastSeen = (timestamp: any, t: (key: string, options?: any) => string) => {
   if (!timestamp) return 'Unknown';
@@ -209,22 +299,3 @@ export const handleMessageUser = async (user: NearbyUser, currentUserId: string,
     throw error;
   }
 };
-
-// Function to calculate distance between two coordinates
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);  // deg2rad below
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    ;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d;
-}
-
-function deg2rad(deg: number) {
-  return deg * (Math.PI/180)
-}
