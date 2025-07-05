@@ -248,7 +248,7 @@ export const getFeedPosts = async (
     const [blockedUsersQuery, connectionsQuery, usersQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blockedUsers'),
-        where('blockerId', '==', currentUser.uid)
+        where('blockerUserId', '==', currentUser.uid)
       )),
       getDocs(query(
         collection(firestore, 'connections'),

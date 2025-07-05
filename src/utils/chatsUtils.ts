@@ -1,4 +1,3 @@
-
 import { collection, getDocs, doc, getDoc, query, orderBy, where, addDoc, updateDoc, deleteDoc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getFirestore } from '../services/firebase';
 import { Alert } from 'react-native';
@@ -335,4 +334,3 @@ export const setupRealtimeListeners = async (
     return { unsubscribeRequests: null, unsubscribeConnections: null };
   }
 };
-
