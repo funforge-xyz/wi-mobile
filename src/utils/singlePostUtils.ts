@@ -402,6 +402,31 @@ export const deletePost = async (postId: string, dispatch?: any) => {
 
     await deleteDoc(postRef);
 
+    // Delete all notifications related to this post
+    const notificationsRef = collection(firestore, 'notifications');
+    const postNotificationsQuery = query(
+      notificationsRef,
+      where('data.postId', '==', postId)
+    );
+    const notificationsSnapshot = await getDocs(postNotificationsQuery);
+    
+    for (const notificationDoc of notificationsSnapshot.docs) {
+      await deleteDoc(notificationDoc.ref);
+    }
+
+    // Also check for notifications with postId in different field structures
+    const alternateNotificationsQuery = query(
+      notificationsRef,
+      where('postId', '==', postId)
+    );
+    const alternateNotificationsSnapshot = await getDocs(alternateNotificationsQuery);
+    
+    for (const notificationDoc of alternateNotificationsSnapshot.docs) {
+      await deleteDoc(notificationDoc.ref);
+    }
+
+    console.log(`Deleted ${notificationsSnapshot.size + alternateNotificationsSnapshot.size} notifications for post ${postId}`);
+
     // Update Redux state
     if (dispatch) {
       const { removePost } = await import('../store/userSlice');

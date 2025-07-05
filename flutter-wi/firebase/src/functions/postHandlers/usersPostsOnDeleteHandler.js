@@ -44,7 +44,28 @@ const postsOnDeleteHandler = async (snap, context) => {
       logger.info(`Deleted like ${likeDoc.id}`);
     }
 
-    logger.info(`Cleaned up all subcollections for post ${postId}`);
+    // Delete all notifications related to this post
+    const notificationsRef = firestore.db.collection('notifications');
+    
+    // Query for notifications with postId in data field
+    const postNotificationsQuery = notificationsRef.where('data.postId', '==', postId);
+    const postNotificationsSnapshot = await postNotificationsQuery.get();
+    
+    for (const notificationDoc of postNotificationsSnapshot.docs) {
+      await notificationDoc.ref.delete();
+      logger.info(`Deleted notification ${notificationDoc.id} for post ${postId}`);
+    }
+    
+    // Query for notifications with direct postId field
+    const directPostNotificationsQuery = notificationsRef.where('postId', '==', postId);
+    const directPostNotificationsSnapshot = await directPostNotificationsQuery.get();
+    
+    for (const notificationDoc of directPostNotificationsSnapshot.docs) {
+      await notificationDoc.ref.delete();
+      logger.info(`Deleted notification ${notificationDoc.id} for post ${postId}`);
+    }
+
+    logger.info(`Cleaned up all subcollections and ${postNotificationsSnapshot.size + directPostNotificationsSnapshot.size} notifications for post ${postId}`);
 
     // Sync with external database
     const factory = new ServiceFactory('rdb', context);
