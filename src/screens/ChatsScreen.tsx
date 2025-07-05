@@ -1,7 +1,3 @@
-The code modifications involve adding a success modal state, updating the block confirmation handler to show the success modal and navigate to the NearbyScreen, and adding a handler to close the success modal.
-```
-
-```replit_final_file
 import { useState, useEffect, useCallback } from 'react';
 import { FlatList, RefreshControl, AppState, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
