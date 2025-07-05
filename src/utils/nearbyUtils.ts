@@ -50,7 +50,7 @@ export const loadNearbyUsers = async (
 
     // Get current user's data including location and settings
     const userDocRef = doc(firestore, 'users', currentUser.uid);
-    const userDoc = await getDoc(userDocRef);
+    const userDoc = await getDoc(userDocRef, { source: 'server' });
     const userData = userDoc.data();
 
     if (!userData) {
@@ -66,24 +66,24 @@ export const loadNearbyUsers = async (
       return { users: [], lastDoc: null, hasMore: false };
     }
 
-    // Get blocked users and connections in parallel
+    // Get blocked users and connections in parallel - force server data
     const [blockedByMeQuery, blockedMeQuery, connectionsQuery, connectionRequestsQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blockedUsers'),
         where('blockerUserId', '==', currentUser.uid)
-      )),
+      ), { source: 'server' }),
       getDocs(query(
         collection(firestore, 'blockedUsers'),
         where('blockedUserId', '==', currentUser.uid)
-      )),
+      ), { source: 'server' }),
       getDocs(query(
         collection(firestore, 'connections'),
         where('participants', 'array-contains', currentUser.uid)
-      )),
+      ), { source: 'server' }),
       getDocs(query(
         collection(firestore, 'connectionRequests'),
         where('participants', 'array-contains', currentUser.uid)
-      ))
+      ), { source: 'server' })
     ]);
 
     // Combine both directions of blocking
@@ -134,7 +134,7 @@ export const loadNearbyUsers = async (
       );
     }
 
-    const usersSnapshot = await getDocs(usersQuery);
+    const usersSnapshot = await getDocs(usersQuery, { source: 'server' });
     const nearbyUsers: NearbyUser[] = [];
     const now = new Date();
     const onlineThreshold = 2 * 60 * 1000; // 2 minutes
