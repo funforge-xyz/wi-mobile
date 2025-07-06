@@ -52,7 +52,7 @@ export const setupMessageListener = (
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const messagesData: Message[] = [];
       const seenIds = new Set<string>();
-      
+
       snapshot.forEach((doc) => {
         // Check for duplicates
         if (seenIds.has(doc.id)) {
@@ -60,7 +60,7 @@ export const setupMessageListener = (
           return;
         }
         seenIds.add(doc.id);
-        
+
         const data = doc.data();
         messagesData.push({
           id: doc.id,
@@ -125,7 +125,7 @@ export const loadMoreMessages = async (
         return;
       }
       seenIds.add(doc.id);
-      
+
       const data = doc.data();
       olderMessages.push({
         id: doc.id,
@@ -142,7 +142,7 @@ export const loadMoreMessages = async (
     });
 
     console.log('Fetched', olderMessages.length, 'older messages');
-    
+
     // Return messages in descending order (newest first) to match inverted FlatList
     return olderMessages;
   } catch (error) {
