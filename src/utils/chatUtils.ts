@@ -372,3 +372,47 @@ export const formatTimeAgo = (date: Date, t: (key: string, options?: { count?: n
     return t('time.justNow');
   }
 };
+
+export const createConnectionRequest = async (
+  currentUserId: string,
+  toUserId: string,
+  t: (key: string, fallback?: string) => string
+): Promise<{ success: boolean; requestId?: string }> => {
+  try {
+    const firestore = getFirestore();
+
+    const currentUserDoc = await getDoc(doc(firestore, 'users', currentUserId));
+    const currentUserData = currentUserDoc.data();
+
+    await createNearbyRequestNotification(
+      toUserId,
+      currentUserData?.displayName || currentUserData?.name || 'Someone',
+      currentUserData?.photoURL
+    );
+
+    const docRef = await addDoc(collection(firestore, 'connectionRequests'), {
+      fromUserId: currentUserId,
+      toUserId: toUserId,
+      status: 'pending',
+      createdAt: new Date(),
+    });
+
+    console.log('Connection request created successfully');
+
+      // Remove user from nearby Redux state
+      try {
+        const { store } = await import('../store');
+        const { removeBlockedUser } = await import('../store/nearbySlice');
+        store.dispatch(removeBlockedUser(toUserId));
+        console.log('User removed from nearby list:', toUserId);
+      } catch (reduxError) {
+        console.error('Error removing user from nearby list:', reduxError);
+        // Don't throw here as the main operation succeeded
+      }
+
+      return { success: true, requestId: docRef.id };
+    } catch (error) {
+      console.error('Error creating connection request:', error);
+      throw error;
+    }
+};
