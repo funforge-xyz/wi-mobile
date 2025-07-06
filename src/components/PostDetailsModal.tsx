@@ -450,22 +450,22 @@ export default function PostDetailsModal({
                   contentContainerStyle={{ flexGrow: 1 }}
                   showsVerticalScrollIndicator={false}
                 >
-                  {/* Post Display */}
-                  <SinglePostDisplay
-                    post={post}
-                    liked={userLiked}
-                    likesCount={likes.length}
-                    commentsCount={comments.length}
-                    onLikePress={handleLikePress}
-                    onCommentPress={() => {}}
-                    currentTheme={currentTheme}
-                    videoPlayer={videoPlayer}
-                    isVideoPlaying={isVideoPlaying}
-                    isVideoLoading={!!isVideoPlaying && !isPlaying}
-                    isVideoMuted={isVideoMuted}
-                    onVideoPlayPause={handleVideoPlayPause}
-                    onVideoMuteToggle={handleVideoMuteToggle}
-                  />
+                  {/* Like Actions Only */}
+                  <View style={[styles.actionsOnly, { 
+                    backgroundColor: currentTheme.background,
+                    borderBottomColor: currentTheme.border 
+                  }]}>
+                    <PostActions
+                      liked={userLiked}
+                      likesCount={likes.length}
+                      commentsCount={comments.length}
+                      showLikeCount={true}
+                      allowComments={post.allowComments}
+                      onLikePress={handleLikePress}
+                      onCommentPress={() => {}}
+                      currentTheme={currentTheme}
+                    />
+                  </View>
 
                   {/* Comments Section */}
                   <View style={[{ 
@@ -568,5 +568,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.regular,
     textAlign: 'center',
+  },
+  actionsOnly: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
   },
 });
