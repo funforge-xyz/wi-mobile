@@ -398,6 +398,8 @@ export const handleLikePost = async (
     return null;
   }
 };
+import { DocumentSnapshot } from 'firebase/firestore';
+
 export const loadFeedPosts = async (
   pageSize: number = 10,
   lastDoc?: DocumentSnapshot,
@@ -426,29 +428,36 @@ export const loadFeedPosts = async (
     const posts = await Promise.all(
     querySnapshot.docs.map(async (postDoc) => {
       const postData = postDoc.data();
+      const authorId = postData.authorId;
+
+       // Load user data
+       const userDoc = await getDoc(doc(firestore, 'users', authorId));
+       const userData = userDoc.data();
 
       // Load likes count and check if user liked
-      const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
-      const likesSnapshot = await getDocs(likesCollection);
+      const likesCollection = collection(firestore, 'likes'),
+          likesQuery = query(likesCollection, where('postId', '==', postDoc.id));
+      const likesSnapshot = await getDocs(likesQuery);
+
 
       let isLikedByUser = false;
-      if (currentUserId) {
-        likesSnapshot.forEach((likeDoc) => {
+      likesSnapshot.forEach((likeDoc) => {
           if (likeDoc.data().userId === currentUserId) {
             isLikedByUser = true;
           }
         });
-      }
+
 
       // Load comments count
-      const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-      const commentsSnapshot = await getDocs(commentsCollection);
+      const commentsCollection = collection(firestore, 'comments');
+      const commentsQuery = query(commentsCollection, where('postId', '==', postDoc.id));
+      const commentsSnapshot = await getDocs(commentsQuery);
 
       return {
         id: postDoc.id,
         authorId: postData.authorId,
         authorName: postData.authorName,
-        authorPhotoURL: postData.authorPhotoURL || '',
+        authorPhotoURL: userData?.thumbnailURL || userData?.photoURL || '',
         content: postData.content || '',
         mediaURL: postData.mediaURL,
         mediaType: postData.mediaType,
@@ -456,14 +465,12 @@ export const loadFeedPosts = async (
         fileExtension: postData.fileExtension,
         postType: postData.postType || 'text',
         createdAt: postData.createdAt?.toDate?.() || new Date(),
+        location: postData.location || null,
         likesCount: likesSnapshot.size,
         commentsCount: commentsSnapshot.size,
-        showLikeCount: postData.showLikeCount !== false,
-        allowComments: postData.allowComments !== false,
-        isPrivate: postData.isPrivate || false,
         isLikedByUser: isLikedByUser,
-        isAuthorOnline: false,
-        isFromConnection: false,
+        isAuthorOnline: userData?.lastSeen?.toDate && (Date.now() - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000),
+        isFromConnection: false, // You may want to implement proper connection checking logic here
       };
     })
   );
