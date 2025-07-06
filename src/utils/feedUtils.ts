@@ -1,4 +1,3 @@
-
 import {
   collection,
   query,
@@ -386,7 +385,7 @@ export const handleLikePost = async (
         where('userId', '==', currentUser.uid)
       );
       const likesSnapshot = await getDocs(likesQuery);
-      
+
       const { deleteDoc } = await import('firebase/firestore');
       const deletePromises = likesSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(deletePromises);
@@ -397,5 +396,80 @@ export const handleLikePost = async (
   } catch (error) {
     console.error('Error handling post like:', error);
     return null;
+  }
+};
+export const loadFeedPosts = async (
+  pageSize: number = 10,
+  lastDoc?: DocumentSnapshot,
+  currentUserId?: string
+): Promise<{ posts: ConnectionPost[]; lastDoc?: DocumentSnapshot; hasMore: boolean }> => {
+  try {
+    const firestore = getFirestore();
+
+    let q = query(
+      collection(firestore, 'posts'),
+      orderBy('createdAt', 'desc'),
+      limit(pageSize)
+    );
+
+    if (lastDoc) {
+      q = query(
+        collection(firestore, 'posts'),
+        orderBy('createdAt', 'desc'),
+        startAfter(lastDoc),
+        limit(pageSize)
+      );
+    }
+
+    const querySnapshot = await getDocs(q);
+
+    const posts = await Promise.all(
+    querySnapshot.docs.map(async (postDoc) => {
+      const postData = postDoc.data();
+
+      // Load likes count and check if user liked
+      const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
+      const likesSnapshot = await getDocs(likesCollection);
+
+      let isLikedByUser = false;
+      if (currentUserId) {
+        likesSnapshot.forEach((likeDoc) => {
+          if (likeDoc.data().authorId === currentUserId) {
+            isLikedByUser = true;
+          }
+        });
+      }
+
+      // Load comments count
+      const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
+      const commentsSnapshot = await getDocs(commentsCollection);
+
+      return {
+        id: postDoc.id,
+        authorId: postData.authorId,
+        authorName: postData.authorName,
+        authorPhotoURL: postData.authorPhotoURL || '',
+        content: postData.content || '',
+        mediaURL: postData.mediaURL,
+        mediaType: postData.mediaType,
+        thumbnailURL: postData.thumbnailURL,
+        fileExtension: postData.fileExtension,
+        postType: postData.postType || 'text',
+        createdAt: postData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        likesCount: likesSnapshot.size,
+        commentsCount: commentsSnapshot.size,
+        showLikeCount: postData.showLikeCount !== false,
+        allowComments: postData.allowComments !== false,
+        isPrivate: postData.isPrivate || false,
+        isLikedByUser: isLikedByUser,
+      };
+    })
+  );
+    const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+    return { posts, lastDoc: newLastDoc, hasMore: querySnapshot.docs.length === pageSize };
+  } catch (error) {
+    console.error('Error loading feed posts:', error);
+    return { posts: [], hasMore: false };
   }
 };
