@@ -273,6 +273,16 @@ export const sendChatMessage = async (
       requestId = requestSnapshot.docs[0].id;
     }
 
+    // Check if there's an existing pending connection request
+    const existingConnectionRequestQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('fromUserId', '==', currentUserId),
+      where('toUserId', '==', receiverId),
+      where('status', '==', 'pending')
+    );
+    const existingConnectionRequestSnapshot = await getDocs(existingConnectionRequestQuery);
+    const hasExistingRequest = !existingConnectionRequestSnapshot.empty;
+
     // Check if this is the first message
     const messagesQuery = query(
       collection(firestore, 'chats', chatRoomId, 'messages'),
@@ -292,8 +302,8 @@ export const sendChatMessage = async (
       read: false,
     });
 
-    // If this is the first message, send notification and create connection request
-    if (isFirstMessage) {
+    // Create connection request if no existing pending request AND not replying to a request
+    if (!hasExistingRequest && !isReplyToRequest) {
       const currentUserDoc = await getDoc(doc(firestore, 'users', currentUserId));
       const currentUserData = currentUserDoc.data();
 
