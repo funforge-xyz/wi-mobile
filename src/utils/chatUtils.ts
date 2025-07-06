@@ -304,23 +304,26 @@ export const sendChatMessage = async (
 
     // Create connection request if no existing pending request AND not replying to a request
     if (!hasExistingRequest && !isReplyToRequest) {
-      const currentUserDoc = await getDoc(doc(firestore, 'users', currentUserId));
-      const currentUserData = currentUserDoc.data();
-
-      await createNearbyRequestNotification(
-        receiverId,
-        currentUserData?.displayName || currentUserData?.name || 'Someone',
-        currentUserData?.photoURL
+      // Use the createConnectionRequest function which handles Redux state updates
+      await createConnectionRequest(currentUserId, receiverId, t);
+      
+      // Update the connection request with additional chat-specific data
+      const connectionRequestQuery = query(
+        collection(firestore, 'connectionRequests'),
+        where('fromUserId', '==', currentUserId),
+        where('toUserId', '==', receiverId),
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
       );
-
-      await addDoc(collection(firestore, 'connectionRequests'), {
-        fromUserId: currentUserId,
-        toUserId: receiverId,
-        status: 'pending',
-        createdAt: new Date(),
-        firstMessage: messageText,
-        chatId: chatRoomId,
-      });
+      const connectionRequestSnapshot = await getDocs(connectionRequestQuery);
+      
+      if (!connectionRequestSnapshot.empty) {
+        const requestDoc = connectionRequestSnapshot.docs[0];
+        await updateDoc(requestDoc.ref, {
+          firstMessage: messageText,
+          chatId: chatRoomId,
+        });
+      }
     }
 
     // Update chat document with last message info
