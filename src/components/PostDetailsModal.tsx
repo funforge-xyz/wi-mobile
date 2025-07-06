@@ -426,7 +426,7 @@ export default function PostDetailsModal({
               <Ionicons name="close" size={24} color={currentTheme.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
-              {t('singlePost.postDetails')}
+              {t('singlePost.comments')}
             </Text>
             <View style={{ width: 24 }} />
           </View>
