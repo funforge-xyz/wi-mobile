@@ -74,8 +74,7 @@ export default function PostDetailsModal({
   const [isVideoMuted, setIsVideoMuted] = useState(false);
   
   const commentInputRef = useRef<TextInput>(null);
-  const pan = useRef(new Animated.Value(0)).current;
-  const modalHeight = useRef(new Animated.Value(SCREEN_HEIGHT * 0.1)).current;
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   // Initialize video player for video posts
   const videoPlayer = useVideoPlayer(
@@ -95,18 +94,18 @@ export default function PostDetailsModal({
   // Pan responder for swipe to close
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dy) > 20;
+      return Math.abs(gestureState.dy) > 20 && gestureState.dy > 0;
     },
     onPanResponderMove: (evt, gestureState) => {
       if (gestureState.dy > 0) {
-        pan.setValue(gestureState.dy);
+        translateY.setValue(gestureState.dy);
       }
     },
     onPanResponderRelease: (evt, gestureState) => {
       if (gestureState.dy > 100) {
         closeModal();
       } else {
-        Animated.spring(pan, {
+        Animated.spring(translateY, {
           toValue: 0,
           useNativeDriver: true,
         }).start();
@@ -122,18 +121,18 @@ export default function PostDetailsModal({
   }, [visible, postId]);
 
   const openModal = () => {
-    Animated.timing(modalHeight, {
-      toValue: SCREEN_HEIGHT * 0.9,
+    Animated.timing(translateY, {
+      toValue: 0,
       duration: 300,
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start();
   };
 
   const closeModal = () => {
-    Animated.timing(modalHeight, {
-      toValue: SCREEN_HEIGHT * 0.1,
+    Animated.timing(translateY, {
+      toValue: SCREEN_HEIGHT,
       duration: 300,
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start(() => {
       onClose();
       resetState();
@@ -148,7 +147,7 @@ export default function PostDetailsModal({
     setCommentText('');
     setReplyToComment(null);
     setNewlyAddedReplyParentId(undefined);
-    pan.setValue(0);
+    translateY.setValue(SCREEN_HEIGHT);
   };
 
   const loadData = async () => {
@@ -403,45 +402,44 @@ export default function PostDetailsModal({
       transparent={true}
       onRequestClose={closeModal}
     >
-      <TouchableOpacity 
-        style={styles.overlay} 
-        activeOpacity={1} 
-        onPress={closeModal}
-      >
+      <View style={styles.overlay}>
+        <TouchableOpacity 
+          style={styles.backdrop} 
+          activeOpacity={1} 
+          onPress={closeModal}
+        />
         <Animated.View
           style={[
             styles.modalContainer,
             {
-              height: modalHeight,
-              transform: [{ translateY: pan }],
               backgroundColor: currentTheme.background,
+              transform: [{ translateY }],
             }
           ]}
           {...panResponder.panHandlers}
         >
-          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()} style={{ flex: 1 }}>
-          {/* Handle bar */}
-          <View style={styles.handleBar}>
-            <View style={[styles.handle, { backgroundColor: currentTheme.border }]} />
-          </View>
-
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={closeModal} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
-              {t('singlePost.comments')}
-            </Text>
-            <View style={{ width: 24 }} />
-          </View>
-
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.primary} />
+          <SafeAreaView style={{ flex: 1 }}>
+            {/* Handle bar */}
+            <View style={styles.handleBar}>
+              <View style={[styles.handle, { backgroundColor: currentTheme.border }]} />
             </View>
-          ) : post ? (
-            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+
+            {/* Header */}
+            <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+              <TouchableOpacity onPress={closeModal} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
+              </TouchableOpacity>
+              <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
+                {t('singlePost.comments')}
+              </Text>
+              <View style={{ width: 24 }} />
+            </View>
+
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+              </View>
+            ) : post ? (
               <KeyboardAvoidingView 
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -456,47 +454,46 @@ export default function PostDetailsModal({
                     contentContainerStyle={{ flexGrow: 1 }}
                     showsVerticalScrollIndicator={false}
                   >
-                  {/* Like Actions Only */}
-                  <View style={[styles.actionsOnly, { 
-                    backgroundColor: currentTheme.background,
-                    borderBottomColor: currentTheme.border 
-                  }]}>
-                    <PostActions
-                      liked={userLiked}
-                      likesCount={likes.length}
-                      commentsCount={comments.length}
-                      showLikeCount={true}
-                      allowComments={post.allowComments}
-                      onLikePress={handleLikePress}
-                      onCommentPress={() => {}}
-                      currentTheme={currentTheme}
-                    />
-                  </View>
+                    {/* Like Actions Only */}
+                    <View style={[styles.actionsOnly, { 
+                      backgroundColor: currentTheme.background,
+                      borderBottomColor: currentTheme.border 
+                    }]}>
+                      <PostActions
+                        liked={userLiked}
+                        likesCount={likes.length}
+                        commentsCount={comments.length}
+                        showLikeCount={true}
+                        allowComments={post.allowComments}
+                        onLikePress={handleLikePress}
+                        onCommentPress={() => {}}
+                        currentTheme={currentTheme}
+                      />
+                    </View>
 
-                  {/* Comments Section */}
-                  <View style={[{ 
-                    paddingHorizontal: SPACING.md, 
-                    paddingTop: SPACING.md,
-                    backgroundColor: currentTheme.background 
-                  }]}>
-                    <CommentsList
-                      comments={comments}
-                      allowComments={post.allowComments}
-                      currentUserId={currentUser?.uid}
-                      postAuthorId={post.authorId}
-                      onDeleteComment={handleDeleteComment}
-                      onLikeComment={handleLikeComment}
-                      onReplyToComment={handleReplyToComment}
-                      onShowReplies={() => {}}
-                      currentTheme={currentTheme}
-                      newlyAddedReplyParentId={newlyAddedReplyParentId}
-                    />
-                  </View>
-                </KeyboardAwareScrollView>
+                    {/* Comments Section */}
+                    <View style={[{ 
+                      paddingHorizontal: SPACING.md, 
+                      paddingTop: SPACING.md,
+                      backgroundColor: currentTheme.background 
+                    }]}>
+                      <CommentsList
+                        comments={comments}
+                        allowComments={post.allowComments}
+                        currentUserId={currentUser?.uid}
+                        postAuthorId={post.authorId}
+                        onDeleteComment={handleDeleteComment}
+                        onLikeComment={handleLikeComment}
+                        onReplyToComment={handleReplyToComment}
+                        onShowReplies={() => {}}
+                        currentTheme={currentTheme}
+                        newlyAddedReplyParentId={newlyAddedReplyParentId}
+                      />
+                    </View>
+                  </KeyboardAwareScrollView>
 
-                {/* Comment Input */}
-                {post.allowComments && currentUser && (
-                  <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+                  {/* Comment Input */}
+                  {post.allowComments && currentUser && (
                     <View style={[{ 
                       backgroundColor: currentTheme.background,
                       paddingTop: SPACING.sm 
@@ -512,21 +509,19 @@ export default function PostDetailsModal({
                         onCancelReply={handleCancelReply}
                       />
                     </View>
-                  </TouchableOpacity>
-                )}
+                  )}
                 </View>
               </KeyboardAvoidingView>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.errorContainer}>
-              <Text style={[styles.errorText, { color: currentTheme.text }]}>
-                {t('singlePost.postNotFound')}
-              </Text>
-            </View>
-          )}
-          </TouchableOpacity>
+            ) : (
+              <View style={styles.errorContainer}>
+                <Text style={[styles.errorText, { color: currentTheme.text }]}>
+                  {t('singlePost.postNotFound')}
+                </Text>
+              </View>
+            )}
+          </SafeAreaView>
         </Animated.View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
@@ -535,12 +530,18 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    flex: 1,
   },
   modalContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: SCREEN_HEIGHT * 0.9,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: SPACING.sm,
   },
   handleBar: {
     alignItems: 'center',
