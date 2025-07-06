@@ -235,6 +235,8 @@
     "languageChangeError": "Greška pri promeni jezika",
     "profileUpdateError": "Greška pri ažuriranju profila",
     "profileUpdated": "Profil je uspešno ažuriran",
+    "profileUpdatedSuccessfully": "Profil je uspješno ažuriran",
+    "profileUpdateMessage": "Vaše promjene profila su sačuvane.",
     "locationRadius": "Radius lokacije za feed",
     "feedRadius": "radius za feed objave",
     "selectLocationRadius": "Odaberi radius lokacije",
@@ -534,9 +536,5 @@
     "retake": "Ponovi",
     "errorTakingPicture": "Greška pri slikanju",
     "errorRecordingVideo": "Greška pri snimanju videa"
-  },
-    "settings": {
-        "profileUpdatedSuccessfully": "Profil je uspješno ažuriran",
-    "profileUpdateMessage": "Vaše promjene profila su sačuvane."
-    }
+  }
 }
