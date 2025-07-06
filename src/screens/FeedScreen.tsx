@@ -384,7 +384,13 @@ export default function FeedScreen({ navigation }: any) {
             />
           )}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor={currentTheme.primary}
+              colors={[currentTheme.primary]}
+              progressBackgroundColor={currentTheme.background}
+            />
           }
           ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
           ListFooterComponent={
