@@ -123,7 +123,7 @@ export default function PostDetailsModal({
 
   const openModal = () => {
     Animated.timing(modalHeight, {
-      toValue: SCREEN_HEIGHT * 0.9,
+      toValue: SCREEN_HEIGHT * 0.75,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -403,7 +403,11 @@ export default function PostDetailsModal({
       transparent={true}
       onRequestClose={closeModal}
     >
-      <View style={styles.overlay}>
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={closeModal}
+      >
         <Animated.View
           style={[
             styles.modalContainer,
@@ -422,13 +426,9 @@ export default function PostDetailsModal({
 
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={closeModal}>
-              <Ionicons name="close" size={24} color={currentTheme.text} />
-            </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
               {t('singlePost.comments')}
             </Text>
-            <View style={{ width: 24 }} />
           </View>
 
           {loading ? (
@@ -436,20 +436,21 @@ export default function PostDetailsModal({
               <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
           ) : post ? (
-            <KeyboardAvoidingView 
-              style={{ flex: 1 }}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-            >
-              <View style={{ flex: 1 }}>
-                <KeyboardAwareScrollView 
-                  style={{ flex: 1 }}
-                  enableOnAndroid={true}
-                  extraScrollHeight={20}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ flexGrow: 1 }}
-                  showsVerticalScrollIndicator={false}
-                >
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+              <KeyboardAvoidingView 
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+              >
+                <View style={{ flex: 1 }}>
+                  <KeyboardAwareScrollView 
+                    style={{ flex: 1 }}
+                    enableOnAndroid={true}
+                    extraScrollHeight={20}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
+                  >
                   {/* Like Actions Only */}
                   <View style={[styles.actionsOnly, { 
                     backgroundColor: currentTheme.background,
@@ -490,24 +491,27 @@ export default function PostDetailsModal({
 
                 {/* Comment Input */}
                 {post.allowComments && currentUser && (
-                  <View style={[{ 
-                    backgroundColor: currentTheme.background,
-                    paddingTop: SPACING.sm 
-                  }]}>
-                    <CommentInput
-                      ref={commentInputRef}
-                      value={commentText}
-                      onChangeText={setCommentText}
-                      onSubmit={() => handleAddComment(commentText)}
-                      isSubmitting={submittingComment}
-                      currentTheme={currentTheme}
-                      replyToComment={replyToComment}
-                      onCancelReply={handleCancelReply}
-                    />
-                  </View>
+                  <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+                    <View style={[{ 
+                      backgroundColor: currentTheme.background,
+                      paddingTop: SPACING.sm 
+                    }]}>
+                      <CommentInput
+                        ref={commentInputRef}
+                        value={commentText}
+                        onChangeText={setCommentText}
+                        onSubmit={() => handleAddComment(commentText)}
+                        isSubmitting={submittingComment}
+                        currentTheme={currentTheme}
+                        replyToComment={replyToComment}
+                        onCancelReply={handleCancelReply}
+                      />
+                    </View>
+                  </TouchableOpacity>
                 )}
-              </View>
-            </KeyboardAvoidingView>
+                </View>
+              </KeyboardAvoidingView>
+            </TouchableOpacity>
           ) : (
             <View style={styles.errorContainer}>
               <Text style={[styles.errorText, { color: currentTheme.text }]}>
@@ -516,7 +520,7 @@ export default function PostDetailsModal({
             </View>
           )}
         </Animated.View>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -544,7 +548,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
