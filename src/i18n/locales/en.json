@@ -237,6 +237,8 @@
     "languageChangeError": "Failed to change language",
     "profileUpdateError": "Failed to update profile",
     "profileUpdated": "Profile updated successfully",
+    "profileUpdatedSuccessfully": "Profile Updated Successfully",
+    "profileUpdateMessage": "Your profile changes have been saved.",
     "locationRadius": "Feed Location Radius",
     "feedRadius": "radius for feed posts",
     "selectLocationRadius": "Select Location Radius",
