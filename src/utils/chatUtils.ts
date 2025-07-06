@@ -402,12 +402,12 @@ export const createConnectionRequest = async (
 
     console.log('Connection request created successfully');
 
-      // Remove user from nearby Redux state
+      // Remove user from nearby Redux state after sending connection request
       try {
         const { store } = await import('../store');
-        const { removeBlockedUser } = await import('../store/nearbySlice');
-        store.dispatch(removeBlockedUser(toUserId));
-        console.log('User removed from nearby list:', toUserId);
+        const { removeUserFromNearby } = await import('../store/nearbySlice');
+        store.dispatch(removeUserFromNearby(toUserId));
+        console.log('User removed from nearby list after connection request:', toUserId);
       } catch (reduxError) {
         console.error('Error removing user from nearby list:', reduxError);
         // Don't throw here as the main operation succeeded

@@ -79,6 +79,9 @@ const nearbySlice = createSlice({
       state.error = null;
       state.currentPage = 0;
     },
+    removeUserFromNearby: (state, action: PayloadAction<string>) => {
+      state.users = state.users.filter(user => user.id !== action.payload);
+    },
     removeBlockedUser: (state, action: PayloadAction<string>) => {
       state.users = state.users.filter(user => user.id !== action.payload);
     },
@@ -153,6 +156,7 @@ const nearbySlice = createSlice({
 
 export const {
   clearNearbyData,
+  removeUserFromNearby,
   removeBlockedUser,
   setRefreshing,
   setError,
