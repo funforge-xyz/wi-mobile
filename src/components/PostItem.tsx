@@ -11,6 +11,7 @@ import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import PostActions from './PostActions';
+import PostDetailsModal from './PostDetailsModal';
 
 const { width } = Dimensions.get('window');
 
@@ -56,6 +57,7 @@ export default function PostItem({
 }: PostItemProps) {
   const [liked, setLiked] = useState(post.isLikedByUser);
   const [likesCount, setLikesCount] = useState(post.likesCount);
+  const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
 
   const handleLikePress = () => {
     onLike(post.id, liked);
@@ -104,7 +106,14 @@ export default function PostItem({
         showLikeCount={post.showLikeCount}
         allowComments={post.allowComments}
         onLikePress={handleLikePress}
-        onCommentPress={() => navigation.navigate('SinglePost', { postId: post.id })}
+        onCommentPress={() => setShowPostDetailsModal(true)}
+        currentTheme={currentTheme}
+      />
+
+      <PostDetailsModal
+        visible={showPostDetailsModal}
+        onClose={() => setShowPostDetailsModal(false)}
+        postId={post.id}
         currentTheme={currentTheme}
       />
     </TouchableOpacity>
