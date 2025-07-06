@@ -39,9 +39,21 @@ interface PostItemProps {
   currentTheme: any;
   navigation: any;
   showImageBorderRadius?: boolean;
+  isVideoPlaying?: boolean;
+  isVideoMuted?: boolean;
+  onVideoMuteToggle?: (postId: string) => void;
 }
 
-export default function PostItem({ post, onLike, currentTheme, navigation, showImageBorderRadius }: PostItemProps) {
+export default function PostItem({ 
+  post, 
+  onLike, 
+  currentTheme, 
+  navigation, 
+  showImageBorderRadius,
+  isVideoPlaying = false,
+  isVideoMuted = false,
+  onVideoMuteToggle
+}: PostItemProps) {
   const [liked, setLiked] = useState(post.isLikedByUser);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -77,6 +89,9 @@ export default function PostItem({ post, onLike, currentTheme, navigation, showI
           isFrontCamera={post.isFrontCamera}
           style={styles.media}
           showBorderRadius={showImageBorderRadius}
+          isVideoPlaying={isVideoPlaying}
+          isVideoMuted={isVideoMuted}
+          onVideoMuteToggle={onVideoMuteToggle ? () => onVideoMuteToggle(post.id) : undefined}
         />
       )}
 

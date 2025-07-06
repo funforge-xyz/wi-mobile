@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   RefreshControl,
   AppState,
   ActivityIndicator,
+  ViewabilityConfig,
+  ViewToken,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -53,10 +55,42 @@ export default function FeedScreen({ navigation }: any) {
   const [notificationKey, setNotificationKey] = useState(0);
   const [userRadius, setUserRadius] = useState<number | null>(null);
   const [currentUserLocation, setCurrentUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [currentlyPlayingVideo, setCurrentlyPlayingVideo] = useState<string | null>(null);
+  const [videoMutedStates, setVideoMutedStates] = useState<{[key: string]: boolean}>({});
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
+  const flatListRef = useRef<FlatList>(null);
 
   const currentTheme = getTheme(isDarkMode);
+
+  const viewabilityConfig: ViewabilityConfig = {
+    viewAreaCoveragePercentThreshold: 50, // Video needs to be 50% visible to autoplay
+    minimumViewTime: 100, // Must be visible for at least 100ms
+  };
+
+  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    // Find the first viewable video post
+    const visibleVideoPosts = viewableItems.filter(item => 
+      item.item?.mediaType === 'video' && item.isViewable
+    );
+
+    if (visibleVideoPosts.length > 0) {
+      const firstVisibleVideoPost = visibleVideoPosts[0];
+      if (firstVisibleVideoPost.item.id !== currentlyPlayingVideo) {
+        setCurrentlyPlayingVideo(firstVisibleVideoPost.item.id);
+      }
+    } else {
+      // No video posts are visible, stop all playback
+      setCurrentlyPlayingVideo(null);
+    }
+  }, [currentlyPlayingVideo]);
+
+  const handleVideoMuteToggle = useCallback((postId: string) => {
+    setVideoMutedStates(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  }, []);
 
   // Force NotificationBell to re-render when screen comes into focus
   useFocusEffect(
@@ -287,6 +321,7 @@ export default function FeedScreen({ navigation }: any) {
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -296,6 +331,9 @@ export default function FeedScreen({ navigation }: any) {
             currentTheme={currentTheme}
             navigation={navigation}
             showImageBorderRadius={false}
+            isVideoPlaying={currentlyPlayingVideo === item.id}
+            isVideoMuted={videoMutedStates[item.id] || false}
+            onVideoMuteToggle={handleVideoMuteToggle}
           />
         )}
         refreshControl={
@@ -312,8 +350,14 @@ export default function FeedScreen({ navigation }: any) {
         onEndReached={loadMorePosts}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : { flexGrow: 1 }}
+        contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : { paddingBottom: 20 }}
         style={{ flex: 1 }}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        removeClippedSubviews={false}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={10}
       />
     </SafeAreaView>
   );

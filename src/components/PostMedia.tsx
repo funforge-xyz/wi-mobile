@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Dimensions, TouchableWithoutFeedback, Animated } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 
 interface PostMediaProps {
   mediaURL: string;
@@ -17,6 +18,8 @@ interface PostMediaProps {
   onDoubleTap?: () => void;
   likeAnimationOpacity?: Animated.Value;
   likeAnimationScale?: Animated.Value;
+  isMuted?: boolean;
+  toggleMute?: () => void;
 }
 
 export default function PostMedia({ 
@@ -32,12 +35,40 @@ export default function PostMedia({
   onLoad,
   onDoubleTap,
   likeAnimationOpacity,
-  likeAnimationScale
+  likeAnimationScale,
+  isMuted,
+  toggleMute
 }: PostMediaProps) {
-  const player = useVideoPlayer(mediaURL, player => {
-    player.loop = false;
-    player.play();
-  });
+  const videoRef = useRef<VideoView>(null);
+  const [status, setStatus] = useState({});
+
+  useEffect(() => {
+    return () => {
+      // Stop the video when the component unmounts
+      if (videoRef.current) {
+        (async () => {
+          await videoRef.current.unloadAsync();
+        })();
+      }
+    };
+  }, []);
+
+  const handlePlayPause = async () => {
+    if (videoRef.current) {
+      if (status.isPlaying) {
+        await videoRef.current.pauseAsync();
+      } else {
+        await videoRef.current.playAsync();
+      }
+    }
+  };
+  
+  const handleMuteUnmute = async () => {
+    if (videoRef.current) {
+      await videoRef.current.setIsMutedAsync(!isMuted);
+      toggleMute && toggleMute();
+    }
+  };
 
   if (!mediaURL) return null;
 
@@ -67,15 +98,36 @@ export default function PostMedia({
             />
           ) : (
             <VideoView
-              player={player}
+              ref={videoRef}
               style={styles.video}
               allowsFullscreen
               allowsPictureInPicture
               contentFit="contain"
+              source={{ uri: mediaURL }}
+              shouldPlay={isPlaying}
+              isMuted={isMuted}
+              onLoad={() => onLoad && onLoad()}
+              onPlaybackStatusUpdate={status => setStatus(() => status)}
             />
           )}
         </View>
       </TouchComponent>
+                <View style={styles.videoControls}>
+                  <TouchableOpacity onPress={handlePlayPause}>
+                    <Ionicons
+                      name={status.isPlaying ? 'pause' : 'play'}
+                      size={30}
+                      color="white"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleMuteUnmute}>
+                    <Ionicons
+                      name={isMuted ? 'volume-mute' : 'volume-high'}
+                      size={30}
+                      color="white"
+                    />
+                  </TouchableOpacity>
+                </View>      
                       {/* Animated heart overlay for images */}
                       {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
                         <Animated.View style={[
@@ -149,5 +201,12 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  videoControls: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
