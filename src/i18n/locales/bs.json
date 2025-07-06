@@ -1,3 +1,4 @@
+
 {
   "common": {
     "loading": "Učitavanje...",
@@ -156,10 +157,6 @@
     "post": "Objavi",
     "posting": "Objavljivanje...",
     "postFailed": "Neuspješno kreiranje objave",
-    "takePhoto": "Uslikajte",
-    "removePhoto": "Uklonite fotografiju",
-    "selectPhoto": "Izaberite fotografiju",
-    "useCameraToAdd": "Koristite kameru da dodate fotografiju",
     "discardPost": "Odbaci objavu",
     "discardPostMessage": "Da li ste sigurni da želite da odbacite ovu objavu?",
     "keepEditing": "Nastavi uređivanje",
@@ -180,8 +177,7 @@
     "likeCountVisible": "Broj sviđanja je vidljiv",
     "likeCountHidden": "Broj sviđanja je sakriven",
     "changePhoto": "Promjenite fotografiju",
-    "takePhotoOptional": "Uslikajte (opciono)",
-    "selectPhoto": "Izaberite fotografiju"
+    "takePhotoOptional": "Uslikajte (opciono)"
   },
   "profile": {
     "title": "Profil",
@@ -227,7 +223,6 @@
     "bio": "Bio",
     "save": "Sačuvaj",
     "darkMode": "Tamni režim",
-    "lightMode": "Svjetli režim",
     "lightMode": "Svjetli režim",
     "notifications": "Notifikacije",
     "language": "Jezik",
@@ -478,6 +473,8 @@
     "blockUser": "Blokiraj korisnika",
     "blockUserConfirmation": "Da li ste sigurni da želite da blokirate ovog korisnika? Biće uklonjeni iz vaših konekcija i nećete ih vidjeti u objavljenim sadržajima.",
     "userBlocked": "Korisnik je blokiran",
+    "userBlockedSuccess": "Korisnik je uspješno blokiran",
+    "userBlockedMessage": "Korisnik je blokiran i uklonjen iz vaših konekcija. Nećete ih više vidjeti u objavljenim sadržajima.",
     "failedToBlock": "Neuspješno blokiranje korisnika",
     "failedToLoadProfile": "Neuspješno učitavanje korisničkog profila"
   },
@@ -508,7 +505,7 @@
     "howWeUseTitle": "3. Kako koristimo vaše informacije",
     "howWeUseText": "Koristimo informacije koje prikupljamo da pružimo, održimo i poboljšamo naše usluge, uključujući olakšavanje konekcija između korisnika, personalizaciju vašeg iskustva, slanje obavještenja, odgovaranje na vaše zahtjeve i obezbijeđivanje bezbjednosti naše platforme.",
     "sharingTitle": "4. Dijeljenje informacija",
-    "sharingText": "Ne prodajemo, ne trgovinujemo niti prenosimo vaše lične informacije trećim stranama bez vaše saglasnosti, osim kako je opisano u ovoj politici. Možemo dijeliti informacije sa pružaocimausluga koji nam pomažu u upravljanju našom platformom, vođenju posla ili usluživanju korisnika.",
+    "sharingText": "Ne prodajemo, ne trgovinujemo niti prenosimo vaše lične informacije trećim stranama bez vaše saglasnosti, osim kako je opisano u ovoj politici. Možemo dijeliti informacije sa pružaocima usluga koji nam pomažu u upravljanju našom platformom, vođenju posla ili usluživanju korisnika.",
     "securityTitle": "5. Bezbijednost podataka",
     "securityText": "Primjenjujemo odgovarajuće bezbjednosne mjere za zaštitu vaših ličnih informacija od neovlaštenog pristupa, izmjene, otkrivanja ili uništavanja. Međutim, nijedan metod prenosa preko interneta nije 100% bezbijedan.",
     "retentionTitle": "6. Čuvanje podataka",
