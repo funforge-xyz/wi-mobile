@@ -304,25 +304,33 @@ export const sendChatMessage = async (
 
     // Create connection request if no existing pending request AND not replying to a request
     if (!hasExistingRequest && !isReplyToRequest) {
-      // Use the createConnectionRequest function which handles Redux state updates
-      await createConnectionRequest(currentUserId, receiverId, t);
-      
-      // Update the connection request with additional chat-specific data
-      const connectionRequestQuery = query(
-        collection(firestore, 'connectionRequests'),
-        where('fromUserId', '==', currentUserId),
-        where('toUserId', '==', receiverId),
-        where('status', '==', 'pending'),
-        orderBy('createdAt', 'desc')
+      const currentUserDoc = await getDoc(doc(firestore, 'users', currentUserId));
+      const currentUserData = currentUserDoc.data();
+
+      await createNearbyRequestNotification(
+        receiverId,
+        currentUserData?.displayName || currentUserData?.name || 'Someone',
+        currentUserData?.photoURL
       );
-      const connectionRequestSnapshot = await getDocs(connectionRequestQuery);
-      
-      if (!connectionRequestSnapshot.empty) {
-        const requestDoc = connectionRequestSnapshot.docs[0];
-        await updateDoc(requestDoc.ref, {
-          firstMessage: messageText,
-          chatId: chatRoomId,
-        });
+
+      await addDoc(collection(firestore, 'connectionRequests'), {
+        fromUserId: currentUserId,
+        toUserId: receiverId,
+        status: 'pending',
+        createdAt: new Date(),
+        firstMessage: messageText,
+        chatId: chatRoomId,
+      });
+
+      // Remove user from nearby Redux state after sending connection request
+      try {
+        const { store } = await import('../store');
+        const { removeUserFromNearby } = await import('../store/nearbySlice');
+        store.dispatch(removeUserFromNearby(receiverId));
+        console.log('User removed from nearby list after connection request:', receiverId);
+      } catch (reduxError) {
+        console.error('Error removing user from nearby list:', reduxError);
+        // Don't throw here as the main operation succeeded
       }
     }
 
