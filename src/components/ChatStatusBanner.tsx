@@ -20,7 +20,7 @@ export default function ChatStatusBanner({
       <View style={[styles.statusPill, { backgroundColor: COLORS.warning + '15', borderColor: COLORS.warning + '30' }]}>
         <Ionicons name="time-outline" size={14} color={COLORS.warning} />
         <Text style={[styles.statusPillText, { color: COLORS.warning }]}>
-          {t('nearby.requestSent')} • {t('common.loading')}
+          {t('nearby.requestSent')}
         </Text>
       </View>
     </View>
