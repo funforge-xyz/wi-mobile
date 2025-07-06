@@ -132,8 +132,8 @@ export const loadNearbyUsers = async (
       return { users: [], lastDoc: null, hasMore: false };
     }
 
-    // Get blocked users and connections in parallel - force server data
-    const [blockedByMeQuery, blockedMeQuery, connectionsQuery, connectionRequestsQuery] = await Promise.all([
+    // Get blocked users, connections, and connection requests in parallel - force server data
+    const [blockedByMeQuery, blockedMeQuery, connectionsQuery, connectionRequestsSentQuery, connectionRequestsReceivedQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blockedUsers'),
         where('blockerUserId', '==', currentUser.uid)
@@ -148,7 +148,13 @@ export const loadNearbyUsers = async (
       ), { source: 'server' }),
       getDocs(query(
         collection(firestore, 'connectionRequests'),
-        where('participants', 'array-contains', currentUser.uid)
+        where('fromUserId', '==', currentUser.uid),
+        where('status', '==', 'pending')
+      ), { source: 'server' }),
+      getDocs(query(
+        collection(firestore, 'connectionRequests'),
+        where('toUserId', '==', currentUser.uid),
+        where('status', '==', 'pending')
       ), { source: 'server' })
     ]);
 
@@ -164,11 +170,11 @@ export const loadNearbyUsers = async (
       )
     );
 
-    const requestedUserIds = new Set(
-      connectionRequestsQuery.docs.flatMap(doc => 
-        doc.data().participants.filter((id: string) => id !== currentUser.uid)
-      )
-    );
+    // Include users with pending connection requests (both sent and received)
+    const requestedUserIds = new Set([
+      ...connectionRequestsSentQuery.docs.map(doc => doc.data().toUserId), // Users I sent requests to
+      ...connectionRequestsReceivedQuery.docs.map(doc => doc.data().fromUserId) // Users who sent requests to me
+    ]);
 
     // Calculate bounding box for location-based filtering
     const latDelta = currentUserRadius / 111.32; // 1 degree lat ≈ 111.32 km
