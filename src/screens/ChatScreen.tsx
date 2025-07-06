@@ -186,6 +186,12 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         translateWrapper
       );
 
+      // Update pending request status if a new request was created
+      if (pendingRequestStatus === 'none') {
+        const updatedStatus = await checkPendingRequestStatus(currentUserId, userId);
+        setPendingRequestStatus(updatedStatus);
+      }
+
       // Scroll to top (latest message) for inverted list
       setTimeout(() => {
         messagesListRef.current?.scrollToTop();
