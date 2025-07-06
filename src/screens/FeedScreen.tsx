@@ -235,8 +235,11 @@ export default function FeedScreen({ navigation }: any) {
       console.error('Error loading posts:', error);
       if (timeout) clearTimeout(timeout);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
