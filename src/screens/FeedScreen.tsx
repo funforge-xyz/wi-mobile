@@ -320,45 +320,46 @@ export default function FeedScreen({ navigation }: any) {
         />
       </View>
 
-      <FlatList
-        ref={flatListRef}
-        data={posts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <PostItem
-            post={item}
-            onLike={handleLike}
-            currentTheme={currentTheme}
-            navigation={navigation}
-            showImageBorderRadius={false}
-            isVideoPlaying={currentlyPlayingVideo === item.id}
-            isVideoMuted={videoMutedStates[item.id] || false}
-            onVideoMuteToggle={handleVideoMuteToggle}
-          />
-        )}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
-        ListFooterComponent={
-          loadingMore ? (
-            <View style={{ padding: 20, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={currentTheme.primary} />
-            </View>
-          ) : null
-        }
-        onEndReached={loadMorePosts}
-        onEndReachedThreshold={0.5}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : { paddingBottom: 20 }}
-        style={{ flex: 1 }}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        removeClippedSubviews={false}
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        windowSize={10}
-      />
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={posts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <PostItem
+              post={item}
+              onLike={handleLike}
+              currentTheme={currentTheme}
+              navigation={navigation}
+              showImageBorderRadius={false}
+              isVideoPlaying={currentlyPlayingVideo === item.id}
+              isVideoMuted={videoMutedStates[item.id] || false}
+              onVideoMuteToggle={handleVideoMuteToggle}
+            />
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={currentTheme.primary} />
+              </View>
+            ) : null
+          }
+          onEndReached={loadMorePosts}
+          onEndReachedThreshold={0.5}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          removeClippedSubviews={false}
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          windowSize={10}
+        />
+      </View>
     </SafeAreaView>
   );
 }

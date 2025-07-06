@@ -83,16 +83,18 @@ export default function PostItem({
       )}
 
       {post.mediaURL && (
-        <PostMedia
-          mediaURL={post.mediaURL}
-          mediaType={post.mediaType}
-          isFrontCamera={post.isFrontCamera}
-          style={styles.media}
-          showBorderRadius={showImageBorderRadius}
-          isVideoPlaying={isVideoPlaying}
-          isVideoMuted={isVideoMuted}
-          onVideoMuteToggle={onVideoMuteToggle ? () => onVideoMuteToggle(post.id) : undefined}
-        />
+        <View style={styles.mediaContainer}>
+          <PostMedia
+            mediaURL={post.mediaURL}
+            mediaType={post.mediaType}
+            isFrontCamera={post.isFrontCamera}
+            style={styles.media}
+            showBorderRadius={showImageBorderRadius}
+            isVideoPlaying={isVideoPlaying}
+            isVideoMuted={isVideoMuted}
+            onVideoMuteToggle={onVideoMuteToggle ? () => onVideoMuteToggle(post.id) : undefined}
+          />
+        </View>
       )}
 
       <PostActions
@@ -113,5 +115,14 @@ const styles = StyleSheet.create({
   postContainer: {
     marginBottom: SPACING.sm,
     paddingVertical: SPACING.md,
+  },
+  mediaContainer: {
+    width: '100%',
+    height: 300, // Fixed height for consistent layout
+    marginVertical: SPACING.sm,
+  },
+  media: {
+    width: '100%',
+    height: '100%',
   },
 });

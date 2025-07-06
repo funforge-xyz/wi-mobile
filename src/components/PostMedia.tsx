@@ -9,17 +9,16 @@ interface PostMediaProps {
   mediaType?: 'image' | 'video';
   thumbnailURL?: string;
   isFrontCamera?: boolean;
-  style?: ViewStyle;
+  style?: any;
   onPress?: () => void;
-  isPlaying?: boolean;
-  togglePlay?: () => void;
-  post?: any;
+  isVideoPlaying?: boolean;
+  isVideoMuted?: boolean;
+  onVideoMuteToggle?: () => void;
+  showBorderRadius?: boolean;
   onLoad?: () => void;
   onDoubleTap?: () => void;
   likeAnimationOpacity?: Animated.Value;
   likeAnimationScale?: Animated.Value;
-  isMuted?: boolean;
-  toggleMute?: () => void;
 }
 
 export default function PostMedia({ 
@@ -29,15 +28,14 @@ export default function PostMedia({
   isFrontCamera, 
   style, 
   onPress,
-  isPlaying,
-  togglePlay,
-  post,
+  isVideoPlaying = false,
+  isVideoMuted = false,
+  onVideoMuteToggle,
+  showBorderRadius = true,
   onLoad,
   onDoubleTap,
   likeAnimationOpacity,
-  likeAnimationScale,
-  isMuted,
-  toggleMute
+  likeAnimationScale
 }: PostMediaProps) {
   const videoRef = useRef<VideoView>(null);
   const [status, setStatus] = useState({});
@@ -63,18 +61,19 @@ export default function PostMedia({
     }
   };
   
-  const handleMuteUnmute = async () => {
-    if (videoRef.current) {
-      await videoRef.current.setIsMutedAsync(!isMuted);
-      toggleMute && toggleMute();
+  const handleMuteUnmute = () => {
+    if (onVideoMuteToggle) {
+      onVideoMuteToggle();
     }
   };
 
   if (!mediaURL) return null;
 
   const mediaStyle = [
+    styles.media,
     style,
-    isFrontCamera && { transform: [{ scaleX: -1 }] }
+    isFrontCamera && { transform: [{ scaleX: -1 }] },
+    showBorderRadius && { borderRadius: 8 }
   ];
 
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
@@ -83,64 +82,56 @@ export default function PostMedia({
     ? { onPress: onDoubleTap }
     : { onPress: onPress, activeOpacity: 0.9 };
 
-
   if (mediaType === 'video') {
     return (
       <View style={styles.mediaContainer}>
-      <TouchComponent {...touchProps}>
-        <View style={[styles.mediaContainer, mediaStyle]}>
-          {thumbnailURL ? (
-            <Image
-              source={{ uri: thumbnailURL }}
-              style={styles.media}
-              resizeMode="contain"
-              onLoad={onLoad}
-            />
-          ) : (
-            <VideoView
-              ref={videoRef}
-              style={styles.video}
-              allowsFullscreen
-              allowsPictureInPicture
-              contentFit="contain"
-              source={{ uri: mediaURL }}
-              shouldPlay={isPlaying}
-              isMuted={isMuted}
-              onLoad={() => onLoad && onLoad()}
-              onPlaybackStatusUpdate={status => setStatus(() => status)}
-            />
-          )}
-        </View>
-      </TouchComponent>
-                <View style={styles.videoControls}>
-                  <TouchableOpacity onPress={handlePlayPause}>
-                    <Ionicons
-                      name={status.isPlaying ? 'pause' : 'play'}
-                      size={30}
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleMuteUnmute}>
-                    <Ionicons
-                      name={isMuted ? 'volume-mute' : 'volume-high'}
-                      size={30}
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                </View>      
-                      {/* Animated heart overlay for images */}
-                      {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
-                        <Animated.View style={[
-                          styles.likeAnimationOverlay,
-                          {
-                            opacity: likeAnimationOpacity,
-                            transform: [{ scale: likeAnimationScale }]
-                          }
-                        ]}>
-                          <Ionicons name="heart" size={80} color="red" />
-                        </Animated.View>
-                      )}
-    </View>
+        <TouchComponent {...touchProps}>
+          <VideoView
+            ref={videoRef}
+            style={mediaStyle}
+            allowsFullscreen
+            allowsPictureInPicture
+            contentFit="cover"
+            source={{ uri: mediaURL }}
+            shouldPlay={isVideoPlaying}
+            isMuted={isVideoMuted}
+            onLoad={() => onLoad && onLoad()}
+            onPlaybackStatusUpdate={status => setStatus(() => status)}
+          />
+        </TouchComponent>
+        
+        {isVideoPlaying && (
+          <View style={styles.videoControls}>
+            <TouchableOpacity onPress={handlePlayPause}>
+              <Ionicons
+                name={status.isPlaying ? 'pause' : 'play'}
+                size={30}
+                color="white"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleMuteUnmute}>
+              <Ionicons
+                name={isVideoMuted ? 'volume-mute' : 'volume-high'}
+                size={30}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {/* Animated heart overlay */}
+        {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
+          <Animated.View style={[
+            styles.likeAnimationOverlay,
+            {
+              opacity: likeAnimationOpacity,
+              transform: [{ scale: likeAnimationScale }]
+            }
+          ]}>
+            <Ionicons name="heart" size={80} color="red" />
+          </Animated.View>
+        )}
+      </View>
     );
   }
 

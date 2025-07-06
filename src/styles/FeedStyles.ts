@@ -18,7 +18,9 @@ export const feedStyles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   emptyContainer: {
-    flex: 1,
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   connectionBadge: {
     paddingHorizontal: 8,
