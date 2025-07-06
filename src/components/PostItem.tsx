@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
   View,
-  Text
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Animated,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { SPACING } from '../config/constants';
+import { SPACING, FONTS, COLORS } from '../config/constants';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import PostActions from './PostActions';
 import PostDetailsModal from './PostDetailsModal';
+import SkeletonLoader from './SkeletonLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -58,11 +61,62 @@ export default function PostItem({
   const [liked, setLiked] = useState(post.isLikedByUser);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
+  const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [lastTap, setLastTap] = useState<number | null>(null);
+  const videoRef = useRef<any>(null);
+  const likeAnimationScale = useRef(new Animated.Value(1)).current;
+  const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
 
   const handleLikePress = () => {
     onLike(post.id, liked);
     setLiked(!liked);
     setLikesCount(liked ? likesCount - 1 : likesCount + 1);
+  };
+
+  const handleVideoMuteToggle = () => {
+    if (onVideoMuteToggle) {
+      onVideoMuteToggle(post.id);
+    }
+  };
+
+  const triggerLikeAnimation = () => {
+    // Reset animation values
+    likeAnimationScale.setValue(0);
+    likeAnimationOpacity.setValue(1);
+
+    // Animate scale and opacity
+    Animated.parallel([
+      Animated.timing(likeAnimationScale, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(likeAnimationOpacity, {
+        toValue: 0,
+        duration: 300,
+        delay: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handleDoubleTap = () => {
+    if (isMediaLoading) return;
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+
+    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+      // This is a double tap - only like if not already liked
+      if (!post.isLikedByUser) {
+        onLike(post.id, post.isLikedByUser);
+        triggerLikeAnimation();
+      }
+      setLastTap(null);
+    } else {
+      // This is a single tap - record the time
+      setLastTap(now);
+    }
   };
 
   return (
@@ -82,17 +136,35 @@ export default function PostItem({
         <PostContent content={post.content} currentTheme={currentTheme} />
       )}
 
+      {/* Media - Full width, no padding */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
+          {/* Shimmer skeleton overlay while loading */}
+          {isMediaLoading && (
+            <TouchableWithoutFeedback onPress={handleDoubleTap}>
+              <View style={styles.mediaLoadingSkeleton}>
+                <SkeletonLoader
+                  width={width}
+                  height={width * 5/4}
+                  borderRadius={0}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          )}
+
           <PostMedia
             mediaURL={post.mediaURL}
             mediaType={post.mediaType}
+            onLoad={() => setIsMediaLoading(false)}
             isFrontCamera={post.isFrontCamera}
             style={styles.media}
             showBorderRadius={showImageBorderRadius}
             isVideoPlaying={isVideoPlaying}
             isVideoMuted={isVideoMuted}
-            onVideoMuteToggle={onVideoMuteToggle ? () => onVideoMuteToggle(post.id) : undefined}
+            onVideoMuteToggle={handleVideoMuteToggle}
+            onDoubleTap={handleDoubleTap}
+            likeAnimationOpacity={likeAnimationOpacity}
+            likeAnimationScale={likeAnimationScale}
           />
         </View>
       )}
@@ -114,7 +186,7 @@ export default function PostItem({
         postId={post.id}
         currentTheme={currentTheme}
       />
-    </TouchableOpacity>
+    </View>
   );
 }
 
