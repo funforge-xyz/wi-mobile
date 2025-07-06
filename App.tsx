@@ -28,6 +28,7 @@ import CreatePostScreen from './src/screens/CreatePostScreen';
 // Services
 import { initializeFirebase } from './src/services/firebase';
 import { initializeNotifications, registerForPushNotifications } from './src/services/notifications';
+import { locationService } from './src/services/locationService';
 
 // Types
 import { RootStackParamList } from './src/types/navigation';
