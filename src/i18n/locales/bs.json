@@ -516,7 +516,7 @@
     "rightsTitle": "8. Vaša prava",
     "rightsText": "Imate pravo da pristupite, ažurirate ili obrišete vaše lične informacije. Možete upravljati većinom ovih informacija kroz podešavanja profila. Za dodatne zahtjeve, molimo kontaktirajte nas kroz kanale podrške u aplikaciji.",
     "changesTitle": "9. Izmjene ove politike",
-    "changesText": "Možemo ažurirati ovu politiku privatnosti s vremena na vrijeme. Obavijestićemo vas o svim značajnim promjenama objavljivanjem nove politike u aplikaciji i ažuriranjem datuma \"Posljednja izmena\" u nastavku.",
+    "changesText": "Možemo ažurirati ovu politiku privatnosti s vremena na vrijeme. Obavijestićemo vas o svim značajnim promjenama objavljivanjem nove politike u aplikaciji i ažuriranjem datuma \"Posljednja izmjena\" u nastavku.",
     "contactTitle": "10. Kontaktirajte nas",
     "contactText": "Ako imate bilo kakva pitanja o ovoj politici privatnosti, molimo kontaktirajte nas kroz sekciju Pomoć i podrška u aplikaciji ili pošaljite nam email na privacy@wichat.app.",
     "lastUpdated": "Posljednja izmjena: {{date}}"
@@ -534,5 +534,9 @@
     "retake": "Ponovi",
     "errorTakingPicture": "Greška pri slikanju",
     "errorRecordingVideo": "Greška pri snimanju videa"
-  }
+  },
+    "settings": {
+        "profileUpdatedSuccessfully": "Profil je uspješno ažuriran",
+    "profileUpdateMessage": "Vaše promjene profila su sačuvane."
+    }
 }

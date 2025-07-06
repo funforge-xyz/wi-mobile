@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ScrollView,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -43,6 +44,10 @@ import {
   changeLanguage,
 } from '../utils/settingsUtils';
 import { useNetworkMonitoring } from '../hooks/useNetworkMonitoring';
+import ProfileEditSuccessModal from '../components/ProfileEditSuccessModal';
+import { useDataRefresh } from '../hooks/useDataRefresh';
+import { getLastProfileFetch } from '../services/storage';
+import { loadProfile } from '../utils/profileUtils';
 
 export default function SettingsScreen() {
   const [loading, setLoading] = useState(false);
@@ -58,8 +63,8 @@ export default function SettingsScreen() {
   const [sameNetworkMatchingEnabled, setSameNetworkMatchingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [showRadiusModal, setShowRadiusModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showRadiusModal, setShowRadiusModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
   const [showSettingsOption, setShowSettingsOption] = useState(false);
@@ -73,6 +78,8 @@ export default function SettingsScreen() {
     thumbnailURL: '',
     bio: '',
   });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successAnimation] = useState(new Animated.Value(0));
 
   // Network monitoring state
   const { 
@@ -100,6 +107,29 @@ export default function SettingsScreen() {
     loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled, setSameNetworkMatchingEnabled);
     loadUserData(setEditedProfile, setIsLoading);
   }, []);
+
+  useDataRefresh({
+    fetchData: () => loadProfile(dispatch, profile),
+    lastFetch: getLastProfileFetch(),
+    refreshThreshold: 5 * 60 * 1000 // 5 minutes
+  });
+
+  const showSuccessModalWithAnimation = () => {
+    setShowSuccessModal(true);
+    Animated.spring(successAnimation, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideSuccessModal = () => {
+    Animated.spring(successAnimation, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSuccessModal(false);
+    });
+  };
 
   const handleToggleTheme = async () => {
     const newValue = !isDarkMode;
@@ -171,7 +201,8 @@ export default function SettingsScreen() {
       }));
 
       setIsEditingProfile(false);
-      Alert.alert(t('common.success'), t('settings.profileUpdatedSuccessfully'));
+      // Alert.alert(t('common.success'), t('settings.profileUpdatedSuccessfully'));
+      showSuccessModalWithAnimation();
 
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
@@ -444,6 +475,13 @@ export default function SettingsScreen() {
         onClose={() => setShowPushNotificationModal(false)}
         currentTheme={currentTheme}
         isLoading={isLoading}
+      />
+
+      <ProfileEditSuccessModal
+        visible={showSuccessModal}
+        onClose={hideSuccessModal}
+        animation={successAnimation}
+        currentTheme={currentTheme}
       />
     </SafeAreaView>
   );
