@@ -46,7 +46,6 @@ import {
 import { useNetworkMonitoring } from '../hooks/useNetworkMonitoring';
 import ProfileEditSuccessModal from '../components/ProfileEditSuccessModal';
 import { useDataRefresh } from '../hooks/useDataRefresh';
-import { getLastProfileFetch } from '../services/storage';
 import { loadProfile } from '../utils/profileUtils';
 
 export default function SettingsScreen() {
@@ -110,7 +109,7 @@ export default function SettingsScreen() {
 
   useDataRefresh({
     fetchData: () => loadProfile(dispatch, profile),
-    lastFetch: getLastProfileFetch(),
+    lastFetch: profile?.lastUpdated || 0,
     refreshThreshold: 5 * 60 * 1000 // 5 minutes
   });
 
