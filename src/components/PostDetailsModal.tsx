@@ -123,7 +123,7 @@ export default function PostDetailsModal({
 
   const openModal = () => {
     Animated.timing(modalHeight, {
-      toValue: SCREEN_HEIGHT * 0.75,
+      toValue: SCREEN_HEIGHT * 0.9,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -419,6 +419,7 @@ export default function PostDetailsModal({
           ]}
           {...panResponder.panHandlers}
         >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()} style={{ flex: 1 }}>
           {/* Handle bar */}
           <View style={styles.handleBar}>
             <View style={[styles.handle, { backgroundColor: currentTheme.border }]} />
@@ -426,9 +427,13 @@ export default function PostDetailsModal({
 
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
+            <TouchableOpacity onPress={closeModal} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
+            </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
               {t('singlePost.comments')}
             </Text>
+            <View style={{ width: 24 }} />
           </View>
 
           {loading ? (
@@ -519,6 +524,7 @@ export default function PostDetailsModal({
               </Text>
             </View>
           )}
+          </TouchableOpacity>
         </Animated.View>
       </TouchableOpacity>
     </Modal>
@@ -548,7 +554,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
@@ -556,6 +562,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontFamily: FONTS.bold,
+    flex: 1,
+    textAlign: 'center',
+  },
+  backButton: {
+    padding: SPACING.xs,
   },
   loadingContainer: {
     flex: 1,
