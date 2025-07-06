@@ -20,4 +20,20 @@ export const feedStyles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
   },
+  connectionBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  connectionText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  onlineIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
 });

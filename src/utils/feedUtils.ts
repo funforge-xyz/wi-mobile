@@ -1,232 +1,61 @@
-import { getFirestore } from '../services/firebase';
-import { getAuth } from '../services/firebase';
-import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, startAfter } from 'firebase/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
 
-// Simple distance calculation using Haversine formula
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-};
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  doc,
+  getDoc,
+  startAfter,
+  Timestamp,
+  getFirestore,
+} from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
-export const updateUserLastSeen = async () => {
-  try {
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
+export interface ConnectionPost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL: string;
+  content: string;
+  mediaURL?: string;
+  mediaType?: 'image' | 'video';
+  createdAt: Date;
+  likesCount: number;
+  commentsCount: number;
+  showLikeCount: boolean;
+  allowComments: boolean;
+  isLikedByUser: boolean;
+  isAuthorOnline: boolean;
+  isFromConnection: boolean;
+}
 
-    if (!currentUser) return;
+// Function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+}
 
-    const firestore = getFirestore();
-    const userRef = doc(firestore, 'users', currentUser.uid);
-    await setDoc(userRef, {
-      lastSeen: new Date(),
-    }, { merge: true });
-  } catch (error) {
-    console.error('Error updating last seen:', error);
-  }
-};
+function deg2rad(deg: number) {
+  return deg * (Math.PI/180);
+}
 
-export const loadUserSettings = async () => {
-  try {
-    // Load user's radius setting
-    const savedRadius = await AsyncStorage.getItem('userLocationRadius');
-    return savedRadius ? parseFloat(savedRadius) : null;
-  } catch (error) {
-    console.error('Error loading user settings:', error);
-    return null;
-  }
-};
-
-export const handleLikePost = async (postId: string, liked: boolean, posts: any[]) => {
-  const auth = getAuth();
-  const currentUser = auth.currentUser;
-
-  if (!currentUser) {
-    console.log('No current user found');
-    return null;
-  }
-
-  const firestore = getFirestore();
-  const likeRef = doc(firestore, 'posts', postId, 'likes', currentUser.uid);
-
-  try {
-    if (liked) {
-      await deleteDoc(likeRef);
-      console.log("Post unliked");
-    } else {
-      await setDoc(likeRef, {
-        authorId: currentUser.uid,
-        createdAt: new Date(),
-      });
-      console.log("Post liked");
-
-      // Create notification for the post author
-      const post = posts.find(p => p.id === postId);
-      if (post && post.authorId !== currentUser.uid) {
-        // Get current user info
-        const currentUserDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-        const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {};
-        const currentUserName = currentUserData.firstName && currentUserData.lastName 
-          ? `${currentUserData.firstName} ${currentUserData.lastName}` 
-          : 'Someone';
-
-        // Create notification
-        await addDoc(collection(firestore, 'notifications'), {
-          type: 'like',
-          title: 'New Like',
-          body: `${currentUserName} liked your post`,
-          postId: postId,
-          targetUserId: post.authorId,
-          fromUserId: currentUser.uid,
-          fromUserName: currentUserName,
-          fromUserPhotoURL: currentUserData.photoURL || '',
-          createdAt: new Date(),
-          read: false,
-        });
-      }
-    }
-
-    return {
-      success: true,
-      liked: !liked,
-    };
-  } catch (error) {
-    console.error("Error liking/unliking post:", error);
-    Alert.alert("Error", "Failed to like/unlike post");
-    return null;
-  }
-};
-
-const getNearbyUsers = async (
-  currentUserLocation: { latitude: number; longitude: number },
-  radiusKm: number,
-  currentUserId: string
-): Promise<string[]> => {
-  try {
-    const firestore = getFirestore();
-
-    // Calculate bounding box for the radius
-    const latDelta = radiusKm / 111.32; // 1 degree lat ≈ 111.32 km
-    const lonDelta = radiusKm / (111.32 * Math.cos(currentUserLocation.latitude * Math.PI / 180));
-
-    const bounds = {
-      minLat: currentUserLocation.latitude - latDelta,
-      maxLat: currentUserLocation.latitude + latDelta,
-      minLon: currentUserLocation.longitude - lonDelta,
-      maxLon: currentUserLocation.longitude + lonDelta
-    };
-
-    // Query users within bounding box
-    const usersQuery = query(
-      collection(firestore, 'users'),
-      where('location.latitude', '>=', bounds.minLat),
-      where('location.latitude', '<=', bounds.maxLat),
-      where('__name__', '!=', currentUserId)
-    );
-
-    const usersSnapshot = await getDocs(usersQuery);
-    const nearbyUserIds: string[] = [];
-
-    usersSnapshot.forEach((userDoc) => {
-      const userData = userDoc.data();
-      const userLat = userData.location?.latitude;
-      const userLon = userData.location?.longitude;
-
-      if (userLat && userLon) {
-        // Apply longitude bounds check
-        if (userLon >= bounds.minLon && userLon <= bounds.maxLon) {
-          // Apply precise radius check using Haversine formula
-          const distance = calculateDistance(
-            currentUserLocation.latitude,
-            currentUserLocation.longitude,
-            userLat,
-            userLon
-          );
-
-          if (distance <= radiusKm) {
-            nearbyUserIds.push(userDoc.id);
-          }
-        }
-      }
-    });
-
-    console.log(`Found ${nearbyUserIds.length} nearby users within ${radiusKm}km`);
-    return nearbyUserIds;
-  } catch (error) {
-    console.error('Error in nearby users query:', error);
-    return [];
-  }
-};
-
-// Helper function to get posts in batches
-const getPostsInBatches = async (userIds: string[], lastTimestamp?: any, pageSize: number = 10) => {
-  if (userIds.length === 0) {
-    return { posts: [], hasMore: false, lastTimestamp: null };
-  }
-
-  const firestore = getFirestore();
-  const batchSize = 10; // Firestore 'in' query limit
-  const allPosts: any[] = [];
-
-  // Process user IDs in batches of 10
-  for (let i = 0; i < userIds.length; i += batchSize) {
-    const batch = userIds.slice(i, i + batchSize);
-
-    let postsQuery = query(
-      collection(firestore, 'posts'),
-      where('authorId', 'in', batch),
-      orderBy('createdAt', 'desc'),
-      limit(pageSize)
-    );
-
-    if (lastTimestamp) {
-      postsQuery = query(
-        collection(firestore, 'posts'),
-        where('authorId', 'in', batch),
-        orderBy('createdAt', 'desc'),
-        startAfter(lastTimestamp),
-        limit(pageSize)
-      );
-    }
-
-    const snapshot = await getDocs(postsQuery);
-    const posts = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    allPosts.push(...posts);
-  }
-
-  // Sort all posts by timestamp
-  allPosts.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
-
-  // Take only the requested page size
-  const paginatedPosts = allPosts.slice(0, pageSize);
-  const hasMore = allPosts.length >= pageSize;
-  const newLastTimestamp = paginatedPosts.length > 0 ? paginatedPosts[paginatedPosts.length - 1].createdAt : null;
-
-  return {
-    posts: paginatedPosts,
-    hasMore,
-    lastTimestamp: newLastTimestamp
-  };
-};
-
-export const getFeedPosts = async (
-  userRadius: number = 5,
+export const loadConnectionPosts = async (
+  userRadius: number | null,
   currentUserLocation: { latitude: number; longitude: number } | null,
-  lastTimestamp?: any,
+  lastTimestamp: Date | null = null,
   pageSize: number = 10
-) => {
+): Promise<ConnectionPost[]> => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -237,18 +66,33 @@ export const getFeedPosts = async (
 
     const firestore = getFirestore();
 
-    // Get user settings and current network info
+    // Get current user's data including location and settings
     const userDocRef = doc(firestore, 'users', currentUser.uid);
     const userDoc = await getDoc(userDocRef);
     const userData = userDoc.data();
-    const sameNetworkMatchingEnabled = userData?.sameNetworkMatching ?? true;
-    const currentUserNetworkId = userData?.currentNetworkId;
+
+    if (!userData) {
+      throw new Error('User data not found');
+    }
+
+    const userLocation = userData.location || currentUserLocation;
+    const currentUserRadius = userData.radius || userRadius || 100; // Default 100km
+    const sameNetworkMatchingEnabled = userData.sameNetworkMatching ?? true;
+    const currentUserNetworkId = userData.currentNetworkId;
+
+    if (!userLocation || !userLocation.latitude || !userLocation.longitude) {
+      return [];
+    }
 
     // Get blocked users, connections, and all users in parallel
-    const [blockedUsersQuery, connectionsQuery, usersQuery] = await Promise.all([
+    const [blockedByMeQuery, blockedMeQuery, connectionsQuery, usersQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blockedUsers'),
         where('blockerUserId', '==', currentUser.uid)
+      )),
+      getDocs(query(
+        collection(firestore, 'blockedUsers'),
+        where('blockedUserId', '==', currentUser.uid)
       )),
       getDocs(query(
         collection(firestore, 'connections'),
@@ -257,9 +101,11 @@ export const getFeedPosts = async (
       getDocs(collection(firestore, 'users'))
     ]);
 
-    const blockedUserIds = new Set(
-      blockedUsersQuery.docs.map(doc => doc.data().blockedUserId)
-    );
+    // Combine both directions of blocking
+    const blockedUserIds = new Set([
+      ...blockedByMeQuery.docs.map(doc => doc.data().blockedUserId), // Users I blocked
+      ...blockedMeQuery.docs.map(doc => doc.data().blockerUserId) // Users who blocked me
+    ]);
 
     const connectedUserIds = new Set(
       connectionsQuery.docs.flatMap(doc => 
@@ -267,90 +113,289 @@ export const getFeedPosts = async (
       )
     );
 
-    // Create user lookup map with network info and online status
-    const users = new Map();
+    // Calculate bounding box for location-based filtering
+    const latDelta = currentUserRadius / 111.32; // 1 degree lat ≈ 111.32 km
+    const lonDelta = currentUserRadius / (111.32 * Math.cos(userLocation.latitude * Math.PI / 180));
+
+    const minLat = userLocation.latitude - latDelta;
+    const maxLat = userLocation.latitude + latDelta;
+    const minLon = userLocation.longitude - lonDelta;
+    const maxLon = userLocation.longitude + lonDelta;
+
+    const eligibleUsers = new Map();
     const now = new Date();
     const onlineThreshold = 2 * 60 * 1000; // 2 minutes
 
-    usersQuery.docs.forEach(doc => {
-      const userData = doc.data();
-      const lastSeen = userData.lastSeen?.toDate();
-      const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
+    usersQuery.docs.forEach(userDocSnap => {
+      const userId = userDocSnap.id;
+      const user = userDocSnap.data();
 
-      users.set(doc.id, {
-        ...userData,
-        isOnline,
-        isSameNetwork: sameNetworkMatchingEnabled && 
-                      currentUserNetworkId && 
-                      userData.currentNetworkId === currentUserNetworkId
-      });
-    });
-
-    // Get connected users who are eligible (Flutter-style filtering)
-    const eligibleUserIds = Array.from(connectedUserIds).filter(userId => {
-      if (blockedUserIds.has(userId)) return false;
-
-      const user = users.get(userId);
-      if (!user) return false;
-
-      // Flutter logic: Include if same network OR within distance
-      if (sameNetworkMatchingEnabled && user.isSameNetwork) {
-        return true;
+      // Skip current user and blocked users (but INCLUDE connected users for feed)
+      if (userId === currentUser.uid || blockedUserIds.has(userId)) {
+        return;
       }
 
-      // Check location-based criteria for non-same-network users
-      if (!currentUserLocation || !user.location) return false;
+      // Check if user has valid location
+      if (!user.location || !user.location.latitude || !user.location.longitude) {
+        return;
+      }
 
-      const distance = calculateDistance(
-        currentUserLocation.latitude,
-        currentUserLocation.longitude,
-        user.location.latitude,
-        user.location.longitude
-      );
+      const lastSeen = user.lastSeen?.toDate();
+      const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
 
-      return distance <= userRadius;
+      // Check if user is on same network
+      const isSameNetwork = sameNetworkMatchingEnabled && 
+                           currentUserNetworkId && 
+                           user.currentNetworkId === currentUserNetworkId;
+
+      // Check if user is a connection
+      const isConnection = connectedUserIds.has(userId);
+
+      let shouldInclude = false;
+      let distance = 0;
+
+      if (isSameNetwork) {
+        // Always include same network users
+        shouldInclude = true;
+        distance = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          user.location.latitude,
+          user.location.longitude
+        );
+      } else {
+        // For non-same-network users, check distance and longitude bounds
+        if (user.location.longitude >= minLon && user.location.longitude <= maxLon &&
+            user.location.latitude >= minLat && user.location.latitude <= maxLat) {
+          // Calculate precise distance using Haversine formula
+          distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            user.location.latitude,
+            user.location.longitude
+          );
+
+          // Get user's radius preference, use smaller of the two or default
+          const userRadius = user.radius || 100;
+          const effectiveRadius = Math.min(currentUserRadius, userRadius);
+
+          shouldInclude = distance <= effectiveRadius;
+        }
+      }
+
+      if (shouldInclude) {
+        eligibleUsers.set(userId, {
+          ...user,
+          id: userId,
+          isOnline,
+          distance,
+          isSameNetwork: isSameNetwork || false,
+          isConnection
+        });
+      }
     });
 
-    if (eligibleUserIds.length === 0) {
-      return { posts: [], hasMore: false, lastTimestamp: null };
+    if (eligibleUsers.size === 0) {
+      return [];
     }
 
-    // Sort eligible users exactly like Flutter: sameWiFi DESC, distance ASC
-    const sortedUserIds = eligibleUserIds.sort((a, b) => {
-      const userA = users.get(a);
-      const userB = users.get(b);
+    // Sort eligible users exactly like NearbyScreen: sameWiFi DESC, distance ASC
+    const sortedUserIds = Array.from(eligibleUsers.keys()).sort((a, b) => {
+      const userA = eligibleUsers.get(a);
+      const userB = eligibleUsers.get(b);
 
       // Primary sort: sameWiFi DESC (same network users first)
       if (userA.isSameNetwork && !userB.isSameNetwork) return -1;
       if (!userA.isSameNetwork && userB.isSameNetwork) return 1;
 
       // Secondary sort: distance ASC (closer users first)
-      if (currentUserLocation && userA.location && userB.location) {
-        const distanceA = calculateDistance(
-          currentUserLocation.latitude,
-          currentUserLocation.longitude,
-          userA.location.latitude,
-          userA.location.longitude
-        );
-        const distanceB = calculateDistance(
-          currentUserLocation.latitude,
-          currentUserLocation.longitude,
-          userB.location.latitude,
-          userB.location.longitude
-        );
-        return distanceA - distanceB;
-      }
-
-      return 0;
+      return (userA.distance || 0) - (userB.distance || 0);
     });
 
-    // Get posts from eligible users
-    return await getPostsInBatches(sortedUserIds, lastTimestamp, pageSize);
+    // Get posts from eligible users created within last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const posts: ConnectionPost[] = [];
+    const postsPerUser = Math.ceil(pageSize / Math.min(sortedUserIds.length, 10)); // Distribute pageSize among users
+
+    // Get current user's likes to check if posts are liked
+    const currentUserLikesQuery = query(
+      collection(firestore, 'likes'),
+      where('userId', '==', currentUser.uid)
+    );
+    const likesSnapshot = await getDocs(currentUserLikesQuery);
+    const likedPostIds = new Set(likesSnapshot.docs.map(doc => doc.data().postId));
+
+    for (const userId of sortedUserIds) {
+      if (posts.length >= pageSize) break;
+
+      const userInfo = eligibleUsers.get(userId);
+
+      // Build posts query for this user
+      let postsQuery = query(
+        collection(firestore, 'posts'),
+        where('authorId', '==', userId),
+        where('createdAt', '>=', Timestamp.fromDate(sevenDaysAgo)),
+        orderBy('createdAt', 'desc'),
+        limit(postsPerUser)
+      );
+
+      // Add pagination if needed
+      if (lastTimestamp) {
+        postsQuery = query(
+          collection(firestore, 'posts'),
+          where('authorId', '==', userId),
+          where('createdAt', '>=', Timestamp.fromDate(sevenDaysAgo)),
+          where('createdAt', '<', Timestamp.fromDate(lastTimestamp)),
+          orderBy('createdAt', 'desc'),
+          limit(postsPerUser)
+        );
+      }
+
+      const userPostsSnapshot = await getDocs(postsQuery);
+
+      for (const postDoc of userPostsSnapshot.docs) {
+        if (posts.length >= pageSize) break;
+
+        const postData = postDoc.data();
+        const postId = postDoc.id;
+
+        // Get likes count for this post
+        const likesQuery = query(
+          collection(firestore, 'likes'),
+          where('postId', '==', postId)
+        );
+        const postLikesSnapshot = await getDocs(likesQuery);
+
+        // Get comments count for this post
+        const commentsQuery = query(
+          collection(firestore, 'comments'),
+          where('postId', '==', postId)
+        );
+        const commentsSnapshot = await getDocs(commentsQuery);
+
+        posts.push({
+          id: postId,
+          authorId: userId,
+          authorName: userInfo.firstName && userInfo.lastName ? 
+            `${userInfo.firstName} ${userInfo.lastName}` : 'Anonymous User',
+          authorPhotoURL: userInfo.photoURL || '',
+          content: postData.content || '',
+          mediaURL: postData.mediaURL,
+          mediaType: postData.mediaType,
+          createdAt: postData.createdAt?.toDate() || new Date(),
+          likesCount: postLikesSnapshot.size,
+          commentsCount: commentsSnapshot.size,
+          showLikeCount: postData.showLikeCount ?? true,
+          allowComments: postData.allowComments ?? true,
+          isLikedByUser: likedPostIds.has(postId),
+          isAuthorOnline: userInfo.isOnline,
+          isFromConnection: userInfo.isConnection
+        });
+      }
+    }
+
+    // Sort all posts by creation date (newest first)
+    posts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return posts.slice(0, pageSize);
 
   } catch (error) {
-    console.error('Error loading feed posts:', error);
-    return { posts: [], hasMore: false, lastTimestamp: null };
+    console.error('Error loading connection posts:', error);
+    return [];
   }
 };
 
-import { setDoc, deleteDoc, addDoc } from 'firebase/firestore';
+export const updateUserLastSeen = async (): Promise<void> => {
+  try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      return;
+    }
+
+    const firestore = getFirestore();
+    const userDocRef = doc(firestore, 'users', currentUser.uid);
+
+    // Use server timestamp for consistency
+    const { serverTimestamp, updateDoc } = await import('firebase/firestore');
+    await updateDoc(userDocRef, {
+      lastSeen: serverTimestamp()
+    });
+
+  } catch (error) {
+    console.error('Error updating user last seen:', error);
+  }
+};
+
+export const loadUserSettings = async (): Promise<number | null> => {
+  try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      return null;
+    }
+
+    const firestore = getFirestore();
+    const userDocRef = doc(firestore, 'users', currentUser.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      return userData.radius || null;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error loading user settings:', error);
+    return null;
+  }
+};
+
+export const handleLikePost = async (
+  postId: string, 
+  liked: boolean, 
+  posts: ConnectionPost[]
+): Promise<{ liked: boolean } | null> => {
+  try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+
+    const firestore = getFirestore();
+
+    if (liked) {
+      // Add like
+      const { addDoc } = await import('firebase/firestore');
+      await addDoc(collection(firestore, 'likes'), {
+        postId,
+        userId: currentUser.uid,
+        createdAt: new Date()
+      });
+    } else {
+      // Remove like
+      const likesQuery = query(
+        collection(firestore, 'likes'),
+        where('postId', '==', postId),
+        where('userId', '==', currentUser.uid)
+      );
+      const likesSnapshot = await getDocs(likesQuery);
+      
+      const { deleteDoc } = await import('firebase/firestore');
+      const deletePromises = likesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+    }
+
+    return { liked };
+
+  } catch (error) {
+    console.error('Error handling post like:', error);
+    return null;
+  }
+};

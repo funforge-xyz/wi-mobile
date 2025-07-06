@@ -3,6 +3,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  View,
+  Text
 } from 'react-native';
 import { SPACING } from '../config/constants';
 import PostHeader from './PostHeader';
