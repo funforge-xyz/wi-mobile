@@ -66,10 +66,8 @@ export default function PostItem({
   };
 
   return (
-    <TouchableOpacity 
+    <View 
       style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}
-      onPress={() => navigation.navigate('SinglePost', { postId: post.id })}
-      activeOpacity={0.95}
     >
       <PostHeader
         authorName={post.authorName}
