@@ -68,30 +68,7 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let appStateSubscription: any;
-    let lastSeenInterval: NodeJS.Timeout |  number;
-
-    const loadUserSettingsAndLocation = async () => {
-      try {
-        // Load user's radius setting
-        const radius = await loadUserSettings();
-        if (radius) {
-          setUserRadius(radius);
-        }
-
-        // Get current user location (continue even if it fails)
-        try {
-          const location = await locationService.getCurrentLocation();
-          if (location) {
-            setCurrentUserLocation(location);
-          }
-        } catch (locationError) {
-          console.log('Location service not available:', locationError);
-          // Continue without location - posts will still load
-        }
-      } catch (error) {
-        console.error('Error loading user settings:', error);
-      }
-    };
+    let lastSeenInterval: NodeJS.Timeout | number;
 
     const initializeAndSetupAuth = async () => {
       try {
@@ -103,19 +80,40 @@ export default function FeedScreen({ navigation }: any) {
 
         const auth = getAuth();
 
-        unsubscribe = auth.onAuthStateChanged((user: any) => {
+        unsubscribe = auth.onAuthStateChanged(async (user: any) => {
           if (user) {
-            // Initialize location tracking for the authenticated user (with error handling)
-            // Add a small delay to ensure app is fully initialized
-            setTimeout(() => {
-              locationService.startLocationTracking().catch((error) => {
-                console.log('Location tracking not available:', error);
-                // Continue without location tracking
-              });
-            }, 1000);
+            try {
+              // Load user settings and location first
+              const radius = await loadUserSettings();
+              if (radius) {
+                setUserRadius(radius);
+              }
 
-            loadUserSettingsAndLocation();
-            loadPosts();
+              // Get current user location (continue even if it fails)
+              try {
+                const location = await locationService.getCurrentLocation();
+                if (location) {
+                  setCurrentUserLocation(location);
+                }
+              } catch (locationError) {
+                console.log('Location service not available:', locationError);
+                // Continue without location - posts will still load
+              }
+
+              // Initialize location tracking for the authenticated user (with error handling)
+              setTimeout(() => {
+                locationService.startLocationTracking().catch((error) => {
+                  console.log('Location tracking not available:', error);
+                  // Continue without location tracking
+                });
+              }, 1000);
+
+              // Load posts after everything is set up
+              await loadPosts();
+            } catch (error) {
+              console.error('Error during user initialization:', error);
+              setLoading(false);
+            }
           } else {
             setLoading(false);
             setPosts([]);
@@ -154,31 +152,7 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  useEffect(() => {
-    initializeLocationAndLoadPosts();
-  }, []);
-
-  const initializeLocationAndLoadPosts = async () => {
-    try {
-      // Import location service dynamically to avoid circular imports
-      const { locationService } = await import('../services/locationService');
-
-      // Check if location tracking is active, if not try to start it
-      if (!locationService.isLocationTrackingActive()) {
-        const hasPermissions = await locationService.checkPermissions();
-        if (hasPermissions) {
-          await locationService.startLocationTracking();
-        }
-      }
-
-      // Load posts after ensuring location is being tracked
-      loadPosts();
-    } catch (error) {
-      console.error('Error initializing location tracking:', error);
-      // Still load posts even if location tracking fails
-      loadPosts();
-    }
-  };
+  
 
   const loadPosts = async (isRefresh = false) => {
     let timeout: NodeJS.Timeout | number | undefined;
@@ -338,7 +312,8 @@ export default function FeedScreen({ navigation }: any) {
         onEndReached={loadMorePosts}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : undefined}
+        contentContainerStyle={posts.length === 0 ? feedStyles.emptyContainer : { flexGrow: 1 }}
+        style={{ flex: 1 }}
       />
     </SafeAreaView>
   );

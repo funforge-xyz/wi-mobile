@@ -4,6 +4,7 @@ import { COLORS, FONTS, SPACING } from '../config/constants';
 export const feedStyles = StyleSheet.create({
   container: {
     flex: 1,
+    minHeight: '100%',
   },
   header: {
     flexDirection: 'row',
