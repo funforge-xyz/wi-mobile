@@ -58,8 +58,6 @@ export default function PostItem({
   isVideoMuted = false,
   onVideoMuteToggle
 }: PostItemProps) {
-  const [liked, setLiked] = useState(post.isLikedByUser);
-  const [likesCount, setLikesCount] = useState(post.likesCount);
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
   const [modalVisible, setModalVisible] = useState(false);
@@ -68,10 +66,12 @@ export default function PostItem({
   const likeAnimationScale = useRef(new Animated.Value(1)).current;
   const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
 
+  // Use post data directly instead of local state
+  const liked = post.isLikedByUser;
+  const likesCount = post.likesCount;
+
   const handleLikePress = () => {
     onLike(post.id, liked);
-    setLiked(!liked);
-    setLikesCount(liked ? likesCount - 1 : likesCount + 1);
   };
 
   const handleVideoMuteToggle = () => {
@@ -108,8 +108,8 @@ export default function PostItem({
 
     if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
       // This is a double tap - only like if not already liked
-      if (!post.isLikedByUser) {
-        onLike(post.id, post.isLikedByUser);
+      if (!liked) {
+        onLike(post.id, liked);
         triggerLikeAnimation();
       }
       setLastTap(null);

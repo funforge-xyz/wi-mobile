@@ -186,7 +186,7 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  
+
 
   const loadPosts = async (isRefresh = false) => {
     let timeout: NodeJS.Timeout | number | undefined;
@@ -275,22 +275,50 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true);
   };
 
-  const handleLike = async (postId: string, liked: boolean) => {
-    const result = await handleLikePost(postId, liked, posts);
+  const handleLike = async (postId: string, currentLiked: boolean) => {
+    try {
+      // Optimistically update UI first
+      setPosts(prevPosts => prevPosts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              isLikedByUser: !currentLiked,
+              likesCount: currentLiked ? post.likesCount - 1 : post.likesCount + 1
+            }
+          : post
+      ));
 
-    if (result) {
-      // Optimistically update the UI
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                likesCount: result.liked ? post.likesCount + 1 : post.likesCount - 1,
-                isLikedByUser: result.liked,
-              }
-            : post
-        )
-      );
+      const postRef = doc(firestore, 'posts', postId);
+      const likesCollectionRef = collection(postRef, 'likes');
+
+      if (currentLiked) {
+        // Unlike: remove the like document
+        const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
+        const userLikeSnapshot = await getDocs(userLikeQuery);
+
+        if (!userLikeSnapshot.empty) {
+          await deleteDoc(userLikeSnapshot.docs[0].ref);
+        }
+      } else {
+        // Like: add a like document
+        await addDoc(likesCollectionRef, {
+          authorId: user?.uid,
+          authorName: user?.displayName || 'Anonymous',
+          createdAt: new Date(),
+        });
+      }
+    } catch (error) {
+      console.error('Error updating like:', error);
+      // Revert optimistic update on error
+      setPosts(prevPosts => prevPosts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              isLikedByUser: currentLiked,
+              likesCount: currentLiked ? post.likesCount + 1 : post.likesCount - 1
+            }
+          : post
+      ));
     }
   };
 
