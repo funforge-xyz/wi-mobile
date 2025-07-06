@@ -144,8 +144,8 @@ export default function PostItem({
             <TouchableWithoutFeedback onPress={handleDoubleTap}>
               <View style={styles.mediaLoadingSkeleton}>
                 <SkeletonLoader
-                  width={width}
-                  height={width * 5/4}
+                  width="100%"
+                  height="100%"
                   borderRadius={0}
                 />
               </View>
@@ -197,8 +197,11 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: '100%',
-    height: 300, // Fixed height for consistent layout
+    aspectRatio: 4/5, // 4:5 aspect ratio like SinglePostDisplay
     marginVertical: SPACING.sm,
+    borderRadius: 0,
+    overflow: 'hidden',
+    backgroundColor: 'black',
   },
   media: {
     width: '100%',

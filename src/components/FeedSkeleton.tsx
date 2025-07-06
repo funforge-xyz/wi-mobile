@@ -63,7 +63,7 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
       {/* Post image */}
       <SkeletonLoader
         width={width}
-        height={300}
+        height={width * 5/4}
         borderRadius={0}
         style={styles.postImage}
       />
