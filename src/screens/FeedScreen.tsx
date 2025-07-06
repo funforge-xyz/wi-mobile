@@ -26,6 +26,15 @@ import {
 } from '../utils/feedUtils';
 import { feedStyles } from '../styles/FeedStyles';
 import { getTheme } from '../theme';
+import { 
+  doc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  deleteDoc, 
+  addDoc 
+} from 'firebase/firestore';
 
 interface ConnectionPost {
   id: string;
@@ -277,6 +286,12 @@ export default function FeedScreen({ navigation }: any) {
 
   const handleLike = async (postId: string, currentLiked: boolean) => {
     try {
+      // Get firebase instances
+      const { getFirestore, getAuth } = await import('../services/firebase');
+      const firestore = getFirestore();
+      const auth = getAuth();
+      const user = auth.currentUser;
+
       // Optimistically update UI first
       setPosts(prevPosts => prevPosts.map(post => 
         post.id === postId 
