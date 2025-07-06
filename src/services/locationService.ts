@@ -20,10 +20,21 @@ try {
         const location = locations[0];
 
         if (location) {
-          await updateUserLocationInFirestore(
-            location.coords.latitude,
-            location.coords.longitude
-          );
+          const locationService = LocationService.getInstance();
+          
+          // Check if we should allow this background update
+          if (locationService.shouldAllowBackgroundUpdate()) {
+            await updateUserLocationInFirestore(
+              location.coords.latitude,
+              location.coords.longitude
+            );
+            
+            // Increment background update counter only if not in foreground
+            if (!locationService.isInForeground) {
+              locationService.backgroundUpdateCount++;
+              console.log(`Background location update ${locationService.backgroundUpdateCount}/${locationService.maxBackgroundUpdates}`);
+            }
+          }
         }
       } catch (taskError) {
         console.error('Error processing location in background task:', taskError);
@@ -37,6 +48,9 @@ try {
 export class LocationService {
   private static instance: LocationService;
   private isTracking = false;
+  private backgroundUpdateCount = 0;
+  private maxBackgroundUpdates = 5;
+  private isInForeground = true;
   private permissionModalCallback?: (showModal: boolean, permissionDenied?: boolean, hasTriedRequest?: boolean) => void;
 
   static getInstance(): LocationService {
@@ -256,6 +270,34 @@ export class LocationService {
 
   isLocationTrackingActive(): boolean {
     return this.isTracking;
+  }
+
+  // Call this when app goes to foreground
+  onAppForeground(): void {
+    this.isInForeground = true;
+    this.backgroundUpdateCount = 0; // Reset counter when app comes to foreground
+    console.log('App in foreground - reset background update counter');
+  }
+
+  // Call this when app goes to background
+  onAppBackground(): void {
+    this.isInForeground = false;
+    this.backgroundUpdateCount = 0; // Reset counter for new background session
+    console.log('App in background - starting new background session');
+  }
+
+  // Check if we should allow background update
+  private shouldAllowBackgroundUpdate(): boolean {
+    if (this.isInForeground) {
+      return true; // Always allow foreground updates
+    }
+    
+    if (this.backgroundUpdateCount >= this.maxBackgroundUpdates) {
+      console.log(`Background update limit reached (${this.maxBackgroundUpdates}), skipping update`);
+      return false;
+    }
+    
+    return true;
   }
 }
 

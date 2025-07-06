@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { AppState, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -40,6 +40,28 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
+  const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    // Handle app state changes for location service
+    const handleAppStateChange = (nextAppState: string) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('App has come to the foreground!');
+        locationService.onAppForeground();
+      } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+        console.log('App has gone to the background!');
+        locationService.onAppBackground();
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   useEffect(() => {
     async function prepare() {
@@ -143,7 +165,7 @@ export default function App() {
           component={CameraScreen} 
           options={{ headerShown: false, presentation: 'fullScreenModal' }} 
         />
-        
+
         <Stack.Screen 
           name="CreatePost" 
           component={CreatePostScreen} 
