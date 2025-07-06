@@ -252,12 +252,7 @@ export const loadNearbyUsers = async (
           const userRadius = user.radius || 100;
           const effectiveRadius = Math.min(currentUserRadius, userRadius);
 
-          // Check if user has updated location recently
-          const lastLocationUpdate = user.lastUpdatedLocation?.toDate();
-          const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-          const hasRecentLocationUpdate = lastLocationUpdate && lastLocationUpdate >= fiveMinutesAgo;
-
-          shouldInclude = distance <= effectiveRadius && hasRecentLocationUpdate;
+          shouldInclude = distance <= effectiveRadius;
         }
       }
 
