@@ -434,7 +434,7 @@ export const loadFeedPosts = async (
       let isLikedByUser = false;
       if (currentUserId) {
         likesSnapshot.forEach((likeDoc) => {
-          if (likeDoc.data().authorId === currentUserId) {
+          if (likeDoc.data().userId === currentUserId) {
             isLikedByUser = true;
           }
         });
@@ -455,13 +455,15 @@ export const loadFeedPosts = async (
         thumbnailURL: postData.thumbnailURL,
         fileExtension: postData.fileExtension,
         postType: postData.postType || 'text',
-        createdAt: postData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        createdAt: postData.createdAt?.toDate?.() || new Date(),
         likesCount: likesSnapshot.size,
         commentsCount: commentsSnapshot.size,
         showLikeCount: postData.showLikeCount !== false,
         allowComments: postData.allowComments !== false,
         isPrivate: postData.isPrivate || false,
         isLikedByUser: isLikedByUser,
+        isAuthorOnline: false,
+        isFromConnection: false,
       };
     })
   );
