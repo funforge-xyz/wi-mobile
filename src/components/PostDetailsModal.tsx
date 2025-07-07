@@ -187,10 +187,10 @@ export default function PostDetailsModal({
   const handleLikePress = async () => {
     if (!post || !currentUser) return;
 
-    try {
-      const newLikedState = !post.isLikedByUser;
-      const currentLikesCount = post.likesCount;
+    const newLikedState = !post.isLikedByUser;
+    const currentLikesCount = post.likesCount;
 
+    try {
       // Optimistic update
       setPost(prevPost => prevPost ? {
         ...prevPost,
