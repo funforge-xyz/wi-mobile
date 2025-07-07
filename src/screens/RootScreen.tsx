@@ -28,6 +28,18 @@ export default function RootScreen() {
   useEffect(() => {
     checkAuthState();
     setupSignOutCallback(setIsAuthenticated, setShowOnboarding, setIsLoading);
+
+    // Safety timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Auth state check timed out, showing login screen');
+        setIsLoading(false);
+        setIsAuthenticated(false);
+        setShowOnboarding(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
   }, []);
 
   const checkAuthState = async () => {
@@ -35,7 +47,12 @@ export default function RootScreen() {
       setIsLoading(true);
 
       // Load dark mode settings first
-      await loadDarkModeSettings(dispatch);
+      try {
+        await loadDarkModeSettings(dispatch);
+      } catch (settingsError) {
+        console.error('Error loading dark mode settings:', settingsError);
+        // Continue anyway
+      }
 
       // Initialize Firebase and check auth state with better error handling
       console.log('Checking auth state...');
@@ -102,9 +119,11 @@ export default function RootScreen() {
 
     } catch (error) {
       console.error('Error checking auth state:', error);
+      // In case of any error, show login screen instead of blank screen
       setIsAuthenticated(false);
       setShowOnboarding(false);
     } finally {
+      // Always ensure loading is set to false
       setIsLoading(false);
     }
   };
