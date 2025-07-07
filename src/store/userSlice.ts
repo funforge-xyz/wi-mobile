@@ -31,6 +31,7 @@ export interface UserPost {
   allowComments: boolean;
   isPrivate: boolean;
   isLikedByUser?: boolean;
+  isFrontCamera?: boolean; // Added isFrontCamera to UserPost interface
 }
 
 interface UserState {
@@ -154,42 +155,29 @@ export const fetchUserPosts = createAsyncThunk(
       const userPosts: UserPost[] = await Promise.all(
         postsSnapshot.docs.map(async (postDoc) => {
           const postData = postDoc.data();
-
-          // Get likes count and check if user liked
-          const likesCollection = collection(firestore, 'posts', postDoc.id, 'likes');
-          const likesSnapshot = await getDocs(likesCollection);
-
-          let isLikedByUser = false;
-          likesSnapshot.forEach((likeDoc) => {
-            if (likeDoc.data().authorId === userId) {
-              isLikedByUser = true;
-            }
+          console.log('userSlice - Firebase user post data:', {
+            id: postDoc.id,
+            isFrontCamera: postData.isFrontCamera,
+            mediaType: postData.mediaType,
+            hasMediaURL: !!postData.mediaURL
           });
-
-          // Get comments count
-          const commentsCollection = collection(firestore, 'posts', postDoc.id, 'comments');
-          const commentsSnapshot = await getDocs(commentsCollection);
-
           return {
             id: postDoc.id,
             authorId: postData.authorId,
-            authorName:
-              currentUserData.firstName && currentUserData.lastName
-                ? `${currentUserData.firstName} ${currentUserData.lastName}`
-                : 'You',
-            authorPhotoURL:
-              currentUserData.thumbnailURL || currentUserData.photoURL || '',
+            authorName: postData.authorName || 'Anonymous',
+            authorPhotoURL: postData.authorPhotoURL || '',
             content: postData.content || '',
-            mediaURL: postData.mediaURL || '',
-            thumbnailURL: postData.thumbnailURL || '',
-            mediaType: postData.mediaType || 'image',
+            mediaURL: postData.mediaURL,
+            thumbnailURL: postData.thumbnailURL,
+            mediaType: postData.mediaType as 'image' | 'video' | undefined,
+            isFrontCamera: postData.isFrontCamera,
             createdAt: formatFirestoreDate(postData.createdAt),
-            likesCount: typeof postData.likesCount === 'number' ? postData.likesCount : likesSnapshot.size,
-            commentsCount: typeof postData.commentsCount === 'number' ? postData.commentsCount : commentsSnapshot.size,
+            likesCount: typeof postData.likesCount === 'number' ? postData.likesCount : 0,
+            commentsCount: typeof postData.commentsCount === 'number' ? postData.commentsCount : 0,
             showLikeCount: postData.showLikeCount !== false,
             allowComments: postData.allowComments !== false,
             isPrivate: postData.isPrivate || false,
-            isLikedByUser,
+            isLikedByUser: false, // Will be updated separately
           };
         })
       );

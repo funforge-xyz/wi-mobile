@@ -45,6 +45,9 @@ export default function UserPostsGridItem({
   const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
   const thumbnailUrl = item.thumbnailURL || item.mediaURL;
 
+  // Debug logging for isFrontCamera
+  console.log('UserPostsGridItem - Post ID:', item.id, 'isFrontCamera:', item.isFrontCamera, 'mediaType:', item.mediaType);
+
   return (
     <TouchableOpacity
       style={[

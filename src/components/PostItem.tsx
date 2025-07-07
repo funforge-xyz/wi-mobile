@@ -70,6 +70,9 @@ export default function PostItem({
 
   const { t } = useTranslation();
 
+  // Debug logging for isFrontCamera
+  console.log('PostItem - Post ID:', post.id, 'isFrontCamera:', post.isFrontCamera, 'mediaType:', post.mediaType);
+
   // Create video player for video posts
   const videoPlayer = useVideoPlayer(
     post.mediaType === 'video' ? post.mediaURL : null,

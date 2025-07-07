@@ -44,6 +44,7 @@ interface ConnectionPost {
   content: string;
   mediaURL?: string;
   mediaType?: 'image' | 'video';
+  isFrontCamera?: boolean;
   createdAt: Date;
   likesCount: number;
   commentsCount: number;

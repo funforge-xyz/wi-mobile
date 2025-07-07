@@ -30,6 +30,7 @@ interface UserPost {
   mediaURL?: string;
   thumbnailURL?: string;
   mediaType?: 'image' | 'video';
+  isFrontCamera?: boolean;
   createdAt: Date | string;
   likesCount: number;
   commentsCount: number;
