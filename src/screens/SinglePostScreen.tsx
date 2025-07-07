@@ -688,6 +688,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
               isVideoMuted={isVideoMuted}
               onVideoPlayPause={handleVideoPlayPause}
               onVideoMuteToggle={handleVideoMuteToggle}
+              isFrontCamera={post.isFrontCamera}
             />
 
             {/* Comments Section */}
