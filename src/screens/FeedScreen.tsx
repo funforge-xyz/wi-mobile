@@ -66,6 +66,11 @@ export default function FeedScreen({ navigation }: any) {
   const [retryCount, setRetryCount] = useState(0);
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
+  const [notificationKey, setNotificationKey] = useState(0);
+  const [userRadius, setUserRadius] = useState<number>(10);
+  const [currentUserLocation, setCurrentUserLocation] = useState<any>(null);
+  const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const flatListRef = useRef<FlatList>(null);
@@ -92,14 +97,14 @@ export default function FeedScreen({ navigation }: any) {
         (current.percentVisible || 0) > (prev.percentVisible || 0) ? current : prev
       );
 
-      if (mostVisibleVideo.item.id !== currentlyPlayingVideo) {
-        setCurrentlyPlayingVideo(mostVisibleVideo.item.id);
+      if (mostVisibleVideo.item.id !== playingVideoId) {
+        setPlayingVideoId(mostVisibleVideo.item.id);
       }
     } else {
       // No video posts are sufficiently visible, stop all playback
-      setCurrentlyPlayingVideo(null);
+      setPlayingVideoId(null);
     }
-  }, [currentlyPlayingVideo]);
+  }, [playingVideoId]);
 
   const handleVideoMuteToggle = useCallback((postId: string) => {
     setMutedVideos(prev => {
