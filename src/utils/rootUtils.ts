@@ -17,9 +17,21 @@ export const getTabBarIcon = (routeName: string, focused: boolean): keyof typeof
 };
 
 export const initializeFirebaseAndAuth = async () => {
-  const { initializeFirebase } = await import('../services/firebase');
-  await initializeFirebase();
-  return await authService.isAuthenticated();
+  try {
+    console.log('Starting Firebase initialization...');
+    const { initializeFirebase } = await import('../services/firebase');
+    const firebaseServices = await initializeFirebase();
+    console.log('Firebase initialization complete', {
+      hasAuth: !!firebaseServices.auth,
+      hasFirestore: !!firebaseServices.firestore,
+      hasStorage: !!firebaseServices.storage
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Firebase initialization failed:', error);
+    throw error;
+  }
 };
 
 export const checkOnboardingStatus = async (settings: Settings) => {

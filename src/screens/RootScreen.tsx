@@ -31,16 +31,22 @@ export default function RootScreen() {
 
   const checkAuthState = async () => {
     try {
-      const isLoggedIn = await initializeFirebaseAndAuth();
+      // First, ensure Firebase is fully initialized
+      console.log('Initializing Firebase in RootScreen...');
+      await initializeFirebaseAndAuth();
+      
+      // Now check if user is authenticated
+      const isLoggedIn = await authService.isAuthenticated();
       setIsAuthenticated(isLoggedIn);
 
       if (isLoggedIn) {
         const onboardingDone = await checkOnboardingStatus(settings);
         setShowOnboarding(!onboardingDone);
 
-         // Load user profile and update Redux state
+        // Load user profile and update Redux state
         dispatch(fetchUserProfile());
 
+        // Get auth safely since we know Firebase is initialized
         const auth = getAuth();
         const currentUser = auth.currentUser;
 

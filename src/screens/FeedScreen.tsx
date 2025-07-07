@@ -205,7 +205,9 @@ export default function FeedScreen({ navigation }: any) {
         const { initializeFirebase, getAuth } = await import('../services/firebase');
 
         // Initialize Firebase if not already done
+        console.log('FeedScreen: Initializing Firebase...');
         await initializeFirebase();
+        console.log('FeedScreen: Firebase initialized successfully');
 
         const auth = getAuth();
 
@@ -300,19 +302,6 @@ export default function FeedScreen({ navigation }: any) {
     let timeout: NodeJS.Timeout | number | undefined;
 
     try {
-      // Check if user is authenticated before attempting to load posts
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        console.log('No authenticated user found in loadPosts');
-        setLoading(false);
-        setRefreshing(false);
-        setPosts([]);
-        return;
-      }
-
       if (isRefresh) {
         setRefreshing(true);
         setLastPostTimestamp(null);
@@ -390,17 +379,6 @@ export default function FeedScreen({ navigation }: any) {
     }
 
     try {
-      // Check if user is authenticated before attempting to load more posts
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        console.log('No authenticated user found in loadMorePosts');
-        setLoadingMore(false);
-        return;
-      }
-
       console.log('Loading more posts...');
       setLoadingMore(true);
 

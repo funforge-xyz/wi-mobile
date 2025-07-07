@@ -20,15 +20,29 @@ let auth: any = null;
 let firestore: any = null;
 let storage: any = null;
 let analytics: any = null;
+let isInitialized = false;
+let initializationPromise: Promise<any> | null = null;
 
 export const initializeFirebase = async () => {
-  try {
-    // Only initialize if not already initialized
-    if (!app) {
+  // If already initialized, return existing instances
+  if (isInitialized && app && auth && firestore && storage) {
+    return { app, auth, firestore, storage };
+  }
+
+  // If initialization is in progress, wait for it
+  if (initializationPromise) {
+    return await initializationPromise;
+  }
+
+  // Start initialization
+  initializationPromise = (async () => {
+    try {
       console.log('Initializing Firebase...');
+      
+      // Initialize app
       app = initializeApp(firebaseConfig);
       
-      // Initialize services
+      // Initialize services synchronously
       auth = getFirebaseAuth(app);
       firestore = getFirebaseFirestore(app);
       storage = getFirebaseStorage(app);
@@ -40,38 +54,40 @@ export const initializeFirebase = async () => {
         console.log('Analytics not available in this environment');
       }
       
+      isInitialized = true;
       console.log('Firebase initialized successfully');
-    } else {
-      console.log('Firebase already initialized');
+      
+      return { app, auth, firestore, storage };
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+      console.error('Config:', { ...firebaseConfig, apiKey: '***' });
+      
+      // Reset promise so we can retry
+      initializationPromise = null;
+      throw error;
     }
-    
-    return { app, auth, firestore, storage };
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-    console.error('Config:', { ...firebaseConfig, apiKey: '***' });
-    throw error;
-  }
+  })();
+
+  return await initializationPromise;
 };
 
-// Getter functions to ensure components are initialized
+// Getter functions that ensure Firebase is initialized
 export const getAuth = () => {
-  if (!auth) {
-    console.warn('Firebase Auth not initialized yet. Attempting to initialize...');
-    return null;
+  if (!isInitialized || !auth) {
+    throw new Error('Firebase Auth not initialized. Call initializeFirebase() first.');
   }
   return auth;
 };
 
 export const getFirestore = () => {
-  if (!firestore) {
-    console.warn('Firebase Firestore not initialized yet. Attempting to initialize...');
-    return null;
+  if (!isInitialized || !firestore) {
+    throw new Error('Firebase Firestore not initialized. Call initializeFirebase() first.');
   }
   return firestore;
 };
 
 export const getStorage = () => {
-  if (!storage) {
+  if (!isInitialized || !storage) {
     throw new Error('Firebase Storage not initialized. Call initializeFirebase() first.');
   }
   return storage;
