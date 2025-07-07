@@ -53,8 +53,11 @@ export const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    marginTop: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.sm,
   },
   stat: {
     alignItems: 'center',
@@ -135,9 +138,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: SPACING.md,
+    alignItems: 'flex-start',
   },
   statText: {
     fontSize: 12,

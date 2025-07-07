@@ -25,6 +25,7 @@ export type RootStackParamList = {
     userPhotoURL?: string;
   };
   PrivacyPolicy: undefined;
+  Connections: undefined;
   Camera: undefined;
   MediaPreview: {
     mediaUri: string;
