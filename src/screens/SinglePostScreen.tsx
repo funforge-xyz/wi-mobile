@@ -201,13 +201,19 @@ export default function SinglePostScreen({ route, navigation }: any) {
       if (postData) {
         // Check if the post author is blocked or has blocked the current user
         const blocked = await checkIfUserIsBlocked(postData.authorId);
+        console.log('Blocked check result for user', postData.authorId, ':', blocked);
         setIsUserBlocked(blocked);
         
-        setEditedContent(postData.content || '');
-        setEditedAllowComments(postData.allowComments !== false);
-        setEditedShowLikeCount(postData.showLikeCount !== false);
-        setPost(postData);
-        // Comments and likes will be loaded after currentUser is set
+        // Only set post data if user is not blocked
+        if (!blocked) {
+          setEditedContent(postData.content || '');
+          setEditedAllowComments(postData.allowComments !== false);
+          setEditedShowLikeCount(postData.showLikeCount !== false);
+          setPost(postData);
+        } else {
+          // If user is blocked, still set the post to stop loading but mark as blocked
+          setPost(postData);
+        }
       } else {
         Alert.alert(t('common.error'), t('singlePost.postNotFound'));
         navigation.goBack();
@@ -627,11 +633,11 @@ export default function SinglePostScreen({ route, navigation }: any) {
           currentTheme={currentTheme}
         />
         
-        <View style={[singlePostStyles.errorContainer, { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
-          <Text style={[singlePostStyles.errorText, { color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10 }]}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }}>
             {t('userProfile.userIsBlocked')}
           </Text>
-          <Text style={[singlePostStyles.errorText, { color: currentTheme.textSecondary, textAlign: 'center', lineHeight: 20 }]}>
+          <Text style={{ color: currentTheme.textSecondary, textAlign: 'center', lineHeight: 20 }}>
             {t('userProfile.cannotViewBlockedProfile')}
           </Text>
         </View>
