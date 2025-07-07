@@ -47,7 +47,10 @@
         "android.permission.INTERNET",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_EXTERNAL_STORAGE"
-      ]
+      ],
+      "notification": {
+        "icon": "./assets/images/app_icon.png"
+      }
     },
     "web": {
       "favicon": "./assets/images/app_icon.png"
@@ -59,8 +62,10 @@
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/messaging",
-      "expo-font"
+      "expo-font",
+      "expo-system-ui"
     ],
+    "edgeToEdgeEnabled": true,
     "extra": {
       "eas": {
         "projectId": "262d6739-ab83-497f-a5f4-b8852d594e76"
