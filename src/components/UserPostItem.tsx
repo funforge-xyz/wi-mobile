@@ -5,6 +5,7 @@ import AvatarImage from './AvatarImage';
 import PostMedia from './PostMedia';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../hooks/redux';
+import { FONTS } from '../config/constants';
 
 interface UserPost {
   id: string;
@@ -30,6 +31,8 @@ interface UserPostItemProps {
   onPress: () => void;
   onLike: (postId: string) => void;
   formatTimeAgo: (date: string | Date) => string;
+  onDelete?: (post: any) => void;
+  showDeleteButton?: boolean;
 }
 
 export default function UserPostItem({ 
@@ -38,7 +41,9 @@ export default function UserPostItem({
   styles, 
   onPress, 
   onLike, 
-  formatTimeAgo, 
+  formatTimeAgo,
+  onDelete,
+  showDeleteButton = false
 }: UserPostItemProps) {
   const { t } = useTranslation();
 
@@ -122,6 +127,17 @@ export default function UserPostItem({
           </TouchableOpacity>
         )}
       </View>
+       {showDeleteButton && onDelete && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              onDelete(item);
+            }}
+          >
+            <Ionicons name="trash-outline" size={20} color="white" />
+          </TouchableOpacity>
+        )}
     </TouchableOpacity>
   );
 }

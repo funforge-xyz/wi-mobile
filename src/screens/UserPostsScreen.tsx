@@ -14,6 +14,8 @@ import { styles } from '../styles/UserPostsStyles';
 import { getTheme } from '../theme';
 import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData } from '../utils/userPostsUtils';
 import UserPostsProfileDisplay from '../components/UserPostsProfileDisplay';
+import DeletePostConfirmationModal from '../components/DeletePostConfirmationModal';
+import SuccessModal from '../components/SuccessModal';
 
 const { width } = Dimensions.get('window');
 
@@ -41,6 +43,9 @@ export default function UserPostsScreen({ route, navigation }: any) {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<UserPost | null>(null);
 
   const currentTheme = getTheme(isDarkMode);
 
@@ -84,7 +89,7 @@ export default function UserPostsScreen({ route, navigation }: any) {
     const setupAuthListener = async () => {
       const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
-      
+
       const unsubscribe = auth.onAuthStateChanged((user) => {
         if (user) {
           // User logged in, load fresh data
@@ -137,6 +142,44 @@ export default function UserPostsScreen({ route, navigation }: any) {
     navigation.navigate('Connections');
   };
 
+  const handleDeletePost = (post: UserPost) => {
+    setSelectedPost(post);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!selectedPost) return;
+
+    try {
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const { doc, deleteDoc } = await import('firebase/firestore');
+
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      // Delete the post
+      await deleteDoc(doc(firestore, 'posts', selectedPost.id));
+
+      // Update local state (assuming 'posts' is the correct state variable)
+      dispatch(fetchUserPosts(currentUser.uid));
+
+      setShowDeleteModal(false);
+      setShowDeleteSuccessModal(true);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      Alert.alert('Error', 'Failed to delete post');
+      setShowDeleteModal(false);
+    }
+    setSelectedPost(null);
+  };
+
+  const handleDeleteSuccessClose = () => {
+    setShowDeleteSuccessModal(false);
+  };
+
   const renderPostItem = ({ item, index }: { item: UserPost; index: number }) => {
     return (
       <UserPostsGridItem
@@ -145,6 +188,7 @@ export default function UserPostsScreen({ route, navigation }: any) {
         onPress={handlePostPress}
         currentTheme={currentTheme}
         styles={styles}
+        onDelete={handleDeletePost}
       />
     );
   };
@@ -198,6 +242,24 @@ export default function UserPostsScreen({ route, navigation }: any) {
           />
         </>
       )}
+
+      <DeletePostConfirmationModal
+        visible={showDeleteModal}
+        onConfirm={confirmDeletePost}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setSelectedPost(null);
+        }}
+        currentTheme={currentTheme}
+      />
+
+      <SuccessModal
+        visible={showDeleteSuccessModal}
+        title={t('userPosts.postDeleted', 'Post Deleted')}
+        message={t('userPosts.postDeletedMessage', 'The post has been successfully deleted.')}
+        onClose={handleDeleteSuccessClose}
+        currentTheme={currentTheme}
+      />
     </SafeAreaView>
   );
 }

@@ -171,23 +171,25 @@ export default function ChatsScreen({ navigation }: any) {
     setSelectedConnection(null);
   };
 
-  const renderRequestItem = ({ item }: { item: ConnectionRequest }) => (
+  const renderRequestItem = ({ item, index }: { item: ConnectionRequest; index: number }) => (
     <ConnectionRequestItem
       item={item}
       onReply={onReplyToRequest}
       onDecline={onDeclineRequest}
       formatTimeAgo={formatTime}
       currentTheme={currentTheme}
+      isLastItem={index === connectionRequests.length - 1}
     />
   );
 
-  const renderConnectionItem = ({ item }: { item: Connection }) => (
+  const renderConnectionItem = ({ item, index }: { item: Connection; index: number }) => (
     <ConnectionItem
       item={item}
       onStartChat={onStartChat}
       onBlock={onBlockUser}
       formatTimeAgo={formatTime}
       currentTheme={currentTheme}
+      isLastItem={index === connections.length - 1}
     />
   );
 

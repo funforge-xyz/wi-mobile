@@ -27,6 +27,7 @@ interface ConnectionItemProps {
   onBlock: (connection: Connection) => void;
   formatTimeAgo: (date: Date) => string;
   currentTheme: any;
+  isLastItem?: boolean;
 }
 
 export default function ConnectionItem({
@@ -35,6 +36,7 @@ export default function ConnectionItem({
   onBlock,
   formatTimeAgo,
   currentTheme,
+  isLastItem = false,
 }: ConnectionItemProps) {
   const { t } = useTranslation();
   const displayName = item.firstName && item.lastName 
@@ -43,7 +45,13 @@ export default function ConnectionItem({
 
   return (
     <TouchableOpacity
-      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
+      style={[
+        styles.userItem, 
+        { 
+          borderBottomColor: currentTheme.border,
+          borderBottomWidth: isLastItem ? 0 : 1
+        }
+      ]}
       onPress={() => onStartChat(item)}
     >
       <View style={styles.chatAvatar}>
@@ -53,7 +61,7 @@ export default function ConnectionItem({
           currentTheme={currentTheme}
         />
         {item.isOnline === true && (
-          <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />
+          <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />
         )}
       </View>
 
@@ -88,13 +96,6 @@ export default function ConnectionItem({
       {typeof item.unreadCount === 'number' && item.unreadCount > 0 && (
         <View style={[styles.unreadDot, { backgroundColor: COLORS.primary }]} />
       )}
-
-      <TouchableOpacity
-        style={styles.blockIconButton}
-        onPress={() => onBlock(item)}
-      >
-        <Ionicons name="ban-outline" size={20} color={COLORS.error} />
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 }
@@ -104,9 +105,10 @@ const styles = {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    padding: SPACING.md,
-    borderRadius: 12,
-    flex: 1,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    width: '100%',
   },
   chatAvatar: {
     marginRight: SPACING.md,
@@ -161,15 +163,5 @@ const styles = {
     height: 8,
     borderRadius: 4,
     marginLeft: SPACING.sm,
-  },
-  blockIconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    borderWidth: 1,
-    borderColor: COLORS.error,
-    marginLeft: SPACING.md,
   },
 };

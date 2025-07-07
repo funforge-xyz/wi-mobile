@@ -252,6 +252,16 @@ export default function ConnectionsScreen({ navigation }: any) {
     });
   };
 
+  const handleConnectionPress = (item: Connection) => {
+    navigation.navigate('UserProfile', {
+      userId: item.otherUser.id,
+      firstName: item.otherUser.firstName,
+      lastName: item.otherUser.lastName,
+      photoURL: item.otherUser.photoURL,
+      bio: ''
+    });
+  };
+
   const renderConnectionItem = ({ item, index }: { item: Connection; index: number }) => {
     const displayName = item.otherUser.firstName && item.otherUser.lastName 
       ? `${item.otherUser.firstName} ${item.otherUser.lastName}` 
@@ -260,10 +270,13 @@ export default function ConnectionsScreen({ navigation }: any) {
     const isLastItem = index === filteredConnections.length - 1;
 
     return (
-      <View style={[
-        isLastItem ? styles.connectionItemLast : styles.connectionItem,
-        { borderBottomColor: currentTheme.border }
-      ]}>
+      <TouchableOpacity 
+        style={[
+          isLastItem ? styles.connectionItemLast : styles.connectionItem,
+          { borderBottomColor: currentTheme.border }
+        ]}
+        onPress={() => handleConnectionPress(item)}
+      >
         <View style={styles.connectionContent}>
           <UserAvatar
             photoURL={item.otherUser.thumbnailURL || item.otherUser.photoURL}
@@ -280,20 +293,26 @@ export default function ConnectionsScreen({ navigation }: any) {
           <View style={styles.connectionActions}>
             <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
-              onPress={() => handleDeleteConnection(item)}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleDeleteConnection(item);
+              }}
             >
               <Ionicons name="trash-outline" size={20} color="#fff" />
             </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.actionButton, styles.blockButton]}
-              onPress={() => handleBlockConnection(item)}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleBlockConnection(item);
+              }}
             >
               <Ionicons name="ban-outline" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

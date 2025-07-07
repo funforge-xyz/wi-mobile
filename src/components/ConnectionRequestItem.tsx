@@ -1,4 +1,3 @@
-
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -22,6 +21,7 @@ interface ConnectionRequestItemProps {
   onDecline: (request: ConnectionRequest) => void;
   formatTimeAgo: (date: Date) => string;
   currentTheme: any;
+  isLastItem?: boolean;
 }
 
 export default function ConnectionRequestItem({
@@ -30,42 +30,55 @@ export default function ConnectionRequestItem({
   onDecline,
   formatTimeAgo,
   currentTheme,
+  isLastItem,
 }: ConnectionRequestItemProps) {
   const displayName = item.firstName && item.lastName 
     ? `${item.firstName} ${item.lastName}` 
     : 'Anonymous User';
 
   return (
-    <View style={[styles.userItem, { backgroundColor: currentTheme.surface }]}>
-      <View style={styles.userInfo}>
-        <View style={styles.avatarContainer}>
-          <UserAvatar
-            photoURL={item.photoURL}
-            size={50}
-            currentTheme={currentTheme}
-          />
-        </View>
-        <View style={styles.userDetails}>
-          <Text style={[styles.userName, { color: currentTheme.text }]}>
-            {displayName}
-          </Text>
-          <Text style={[styles.timeText, { color: currentTheme.textSecondary }]}>
-            {formatTimeAgo(item.createdAt)}
-          </Text>
-        </View>
+    <View style={[
+      styles.requestItem, 
+      { 
+        borderBottomColor: currentTheme.border,
+        borderBottomWidth: isLastItem ? 0 : 1
+      }
+    ]}>
+      <View style={styles.requestAvatar}>
+        <UserAvatar
+          photoURL={item.photoURL}
+          size={50}
+          currentTheme={currentTheme}
+        />
       </View>
-      <View style={styles.connectionActions}>
+
+      <View style={styles.requestContent}>
+        <Text style={[styles.participantName, { color: currentTheme.text }]}>
+          {displayName}
+        </Text>
+
+        <Text style={[styles.requestTime, { color: currentTheme.textSecondary }]}>
+          {formatTimeAgo(item.createdAt)}
+        </Text>
+      </View>
+
+      <View style={styles.requestActions}>
         <TouchableOpacity
-          style={styles.messageIconButton}
+          style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
           onPress={() => onReply(item)}
         >
-          <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+          <Text style={styles.actionButtonText}>
+            {t('chats.reply', 'Reply')}
+          </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.actionButton, styles.rejectButton]}
+          style={[styles.actionButton, { backgroundColor: COLORS.error }]}
           onPress={() => onDecline(item)}
         >
-          <Ionicons name="close" size={20} color="white" />
+          <Text style={styles.actionButtonText}>
+            {t('chats.decline', 'Decline')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -73,55 +86,40 @@ export default function ConnectionRequestItem({
 }
 
 const styles = {
-  userItem: {
+  requestItem: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    padding: SPACING.md,
-    borderRadius: 12,
-    flex: 1,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    width: '100%',
   },
-  userInfo: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    flex: 1,
-  },
-  avatarContainer: {
-    position: 'relative' as const,
+  requestAvatar: {
     marginRight: SPACING.md,
   },
-  userDetails: {
+  requestContent: {
     flex: 1,
   },
-  userName: {
+  participantName: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    marginBottom: 2,
   },
-  timeText: {
+  requestTime: {
     fontSize: 12,
     fontFamily: FONTS.regular,
   },
-  connectionActions: {
+  requestActions: {
     flexDirection: 'row' as const,
-    gap: SPACING.xs,
-  },
-  messageIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    backgroundColor: COLORS.surface,
   },
   actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 8,
+    marginLeft: SPACING.sm,
   },
-  rejectButton: {
-    backgroundColor: COLORS.error,
+  actionButtonText: {
+    color: 'white',
+    fontFamily: FONTS.medium,
   },
 };
