@@ -17,16 +17,20 @@ export const getTabBarIcon = (routeName: string, focused: boolean): keyof typeof
 
 export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
   try {
-    console.log('Starting Firebase initialization...');
+    console.log('Initializing Firebase...');
 
     // Initialize Firebase first
-    const { initializeFirebase, getAuth } = await import('../services/firebase');
-    const firebaseServices = await initializeFirebase();
-    console.log('Firebase initialized successfully');
+    const { initializeFirebase } = await import('../services/firebase');
+    const { authService } = await import('../services/auth');
+
+    await initializeFirebase();
+
+    // Import getAuth after Firebase is initialized
+    const { getAuth } = await import('../services/firebase');
+    const auth = getAuth();
 
     // Get auth instance and wait for initial auth state
     const { onAuthStateChanged, signOut } = await import('firebase/auth');
-    const auth = getAuth();
 
     // Wait for auth state to be determined with a longer timeout
     return new Promise((resolve) => {

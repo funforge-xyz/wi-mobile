@@ -94,8 +94,11 @@ export default function App() {
     const setupAuthListener = async () => {
     try {
       // Initialize Firebase first
+      console.log('App.tsx: Initializing Firebase...');
       await initializeFirebase();
 
+      // Import and get auth after initialization
+      const { getAuth } = await import('./src/services/firebase');
       const auth = getAuth();
 
       // Set up auth state listener with better error handling

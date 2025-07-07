@@ -92,6 +92,7 @@ export const initializeFirebase = async () => {
 // Getter functions that ensure Firebase is initialized
 export const getAuth = () => {
   if (!isInitialized || !auth) {
+    console.error('Firebase Auth not initialized. Current state:', { isInitialized, authExists: !!auth });
     throw new Error('Firebase Auth not initialized. Call initializeFirebase() first.');
   }
   return auth;
