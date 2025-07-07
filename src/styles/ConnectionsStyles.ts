@@ -76,10 +76,10 @@ export const createConnectionsStyles = (isDarkMode: boolean) => {
       alignItems: 'center',
     },
     deleteButton: {
-      backgroundColor: '#ff4757',
+      backgroundColor: '#ff6348',
     },
     blockButton: {
-      backgroundColor: '#ff6348',
+      backgroundColor: '#ff4757',
     },
     emptyContainer: {
       flex: 1,
