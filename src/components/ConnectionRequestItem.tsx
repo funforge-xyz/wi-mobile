@@ -91,7 +91,7 @@ const styles = {
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
+    paddingBottom: SPACING.sm,
     borderBottomWidth: 1,
     width: '100%',
   },
