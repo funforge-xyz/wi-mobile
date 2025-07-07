@@ -123,14 +123,46 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
   const handleConfirmBlock = async () => {
     try {
-      await handleBlockUserAction(
-        profile.id,
-        t,
-        () => {
-          setShowBlockModal(false);
-          setShowSuccessModal(true);
-        }
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc } = await import('firebase/firestore');
+      
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      // Add to blocked users collection
+      await addDoc(collection(firestore, 'blockedUsers'), {
+        blockedBy: currentUser.uid,
+        blockedUser: profile.id,
+        blockedAt: serverTimestamp(),
+        reason: 'blocked_by_user'
+      });
+
+      // Find and update any existing connection to blocked status
+      const connectionsRef = collection(firestore, 'connections');
+      const connectionQuery = query(
+        connectionsRef,
+        where('participants', 'array-contains', currentUser.uid)
       );
+
+      const snapshot = await getDocs(connectionQuery);
+      const connectionToUpdate = snapshot.docs.find(doc => {
+        const data = doc.data();
+        return data.participants.includes(profile.id);
+      });
+
+      if (connectionToUpdate) {
+        await updateDoc(doc(firestore, 'connections', connectionToUpdate.id), {
+          status: 'blocked',
+          blockedBy: currentUser.uid,
+          blockedAt: serverTimestamp()
+        });
+      }
+
+      setShowBlockModal(false);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error blocking user:', error);
       setShowBlockModal(false);
