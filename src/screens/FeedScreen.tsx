@@ -102,10 +102,15 @@ export default function FeedScreen({ navigation }: any) {
   }, [currentlyPlayingVideo]);
 
   const handleVideoMuteToggle = useCallback((postId: string) => {
-    setVideoMutedStates(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
+    setMutedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
   }, []);
 
   // Force NotificationBell to re-render when screen comes into focus
@@ -366,18 +371,6 @@ export default function FeedScreen({ navigation }: any) {
     } catch (error) {
       console.error('Error handling post like:', error);
     }
-  };
-
-  const handleVideoMuteToggle = (postId: string) => {
-    setMutedVideos(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
-    });
   };
 
   const handleVideoVisibilityChange = (postId: string, isVisible: boolean) => {
