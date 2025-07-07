@@ -372,4 +372,3 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
 });
-```
