@@ -50,23 +50,35 @@ function deg2rad(deg: number) {
 }
 
 export const loadConnectionPosts = async (
-  userRadius: number | null,
-  currentUserLocation: { latitude: number; longitude: number } | null,
+  userRadius: number,
+  currentUserLocation: any,
   lastTimestamp: Date | null = null,
-  pageSize: number = 10
+  limit: number = 10
 ): Promise<ConnectionPost[]> => {
   try {
+    const { getAuth, getFirestore } = await import('../services/firebase');
+    const { 
+      collection, 
+      query, 
+      where, 
+      orderBy, 
+      limit: firestoreLimit, 
+      getDocs,
+      startAfter,
+      doc as docRef,
+      getDoc
+    } = await import('firebase/firestore');
+
     const auth = getAuth();
+    const firestore = getFirestore();
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      throw new Error('User not authenticated');
+      console.log('loadConnectionPosts: No authenticated user, returning empty array');
+      return [];
     }
 
-    const firestore = getFirestore();
-
-    // Get current user's data including location and settings
-    const userDocRef = doc(firestore, 'users', currentUser.uid);
+    const userDocRef = docRef(firestore, 'users', currentUser.uid);
     const userDoc = await getDoc(userDocRef);
     const userData = userDoc.data();
 
@@ -216,7 +228,7 @@ export const loadConnectionPosts = async (
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const posts: ConnectionPost[] = [];
-    const postsPerUser = Math.ceil(pageSize / Math.min(sortedUserIds.length, 10)); // Distribute pageSize among users
+    const postsPerUser = Math.ceil(limit / Math.min(sortedUserIds.length, 10)); // Distribute pageSize among users
 
     // Get current user's likes to check if posts are liked
     const currentUserLikesQuery = query(
@@ -227,7 +239,7 @@ export const loadConnectionPosts = async (
     const likedPostIds = new Set(likesSnapshot.docs.map(doc => doc.data().postId));
 
     for (const userId of sortedUserIds) {
-      if (posts.length >= pageSize) break;
+      if (posts.length >= limit) break;
 
       const userInfo = eligibleUsers.get(userId);
 
@@ -237,7 +249,7 @@ export const loadConnectionPosts = async (
         where('authorId', '==', userId),
         where('createdAt', '>=', Timestamp.fromDate(sevenDaysAgo)),
         orderBy('createdAt', 'desc'),
-        limit(postsPerUser)
+        firestoreLimit(postsPerUser)
       );
 
       // Add pagination if needed
@@ -248,14 +260,14 @@ export const loadConnectionPosts = async (
           where('createdAt', '>=', Timestamp.fromDate(sevenDaysAgo)),
           where('createdAt', '<', Timestamp.fromDate(lastTimestamp)),
           orderBy('createdAt', 'desc'),
-          limit(postsPerUser)
+          firestoreLimit(postsPerUser)
         );
       }
 
       const userPostsSnapshot = await getDocs(postsQuery);
 
       for (const postDoc of userPostsSnapshot.docs) {
-        if (posts.length >= pageSize) break;
+        if (posts.length >= limit) break;
 
         const postData = postDoc.data();
         const postId = postDoc.id;
@@ -294,7 +306,7 @@ export const loadConnectionPosts = async (
     // Sort all posts by creation date (newest first)
     posts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-    return posts.slice(0, pageSize);
+    return posts.slice(0, limit);
 
   } catch (error) {
     console.error('Error loading connection posts:', error);
@@ -403,7 +415,7 @@ export const handlePostLike = async (
   try {
     const firestore = getFirestore();
     const { addDoc, deleteDoc, collection, query, where, getDocs, doc, updateDoc, increment } = await import('firebase/firestore');
-    
+
     const postRef = doc(firestore, 'posts', postId);
     const likesCollectionRef = collection(firestore, 'posts', postId, 'likes');
 

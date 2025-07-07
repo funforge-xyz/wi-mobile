@@ -216,7 +216,7 @@ export default function FeedScreen({ navigation }: any) {
             try {
               // Wait for user to be fully authenticated and verified
               await user.reload();
-              
+
               // Double-check that user is still valid after reload
               const currentUser = auth.currentUser;
               if (!currentUser) {
