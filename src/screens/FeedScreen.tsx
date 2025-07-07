@@ -141,8 +141,8 @@ export default function FeedScreen({ navigation }: any) {
   // Pause videos when screen loses focus and resume when focused
   useFocusEffect(
     useCallback(() => {
-      // Screen is focused - check for visible videos and resume playback
-      if (flatListRef.current) {
+      // Screen is focused - only check for visible videos if not loading and has posts
+      if (flatListRef.current && !loading && posts.length > 0) {
         // Trigger viewability check to resume appropriate video
         setTimeout(() => {
           flatListRef.current?.recordInteraction();
@@ -153,7 +153,7 @@ export default function FeedScreen({ navigation }: any) {
         // Screen is losing focus - pause all videos
         setPlayingVideoId(null);
       };
-    }, [])
+    }, [loading, posts.length])
   );
 
   useEffect(() => {
