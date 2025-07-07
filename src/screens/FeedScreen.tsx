@@ -138,6 +138,16 @@ export default function FeedScreen({ navigation }: any) {
     });
   }, []);
 
+  const handleVideoPlayPauseToggle = useCallback((postId: string, shouldPlay: boolean) => {
+    if (shouldPlay) {
+      console.log('Manually starting video:', postId);
+      setPlayingVideoId(postId);
+    } else {
+      console.log('Manually pausing video:', postId);
+      setPlayingVideoId(null);
+    }
+  }, []);
+
   // Force NotificationBell to re-render when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -491,6 +501,7 @@ export default function FeedScreen({ navigation }: any) {
               isVideoPlaying={playingVideoId === item.id}
               isVideoMuted={mutedVideos.has(item.id)}
               onVideoMuteToggle={handleVideoMuteToggle}
+              onVideoPlayPauseToggle={handleVideoPlayPauseToggle}
             />
           )}
           refreshControl={

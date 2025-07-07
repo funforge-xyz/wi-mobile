@@ -48,6 +48,7 @@ interface PostItemProps {
   isVideoPlaying?: boolean;
   isVideoMuted?: boolean;
   onVideoMuteToggle?: (postId: string) => void;
+  onVideoPlayPauseToggle?: (postId: string, shouldPlay: boolean) => void;
 }
 
 export default function PostItem({ 
@@ -58,7 +59,8 @@ export default function PostItem({
   showImageBorderRadius,
   isVideoPlaying = false,
   isVideoMuted = false,
-  onVideoMuteToggle
+  onVideoMuteToggle,
+  onVideoPlayPauseToggle
 }: PostItemProps) {
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
@@ -124,12 +126,9 @@ export default function PostItem({
   };
 
   const handleVideoPlayPause = () => {
-    if (videoPlayer && post.mediaType === 'video') {
-      if (isVideoPlaying) {
-        videoPlayer.pause();
-      } else {
-        videoPlayer.play();
-      }
+    if (onVideoPlayPauseToggle && post.mediaType === 'video') {
+      // Toggle the play state - if currently playing, pause it (set to false), otherwise play it (set to true)
+      onVideoPlayPauseToggle(post.id, !isVideoPlaying);
     }
   };
 

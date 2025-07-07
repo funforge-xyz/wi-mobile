@@ -70,6 +70,12 @@ export default function PostMedia({
     }
   };
 
+  const handlePlayPause = () => {
+    if (onVideoPlayPause) {
+      onVideoPlayPause();
+    }
+  };
+
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
     setIsMediaLoaded(true);
@@ -138,7 +144,7 @@ export default function PostMedia({
                 {/* Play/Pause button */}
                 <TouchableOpacity
                   style={styles.controlButton}
-                  onPress={onVideoPlayPause}
+                  onPress={handlePlayPause}
                 >
                   <Ionicons
                     name={isVideoPlaying ? 'pause' : 'play'}
