@@ -9,6 +9,7 @@ interface BlockUserConfirmationModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   currentTheme: any;
+  userName?: string;
   animation?: Animated.Value;
 }
 
@@ -17,6 +18,7 @@ export default function BlockUserConfirmationModal({
   onConfirm,
   onCancel,
   currentTheme,
+  userName,
   animation,
 }: BlockUserConfirmationModalProps) {
   const { t } = useTranslation();
@@ -62,7 +64,10 @@ export default function BlockUserConfirmationModal({
           </Text>
 
           <Text style={[styles.message, { color: currentTheme.textSecondary }]}>
-            {t('userProfile.blockUserConfirmation')}
+            {userName ? 
+              t('userProfile.blockUserConfirmationWithName', { userName }) || `Are you sure you want to block ${userName}?` :
+              t('userProfile.blockUserConfirmation')
+            }
           </Text>
 
           <View style={styles.buttonContainer}>

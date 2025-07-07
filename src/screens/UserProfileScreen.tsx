@@ -289,14 +289,8 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       <BlockUserConfirmationModal
         visible={showBlockModal}
-        onConfirm={() => {
-          console.log('Modal onConfirm triggered');
-          handleConfirmBlock();
-        }}
-        onCancel={() => {
-          console.log('Modal onCancel triggered');
-          handleCancelBlock();
-        }}
+        onConfirm={handleConfirmBlock}
+        onCancel={handleCancelBlock}
         currentTheme={currentTheme}
       />
 
