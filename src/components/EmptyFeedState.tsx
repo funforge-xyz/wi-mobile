@@ -1,27 +1,46 @@
-
 import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FONTS, SPACING } from '../config/constants';
 import { useTranslation } from 'react-i18next';
+import { locationService } from '../services/locationService';
 
 interface EmptyFeedStateProps {
   currentTheme: any;
   title?: string;
   subtitle?: string;
   icon?: string;
+  onLocationEnabled?: () => void;
 }
 
 export default function EmptyFeedState({ 
   currentTheme, 
   title, 
   subtitle, 
-  icon = "newspaper-outline" 
+  icon = "newspaper-outline",
+  onLocationEnabled
 }: EmptyFeedStateProps) {
   const { t } = useTranslation();
+
+  const handleEnableLocation = async () => {
+    try {
+      const hasPermissions = await locationService.requestPermissions();
+      if (hasPermissions) {
+        // Start location tracking
+        await locationService.startLocationTracking();
+        // Notify parent component to refresh the feed
+        if (onLocationEnabled) {
+          onLocationEnabled();
+        }
+      }
+    } catch (error) {
+      console.error('Error enabling location:', error);
+    }
+  };
 
   return (
     <View style={styles.emptyState}>
@@ -32,6 +51,14 @@ export default function EmptyFeedState({
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
         {subtitle || t('feed.shareFirst')}
       </Text>
+      <TouchableOpacity 
+        style={[styles.locationButton, { backgroundColor: currentTheme.primary }]}
+        onPress={handleEnableLocation}
+      >
+        <Text style={[styles.locationButtonText, { color: currentTheme.buttonText }]}>
+          {t('feed.empty.enableLocation')}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -54,5 +81,17 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: SPACING.lg,
+  },
+  locationButton: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: 8,
+    marginTop: SPACING.md,
+  },
+  locationButtonText: {
+    fontSize: 16,
+    fontFamily: FONTS.medium,
+    textAlign: 'center',
   },
 });

@@ -99,7 +99,12 @@
     "share": "Podijeli",
     "comments": "Komentari",
     "likes": "Sviđanja",
-    "failedToLoad": "Neuspješno učitavanje objava"
+    "failedToLoad": "Neuspješno učitavanje objava",
+    "empty": {
+      "title": "Još nema objava",
+      "description": "Povežite se sa korisnicima u blizini da vidite njihove objave u vašem feed-u.",
+      "enableLocation": "Omogući lokaciju"
+    }
   },
   "nearby": {
     "title": "U blizini",

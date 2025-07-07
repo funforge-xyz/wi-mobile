@@ -100,7 +100,12 @@
     "share": "Share",
     "comments": "Comments",
     "likes": "Likes",
-    "failedToLoad": "Failed to load posts"
+    "failedToLoad": "Failed to load posts",
+    "empty": {
+      "title": "No posts yet",
+      "description": "Connect with nearby users to see their posts in your feed.",
+      "enableLocation": "Enable Location"
+    }
   },
   "nearby": {
     "title": "Nearby",

@@ -592,7 +592,15 @@ export default function FeedScreen({ navigation }: any) {
               progressBackgroundColor={currentTheme.background}
             />
           }
-          ListEmptyComponent={<EmptyFeedState currentTheme={currentTheme} />}
+          ListEmptyComponent={
+            <EmptyFeedState 
+              currentTheme={currentTheme} 
+              onLocationEnabled={() => {
+                // Refresh feed when location is enabled
+                loadPosts(true);
+              }}
+            />
+          }
           ListFooterComponent={
             loadingMore ? (
               <View style={{ padding: 20, alignItems: 'center' }}>
