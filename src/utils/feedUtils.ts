@@ -75,7 +75,7 @@ export const loadConnectionPosts = async (
 
     // Double-check authentication
     if (!currentUser) {
-      console.error('No current user found in loadConnectionPosts');
+      console.warn('No current user found in loadConnectionPosts - user may have logged out');
       return [];
     }
 

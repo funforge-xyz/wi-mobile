@@ -299,16 +299,40 @@ export default function FeedScreen({ navigation }: any) {
 
 
   const loadPosts = async (isRefresh = false) => {
-    let timeout: NodeJS.Timeout | number | undefined;
+    if (!currentUserLocation) {
+      console.log('No location available, cannot load posts');
+      return;
+    }
+
+    // Check if user is still authenticated
+    const { getAuth } = await import('../services/firebase');
+    const auth = getAuth();
+    if (!auth.currentUser) {
+      console.log('User not authenticated, skipping post loading');
+      return;
+    }
+
+    console.log('Loading posts:', { isRefresh, currentUserLocation });
+
+    let timeout: NodeJS.Timeout;
 
     try {
+      // Set loading state
       if (isRefresh) {
         setRefreshing(true);
-        setLastPostTimestamp(null);
-        setHasMorePosts(true);
       } else {
         setLoading(true);
       }
+
+      // Set timeout for loading state
+      timeout = setTimeout(() => {
+        console.log('Loading timeout - resetting loading state');
+        if (isRefresh) {
+          setRefreshing(false);
+        } else {
+          setLoading(false);
+        }
+      }, 15000); // 15 second timeout
 
       const connectionPosts = await loadConnectionPosts(
         userRadius, 
