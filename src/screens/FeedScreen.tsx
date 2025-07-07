@@ -138,10 +138,17 @@ export default function FeedScreen({ navigation }: any) {
     }, [])
   );
 
-  // Pause videos when screen loses focus
+  // Pause videos when screen loses focus and resume when focused
   useFocusEffect(
     useCallback(() => {
-      // Screen is focused - videos can play based on visibility
+      // Screen is focused - check for visible videos and resume playback
+      if (flatListRef.current) {
+        // Trigger viewability check to resume appropriate video
+        setTimeout(() => {
+          flatListRef.current?.recordInteraction();
+        }, 100);
+      }
+      
       return () => {
         // Screen is losing focus - pause all videos
         setPlayingVideoId(null);
