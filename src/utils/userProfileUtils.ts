@@ -132,9 +132,10 @@ export const handleBlockUserAction = async (
 
 export const checkIfUserIsBlocked = async (userId: string): Promise<boolean> => {
   try {
-    const { getAuth } = await import('../services/firebase');
+    const { getAuth, getFirestore } = await import('../services/firebase');
     const { query, collection, where, getDocs } = await import('firebase/firestore');
     const auth = getAuth();
+    const firestore = getFirestore();
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
