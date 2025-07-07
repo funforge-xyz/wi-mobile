@@ -212,6 +212,18 @@ export default function FeedScreen({ navigation }: any) {
         unsubscribe = auth.onAuthStateChanged(async (user: any) => {
           if (user) {
             try {
+              // Wait for user to be fully authenticated and verified
+              await user.reload();
+              
+              // Double-check that user is still valid after reload
+              const currentUser = auth.currentUser;
+              if (!currentUser) {
+                console.log('User not found after reload');
+                setLoading(false);
+                setPosts([]);
+                return;
+              }
+
               // Load user settings and location first
               const radius = await loadUserSettings();
               if (radius) {
@@ -237,13 +249,14 @@ export default function FeedScreen({ navigation }: any) {
                 });
               }, 1000);
 
-              // Load posts after everything is set up
+              // Load posts after everything is set up and user is confirmed authenticated
               await loadPosts();
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
             }
           } else {
+            console.log('No authenticated user found');
             setLoading(false);
             setPosts([]);
           }
@@ -287,6 +300,19 @@ export default function FeedScreen({ navigation }: any) {
     let timeout: NodeJS.Timeout | number | undefined;
 
     try {
+      // Check if user is authenticated before attempting to load posts
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        console.log('No authenticated user found in loadPosts');
+        setLoading(false);
+        setRefreshing(false);
+        setPosts([]);
+        return;
+      }
+
       if (isRefresh) {
         setRefreshing(true);
         setLastPostTimestamp(null);
@@ -364,6 +390,17 @@ export default function FeedScreen({ navigation }: any) {
     }
 
     try {
+      // Check if user is authenticated before attempting to load more posts
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        console.log('No authenticated user found in loadMorePosts');
+        setLoadingMore(false);
+        return;
+      }
+
       console.log('Loading more posts...');
       setLoadingMore(true);
 
