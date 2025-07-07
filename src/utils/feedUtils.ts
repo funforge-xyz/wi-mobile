@@ -65,7 +65,7 @@ export const loadConnectionPosts = async (
       limit: firestoreLimit, 
       getDocs,
       startAfter,
-      doc as docRef,
+      doc: docRef,
       getDoc
     } = await import('firebase/firestore');
 
