@@ -32,36 +32,78 @@ export default function RootScreen() {
 
   const checkAuthState = async () => {
     try {
-      // First, ensure Firebase is fully initialized
-      console.log('Initializing Firebase in RootScreen...');
-      await initializeFirebaseAndAuth();
-      
-      // Now check if user is authenticated
-      const isLoggedIn = await authService.isAuthenticated();
-      setIsAuthenticated(isLoggedIn);
+      setIsLoading(true);
 
-      if (isLoggedIn) {
-        const onboardingDone = await checkOnboardingStatus(settings);
-        setShowOnboarding(!onboardingDone);
+      // Load dark mode settings first
+      await loadDarkModeSettings(dispatch);
 
-        // Load user profile and update Redux state
-        dispatch(fetchUserProfile());
+      // Initialize Firebase and check auth state with better error handling
+      console.log('Checking auth state...');
+      const isUserAuthenticated = await initializeFirebaseAndAuth();
 
-        // Get auth safely since we know Firebase is initialized
-        const auth = getAuth();
-        const currentUser = auth.currentUser;
+      if (isUserAuthenticated) {
+        console.log('User is authenticated, checking additional auth service');
 
-        // Load user's preferred language from Firebase
-        if (currentUser?.uid) {
-          dispatch(loadUserLanguagePreference(currentUser.uid));
+        // Double-check with auth service
+        const isAuthServiceAuthenticated = await authService.isAuthenticated();
+
+        if (isAuthServiceAuthenticated) {
+          console.log('Auth service confirms authentication');
+
+          // Check if user has completed onboarding
+          const hasCompletedOnboarding = await checkOnboardingStatus();
+
+          if (hasCompletedOnboarding) {
+            console.log('User has completed onboarding');
+
+            // Load user settings and profile data
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
+
+            if (currentUser) {
+              console.log('Loading user data for:', currentUser.uid);
+
+              try {
+                // Load user profile and language preference
+                await Promise.all([
+                  dispatch(fetchUserProfile(currentUser.uid)),
+                  dispatch(loadUserLanguagePreference(currentUser.uid))
+                ]);
+
+                console.log('User data loaded successfully');
+                setIsAuthenticated(true);
+                setShowOnboarding(false);
+              } catch (profileError) {
+                console.error('Error loading user profile:', profileError);
+                // Still consider authenticated but with limited data
+                setIsAuthenticated(true);
+                setShowOnboarding(false);
+              }
+            } else {
+              console.log('No current user found after authentication check');
+              setIsAuthenticated(false);
+              setShowOnboarding(false);
+            }
+          } else {
+            console.log('User has not completed onboarding');
+            setIsAuthenticated(true);
+            setShowOnboarding(true);
+          }
+        } else {
+          console.log('Auth service reports user not authenticated');
+          setIsAuthenticated(false);
+          setShowOnboarding(false);
         }
+      } else {
+        console.log('User is not authenticated');
+        setIsAuthenticated(false);
+        setShowOnboarding(false);
       }
 
-      const darkMode = await loadDarkModeSettings(settings);
-      dispatch(setTheme(darkMode));
     } catch (error) {
       console.error('Error checking auth state:', error);
       setIsAuthenticated(false);
+      setShowOnboarding(false);
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,3 @@
-
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/auth';
 import { Settings } from '../services/storage';
@@ -16,21 +15,70 @@ export const getTabBarIcon = (routeName: string, focused: boolean): keyof typeof
   return (icons ? (focused ? icons.focused : icons.unfocused) : 'home-outline') as keyof typeof Ionicons.glyphMap;
 };
 
-export const initializeFirebaseAndAuth = async () => {
+export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
   try {
     console.log('Starting Firebase initialization...');
+
+    // Initialize Firebase first
     const { initializeFirebase } = await import('../services/firebase');
     const firebaseServices = await initializeFirebase();
-    console.log('Firebase initialization complete', {
-      hasAuth: !!firebaseServices.auth,
-      hasFirestore: !!firebaseServices.firestore,
-      hasStorage: !!firebaseServices.storage
+    console.log('Firebase initialized successfully');
+
+    // Get auth instance and wait for initial auth state
+    const { getAuth, onAuthStateChanged, signOut } = await import('firebase/auth');
+    const auth = getAuth();
+
+    // Wait for auth state to be determined with a longer timeout
+    return new Promise((resolve) => {
+      let resolved = false;
+
+      // Set a timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          console.log('Auth state check timed out, assuming no user');
+          resolve(false);
+        }
+      }, 10000); // 10 second timeout
+
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (resolved) return;
+
+        unsubscribe(); // Only need the first auth state change
+        clearTimeout(timeout);
+        resolved = true;
+
+        if (user) {
+          console.log('User found during initialization:', user.uid);
+
+          try {
+            // Ensure user is verified
+            await user.reload();
+            const currentUser = auth.currentUser;
+
+            if (currentUser && currentUser.emailVerified) {
+              console.log('User is verified and authenticated');
+              resolve(true);
+            } else {
+              console.log('User is not verified');
+              if (currentUser) {
+                await signOut(auth);
+              }
+              resolve(false);
+            }
+          } catch (error) {
+            console.error('Error reloading user:', error);
+            resolve(false);
+          }
+        } else {
+          console.log('No user found during initialization');
+          resolve(false);
+        }
+      });
     });
-    
-    return true;
   } catch (error) {
-    console.error('Firebase initialization failed:', error);
-    throw error;
+    console.error('Firebase initialization error:', error);
+    return false;
   }
 };
 

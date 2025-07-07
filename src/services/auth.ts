@@ -251,8 +251,35 @@ export class AuthService {
   }
 
   async isAuthenticated(): Promise<boolean> {
-    const token = await this.credentials.getToken();
-    return !!token;
+    try {
+      // Check both local token and Firebase auth state
+      const token = await this.credentials.getToken();
+      
+      if (!token) {
+        return false;
+      }
+      
+      // Also check Firebase auth state
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      
+      if (!currentUser) {
+        // Clear token if no Firebase user
+        await this.credentials.removeToken();
+        return false;
+      }
+      
+      // Check if email is verified
+      if (!currentUser.emailVerified) {
+        await this.credentials.removeToken();
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      return false;
+    }
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {

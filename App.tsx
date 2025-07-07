@@ -92,30 +92,48 @@ export default function App() {
 
     // Set up auth state listener to register for push notifications only when authenticated
     const setupAuthListener = async () => {
-      try {
-        const { getAuth } = await import('./src/services/firebase');
-        const auth = getAuth();
+    try {
+      // Initialize Firebase first
+      await initializeFirebase();
 
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-          if (user) {
-            // User is authenticated, register for push notifications
-            console.log('🔐 User authenticated, registering for push notifications...');
-            try {
-              const { registerForPushNotifications } = await import('./src/services/notifications');
-              await registerForPushNotifications();
-            } catch (error) {
-              console.error('Failed to register for push notifications:', error);
+      const auth = getAuth();
+
+      // Set up auth state listener with better error handling
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          console.log('User signed in:', user.uid);
+
+          try {
+            // Ensure user is verified
+            await user.reload();
+            if (!user.emailVerified) {
+              console.log('User email not verified, signing out');
+              await signOut(auth);
             }
-          } else {
-            console.log('👤 User not authenticated, skipping push notification registration');
+          } catch (error) {
+            console.error('Error reloading user in auth listener:', error);
           }
-        });
+        } else {
+          console.log('User signed out');
 
-        return unsubscribe;
-      } catch (error) {
-        console.error('Error setting up auth listener for push notifications:', error);
-      }
-    };
+          // Clear any stored credentials
+          try {
+            const { Credentials } = await import('./src/services/storage');
+            const credentials = new Credentials();
+            await credentials.removeToken();
+            await credentials.removeUser();
+          } catch (error) {
+            console.error('Error clearing credentials:', error);
+          }
+        }
+      });
+
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error setting up auth listener:', error);
+      return () => {}; // Return empty function as fallback
+    }
+  };
 
     let authUnsubscribe: (() => void) | undefined;
     setupAuthListener().then((unsub) => {

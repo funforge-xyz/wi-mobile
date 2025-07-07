@@ -73,8 +73,21 @@ export const loadConnectionPosts = async (
     const firestore = getFirestore();
     const currentUser = auth.currentUser;
 
+    // Double-check authentication
     if (!currentUser) {
-      console.log('loadConnectionPosts: No authenticated user, returning empty array');
+      console.error('No current user found in loadConnectionPosts');
+      return [];
+    }
+
+    const authService = {
+        isAuthenticated: async () => {
+            return !!currentUser
+        }
+    }
+
+    const isAuthenticated = await authService.isAuthenticated();
+    if (!isAuthenticated) {
+      console.error('Auth service reports user not authenticated in loadConnectionPosts');
       return [];
     }
 
