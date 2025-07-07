@@ -394,6 +394,51 @@ export const handleLikePost = async (
     return null;
   }
 };
+
+export const handlePostLike = async (
+  postId: string,
+  newLikedState: boolean,
+  currentUser: any
+): Promise<void> => {
+  try {
+    const firestore = getFirestore();
+    const { addDoc, deleteDoc, collection, query, where, getDocs, doc, updateDoc, increment } = await import('firebase/firestore');
+    
+    const postRef = doc(firestore, 'posts', postId);
+    const likesCollectionRef = collection(firestore, 'posts', postId, 'likes');
+
+    if (newLikedState) {
+      // Like: add a like document and update post likesCount
+      await addDoc(likesCollectionRef, {
+        authorId: currentUser.uid,
+        authorName: currentUser.displayName || 'Anonymous',
+        createdAt: new Date(),
+      });
+      await updateDoc(postRef, {
+        likesCount: increment(1)
+      });
+      console.log('feedUtils - Successfully added like to Firebase');
+    } else {
+      // Unlike: remove the like document and update post likesCount
+      const userLikeQuery = query(likesCollectionRef, where('authorId', '==', currentUser.uid));
+      const userLikeSnapshot = await getDocs(userLikeQuery);
+
+      if (!userLikeSnapshot.empty) {
+        const likeDoc = userLikeSnapshot.docs[0];
+        await deleteDoc(likeDoc.ref);
+        await updateDoc(postRef, {
+          likesCount: increment(-1)
+        });
+        console.log('feedUtils - Successfully removed like from Firebase');
+      } else {
+        console.log('feedUtils - No like document found to remove');
+      }
+    }
+  } catch (error) {
+    console.error('feedUtils - Error handling like:', error);
+    throw error;
+  }
+};
 import { DocumentSnapshot } from 'firebase/firestore';
 
 export const loadFeedPosts = async (
