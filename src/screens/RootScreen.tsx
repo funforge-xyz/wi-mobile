@@ -18,7 +18,11 @@ import LoginScreen from './LoginScreen';
 import OnboardingScreen from './OnboardingScreen';
 import RootTabNavigator from '../components/RootTabNavigator';
 
-export default function RootScreen() {
+interface RootScreenProps {
+  onAuthReady?: () => void;
+}
+
+export default function RootScreen({ onAuthReady }: RootScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -129,6 +133,11 @@ export default function RootScreen() {
     } finally {
       // Always ensure loading is stopped, regardless of success, failure, or timeout
       setIsLoading(false);
+      
+      // Signal to parent that auth state is ready
+      if (onAuthReady) {
+        onAuthReady();
+      }
     }
   };
 
