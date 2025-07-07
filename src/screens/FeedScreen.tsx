@@ -138,6 +138,17 @@ export default function FeedScreen({ navigation }: any) {
     }, [])
   );
 
+  // Pause videos when screen loses focus
+  useFocusEffect(
+    useCallback(() => {
+      // Screen is focused - videos can play based on visibility
+      return () => {
+        // Screen is losing focus - pause all videos
+        setPlayingVideoId(null);
+      };
+    }, [])
+  );
+
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let appStateSubscription: any;
