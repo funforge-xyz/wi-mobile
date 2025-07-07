@@ -133,14 +133,16 @@ export default function SettingsScreen() {
   const handleToggleTheme = async () => {
     try {
       const newDarkMode = !isDarkMode;
-      dispatch(toggleTheme());
-
-      // Save to AsyncStorage via SettingsService
+      
+      // Save to AsyncStorage first
       const { SettingsService } = await import('../services/settings');
       const settingsService = SettingsService.getInstance();
       await settingsService.setDarkMode(newDarkMode);
+      
+      // Then update Redux state
+      dispatch(toggleTheme());
 
-      console.log('Theme preference saved:', newDarkMode);
+      console.log('Theme preference saved and applied:', newDarkMode);
     } catch (error) {
       console.error('Failed to save theme preference:', error);
     }

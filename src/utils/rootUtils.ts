@@ -133,6 +133,7 @@ export const loadDarkModeSettings = async (dispatch: any) => {
     dispatch(setTheme(settings.darkMode));
     
     console.log('Dark mode settings loaded and applied:', settings.darkMode);
+    console.log('Full settings loaded:', settings);
   } catch (error) {
     console.error('Error loading dark mode settings:', error);
     // Set default to light mode if loading fails

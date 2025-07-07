@@ -30,9 +30,11 @@ export class SettingsService {
   async loadSettings(): Promise<AppSettings> {
     try {
       const settingsJson = await AsyncStorage.getItem('app_settings');
+      console.log('SettingsService: Raw settings from storage:', settingsJson);
       if (settingsJson) {
         this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(settingsJson) };
       }
+      console.log('SettingsService: Final settings:', this.settings);
       return this.settings;
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -86,7 +88,9 @@ export class SettingsService {
   }
 
   async setDarkMode(enabled: boolean): Promise<void> {
+    console.log('SettingsService: Setting dark mode to:', enabled);
     await this.saveSettings({ darkMode: enabled });
+    console.log('SettingsService: Dark mode saved successfully');
   }
 
   async getDarkMode(): Promise<boolean> {
