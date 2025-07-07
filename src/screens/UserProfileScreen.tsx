@@ -118,10 +118,12 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   };
 
   const handleBlockUser = () => {
+    console.log('handleBlockUser called - opening modal');
     setShowBlockModal(true);
   };
 
   const handleConfirmBlock = async () => {
+    console.log('handleConfirmBlock called!');
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
       const { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc, deleteDoc } = await import('firebase/firestore');
@@ -218,6 +220,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   };
 
   const handleCancelBlock = () => {
+    console.log('handleCancelBlock called - closing modal');
     setShowBlockModal(false);
   };
 
@@ -286,8 +289,14 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       <BlockUserConfirmationModal
         visible={showBlockModal}
-        onConfirm={handleConfirmBlock}
-        onCancel={handleCancelBlock}
+        onConfirm={() => {
+          console.log('Modal onConfirm triggered');
+          handleConfirmBlock();
+        }}
+        onCancel={() => {
+          console.log('Modal onCancel triggered');
+          handleCancelBlock();
+        }}
         currentTheme={currentTheme}
       />
 
