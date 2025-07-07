@@ -31,12 +31,15 @@ export default function RootScreen() {
 
     // Safety timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.warn('Auth state check timed out, showing login screen');
-        setIsLoading(false);
-        setIsAuthenticated(false);
-        setShowOnboarding(false);
-      }
+      setIsLoading(current => {
+        if (current) {
+          console.warn('Auth state check timed out, showing login screen');
+          setIsAuthenticated(false);
+          setShowOnboarding(false);
+          return false;
+        }
+        return current;
+      });
     }, 20000); // 20 second timeout to allow proper auth persistence
 
     return () => clearTimeout(timeout);

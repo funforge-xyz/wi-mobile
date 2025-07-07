@@ -42,6 +42,7 @@ export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
         if (!resolved) {
           resolved = true;
           console.log('Auth state timeout - assuming not authenticated');
+          clearTimeout(timeout);
           resolve(false);
         }
       }, 18000); // 18 second timeout for better persistence handling
