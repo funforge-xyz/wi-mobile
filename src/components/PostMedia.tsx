@@ -40,16 +40,15 @@ export default function PostMedia({
 }: PostMediaProps) {
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
   
-  // Create video player if it's a video and no external player provided
+  // Use external video player if provided, otherwise create internal one
   const internalVideoPlayer = useVideoPlayer(
     mediaType === 'video' && !videoPlayer ? mediaURL : null,
     (player) => {
       if (player) {
+        player.loop = true;
         player.muted = isVideoMuted;
         if (isVideoPlaying) {
           player.play();
-        } else {
-          player.pause();
         }
       }
     }
@@ -105,7 +104,7 @@ export default function PostMedia({
             player={activeVideoPlayer}
             style={[
               mediaStyle,
-              frontCameraTransform
+              isFrontCamera && { transform: [{ scaleX: -1 }] }
             ]}
             allowsFullscreen={false}
             allowsPictureInPicture={false}
@@ -154,7 +153,7 @@ export default function PostMedia({
       <TouchComponent {...touchProps}>
         <Image
           source={{ uri: mediaURL }}
-          style={[mediaStyle, frontCameraTransform]}
+          style={[mediaStyle, isFrontCamera && { transform: [{ scaleX: -1 }] }]}
           resizeMode="cover"
           onLoad={handleMediaLoad}
           onError={(error) => {

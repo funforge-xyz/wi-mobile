@@ -57,16 +57,15 @@ interface ConnectionPost {
 
 export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<ConnectionPost[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMorePosts, setHasMorePosts] = useState(true);
-  const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
-  const [notificationKey, setNotificationKey] = useState(0);
-  const [userRadius, setUserRadius] = useState<number | null>(null);
-  const [currentUserLocation, setCurrentUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
-  const [currentlyPlayingVideo, setCurrentlyPlayingVideo] = useState<string | null>(null);
-  const [videoMutedStates, setVideoMutedStates] = useState<{[key: string]: boolean}>({});
+  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const flatListRef = useRef<FlatList>(null);
@@ -92,7 +91,7 @@ export default function FeedScreen({ navigation }: any) {
       const mostVisibleVideo = visibleVideoPosts.reduce((prev, current) => 
         (current.percentVisible || 0) > (prev.percentVisible || 0) ? current : prev
       );
-      
+
       if (mostVisibleVideo.item.id !== currentlyPlayingVideo) {
         setCurrentlyPlayingVideo(mostVisibleVideo.item.id);
       }
@@ -348,6 +347,47 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
+  const handlePostLike = async (postId: string, currentlyLiked: boolean) => {
+    try {
+      const result = await handleLikePost(postId, !currentlyLiked, posts);
+      if (result) {
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { 
+                  ...post, 
+                  isLikedByUser: !currentlyLiked,
+                  likesCount: currentlyLiked ? post.likesCount - 1 : post.likesCount + 1
+                }
+              : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error handling post like:', error);
+    }
+  };
+
+  const handleVideoMuteToggle = (postId: string) => {
+    setMutedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleVideoVisibilityChange = (postId: string, isVisible: boolean) => {
+    if (isVisible) {
+      setPlayingVideoId(postId);
+    } else if (playingVideoId === postId) {
+      setPlayingVideoId(null);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[feedStyles.container, { backgroundColor: currentTheme.background }]}>
@@ -381,14 +421,15 @@ export default function FeedScreen({ navigation }: any) {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <PostItem
+              key={item.id}
               post={item}
-              onLike={handleLike}
+              onLike={handlePostLike}
               currentTheme={currentTheme}
               navigation={navigation}
               showImageBorderRadius={false}
-              isVideoPlaying={item.mediaType === 'video' && currentlyPlayingVideo === item.id}
-              isVideoMuted={videoMutedStates[item.id] || false}
-              onVideoMuteToggle={() => handleVideoMuteToggle(item.id)}
+              isVideoPlaying={playingVideoId === item.id}
+              isVideoMuted={mutedVideos.has(item.id)}
+              onVideoMuteToggle={handleVideoMuteToggle}
             />
           )}
           refreshControl={

@@ -28,6 +28,7 @@ interface ConnectionPost {
   content: string;
   mediaURL?: string;
   mediaType?: 'image' | 'video';
+  isFrontCamera?: boolean;
   createdAt: Date;
   likesCount: number;
   commentsCount: number;
@@ -36,7 +37,6 @@ interface ConnectionPost {
   isLikedByUser: boolean;
   isAuthorOnline: boolean;
   isFromConnection: boolean;
-  isFrontCamera?: boolean;
 }
 
 interface PostItemProps {
@@ -73,24 +73,21 @@ export default function PostItem({
   // Debug logging for isFrontCamera
   console.log('PostItem - Post ID:', post.id, 'isFrontCamera:', post.isFrontCamera, 'mediaType:', post.mediaType);
 
-  // Create video player for video posts
+  // Create video player for video posts - exactly like SinglePostScreen
   const videoPlayer = useVideoPlayer(
-    post.mediaType === 'video' ? post.mediaURL : null,
-    (player) => {
-      if (player && post.mediaType === 'video') {
-        player.muted = isVideoMuted;
-        if (isVideoPlaying) {
-          player.play();
-        } else {
-          player.pause();
-        }
+    post.mediaURL && post.mediaType === 'video' ? post.mediaURL : null, 
+    player => {
+      player.loop = true;
+      player.muted = isVideoMuted;
+      if (post.mediaType === 'video' && post.mediaURL && isVideoPlaying) {
+        player.play();
       }
     }
   );
 
   console.log('PostItem - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
 
-  // Update video player when playback state changes
+  // Update video player when playback state changes - exactly like SinglePostScreen
   useEffect(() => {
     if (videoPlayer && post.mediaType === 'video') {
       videoPlayer.muted = isVideoMuted;
@@ -202,7 +199,7 @@ export default function PostItem({
             likeAnimationScale={likeAnimationScale}
             isVideoPlaying={isVideoPlaying}
             isVideoMuted={isVideoMuted}
-            onVideoMuteToggle={onVideoMuteToggle}
+            onVideoMuteToggle={() => onVideoMuteToggle && onVideoMuteToggle(post.id)}
             videoPlayer={post.mediaType === 'video' ? videoPlayer : undefined}
           />
         </View>

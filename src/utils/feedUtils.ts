@@ -274,6 +274,13 @@ export const loadConnectionPosts = async (
         );
         const commentsSnapshot = await getDocs(commentsQuery);
 
+        console.log('feedUtils - Firebase post data:', {
+          id: postId,
+          isFrontCamera: postData.isFrontCamera,
+          mediaType: postData.mediaType,
+          hasMediaURL: !!postData.mediaURL
+        });
+
         posts.push({
           id: postId,
           authorId: userId,
@@ -283,6 +290,7 @@ export const loadConnectionPosts = async (
           content: postData.content || '',
           mediaURL: postData.mediaURL,
           mediaType: postData.mediaType,
+          isFrontCamera: postData.isFrontCamera,
           createdAt: postData.createdAt?.toDate() || new Date(),
           likesCount: postLikesSnapshot.size,
           commentsCount: commentsSnapshot.size,
@@ -453,19 +461,23 @@ export const loadFeedPosts = async (
       const commentsQuery = query(commentsCollection, where('postId', '==', postDoc.id));
       const commentsSnapshot = await getDocs(commentsQuery);
 
+      console.log('feedUtils - Firebase feed post data:', {
+        id: postDoc.id,
+        isFrontCamera: postData.isFrontCamera,
+        mediaType: postData.mediaType,
+        hasMediaURL: !!postData.mediaURL
+      });
+
       return {
         id: postDoc.id,
         authorId: postData.authorId,
         authorName: postData.authorName,
-        authorPhotoURL: userData?.thumbnailURL || userData?.photoURL || '',
+        authorPhotoURL: userData?.photoURL || '',
         content: postData.content || '',
         mediaURL: postData.mediaURL,
         mediaType: postData.mediaType,
-        thumbnailURL: postData.thumbnailURL,
-        fileExtension: postData.fileExtension,
-        postType: postData.postType || 'text',
+        isFrontCamera: postData.isFrontCamera,
         createdAt: postData.createdAt?.toDate?.() || new Date(),
-        location: postData.location || null,
         likesCount: likesSnapshot.size,
         commentsCount: commentsSnapshot.size,
         isLikedByUser: isLikedByUser,
