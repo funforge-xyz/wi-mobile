@@ -123,7 +123,7 @@ export default function RootScreen() {
       setIsAuthenticated(false);
       setShowOnboarding(false);
     } finally {
-      // Always ensure loading is set to false
+      // Always ensure loading is stopped, regardless of success, failure, or timeout
       setIsLoading(false);
     }
   };
