@@ -127,12 +127,13 @@ export default function NotificationsScreen({ navigation }: any) {
     setRefreshing(false);
   };
 
-  const renderNotificationItem = ({ item }: { item: Notification }) => (
+  const renderNotificationItem = ({ item, index }: { item: Notification; index: number }) => (
     <NotificationItem
       item={item}
       currentTheme={currentTheme}
       formatTimeAgo={(date) => formatTimeAgo(date, t)}
       onPress={handleNotificationPress}
+      isLastItem={index === notifications.length - 1}
     />
   );
 

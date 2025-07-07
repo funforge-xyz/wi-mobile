@@ -10,6 +10,7 @@ interface NotificationItemProps {
   currentTheme: any;
   formatTimeAgo: (date: Date) => string;
   onPress: (notification: Notification) => void;
+  isLastItem?: boolean;
 }
 
 const getNotificationIcon = (type: string) => {
@@ -43,11 +44,23 @@ const itemStyles = {
     marginVertical: SPACING.xs,
     borderRadius: 12,
     overflow: 'hidden',
+    width: '100%',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+  },
+  notificationItemLast: {
+    marginVertical: SPACING.xs,
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: '100%',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 0,
   },
   notificationContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.md,
   },
   iconContainer: {
     width: 36,
@@ -83,29 +96,18 @@ const itemStyles = {
   },
 };
 
-export default function NotificationItem({ 
+const NotificationItem = ({ 
   item, 
   currentTheme, 
   formatTimeAgo, 
-  onPress 
-}: NotificationItemProps) {
+  onPress,
+  isLastItem = false
+}: NotificationItemProps) => {
   return (
-    <TouchableOpacity
+    <TouchableOpacity 
       style={[
-        itemStyles.notificationItem,
-        { 
-          backgroundColor: currentTheme.surface,
-          borderLeftWidth: !item.read ? 4 : 0,
-          borderLeftColor: !item.read ? COLORS.primary : 'transparent',
-        },
-        !item.read && { 
-          backgroundColor: currentTheme.unreadBackground,
-          shadowColor: COLORS.primary,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 2,
-        }
+        isLastItem ? itemStyles.notificationItemLast : itemStyles.notificationItem,
+        { borderBottomColor: currentTheme.border }
       ]}
       onPress={() => onPress(item)}
     >
@@ -152,3 +154,5 @@ export default function NotificationItem({
     </TouchableOpacity>
   );
 }
+
+export default NotificationItem;

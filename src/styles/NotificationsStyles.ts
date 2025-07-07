@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.lg,
   },
   emptyContainer: {
     flex: 1,
