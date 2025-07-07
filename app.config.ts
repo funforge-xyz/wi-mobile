@@ -22,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "**/*"
   ],
   ios: {
+    googleServicesFile: "./GoogleService-Info.plist",
     supportsTablet: true,
     bundleIdentifier: "com.wichat.app",
     infoPlist: {
@@ -51,9 +52,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "android.permission.WRITE_EXTERNAL_STORAGE",
       "android.permission.READ_EXTERNAL_STORAGE"
     ],
-    notification: {
-      icon: "./assets/images/app_icon.png"
-    }
+  },
+  notification: {
+    icon: "./assets/images/app_icon.png"
   },
   web: {
     favicon: "./assets/images/app_icon.png"
@@ -68,7 +69,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-font",
     "expo-system-ui"
   ],
-  edgeToEdgeEnabled: true,
   extra: {
     eas: {
       projectId: "262d6739-ab83-497f-a5f4-b8852d594e76"
