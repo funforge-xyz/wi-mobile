@@ -89,7 +89,7 @@ export default function FeedScreen({ navigation }: any) {
       item.item && 
       item.item.mediaType === 'video' && 
       item.isViewable && 
-      (item.percentVisible || 0) >= 70
+      (item.percentVisible ?? 100) >= 70
     );
 
     console.log('Viewable items changed:', {
