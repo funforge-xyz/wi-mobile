@@ -68,7 +68,10 @@ export default function BlockUserConfirmationModal({
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.button, styles.cancelButton, { borderColor: currentTheme.border }]}
-              onPress={onCancel}
+              onPress={() => {
+                console.log('BlockUserConfirmationModal: Cancel button pressed');
+                onCancel();
+              }}
             >
               <Text style={[styles.cancelButtonText, { color: currentTheme.textSecondary }]}>
                 {t('common.cancel')}
@@ -77,7 +80,10 @@ export default function BlockUserConfirmationModal({
 
             <TouchableOpacity
               style={[styles.button, styles.confirmButton, { backgroundColor: COLORS.error }]}
-              onPress={onConfirm}
+              onPress={() => {
+                console.log('BlockUserConfirmationModal: Confirm button pressed');
+                onConfirm();
+              }}
             >
               <Text style={styles.confirmButtonText}>
                 {t('common.block')}
