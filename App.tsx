@@ -81,8 +81,6 @@ export default function App() {
         Alert.alert('Initialization Error', 'Failed to start the app. Please restart.');
       } finally {
         setIsLoading(false);
-        // Hide splash screen when app initialization is complete
-        SplashScreen.hideAsync();
       }
     }
 
@@ -168,6 +166,13 @@ export default function App() {
   if (isLoading) {
     return null; // Keep splash screen visible
   }
+
+  // Hide splash screen once we're past the initial loading
+  useEffect(() => {
+    if (!isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
 
   return (
     <Provider store={store}>

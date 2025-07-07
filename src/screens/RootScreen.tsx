@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { Settings } from '../services/storage';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import AppLoadingSkeleton from '../components/AppLoadingSkeleton';
 import { setTheme } from '../store/themeSlice';
 import {
   initializeFirebaseAndAuth,
@@ -142,7 +142,19 @@ export default function RootScreen() {
   };
 
   if (isLoading) {
-    return <AppLoadingSkeleton />;
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        backgroundColor: isDarkMode ? '#121212' : '#FFFFFF'
+      }}>
+        <ActivityIndicator 
+          size="large" 
+          color={isDarkMode ? '#6366F1' : '#6366F1'} 
+        />
+      </View>
+    );
   }
 
   if (!isAuthenticated) {
