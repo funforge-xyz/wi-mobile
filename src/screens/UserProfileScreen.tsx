@@ -122,8 +122,8 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     setShowBlockModal(true);
   };
 
-  const handleConfirmBlock = async () => {
-    console.log('handleConfirmBlock called!');
+  const confirmBlockConnection = async () => {
+    console.log('confirmBlockConnection called!');
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
       const { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc, deleteDoc } = await import('firebase/firestore');
@@ -211,7 +211,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     }
   };
 
-  const handleSuccessModalClose = () => {
+  const handleBlockSuccessClose = () => {
     setShowSuccessModal(false);
     // Navigate to NearbyScreen (People tab)
     navigation.navigate('Root', { 
@@ -289,14 +289,17 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       <BlockUserConfirmationModal
         visible={showBlockModal}
-        onConfirm={handleConfirmBlock}
-        onCancel={handleCancelBlock}
+        onConfirm={confirmBlockConnection}
+        onCancel={() => {
+          setShowBlockModal(false);
+        }}
+        userName={`${profile.firstName} ${profile.lastName}`}
         currentTheme={currentTheme}
       />
 
       <BlockUserSuccessModal
         visible={showSuccessModal}
-        onClose={handleSuccessModalClose}
+        onClose={handleBlockSuccessClose}
         currentTheme={currentTheme}
       />
     </SafeAreaView>
