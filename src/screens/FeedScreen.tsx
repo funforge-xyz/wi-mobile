@@ -68,6 +68,7 @@ export default function FeedScreen({ navigation }: any) {
   const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
   const [notificationKey, setNotificationKey] = useState(0);
   const [isScreenFocused, setIsScreenFocused] = useState(true);
+  const [rememberedVideoId, setRememberedVideoId] = useState<string | null>(null);
   const [userRadius, setUserRadius] = useState<number>(10);
   const [currentUserLocation, setCurrentUserLocation] = useState<any>(null);
   const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
@@ -148,23 +149,30 @@ export default function FeedScreen({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
-      // Screen is focused - force viewability check by triggering a micro-scroll
-      if (flatListRef.current && !loading && posts.length > 0) {
-        setTimeout(() => {
-          // Force viewability check by doing a micro-scroll (scroll by 1 pixel and back)
-          flatListRef.current?.scrollToOffset({ offset: 1, animated: false });
-          setTimeout(() => {
-            flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
-          }, 10);
-        }, 100);
+      
+      // Screen is focused - restore previously playing video if it exists
+      if (rememberedVideoId && posts.length > 0) {
+        // Check if the remembered video is still in the posts array
+        const videoStillExists = posts.some(post => post.id === rememberedVideoId && post.mediaType === 'video');
+        if (videoStillExists) {
+          console.log('Restoring previously playing video:', rememberedVideoId);
+          setPlayingVideoId(rememberedVideoId);
+          setRememberedVideoId(null); // Clear the remembered video
+        } else {
+          setRememberedVideoId(null); // Clear if video no longer exists
+        }
       }
 
       return () => {
-        // Screen is losing focus - pause all videos
+        // Screen is losing focus - remember currently playing video and pause it
+        if (playingVideoId) {
+          console.log('Remembering playing video for restoration:', playingVideoId);
+          setRememberedVideoId(playingVideoId);
+        }
         setPlayingVideoId(null);
         setIsScreenFocused(false);
       };
-    }, [loading, posts.length])
+    }, [rememberedVideoId, posts.length, playingVideoId])
   );
 
   useEffect(() => {
