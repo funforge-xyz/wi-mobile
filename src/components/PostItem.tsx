@@ -73,31 +73,53 @@ export default function PostItem({
   // Debug logging for isFrontCamera
   console.log('PostItem - Post ID:', post.id, 'isFrontCamera:', post.isFrontCamera, 'mediaType:', post.mediaType);
 
-  // Create video player for video posts - exactly like SinglePostScreen
+  // Create video player for video posts - only create if we have a video
   const videoPlayer = useVideoPlayer(
-    post.mediaURL && post.mediaType === 'video' ? post.mediaURL : null, 
+    post.mediaType === 'video' && post.mediaURL ? post.mediaURL : null, 
     player => {
-      player.loop = true;
-      player.muted = isVideoMuted;
-      if (post.mediaType === 'video' && post.mediaURL && isVideoPlaying) {
-        player.play();
+      if (player && post.mediaType === 'video') {
+        player.loop = true;
+        player.muted = isVideoMuted;
+        // Don't auto-play on creation, let the visibility logic handle it
       }
     }
   );
 
-  console.log('PostItem - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
+  console.log('PostItem - Video Debug:', {
+    postId: post.id,
+    mediaType: post.mediaType,
+    hasMediaURL: !!post.mediaURL,
+    isVideoPlaying,
+    isMediaLoading,
+    hasVideoPlayer: !!videoPlayer
+  });
 
-  // Update video player when playback state changes - exactly like SinglePostScreen
+  // Update video player when playback state changes
   useEffect(() => {
     if (videoPlayer && post.mediaType === 'video') {
       videoPlayer.muted = isVideoMuted;
       if (isVideoPlaying) {
+        console.log('Playing video:', post.id);
         videoPlayer.play();
       } else {
+        console.log('Pausing video:', post.id);
         videoPlayer.pause();
       }
     }
   }, [videoPlayer, isVideoPlaying, isVideoMuted, post.mediaType]);
+
+  // Handle media loading differently for videos vs images
+  useEffect(() => {
+    if (post.mediaType === 'video' && post.mediaURL) {
+      // For videos, set loading to false immediately to show the VideoView
+      setIsMediaLoading(false);
+    } else if (post.mediaType === 'image' && post.mediaURL) {
+      // For images, keep loading true until onLoad is called
+      setIsMediaLoading(true);
+    } else {
+      setIsMediaLoading(false);
+    }
+  }, [post.mediaURL, post.mediaType]);
 
   // Use post data directly instead of local state
   const liked = post.isLikedByUser;

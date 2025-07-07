@@ -91,6 +91,13 @@ export default function FeedScreen({ navigation }: any) {
       (item.percentVisible || 0) >= 70
     );
 
+    console.log('Viewable items changed:', {
+      totalViewable: viewableItems.length,
+      videoCount: visibleVideoPosts.length,
+      currentlyPlaying: playingVideoId,
+      visibleVideos: visibleVideoPosts.map(v => ({ id: v.item.id, percent: v.percentVisible }))
+    });
+
     if (visibleVideoPosts.length > 0) {
       // Play the first fully visible video
       const mostVisibleVideo = visibleVideoPosts.reduce((prev, current) => 
@@ -98,11 +105,15 @@ export default function FeedScreen({ navigation }: any) {
       );
 
       if (mostVisibleVideo.item.id !== playingVideoId) {
+        console.log('Setting playing video to:', mostVisibleVideo.item.id);
         setPlayingVideoId(mostVisibleVideo.item.id);
       }
     } else {
       // No video posts are sufficiently visible, stop all playback
-      setPlayingVideoId(null);
+      if (playingVideoId) {
+        console.log('Stopping video playback');
+        setPlayingVideoId(null);
+      }
     }
   }, [playingVideoId]);
 

@@ -44,17 +44,24 @@ export default function PostMedia({
   const internalVideoPlayer = useVideoPlayer(
     mediaType === 'video' && !videoPlayer ? mediaURL : null,
     (player) => {
-      if (player) {
+      if (player && mediaType === 'video') {
         player.loop = true;
         player.muted = isVideoMuted;
-        if (isVideoPlaying) {
-          player.play();
-        }
+        // Don't auto-play on creation
       }
     }
   );
 
   const activeVideoPlayer = videoPlayer || internalVideoPlayer;
+
+  console.log('PostMedia - Video Debug:', {
+    mediaType,
+    hasMediaURL: !!mediaURL,
+    hasVideoPlayer: !!videoPlayer,
+    hasInternalPlayer: !!internalVideoPlayer,
+    hasActivePlayer: !!activeVideoPlayer,
+    isVideoPlaying
+  });
 
   // Update video player state when props change
   useEffect(() => {
@@ -97,6 +104,19 @@ export default function PostMedia({
     : { onPress: onPress, activeOpacity: 0.9 };
 
   if (mediaType === 'video') {
+    console.log('Rendering VideoView with player:', !!activeVideoPlayer);
+    
+    if (!activeVideoPlayer) {
+      console.warn('No video player available for video:', mediaURL);
+      return (
+        <View style={[styles.mediaContainer, { backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }]}>
+          <TouchComponent {...touchProps}>
+            <View style={mediaStyle} />
+          </TouchComponent>
+        </View>
+      );
+    }
+    
     return (
       <View style={styles.mediaContainer}>
         <TouchComponent {...touchProps}>
@@ -110,10 +130,15 @@ export default function PostMedia({
             allowsPictureInPicture={false}
             nativeControls={false}
             contentFit="cover"
-            onLoadStart={() => console.log('Video load started')}
-            onLoad={handleMediaLoad}
+            onLoadStart={() => {
+              console.log('Video load started for:', mediaURL);
+            }}
+            onLoad={() => {
+              console.log('Video loaded successfully:', mediaURL);
+              handleMediaLoad();
+            }}
             onError={(error) => {
-              console.error('Video load error:', error);
+              console.error('Video load error for:', mediaURL, error);
               handleMediaLoad(); // Still call onLoad to hide skeleton
             }}
           />
