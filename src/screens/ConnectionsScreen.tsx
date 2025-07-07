@@ -252,13 +252,18 @@ export default function ConnectionsScreen({ navigation }: any) {
     });
   };
 
-  const renderConnectionItem = ({ item }: { item: Connection }) => {
+  const renderConnectionItem = ({ item, index }: { item: Connection; index: number }) => {
     const displayName = item.otherUser.firstName && item.otherUser.lastName 
       ? `${item.otherUser.firstName} ${item.otherUser.lastName}` 
       : 'Anonymous User';
 
+    const isLastItem = index === filteredConnections.length - 1;
+
     return (
-      <View style={[styles.connectionItem, { backgroundColor: currentTheme.surface }]}>
+      <View style={[
+        isLastItem ? styles.connectionItemLast : styles.connectionItem,
+        { borderBottomColor: currentTheme.border }
+      ]}>
         <View style={styles.connectionContent}>
           <UserAvatar
             photoURL={item.otherUser.thumbnailURL || item.otherUser.photoURL}

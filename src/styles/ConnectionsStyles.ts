@@ -40,6 +40,12 @@ export const createConnectionsStyles = (isDarkMode: boolean) => {
     connectionItem: {
       paddingHorizontal: SPACING.lg,
       paddingVertical: SPACING.sm,
+      borderBottomWidth: 1,
+    },
+    connectionItemLast: {
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.sm,
+      borderBottomWidth: 0,
     },
     connectionContent: {
       flexDirection: 'row',
