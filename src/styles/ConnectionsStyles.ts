@@ -38,15 +38,12 @@ export const createConnectionsStyles = (isDarkMode: boolean) => {
       paddingVertical: SPACING.xs,
     },
     connectionItem: {
-      marginHorizontal: SPACING.lg,
-      marginVertical: SPACING.xs / 2,
-      borderRadius: 12,
-      overflow: 'hidden',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.sm,
     },
     connectionContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: SPACING.md,
     },
     connectionInfo: {
       flex: 1,

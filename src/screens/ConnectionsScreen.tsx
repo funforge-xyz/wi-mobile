@@ -270,9 +270,6 @@ export default function ConnectionsScreen({ navigation }: any) {
             <Text style={[styles.connectionName, { color: currentTheme.text }]}>
               {displayName}
             </Text>
-            <Text style={[styles.connectionDate, { color: currentTheme.textSecondary }]}>
-              {t('connections.connectedOn')} {new Date(item.createdAt).toLocaleDateString()}
-            </Text>
           </View>
 
           <View style={styles.connectionActions}>
