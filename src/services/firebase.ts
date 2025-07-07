@@ -1,8 +1,8 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getAuth as getFirebaseAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore as getFirebaseFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage as getFirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 import { FIREBASE_API_KEY } from 'react-native-dotenv';
 
@@ -29,9 +29,9 @@ export const initializeFirebase = async () => {
       app = initializeApp(firebaseConfig);
       
       // Initialize services
-      auth = getAuth(app);
-      firestore = getFirestore(app);
-      storage = getStorage(app);
+      auth = getFirebaseAuth(app);
+      firestore = getFirebaseFirestore(app);
+      storage = getFirebaseStorage(app);
       
       // Only initialize analytics in production or when needed
       try {
