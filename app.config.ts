@@ -1,7 +1,7 @@
 export default {
   expo: {
     name: "WiChat",
-    slug: "wichat",
+    slug: "wi-chat-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/app_icon.png",
@@ -38,6 +38,11 @@ export default {
     },
     web: {
       favicon: "./assets/images/app_icon.png"
+    },
+    extra: {
+      eas: {
+        projectId: "262d6739-ab83-497f-a5f4-b8852d594e76"
+      }
     }
   }
 };
