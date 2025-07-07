@@ -19,7 +19,12 @@
     "**/*.tsx",
     "**/*.js",
     "**/*.jsx",
-     "./env.d.ts"
+     "./env.d.ts",
+     "./src/**/*",
+     "./App.tsx",
+     "./metro.config.ts",
+     "./app.config.ts",
+    "index.tsx"
   ],
   "exclude": [
     "node_modules"
