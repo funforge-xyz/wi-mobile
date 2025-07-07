@@ -483,6 +483,16 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
+  const handleCommentsCountChange = (postId: string, newCount: number) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, commentsCount: newCount }
+          : post
+      )
+    );
+  };
+
   const handleVideoVisibilityChange = (postId: string, isVisible: boolean) => {
     if (isVisible) {
       setPlayingVideoId(postId);
@@ -534,6 +544,7 @@ export default function FeedScreen({ navigation }: any) {
               isVideoMuted={mutedVideos.has(item.id)}
               onVideoMuteToggle={handleVideoMuteToggle}
               onVideoPlayPauseToggle={handleVideoPlayPauseToggle}
+              onCommentsCountChange={handleCommentsCountChange}
             />
           )}
           refreshControl={

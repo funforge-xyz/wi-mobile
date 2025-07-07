@@ -45,6 +45,7 @@ interface PostDetailsModalProps {
   onClose: () => void;
   postId: string;
   currentTheme: any;
+  onCommentsCountChange?: (newCount: number) => void;
 }
 
 export default function PostDetailsModal({
@@ -52,6 +53,7 @@ export default function PostDetailsModal({
   onClose,
   postId,
   currentTheme,
+  onCommentsCountChange,
 }: PostDetailsModalProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();

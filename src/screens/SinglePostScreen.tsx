@@ -148,6 +148,21 @@ export default function SinglePostScreen({ route, navigation }: any) {
 
   const { isPlaying } = useEvent(videoPlayer, 'playingChange', { isPlaying: videoPlayer.playing });
 
+  const handleCommentsCountChange = (newCount: number) => {
+    setPost(prevPost => prevPost ? { 
+      ...prevPost, 
+      commentsCount: newCount 
+    } : null);
+  };
+
+  const handleVideoVisibilityChange = (postId: string, isVisible: boolean) => {
+    if (isVisible) {
+      setPlayingVideoId(postId);
+    } else if (playingVideoId === postId) {
+      setPlayingVideoId(null);
+    }
+  };
+
   useEffect(() => {
     const initializeData = async () => {
       await loadCurrentUser();
@@ -180,7 +195,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
         setLoading(false);
         return;
       }
-      
+
       const loadInitialData = async () => {
         await Promise.all([
           loadCommentsData(),
@@ -210,13 +225,13 @@ export default function SinglePostScreen({ route, navigation }: any) {
         const blocked = await checkIfUserIsBlocked(postData.authorId);
         console.log('Blocked check result for user', postData.authorId, ':', blocked);
         setIsUserBlocked(blocked);
-        
+
         if (!blocked) {
           setEditedContent(postData.content || '');
           setEditedAllowComments(postData.allowComments !== false);
           setEditedShowLikeCount(postData.showLikeCount !== false);
         }
-        
+
         // Always set the post to stop loading
         setPost(postData);
       } else {
@@ -625,7 +640,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
           canEdit={false}
           currentTheme={currentTheme}
         />
-        
+
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Text style={{ color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }}>
             {t('userProfile.userIsBlocked')}

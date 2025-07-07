@@ -49,6 +49,7 @@ interface PostItemProps {
   isVideoMuted?: boolean;
   onVideoMuteToggle?: (postId: string) => void;
   onVideoPlayPauseToggle?: (postId: string, shouldPlay: boolean) => void;
+  onCommentsCountChange?: (postId: string, newCount: number) => void;
 }
 
 export default function PostItem({ 
@@ -60,7 +61,8 @@ export default function PostItem({
   isVideoPlaying = false,
   isVideoMuted = false,
   onVideoMuteToggle,
-  onVideoPlayPauseToggle
+  onVideoPlayPauseToggle,
+  onCommentsCountChange
 }: PostItemProps) {
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
@@ -263,6 +265,11 @@ export default function PostItem({
         onClose={() => setShowPostDetailsModal(false)}
         postId={post.id}
         currentTheme={currentTheme}
+        onCommentsCountChange={(newCount) => {
+          if (onCommentsCountChange) {
+            onCommentsCountChange(post.id, newCount);
+          }
+        }}
       />
     </View>
   );
