@@ -226,21 +226,29 @@ export default function FeedScreen({ navigation }: any) {
                 return;
               }
 
-              // Load user settings and location first
+              // Load user settings first
               const radius = await loadUserSettings();
               if (radius) {
                 setUserRadius(radius);
               }
 
-              // Get current user location (continue even if it fails)
+              // Get current user location with timeout
+              let location = null;
               try {
-                const location = await locationService.getCurrentLocation();
-                if (location) {
-                  setCurrentUserLocation(location);
-                }
+                console.log('FeedScreen: Getting user location...');
+                location = await Promise.race([
+                  locationService.getCurrentLocation(),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Location timeout')), 10000)
+                  )
+                ]);
+                console.log('FeedScreen: Location obtained:', location);
+                setCurrentUserLocation(location);
               } catch (locationError) {
-                console.log('Location service not available:', locationError);
-                // Continue without location - posts will still load
+                console.log('FeedScreen: Location service not available:', locationError);
+                // Set loading to false since we can't get location
+                setLoading(false);
+                return;
               }
 
               // Initialize location tracking for the authenticated user (with error handling)
@@ -251,8 +259,14 @@ export default function FeedScreen({ navigation }: any) {
                 });
               }, 1000);
 
-              // Load posts after everything is set up and user is confirmed authenticated
-              await loadPosts();
+              // Load posts only if we have location
+              if (location) {
+                console.log('FeedScreen: Loading posts with location...');
+                await loadPosts();
+              } else {
+                console.log('FeedScreen: No location available, stopping loading');
+                setLoading(false);
+              }
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
@@ -299,8 +313,12 @@ export default function FeedScreen({ navigation }: any) {
 
 
   const loadPosts = async (isRefresh = false) => {
+    console.log('loadPosts called:', { isRefresh, currentUserLocation, userRadius });
+
     if (!currentUserLocation) {
       console.log('No location available, cannot load posts');
+      setLoading(false);
+      setRefreshing(false);
       return;
     }
 
@@ -309,6 +327,8 @@ export default function FeedScreen({ navigation }: any) {
     const auth = getAuth();
     if (!auth.currentUser) {
       console.log('User not authenticated, skipping post loading');
+      setLoading(false);
+      setRefreshing(false);
       return;
     }
 
