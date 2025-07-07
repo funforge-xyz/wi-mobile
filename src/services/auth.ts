@@ -6,7 +6,9 @@ import {
   onAuthStateChanged,
   User,
   updateProfile,
-  updatePassword
+  updatePassword,
+  reload,
+  sendEmailVerification
 } from 'firebase/auth';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth } from './firebase';
