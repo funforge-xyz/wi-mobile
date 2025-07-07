@@ -121,12 +121,9 @@ export default function PostItem({
     }
   }, [post.mediaURL, post.mediaType]);
 
-  // Use post data directly instead of local state
-  const liked = post.isLikedByUser;
-  const likesCount = post.likesCount;
-
   const handleLikePress = () => {
-    onLike(post.id, !liked);
+    const newLikedState = !post.isLikedByUser;
+    onLike(post.id, newLikedState);
   };
 
   const handleVideoMuteToggle = () => {
@@ -163,7 +160,7 @@ export default function PostItem({
 
     if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
       // This is a double tap - only like if not already liked
-      if (!liked) {
+      if (!post.isLikedByUser) {
         onLike(post.id, true);
         triggerLikeAnimation();
       }
@@ -234,8 +231,8 @@ export default function PostItem({
       )}
 
       <PostActions
-        liked={liked}
-        likesCount={likesCount}
+        liked={post.isLikedByUser}
+        likesCount={post.likesCount}
         commentsCount={post.commentsCount}
         showLikeCount={post.showLikeCount}
         allowComments={post.allowComments}
