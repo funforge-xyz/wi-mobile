@@ -126,6 +126,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
 
       // Check if user is blocked first
       const blocked = await checkIfUserIsBlocked(userId);
+      console.log('Blocked check result for user', userId, ':', blocked);
       setIsUserBlocked(blocked);
       
       if (blocked) {

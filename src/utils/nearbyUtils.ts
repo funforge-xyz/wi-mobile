@@ -320,36 +320,36 @@ export const formatLastSeen = (timestamp: any, t: (key: string, options?: any) =
 
 export const handleMessageUser = async (user: NearbyUser, currentUserId: string, navigation: any) => {
   try {
-    const firestore = getFirestore();
+    // const firestore = getFirestore();
 
-    // Check if there's already a connection or request between users
-    const existingConnectionQuery = query(
-      collection(firestore, 'connections'),
-      where('participants', 'array-contains', currentUserId)
-    );
-    const connectionsSnapshot = await getDocs(existingConnectionQuery);
+    // // Check if there's already a connection or request between users
+    // const existingConnectionQuery = query(
+    //   collection(firestore, 'connections'),
+    //   where('participants', 'array-contains', currentUserId)
+    // );
+    // const connectionsSnapshot = await getDocs(existingConnectionQuery);
 
-    let hasConnection = false;
-    connectionsSnapshot.forEach((doc) => {
-      const connectionData = doc.data();
-      if (connectionData.participants.includes(user.id) && connectionData.status === 'active') {
-        hasConnection = true;
-      }
-    });
+    // let hasConnection = false;
+    // connectionsSnapshot.forEach((doc) => {
+    //   const connectionData = doc.data();
+    //   if (connectionData.participants.includes(user.id) && connectionData.status === 'active') {
+    //     hasConnection = true;
+    //   }
+    // });
 
-    // Check for existing requests
-    const existingRequestQuery = query(
-      collection(firestore, 'connectionRequests'),
-      where('fromUserId', '==', currentUserId),
-      where('toUserId', '==', user.id),
-      where('status', '==', 'pending')
-    );
-    const requestSnapshot = await getDocs(existingRequestQuery);
+    // // Check for existing requests
+    // const existingRequestQuery = query(
+    //   collection(firestore, 'connectionRequests'),
+    //   where('fromUserId', '==', currentUserId),
+    //   where('toUserId', '==', user.id),
+    //   where('status', '==', 'pending')
+    // );
+    // const requestSnapshot = await getDocs(existingRequestQuery);
 
-    let hasRequest = false;
-    if (!requestSnapshot.empty) {
-      hasRequest = true;
-    }
+    // let hasRequest = false;
+    // if (!requestSnapshot.empty) {
+    //   hasRequest = true;
+    // }
 
     // Navigate to chat screen with this user
     navigation.navigate('Chat', { 
