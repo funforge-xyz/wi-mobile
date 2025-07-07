@@ -76,6 +76,7 @@ export const loadPost = async (postId: string): Promise<Post | null> => {
         showLikeCount: postData.showLikeCount !== false,
         allowComments: postData.allowComments !== false,
         isPrivate: postData.isPrivate || false,
+        isFrontCamera: postData.isFrontCamera || false,
       };
     }
     return null;
@@ -363,7 +364,7 @@ export const deletePost = async (postId: string, dispatch?: any) => {
     const commentsRef = collection(firestore, 'posts', postId, 'comments');
     const commentsQuery = query(commentsRef);
     const commentsSnapshot = await getDocs(commentsQuery);
-    
+
     for (const commentDoc of commentsSnapshot.docs) {
       // Delete all likes for the comment
       const likesRef = collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'likes');
@@ -409,7 +410,7 @@ export const deletePost = async (postId: string, dispatch?: any) => {
       where('data.postId', '==', postId)
     );
     const notificationsSnapshot = await getDocs(postNotificationsQuery);
-    
+
     for (const notificationDoc of notificationsSnapshot.docs) {
       await deleteDoc(notificationDoc.ref);
     }
@@ -420,7 +421,7 @@ export const deletePost = async (postId: string, dispatch?: any) => {
       where('postId', '==', postId)
     );
     const alternateNotificationsSnapshot = await getDocs(alternateNotificationsQuery);
-    
+
     for (const notificationDoc of alternateNotificationsSnapshot.docs) {
       await deleteDoc(notificationDoc.ref);
     }
