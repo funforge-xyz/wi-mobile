@@ -131,9 +131,19 @@ export default function SettingsScreen() {
   };
 
   const handleToggleTheme = async () => {
-    const newValue = !isDarkMode;
-    dispatch(toggleTheme());
-    await settings.setDarkMode(newValue);
+    try {
+      const newDarkMode = !isDarkMode;
+      dispatch(toggleTheme());
+
+      // Save to AsyncStorage via SettingsService
+      const { SettingsService } = await import('../services/settings');
+      const settingsService = SettingsService.getInstance();
+      await settingsService.setDarkMode(newDarkMode);
+
+      console.log('Theme preference saved:', newDarkMode);
+    } catch (error) {
+      console.error('Failed to save theme preference:', error);
+    }
   };
 
   const handleEditProfile = () => {

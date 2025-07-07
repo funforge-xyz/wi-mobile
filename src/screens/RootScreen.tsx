@@ -50,12 +50,14 @@ export default function RootScreen() {
     try {
       setIsLoading(true);
 
-      // Load dark mode settings first
+      // Load dark mode settings
       try {
         await loadDarkModeSettings(dispatch);
-      } catch (settingsError) {
-        console.error('Error loading dark mode settings:', settingsError);
-        // Continue anyway
+        console.log('Dark mode settings loaded successfully');
+      } catch (error) {
+        console.error('Failed to load dark mode settings:', error);
+        // Set default theme if loading fails
+        dispatch(setTheme(false));
       }
 
       // Initialize Firebase and check auth state with better error handling

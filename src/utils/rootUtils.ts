@@ -122,6 +122,8 @@ export const loadDarkModeSettings = async (dispatch: any) => {
   try {
     const { SettingsService } = await import('../services/settings');
     const settingsService = SettingsService.getInstance();
+    
+    // First load the settings
     const settings = await settingsService.loadSettings();
     
     // Import setTheme action
@@ -130,9 +132,12 @@ export const loadDarkModeSettings = async (dispatch: any) => {
     // Set the theme in Redux store
     dispatch(setTheme(settings.darkMode));
     
-    console.log('Dark mode settings loaded:', settings.darkMode);
+    console.log('Dark mode settings loaded and applied:', settings.darkMode);
   } catch (error) {
     console.error('Error loading dark mode settings:', error);
+    // Set default to light mode if loading fails
+    const { setTheme } = await import('../store/themeSlice');
+    dispatch(setTheme(false));
   }
 };
 
