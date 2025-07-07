@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import UserAvatar from './UserAvatar';
 
@@ -32,6 +33,8 @@ export default function ConnectionRequestItem({
   currentTheme,
   isLastItem,
 }: ConnectionRequestItemProps) {
+  const { t } = useTranslation();
+  
   const displayName = item.firstName && item.lastName 
     ? `${item.firstName} ${item.lastName}` 
     : 'Anonymous User';
