@@ -11,16 +11,36 @@ export default function ChatStatusBanner({
   pendingRequestStatus,
   t,
 }: ChatStatusBannerProps) {
-  if (pendingRequestStatus !== 'sent') {
+  if (pendingRequestStatus === 'none') {
     return null;
   }
 
+  const getBannerConfig = () => {
+    if (pendingRequestStatus === 'sent') {
+      return {
+        icon: 'time-outline',
+        text: t('nearby.requestSent'),
+        color: COLORS.warning
+      };
+    } else if (pendingRequestStatus === 'received') {
+      return {
+        icon: 'mail-outline',
+        text: t('chats.requestReceived', 'Request received'),
+        color: COLORS.primary
+      };
+    }
+    return null;
+  };
+
+  const config = getBannerConfig();
+  if (!config) return null;
+
   return (
     <View style={styles.statusBannerContainer}>
-      <View style={[styles.statusPill, { backgroundColor: COLORS.warning + '15', borderColor: COLORS.warning + '30' }]}>
-        <Ionicons name="time-outline" size={14} color={COLORS.warning} />
-        <Text style={[styles.statusPillText, { color: COLORS.warning }]}>
-          {t('nearby.requestSent')}
+      <View style={[styles.statusPill, { backgroundColor: config.color + '15', borderColor: config.color + '30' }]}>
+        <Ionicons name={config.icon as any} size={14} color={config.color} />
+        <Text style={[styles.statusPillText, { color: config.color }]}>
+          {config.text}
         </Text>
       </View>
     </View>
