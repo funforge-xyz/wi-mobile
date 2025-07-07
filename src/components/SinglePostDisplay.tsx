@@ -70,7 +70,7 @@ export default function SinglePostDisplay({
   const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
 
   console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
-  console.log('SinglePostDisplay - isFrontCamera prop:', isFrontCamera, 'post.isFrontCamera:', post.isFrontCamera);
+  console.log('SinglePostDisplay - post.isFrontCamera:', post.isFrontCamera);
   console.log('SinglePostDisplay - videoPlayer:', !!videoPlayer, 'isVideoPlaying:', isVideoPlaying, 'isVideoLoading:', isVideoLoading);
 
   useEffect(() => {
