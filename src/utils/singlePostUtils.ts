@@ -201,25 +201,36 @@ export const loadLikes = async (postId: string): Promise<Like[]> => {
 export const handleLike = async (postId: string, likes: Like[], currentUser: any) => {
   if (!currentUser) return;
 
+  console.log('singlePostUtils - handleLike called:', {
+    postId,
+    currentLikesCount: likes.length,
+    currentUser: currentUser.uid,
+    userAlreadyLiked: likes.some(like => like.authorId === currentUser.uid)
+  });
+
   try {
     const firestore = getFirestore();
     const likesCollection = collection(firestore, 'posts', postId, 'likes');
 
-    // Check if user already liked
+    // Check if user already liked this post
     const userLike = likes.find(like => like.authorId === currentUser.uid);
 
     if (userLike) {
       // Unlike
+      console.log('singlePostUtils - Removing like from Firebase:', userLike.id);
       await deleteDoc(doc(firestore, 'posts', postId, 'likes', userLike.id));
+      console.log('singlePostUtils - Successfully removed like from Firebase');
     } else {
       // Like
+      console.log('singlePostUtils - Adding like to Firebase');
       await addDoc(likesCollection, {
         authorId: currentUser.uid,
         createdAt: serverTimestamp(),
       });
+      console.log('singlePostUtils - Successfully added like to Firebase');
     }
   } catch (error) {
-    console.error('Error handling like:', error);
+    console.error('singlePostUtils - Error handling like:', error);
     throw error;
   }
 };

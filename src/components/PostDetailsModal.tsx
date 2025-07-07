@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -72,7 +71,7 @@ export default function PostDetailsModal({
   const [newlyAddedReplyParentId, setNewlyAddedReplyParentId] = useState<string | undefined>(undefined);
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
-  
+
   const commentInputRef = useRef<TextInput>(null);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -153,7 +152,7 @@ export default function PostDetailsModal({
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load current user
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
@@ -162,13 +161,13 @@ export default function PostDetailsModal({
       const postData = await loadPost(postId);
       if (postData) {
         setPost(postData);
-        
+
         // Load comments and likes
         const [commentsData, likesData] = await Promise.all([
           loadComments(postId, user?.uid),
           loadLikes(postId)
         ]);
-        
+
         setComments(commentsData);
         setLikes(likesData);
       }
@@ -180,15 +179,24 @@ export default function PostDetailsModal({
   };
 
   const handleLikePress = async () => {
-    if (!currentUser || !post) return;
-    
+    console.log('PostDetailsModal - handleLikePress called:', {
+      postId,
+      post: post ? {
+        id: post.id,
+        authorName: post.authorName,
+        content: post.content?.substring(0, 50) + '...'
+      } : null,
+      currentLikes: likes.length,
+      userLiked: userLiked,
+      currentUser: currentUser?.uid
+    });
+
     try {
       await handleLike(postId, likes, currentUser);
-      // Reload likes to get updated state
-      const updatedLikes = await loadLikes(postId);
-      setLikes(updatedLikes);
+      console.log('PostDetailsModal - handleLike completed successfully');
     } catch (error) {
-      console.error('Error handling like:', error);
+      console.error('PostDetailsModal - Error in handleLikePress:', error);
+      Alert.alert(t('common.error'), t('singlePost.failedToUpdateLike'));
     }
   };
 
@@ -325,10 +333,10 @@ export default function PostDetailsModal({
 
     try {
       await deleteComment(post.id, commentId, parentCommentId);
-      
+
       // Update local state and comment count
       let deletedCommentsCount = 1;
-      
+
       if (parentCommentId) {
         setComments(prevComments => {
           return prevComments.map(comment => {

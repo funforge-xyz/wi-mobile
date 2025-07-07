@@ -116,6 +116,14 @@ export default function PostItem({
 
   const handleLikePress = () => {
     const newLikedState = !post.isLikedByUser;
+    console.log('PostItem - handleLikePress called:', {
+      postId: post.id,
+      currentLikedState: post.isLikedByUser,
+      newLikedState,
+      currentLikesCount: post.likesCount,
+      authorName: post.authorName,
+      content: post.content?.substring(0, 50) + '...'
+    });
     onLike(post.id, newLikedState);
   };
 
@@ -161,8 +169,16 @@ export default function PostItem({
     if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
       // This is a double tap - only like if not already liked
       if (!post.isLikedByUser) {
+        console.log('PostItem - Double tap like triggered:', {
+          postId: post.id,
+          authorName: post.authorName
+        });
         onLike(post.id, true);
         triggerLikeAnimation();
+      } else {
+        console.log('PostItem - Double tap ignored, post already liked:', {
+          postId: post.id
+        });
       }
       setLastTap(null);
     } else {

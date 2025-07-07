@@ -159,7 +159,7 @@ export default function FeedScreen({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
-      
+
       // Screen is focused - restore previously playing video if it exists
       if (rememberedVideoId && posts.length > 0) {
         // Check if the remembered video is still in the posts array
@@ -406,24 +406,30 @@ export default function FeedScreen({ navigation }: any) {
           authorName: user?.displayName || 'Anonymous',
           createdAt: new Date(),
         });
+        console.log('FeedScreen - Successfully added like to Firebase');
       } else {
         // Unlike: remove the like document
         const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
         const userLikeSnapshot = await getDocs(userLikeQuery);
 
         if (!userLikeSnapshot.empty) {
-          await deleteDoc(userLikeSnapshot.docs[0].ref);
+          const likeDoc = userLikeSnapshot.docs[0];
+          await deleteDoc(likeDoc.ref);
+          console.log('FeedScreen - Successfully removed like from Firebase');
+        } else {
+          console.log('FeedScreen - No like document found to remove');
         }
       }
     } catch (error) {
-      console.error('Error updating like:', error);
+      console.error('FeedScreen - Error handling like:', error);
+
       // Revert optimistic update on error
       setPosts(prevPosts => prevPosts.map(post => 
         post.id === postId 
           ? { 
               ...post, 
               isLikedByUser: currentLiked,
-              likesCount: currentLiked ? post.likesCount + 1 : post.likesCount - 1
+              likesCount: currentPost.likesCount
             }
           : post
       ));
@@ -473,6 +479,26 @@ export default function FeedScreen({ navigation }: any) {
       </SafeAreaView>
     );
   }
+
+  // Debug log posts data
+  console.log('FeedScreen - Rendered posts:', posts.length);
+  posts.forEach((post, index) => {
+    console.log(`Post ${index} [${post.id}]:`, {
+      id: post.id,
+      authorId: post.authorId,
+      authorName: post.authorName,
+      content: post.content?.substring(0, 50) + (post.content && post.content.length > 50 ? '...' : ''),
+      mediaURL: post.mediaURL ? 'HAS_MEDIA' : 'NO_MEDIA',
+      mediaType: post.mediaType,
+      isLikedByUser: post.isLikedByUser,
+      likesCount: post.likesCount,
+      commentsCount: post.commentsCount,
+      createdAt: post.createdAt?.toISOString?.() || post.createdAt,
+      isFromConnection: post.isFromConnection,
+      showLikeCount: post.showLikeCount,
+      allowComments: post.allowComments
+    });
+  });
 
   return (
     <SafeAreaView style={[feedStyles.container, { backgroundColor: currentTheme.background }]}>
