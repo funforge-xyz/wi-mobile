@@ -328,12 +328,12 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true);
   };
 
-  const { getFirestore, getAuth } = await import('../services/firebase');
-  const firestore = getFirestore();
-  const auth = getAuth();
-  const user = auth.currentUser;
-
   const handleLike = async (postId: string, newLikedState: boolean) => {
+    const { getFirestore, getAuth } = await import('../services/firebase');
+    const firestore = getFirestore();
+    const auth = getAuth();
+    const user = auth.currentUser;
+    
     if (!user) return;
 
     const currentPost = posts.find(p => p.id === postId);
