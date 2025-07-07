@@ -38,6 +38,7 @@ import {
   increment,
   getDoc
 } from 'firebase/firestore';
+import { getFirestore, getAuth } from '../services/firebase';
 
 interface ConnectionPost {
   id: string;
@@ -398,14 +399,13 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true);
   };
 
-  const { getFirestore, getAuth } = await import('../services/firebase');
-  const firestore = getFirestore();
-  const auth = getAuth();
-  const user = auth.currentUser;
-
   const handleLike = async (postId: string, newLikedState: boolean) => {
     const currentPost = posts.find(post => post.id === postId);
     if (!currentPost) return;
+
+    const firestore = getFirestore();
+    const auth = getAuth();
+    const user = auth.currentUser;
 
     const currentLiked = currentPost.isLikedByUser;
     const currentLikesCount = currentPost.likesCount;
