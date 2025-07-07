@@ -165,14 +165,19 @@ export default function FeedScreen({ navigation }: any) {
 
       return () => {
         // Screen is losing focus - remember currently playing video and pause it
-        if (playingVideoId) {
-          console.log('Remembering playing video for restoration:', playingVideoId);
-          setRememberedVideoId(playingVideoId);
-        }
+        // Use a ref to get current value without adding to dependencies
+        setRememberedVideoId(prev => {
+          const currentPlayingId = playingVideoId;
+          if (currentPlayingId) {
+            console.log('Remembering playing video for restoration:', currentPlayingId);
+            return currentPlayingId;
+          }
+          return prev;
+        });
         setPlayingVideoId(null);
         setIsScreenFocused(false);
       };
-    }, [rememberedVideoId, posts.length, playingVideoId])
+    }, [rememberedVideoId, posts.length])
   );
 
   useEffect(() => {
