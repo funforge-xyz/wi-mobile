@@ -168,9 +168,27 @@ export default function App() {
         <SafeAreaProvider>
           <NavigationContainer>
             <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+              {/* App header skeleton */}
+              <View style={{
+                height: 60,
+                backgroundColor: '#FFFFFF',
+                borderBottomWidth: 1,
+                borderBottomColor: '#E5E5E5',
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingTop: 10,
+              }}>
+                <View style={{
+                  width: 100,
+                  height: 20,
+                  backgroundColor: '#E5E5E5',
+                  borderRadius: 10,
+                }} />
+              </View>
+
               {/* Main content skeleton */}
               <View style={{ flex: 1 }}>
-                <FeedSkeleton count={3} />
+                <FeedSkeleton count={4} />
               </View>
               
               {/* Bottom tab skeleton */}
@@ -184,10 +202,10 @@ export default function App() {
                 alignItems: 'center',
                 paddingBottom: 20,
               }}>
-                {Array.from({ length: 4 }, (_, index) => (
+                {['Feed', 'Nearby', 'Chats', 'Profile'].map((label, index) => (
                   <View key={index} style={{
                     alignItems: 'center',
-                    opacity: 0.3,
+                    opacity: 0.4,
                   }}>
                     <View style={{
                       width: 24,
@@ -197,7 +215,7 @@ export default function App() {
                       marginBottom: 4,
                     }} />
                     <View style={{
-                      width: 40,
+                      width: label.length * 6,
                       height: 12,
                       backgroundColor: '#E5E5E5',
                       borderRadius: 6,

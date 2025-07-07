@@ -37,7 +37,7 @@ export default function RootScreen() {
         setIsAuthenticated(false);
         setShowOnboarding(false);
       }
-    }, 10000); // 10 second timeout
+    }, 20000); // 20 second timeout to allow proper auth persistence
 
     return () => clearTimeout(timeout);
   }, []);
