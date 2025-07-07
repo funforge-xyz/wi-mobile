@@ -508,11 +508,16 @@ export default function PostDetailsModal({
                     contentContainerStyle={{ flexGrow: 1 }}
                     showsVerticalScrollIndicator={false}
                   >
-                    {/* Like Actions Only */}
+                    {/* Post Stats and Actions */}
                     <View style={[styles.actionsOnly, { 
                       backgroundColor: currentTheme.background,
                       borderBottomColor: currentTheme.border 
                     }]}>
+                      <View style={styles.postStatsContainer}>
+                        <Text style={[styles.postStatsText, { color: currentTheme.text }]}>
+                          {post.likesCount || 0} {post.likesCount === 1 ? 'like' : 'likes'} • {post.commentsCount || 0} {post.commentsCount === 1 ? 'comment' : 'comments'}
+                        </Text>
+                      </View>
                       <PostActions
                         liked={userLiked}
                         likesCount={post.likesCount}
@@ -643,5 +648,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
+  },
+  postStatsContainer: {
+    paddingBottom: SPACING.xs,
+    alignItems: 'center',
+  },
+  postStatsText: {
+    fontSize: 14,
+    fontFamily: FONTS.medium,
   },
 });
