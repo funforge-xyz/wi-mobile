@@ -10,7 +10,8 @@
     "build:android": "eas build --platform android",
     "build:ios": "eas build --platform ios",
     "submit:android": "eas submit --platform android",
-    "submit:ios": "eas submit --platform ios"
+    "submit:ios": "eas submit --platform ios",
+    "eas-build-pre-install": "echo $GOOGLE_SERVICES_BASE64 | base64 --decode > ./google-services.json",
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
