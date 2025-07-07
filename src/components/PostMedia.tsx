@@ -51,16 +51,6 @@ export default function PostMedia({
     };
   }, []);
 
-  const handlePlayPause = async () => {
-    if (videoRef.current) {
-      if (status.isPlaying) {
-        await videoRef.current.pauseAsync();
-      } else {
-        await videoRef.current.playAsync();
-      }
-    }
-  };
-  
   const handleMuteUnmute = () => {
     if (onVideoMuteToggle) {
       onVideoMuteToggle();
@@ -89,8 +79,8 @@ export default function PostMedia({
           <VideoView
             ref={videoRef}
             style={mediaStyle}
-            allowsFullscreen
-            allowsPictureInPicture
+            allowsFullscreen={false}
+            allowsPictureInPicture={false}
             contentFit="cover"
             source={{ uri: mediaURL }}
             shouldPlay={isVideoPlaying}
@@ -100,23 +90,17 @@ export default function PostMedia({
           />
         </TouchComponent>
         
-        {isVideoPlaying && (
-          <View style={styles.videoControls}>
-            <TouchableOpacity onPress={handlePlayPause}>
-              <Ionicons
-                name={status.isPlaying ? 'pause' : 'play'}
-                size={30}
-                color="white"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleMuteUnmute}>
-              <Ionicons
-                name={isVideoMuted ? 'volume-mute' : 'volume-high'}
-                size={30}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
+        {isVideoPlaying && onVideoMuteToggle && (
+          <TouchableOpacity 
+            style={styles.muteButton} 
+            onPress={handleMuteUnmute}
+          >
+            <Ionicons
+              name={isVideoMuted ? 'volume-mute' : 'volume-high'}
+              size={24}
+              color="white"
+            />
+          </TouchableOpacity>
         )}
         
         {/* Animated heart overlay */}
@@ -193,11 +177,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  videoControls: {
+  muteButton: {
     position: 'absolute',
     bottom: 10,
-    left: 10,
-    flexDirection: 'row',
+    right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
 });

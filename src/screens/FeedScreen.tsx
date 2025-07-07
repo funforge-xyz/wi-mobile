@@ -73,23 +73,30 @@ export default function FeedScreen({ navigation }: any) {
   const currentTheme = getTheme(isDarkMode);
 
   const viewabilityConfig: ViewabilityConfig = {
-    viewAreaCoveragePercentThreshold: 50, // Video needs to be 50% visible to autoplay
-    minimumViewTime: 100, // Must be visible for at least 100ms
+    viewAreaCoveragePercentThreshold: 70, // Video needs to be 70% visible to autoplay
+    minimumViewTime: 200, // Must be visible for at least 200ms to avoid flicker
+    waitForInteraction: false,
   };
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    // Find the first viewable video post
+    // Find the first viewable video post with at least 70% visibility
     const visibleVideoPosts = viewableItems.filter(item => 
-      item.item?.mediaType === 'video' && item.isViewable
+      item.item?.mediaType === 'video' && 
+      item.isViewable && 
+      (item.percentVisible || 0) >= 70
     );
 
     if (visibleVideoPosts.length > 0) {
-      const firstVisibleVideoPost = visibleVideoPosts[0];
-      if (firstVisibleVideoPost.item.id !== currentlyPlayingVideo) {
-        setCurrentlyPlayingVideo(firstVisibleVideoPost.item.id);
+      // Play the first fully visible video
+      const mostVisibleVideo = visibleVideoPosts.reduce((prev, current) => 
+        (current.percentVisible || 0) > (prev.percentVisible || 0) ? current : prev
+      );
+      
+      if (mostVisibleVideo.item.id !== currentlyPlayingVideo) {
+        setCurrentlyPlayingVideo(mostVisibleVideo.item.id);
       }
     } else {
-      // No video posts are visible, stop all playback
+      // No video posts are sufficiently visible, stop all playback
       setCurrentlyPlayingVideo(null);
     }
   }, [currentlyPlayingVideo]);
@@ -378,9 +385,9 @@ export default function FeedScreen({ navigation }: any) {
               currentTheme={currentTheme}
               navigation={navigation}
               showImageBorderRadius={false}
-              isVideoPlaying={currentlyPlayingVideo === item.id}
+              isVideoPlaying={item.mediaType === 'video' && currentlyPlayingVideo === item.id}
               isVideoMuted={videoMutedStates[item.id] || false}
-              onVideoMuteToggle={handleVideoMuteToggle}
+              onVideoMuteToggle={() => handleVideoMuteToggle(item.id)}
             />
           )}
           refreshControl={
