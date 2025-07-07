@@ -129,38 +129,6 @@ export const blockUser = async (userId: string, connectionId: string) => {
       createdAt: serverTimestamp(),
     });
 
-    // Delete the connection
-    await deleteDoc(doc(firestore, 'connections', connectionId));
-
-    // Remove any pending connection requests between these users
-    const connectionRequestsQuery = query(
-      collection(firestore, 'connectionRequests'),
-      where('participants', 'array-contains', currentUser.uid)
-    );
-    const requestsSnapshot = await getDocs(connectionRequestsQuery);
-    
-    for (const requestDoc of requestsSnapshot.docs) {
-      const requestData = requestDoc.data();
-      if (requestData.participants.includes(userId)) {
-        await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
-      }
-    }
-
-    const auth = getAuth();
-    const firestore = getFirestore();
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      throw new Error('No authenticated user');
-    }
-
-    // Add to blockedUsers collection
-    await addDoc(collection(firestore, 'blockedUsers'), {
-      blockerUserId: currentUser.uid,
-      blockedUserId: userId,
-      createdAt: serverTimestamp(),
-    });
-
     // Delete the connection entirely
     if (connectionId) {
       await deleteDoc(doc(firestore, 'connections', connectionId));
