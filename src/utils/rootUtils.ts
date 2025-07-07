@@ -139,7 +139,7 @@ export const checkOnboardingStatus = async (): Promise<boolean> => {
   try {
     const { Settings } = await import('../services/storage');
     const settings = new Settings();
-    return await settings.isOnboardingDone();
+    return await settings.getOnboardingDone();
   } catch (error) {
     console.error('Error checking onboarding status:', error);
     return false;
