@@ -54,15 +54,6 @@ export default function PostMedia({
 
   const activeVideoPlayer = videoPlayer || internalVideoPlayer;
 
-  console.log('PostMedia - Video Debug:', {
-    mediaType,
-    hasMediaURL: !!mediaURL,
-    hasVideoPlayer: !!videoPlayer,
-    hasInternalPlayer: !!internalVideoPlayer,
-    hasActivePlayer: !!activeVideoPlayer,
-    isVideoPlaying
-  });
-
   // Update video player state when props change
   useEffect(() => {
     if (activeVideoPlayer && mediaType === 'video') {

@@ -85,15 +85,6 @@ export default function PostItem({
     }
   );
 
-  console.log('PostItem - Video Debug:', {
-    postId: post.id,
-    mediaType: post.mediaType,
-    hasMediaURL: !!post.mediaURL,
-    isVideoPlaying,
-    isMediaLoading,
-    hasVideoPlayer: !!videoPlayer
-  });
-
   // Update video player when playback state changes
   useEffect(() => {
     if (videoPlayer && post.mediaType === 'video') {
