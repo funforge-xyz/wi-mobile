@@ -72,6 +72,8 @@ export default function SinglePostDisplay({
   const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
 
   console.log('SinglePostDisplay - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
+  console.log('SinglePostDisplay - isFrontCamera prop:', isFrontCamera, 'post.isFrontCamera:', post.isFrontCamera);
+  console.log('SinglePostDisplay - videoPlayer:', !!videoPlayer, 'isVideoPlaying:', isVideoPlaying, 'isVideoLoading:', isVideoLoading);
 
   useEffect(() => {
     if (!isVideoLoading) {
@@ -165,7 +167,7 @@ export default function SinglePostDisplay({
                   player={videoPlayer}
                   style={[
                     styles.video,
-                    post.isFrontCamera && { transform: [{ scaleX: -1 }] }
+                    isFrontCamera && { transform: [{ scaleX: -1 }] }
                   ]}
                   allowsFullscreen={false}
                   allowsPictureInPicture={false}
