@@ -67,6 +67,7 @@ export default function FeedScreen({ navigation }: any) {
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
   const [notificationKey, setNotificationKey] = useState(0);
+  const [isScreenFocused, setIsScreenFocused] = useState(true);
   const [userRadius, setUserRadius] = useState<number>(10);
   const [currentUserLocation, setCurrentUserLocation] = useState<any>(null);
   const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
@@ -84,6 +85,11 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    // Don't start videos if the screen is not focused
+    if (!isScreenFocused) {
+      return;
+    }
+
     // Find the first viewable video post with at least 70% visibility
     const visibleVideoPosts = viewableItems.filter(item => 
       item.item && 
@@ -117,7 +123,7 @@ export default function FeedScreen({ navigation }: any) {
         setPlayingVideoId(null);
       }
     }
-  }, [playingVideoId]);
+  }, [playingVideoId, isScreenFocused]);
 
   const handleVideoMuteToggle = useCallback((postId: string) => {
     setMutedVideos(prev => {
@@ -141,6 +147,7 @@ export default function FeedScreen({ navigation }: any) {
   // Pause videos when screen loses focus and resume when focused
   useFocusEffect(
     useCallback(() => {
+      setIsScreenFocused(true);
       // Screen is focused - only check for visible videos if not loading and has posts
       if (flatListRef.current && !loading && posts.length > 0) {
         // Trigger viewability check to resume appropriate video
@@ -148,10 +155,11 @@ export default function FeedScreen({ navigation }: any) {
           flatListRef.current?.recordInteraction();
         }, 100);
       }
-      
+
       return () => {
         // Screen is losing focus - pause all videos
         setPlayingVideoId(null);
+        setIsScreenFocused(false);
       };
     }, [loading, posts.length])
   );
@@ -340,7 +348,7 @@ export default function FeedScreen({ navigation }: any) {
     const firestore = getFirestore();
     const auth = getAuth();
     const user = auth.currentUser;
-    
+
     if (!user) return;
 
     const currentPost = posts.find(p => p.id === postId);
