@@ -68,6 +68,7 @@ interface Post {
   showLikeCount: boolean;
   allowComments: boolean;
   isPrivate?: boolean;
+  isFrontCamera?: boolean;
 }
 
 interface Comment {
