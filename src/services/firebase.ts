@@ -60,14 +60,17 @@ export const initializeFirebase = async () => {
 // Getter functions to ensure components are initialized
 export const getAuth = () => {
   if (!auth) {
-    throw new Error('Firebase Auth not initialized. Call initializeFirebase() first.');
+    console.warn('Firebase Auth not initialized yet. Attempting to initialize...');
+    // Return null instead of throwing error to prevent crashes
+    return null;
   }
   return auth;
 };
 
 export const getFirestore = () => {
   if (!firestore) {
-    throw new Error('Firebase Firestore not initialized. Call initializeFirebase() first.');
+    console.warn('Firebase Firestore not initialized yet. Attempting to initialize...');
+    return null;
   }
   return firestore;
 };
