@@ -24,9 +24,9 @@ export default function ChatStatusBanner({
       };
     } else if (pendingRequestStatus === 'received') {
       return {
-        icon: 'mail-outline',
-        text: t('chats.requestReceived', 'Request received'),
-        color: COLORS.primary
+        icon: 'time-outline',
+        text: t('chats.requestPending', 'Request pending'),
+        color: COLORS.warning
       };
     }
     return null;
