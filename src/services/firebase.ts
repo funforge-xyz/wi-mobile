@@ -1,78 +1,89 @@
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
-import messaging from '@react-native-firebase/messaging';
 
-// These will be initialized automatically by React Native Firebase
-let firebaseAuth: any = null;
-let firebaseFirestore: any = null;
-let firebaseStorage: any = null;
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
-import messaging from '@react-native-firebase/messaging';
+import { initializeApp } from 'firebase/app';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
+import { FIREBASE_API_KEY } from 'react-native-dotenv';
 
-let firebaseAuth: any = null;
-let firebaseFirestore: any = null;
-let firebaseStorage: any = null;
-let firebaseMessaging: any = null;
+const firebaseConfig = {
+  projectId: "wichat-a6e48",
+  storageBucket: "wichat-a6e48.firebasestorage.app",
+  apiKey: FIREBASE_API_KEY,
+  authDomain: "wichat-a6e48.firebaseapp.com",
+  messagingSenderId: "38067432350",
+  appId: "1:38067432350:web:735be2b68842788282448f",
+};
+
+let app: any = null;
+let auth: any = null;
+let firestore: any = null;
+let storage: any = null;
+let analytics: any = null;
 
 export const initializeFirebase = async () => {
   try {
-    console.log('Initializing React Native Firebase...');
-
-    // React Native Firebase is automatically initialized
-    firebaseAuth = auth();
-    firebaseFirestore = firestore();
-    firebaseStorage = storage();
-    firebaseMessaging = messaging();
-
-    console.log('React Native Firebase initialized successfully');
-
-    return { 
-      auth: firebaseAuth, 
-      firestore: firebaseFirestore, 
-      storage: firebaseStorage,
-      messaging: firebaseMessaging 
-    };
+    // Only initialize if not already initialized
+    if (!app) {
+      console.log('Initializing Firebase...');
+      app = initializeApp(firebaseConfig);
+      
+      // Initialize services
+      auth = getAuth(app);
+      firestore = getFirestore(app);
+      storage = getStorage(app);
+      
+      // Only initialize analytics in production or when needed
+      try {
+        analytics = getAnalytics(app);
+      } catch (analyticsError) {
+        console.log('Analytics not available in this environment');
+      }
+      
+      console.log('Firebase initialized successfully');
+    } else {
+      console.log('Firebase already initialized');
+    }
+    
+    return { app, auth, firestore, storage };
   } catch (error) {
-    console.error('React Native Firebase initialization error:', error);
+    console.error('Firebase initialization error:', error);
+    console.error('Config:', { ...firebaseConfig, apiKey: '***' });
     throw error;
   }
 };
 
 // Getter functions to ensure components are initialized
 export const getAuth = () => {
-  if (!firebaseAuth) {
+  if (!auth) {
     console.warn('Firebase Auth not initialized yet. Attempting to initialize...');
-    firebaseAuth = auth();
+    return null;
   }
-  return firebaseAuth;
+  return auth;
 };
 
 export const getFirestore = () => {
-  if (!firebaseFirestore) {
+  if (!firestore) {
     console.warn('Firebase Firestore not initialized yet. Attempting to initialize...');
-    firebaseFirestore = firestore();
+    return null;
   }
-  return firebaseFirestore;
+  return firestore;
 };
 
 export const getStorage = () => {
-  if (!firebaseStorage) {
-    console.warn('Firebase Storage not initialized yet. Attempting to initialize...');
-    firebaseStorage = storage();
+  if (!storage) {
+    throw new Error('Firebase Storage not initialized. Call initializeFirebase() first.');
   }
-  return firebaseStorage;
+  return storage;
 };
 
-export const getMessaging = () => {
-  if (!firebaseMessaging) {
-    console.warn('Firebase Messaging not initialized yet. Attempting to initialize...');
-    firebaseMessaging = messaging();
+export const getFirebaseAnalytics = () => {
+  if (!analytics) {
+    throw new Error('Firebase Analytics not initialized. Call initializeFirebase() first.');
   }
-  return firebaseMessaging;
+  return analytics;
 };
 
-// Export initialized instances
-export { firebaseAuth as auth, firebaseFirestore as firestore, firebaseStorage as storage, firebaseMessaging as messaging };
+// Export initialized instances (will be null until initializeFirebase is called)
+export { auth, firestore, storage, analytics };
+export default app;

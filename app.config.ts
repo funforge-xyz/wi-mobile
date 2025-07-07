@@ -63,9 +63,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-camera",
     "expo-location",
     "expo-notifications",
-    "@react-native-firebase/app",
-    "@react-native-firebase/auth",
-    "@react-native-firebase/messaging",
     "expo-font",
     "expo-system-ui"
   ],

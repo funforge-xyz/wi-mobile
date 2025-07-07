@@ -1,15 +1,12 @@
 import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut as firebaseSignOut,
-  User as FirebaseUser,
-  // GoogleAuthProvider,
-  // signInWithCredential,
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  sendEmailVerification,
-  reload,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  User,
+  updateProfile,
+  updatePassword
 } from 'firebase/auth';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth } from './firebase';
@@ -44,7 +41,7 @@ export class AuthService {
         // Check if email is verified
         if (!user.emailVerified) {
           // Sign out the user since email is not verified
-          await firebaseSignOut(auth);
+          await signOut(auth);
           throw new Error('email-not-verified');
         }
 
@@ -86,7 +83,6 @@ export class AuthService {
         : user.displayName;
 
       if (displayName !== user.displayName || profileData.photoURL !== user.photoURL) {
-        const { updateProfile } = await import('firebase/auth');
         await updateProfile(user, {
           displayName: displayName || undefined,
           photoURL: profileData.photoURL || undefined,
@@ -161,14 +157,13 @@ export class AuthService {
 
         // Update Firebase Auth displayName if first and last names are provided
         if (profileData?.firstName && profileData?.lastName) {
-          const { updateProfile } = await import('firebase/auth');
           await updateProfile(user, {
             displayName: `${profileData.firstName} ${profileData.lastName}`,
           });
         }
 
         // Sign out the user after signup so they must verify email before signing in
-        await firebaseSignOut(auth);
+        await signOut(auth);
       }
 
       return user;
@@ -215,7 +210,7 @@ export class AuthService {
   async signOut(): Promise<void> {
     try {
       const auth = getAuth();
-      await firebaseSignOut(auth);
+      await signOut(auth);
       await this.credentials.removeToken();
       await this.credentials.removeUser();
       // TODO: Google Sign In calls disabled for Expo Go compatibility
@@ -272,7 +267,6 @@ export class AuthService {
       await reauthenticateWithCredential(user, credential);
 
       // Update password
-      const { updatePassword } = await import('firebase/auth');
       await updatePassword(user, newPassword);
 
       console.log('Password changed successfully');
@@ -314,7 +308,6 @@ export class AuthService {
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
       const auth = getAuth();
-      const { sendPasswordResetEmail } = await import('firebase/auth');
       await sendPasswordResetEmail(auth, email);
     } catch (error: any) {
       console.error('Send password reset email error:', error);
@@ -522,7 +515,7 @@ export const logout = async (): Promise<void> => {
     store.dispatch(nearbyLogout());
 
     // Then sign out from Firebase
-    await auth.signOut();
+    await signOut(auth);
 
     console.log('User logged out successfully');
   } catch (error) {

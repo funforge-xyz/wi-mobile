@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc, getDoc } from 'firebase/firestore';
+import { getMessaging, getToken } from 'firebase/messaging';
 import { getAuth } from './firebase';
 import { EXPO_PROJECT_ID } from 'react-native-dotenv';
 
