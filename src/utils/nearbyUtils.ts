@@ -136,11 +136,11 @@ export const loadNearbyUsers = async (
     const [blockedByMeQuery, blockedMeQuery, connectionsQuery, connectionRequestsSentQuery, connectionRequestsReceivedQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blockedUsers'),
-        where('blockerUserId', '==', currentUser.uid)
+        where('blockedBy', '==', currentUser.uid)
       ), { source: 'server' }),
       getDocs(query(
         collection(firestore, 'blockedUsers'),
-        where('blockedUserId', '==', currentUser.uid)
+        where('blockedUser', '==', currentUser.uid)
       ), { source: 'server' }),
       getDocs(query(
         collection(firestore, 'connections'),
@@ -160,8 +160,8 @@ export const loadNearbyUsers = async (
 
     // Combine both directions of blocking
     const blockedUserIds = new Set([
-      ...blockedByMeQuery.docs.map(doc => doc.data().blockedUserId), // Users I blocked
-      ...blockedMeQuery.docs.map(doc => doc.data().blockerUserId) // Users who blocked me
+      ...blockedByMeQuery.docs.map(doc => doc.data().blockedUser), // Users I blocked
+      ...blockedMeQuery.docs.map(doc => doc.data().blockedBy) // Users who blocked me
     ]);
 
     const connectedUserIds = new Set(

@@ -64,8 +64,8 @@ export const handleBlockUserAction = async (
 
     // Add to blockedUsers collection
     await addDoc(collection(firestore, 'blockedUsers'), {
-      blockerUserId: currentUser.uid,
-      blockedUserId: userId,
+      blockedBy: currentUser.uid,
+      blockedUser: userId,
       createdAt: serverTimestamp(),
     });
 
@@ -146,16 +146,16 @@ export const checkIfUserIsBlocked = async (userId: string): Promise<boolean> => 
     // Check if current user blocked the target user
     const blockedByMeQuery = query(
       collection(firestore, 'blockedUsers'),
-      where('blockerUserId', '==', currentUser.uid),
-      where('blockedUserId', '==', userId)
+      where('blockedBy', '==', currentUser.uid),
+      where('blockedUser', '==', userId)
     );
     const blockedByMeSnapshot = await getDocs(blockedByMeQuery);
 
     // Check if target user blocked current user
     const blockedMeQuery = query(
       collection(firestore, 'blockedUsers'),
-      where('blockerUserId', '==', userId),
-      where('blockedUserId', '==', currentUser.uid)
+      where('blockedBy', '==', userId),
+      where('blockedUser', '==', currentUser.uid)
     );
     const blockedMeSnapshot = await getDocs(blockedMeQuery);
 

@@ -124,6 +124,38 @@ export const blockUser = async (userId: string, connectionId: string) => {
 
     // Add to blockedUsers collection
     await addDoc(collection(firestore, 'blockedUsers'), {
+      blockedBy: currentUser.uid,
+      blockedUser: userId,
+      createdAt: serverTimestamp(),
+    });
+
+    // Delete the connection
+    await deleteDoc(doc(firestore, 'connections', connectionId));
+
+    // Remove any pending connection requests between these users
+    const connectionRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('participants', 'array-contains', currentUser.uid)
+    );
+    const requestsSnapshot = await getDocs(connectionRequestsQuery);
+    
+    for (const requestDoc of requestsSnapshot.docs) {
+      const requestData = requestDoc.data();
+      if (requestData.participants.includes(userId)) {
+        await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
+      }
+    }
+
+    const auth = getAuth();
+    const firestore = getFirestore();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+
+    // Add to blockedUsers collection
+    await addDoc(collection(firestore, 'blockedUsers'), {
       blockerUserId: currentUser.uid,
       blockedUserId: userId,
       createdAt: serverTimestamp(),
@@ -196,17 +228,17 @@ export const setupRealtimeListeners = async (
       const [blockedByMeQuery, blockedMeQuery] = await Promise.all([
         getDocs(query(
           collection(firestore, 'blockedUsers'),
-          where('blockerUserId', '==', currentUser.uid)
+          where('blockedBy', '==', currentUser.uid)
         )),
         getDocs(query(
           collection(firestore, 'blockedUsers'),
-          where('blockedUserId', '==', currentUser.uid)
+          where('blockedUser', '==', currentUser.uid)
         ))
       ]);
 
       return new Set([
-        ...blockedByMeQuery.docs.map(doc => doc.data().blockedUserId),
-        ...blockedMeQuery.docs.map(doc => doc.data().blockerUserId)
+        ...blockedByMeQuery.docs.map(doc => doc.data().blockedUser),
+        ...blockedMeQuery.docs.map(doc => doc.data().blockedBy)
       ]);
     };
 
