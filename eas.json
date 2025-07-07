@@ -4,6 +4,7 @@
   },
   "build": {
     "development": {
+      "gradleCommand": ":app:assembleDebug --stacktrace --info",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
@@ -14,6 +15,7 @@
       }
     },
     "preview": {
+      "gradleCommand": ":app:assembleDebug --stacktrace --info",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
