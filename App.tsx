@@ -40,7 +40,6 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthReady, setIsAuthReady] = useState(false);
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
@@ -82,6 +81,8 @@ export default function App() {
         Alert.alert('Initialization Error', 'Failed to start the app. Please restart.');
       } finally {
         setIsLoading(false);
+        // Hide splash screen when app initialization is complete
+        SplashScreen.hideAsync();
       }
     }
 
@@ -164,14 +165,7 @@ export default function App() {
 
   
 
-  // Hide splash screen only when both app and auth are ready
-  useEffect(() => {
-    if (!isLoading && isAuthReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [isLoading, isAuthReady]);
-
-  if (isLoading || !isAuthReady) {
+  if (isLoading) {
     return null; // Keep splash screen visible
   }
 
@@ -187,10 +181,9 @@ export default function App() {
           >
         <Stack.Screen 
           name="Root" 
+          component={RootScreen} 
           options={{ headerShown: false }} 
-        >
-          {(props) => <RootScreen {...props} onAuthReady={() => setIsAuthReady(true)} />}
-        </Stack.Screen>
+        />
         <Stack.Screen 
           name="Camera" 
           component={CameraScreen} 
