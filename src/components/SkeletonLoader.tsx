@@ -33,7 +33,7 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style 
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [-width, width],
+    outputRange: [-width * 1.5, width * 1.5],
   });
 
   return (
@@ -55,7 +55,8 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style 
           {
             backgroundColor: currentTheme.shimmer,
             transform: [{ translateX }],
-            width: width * 0.3,
+            width: width * 0.5,
+            opacity: 0.8,
           },
         ]}
       />

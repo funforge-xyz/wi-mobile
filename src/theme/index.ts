@@ -1,4 +1,3 @@
-
 import { COLORS } from '../config/constants';
 
 export interface Theme {
