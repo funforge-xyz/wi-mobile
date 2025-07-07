@@ -6,40 +6,38 @@ import { Ionicons } from '@expo/vector-icons';
 interface PostMediaProps {
   mediaURL: string;
   mediaType?: 'image' | 'video';
-  thumbnailURL?: string;
-  isFrontCamera?: boolean;
   style?: any;
-  onPress?: () => void;
+  showBorderRadius?: boolean;
+  onLoad?: () => void;
+  isFrontCamera?: boolean;
+  onDoubleTap?: () => void;
+  likeAnimationOpacity?: any;
+  likeAnimationScale?: any;
   isVideoPlaying?: boolean;
   isVideoMuted?: boolean;
   onVideoMuteToggle?: () => void;
-  showBorderRadius?: boolean;
-  onLoad?: () => void;
-  onDoubleTap?: () => void;
-  likeAnimationOpacity?: Animated.Value;
-  likeAnimationScale?: Animated.Value;
+  onVideoPlayPause?: () => void;
   videoPlayer?: any;
 }
 
-export default function PostMedia({ 
-  mediaURL, 
-  mediaType = 'image', 
-  thumbnailURL, 
-  isFrontCamera, 
-  style, 
-  onPress,
-  isVideoPlaying = false,
-  isVideoMuted = false,
-  onVideoMuteToggle,
-  showBorderRadius = true,
+export default function PostMedia({
+  mediaURL,
+  mediaType = 'image',
+  style,
+  showBorderRadius = false,
   onLoad,
+  isFrontCamera,
   onDoubleTap,
   likeAnimationOpacity,
   likeAnimationScale,
-  videoPlayer
+  isVideoPlaying,
+  isVideoMuted,
+  onVideoMuteToggle,
+  onVideoPlayPause,
+  videoPlayer,
 }: PostMediaProps) {
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
-  
+
   // Use external video player if provided, otherwise create internal one
   const internalVideoPlayer = useVideoPlayer(
     mediaType === 'video' && !videoPlayer ? mediaURL : null,
@@ -90,13 +88,13 @@ export default function PostMedia({
 
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
-  const touchProps = onDoubleTap 
+  const touchProps = onDoubleTap
     ? { onPress: onDoubleTap }
     : { onPress: onPress, activeOpacity: 0.9 };
 
   if (mediaType === 'video') {
     console.log('Rendering VideoView with player:', !!activeVideoPlayer);
-    
+
     if (!activeVideoPlayer) {
       console.warn('No video player available for video:', mediaURL);
       return (
@@ -107,7 +105,7 @@ export default function PostMedia({
         </View>
       );
     }
-    
+
     return (
       <View style={styles.mediaContainer}>
         <TouchComponent {...touchProps}>
@@ -134,20 +132,34 @@ export default function PostMedia({
             }}
           />
         </TouchComponent>
-        
-        {onVideoMuteToggle && (
-          <TouchableOpacity 
-            style={styles.muteButton} 
-            onPress={handleMuteUnmute}
-          >
-            <Ionicons
-              name={isVideoMuted ? 'volume-mute' : 'volume-high'}
-              size={24}
-              color="white"
-            />
-          </TouchableOpacity>
-        )}
-        
+
+        {/* Video control buttons */}
+              <View style={styles.videoControls}>
+                {/* Play/Pause button */}
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPress={onVideoPlayPause}
+                >
+                  <Ionicons
+                    name={isVideoPlaying ? 'pause' : 'play'}
+                    size={24}
+                    color="white"
+                  />
+                </TouchableOpacity>
+
+                {/* Mute/Unmute button */}
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPress={onVideoMuteToggle}
+                >
+                  <Ionicons
+                    name={isVideoMuted ? 'volume-mute' : 'volume-high'}
+                    size={24}
+                    color="white"
+                  />
+                </TouchableOpacity>
+              </View>
+
         {/* Animated heart overlay */}
         {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
           <Animated.View style={[
@@ -219,14 +231,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  muteButton: {
+  videoControls: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    bottom: 12,
+    right: 12,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  controlButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 20,
+    padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -123,6 +123,16 @@ export default function PostItem({
     }
   };
 
+  const handleVideoPlayPause = () => {
+    if (videoPlayer && post.mediaType === 'video') {
+      if (isVideoPlaying) {
+        videoPlayer.pause();
+      } else {
+        videoPlayer.play();
+      }
+    }
+  };
+
   const triggerLikeAnimation = () => {
     // Reset animation values
     likeAnimationScale.setValue(0);
@@ -216,6 +226,7 @@ export default function PostItem({
             isVideoPlaying={isVideoPlaying}
             isVideoMuted={isVideoMuted}
             onVideoMuteToggle={() => onVideoMuteToggle && onVideoMuteToggle(post.id)}
+            onVideoPlayPause={handleVideoPlayPause}
             videoPlayer={post.mediaType === 'video' ? videoPlayer : undefined}
           />
         </View>
