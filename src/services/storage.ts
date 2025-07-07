@@ -4,7 +4,9 @@ import { getFirestore } from './firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 
-export class Settings {
+export import AsyncStorage from '@react-native-async-storage/async-storage';
+
+class Settings {
   private static readonly ONBOARDING_DONE_KEY = 'onboarding_done';
   private static readonly USER_SETTINGS_KEY = 'user_settings';
   private static readonly DARK_MODE_KEY = 'dark_mode';

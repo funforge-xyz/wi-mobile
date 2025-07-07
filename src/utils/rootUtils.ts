@@ -20,12 +20,12 @@ export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
     console.log('Starting Firebase initialization...');
 
     // Initialize Firebase first
-    const { initializeFirebase } = await import('../services/firebase');
+    const { initializeFirebase, getAuth } = await import('../services/firebase');
     const firebaseServices = await initializeFirebase();
     console.log('Firebase initialized successfully');
 
     // Get auth instance and wait for initial auth state
-    const { getAuth, onAuthStateChanged, signOut } = await import('firebase/auth');
+    const { onAuthStateChanged, signOut } = await import('firebase/auth');
     const auth = getAuth();
 
     // Wait for auth state to be determined with a longer timeout
@@ -97,18 +97,7 @@ export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
   }
 };
 
-export const checkOnboardingStatus = async (settings: Settings) => {
-  return await settings.getOnboardingDone();
-};
 
-export const loadDarkModeSettings = async (settings: Settings) => {
-  return await settings.getDarkMode();
-};
-
-export const initializeSettings = async () => {
-  const { Settings } = await import('../services/storage');
-  return new Settings();
-};
 
 export const handleSignOut = async (
   setIsAuthenticated: (value: boolean) => void,
@@ -125,9 +114,10 @@ export const handleSignOut = async (
 };
 
 export const handleOnboardingComplete = async (
-  settings: Settings,
   setShowOnboarding: (value: boolean) => void
 ) => {
+  const { Settings } = await import('../services/storage');
+  const settings = new Settings();
   await settings.setOnboardingDone(true);
   setShowOnboarding(false);
 };
