@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Alert, TouchableOpacity, Text } from 'react-native';
+import { View, Alert, TouchableOpacity, Text, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import LoginImagePicker from '../components/LoginImagePicker';
 import LoginTermsCheckbox from '../components/LoginTermsCheckbox';
 import LoginButtons from '../components/LoginButtons';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
+import SuccessModal from '../components/SuccessModal';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
@@ -39,6 +40,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const { t, i18n } = useTranslation();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successAnimation] = useState(new Animated.Value(0));
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const dispatch = useAppDispatch();
   const currentTheme = getTheme(isDarkMode);
@@ -72,6 +75,25 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     } catch (error) {
       console.error('Failed to save theme setting:', error);
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    Animated.timing(successAnimation, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSuccessModal(false);
+      // Switch to sign in mode after successful signup
+      setIsSignUp(false);
+      setErrorMessage('');
+      setFirstName('');
+      setLastName('');
+      setConfirmPassword('');
+      setBio('');
+      setProfileImage('');
+      setAcceptTerms(false);
+    });
   };
 
   const handleEmailAuth = async () => {
@@ -131,27 +153,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           photoURL: photoURL,
         });
 
-        // Show success message for signup
-        Alert.alert(
-          t('auth.accountCreated'),
-          t('auth.verifyEmail'),
-          [
-            {
-              text: t('common.ok'),
-              onPress: () => {
-                // Switch to sign in mode after successful signup
-                setIsSignUp(false);
-                setErrorMessage('');
-                setFirstName('');
-                setLastName('');
-                setConfirmPassword('');
-                setBio('');
-                setProfileImage('');
-                setAcceptTerms(false);
-              }
-            }
-          ]
-        );
+        // Show success modal for signup
+        setShowSuccessModal(true);
+        Animated.timing(successAnimation, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
       } else {
         const user = await authService.signInWithEmail(email, password);
         
@@ -309,6 +317,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         currentTheme={currentTheme}
         onLanguageChange={handleLanguageChange}
         currentLanguage={i18n.language}
+      />
+
+      <SuccessModal
+        visible={showSuccessModal}
+        title={t('auth.accountCreated')}
+        message={t('auth.verifyEmail')}
+        animation={successAnimation}
+        currentTheme={currentTheme}
+        onClose={handleSuccessModalClose}
       />
     </SafeAreaView>
   );
