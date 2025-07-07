@@ -67,21 +67,17 @@ export default function ConnectionRequestItem({
 
       <View style={styles.requestActions}>
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
+          style={[styles.iconButton, { backgroundColor: COLORS.primary }]}
           onPress={() => onReply(item)}
         >
-          <Text style={styles.actionButtonText}>
-            {t('chats.reply', 'Reply')}
-          </Text>
+          <Ionicons name="checkmark" size={18} color="white" />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: COLORS.error }]}
+          style={[styles.iconButton, { backgroundColor: COLORS.error }]}
           onPress={() => onDecline(item)}
         >
-          <Text style={styles.actionButtonText}>
-            {t('chats.decline', 'Decline')}
-          </Text>
+          <Ionicons name="close" size={18} color="white" />
         </TouchableOpacity>
       </View>
     </View>
@@ -115,14 +111,12 @@ const styles = {
   requestActions: {
     flexDirection: 'row' as const,
   },
-  actionButton: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 8,
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     marginLeft: SPACING.sm,
-  },
-  actionButtonText: {
-    color: 'white',
-    fontFamily: FONTS.medium,
   },
 };

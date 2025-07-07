@@ -16,6 +16,8 @@ import { formatTimeAgo, handlePostLike, loadUserPostsData, refreshUserPostsData 
 import UserPostsProfileDisplay from '../components/UserPostsProfileDisplay';
 import DeletePostConfirmationModal from '../components/DeletePostConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
+import DeleteConnectionConfirmModal from '../components/DeleteConnectionConfirmModal';
+import DeleteConnectionSuccessModal from '../components/DeleteConnectionSuccessModal';
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +48,8 @@ export default function UserPostsScreen({ route, navigation }: any) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState<UserPost | null>(null);
+  const [showDeleteConnectionModal, setShowDeleteConnectionModal] = useState(false);
+  const [showDeleteConnectionSuccessModal, setShowDeleteConnectionSuccessModal] = useState(false);
 
   const currentTheme = getTheme(isDarkMode);
 
@@ -180,6 +184,80 @@ export default function UserPostsScreen({ route, navigation }: any) {
     setShowDeleteSuccessModal(false);
   };
 
+  const handleDeleteConnection = () => {
+    setShowDeleteConnectionModal(true);
+  };
+
+  const confirmDeleteConnection = async () => {
+    try {
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+      
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser || !route?.params?.userId) return;
+
+      const otherUserId = route.params.userId;
+
+      // Find and delete the connection
+      const connectionsRef = collection(firestore, 'connections');
+      const connectionQuery = query(
+        connectionsRef,
+        where('participants', 'array-contains', currentUser.uid)
+      );
+      
+      const snapshot = await getDocs(connectionQuery);
+      const connectionToDelete = snapshot.docs.find(doc => 
+        doc.data().participants.includes(otherUserId)
+      );
+
+      if (connectionToDelete) {
+        await deleteDoc(doc(firestore, 'connections', connectionToDelete.id));
+      }
+
+      // Delete any connection requests between these users
+      const requestsRef = collection(firestore, 'connectionRequests');
+      
+      const outgoingQuery = query(
+        requestsRef,
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', otherUserId)
+      );
+      
+      const incomingQuery = query(
+        requestsRef,
+        where('fromUserId', '==', otherUserId),
+        where('toUserId', '==', currentUser.uid)
+      );
+
+      const [outgoingSnapshot, incomingSnapshot] = await Promise.all([
+        getDocs(outgoingQuery),
+        getDocs(incomingQuery)
+      ]);
+
+      const deletePromises = [
+        ...outgoingSnapshot.docs.map(doc => deleteDoc(doc.ref)),
+        ...incomingSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      ];
+
+      await Promise.all(deletePromises);
+
+      setShowDeleteConnectionModal(false);
+      setShowDeleteConnectionSuccessModal(true);
+    } catch (error) {
+      console.error('Error deleting connection:', error);
+      Alert.alert('Error', 'Failed to delete connection');
+      setShowDeleteConnectionModal(false);
+    }
+  };
+
+  const handleDeleteConnectionSuccessClose = () => {
+    setShowDeleteConnectionSuccessModal(false);
+    navigation.goBack();
+  };
+
   const renderPostItem = ({ item, index }: { item: UserPost; index: number }) => {
     return (
       <UserPostsGridItem
@@ -258,6 +336,23 @@ export default function UserPostsScreen({ route, navigation }: any) {
         title={t('userPosts.postDeleted', 'Post Deleted')}
         message={t('userPosts.postDeletedMessage', 'The post has been successfully deleted.')}
         animation={new (require('react-native').Animated.Value)(1)}
+        currentTheme={currentTheme}
+      />
+
+      <DeleteConnectionConfirmModal
+        visible={showDeleteConnectionModal}
+        onConfirm={confirmDeleteConnection}
+        onCancel={() => setShowDeleteConnectionModal(false)}
+        userName={route?.params?.firstName && route?.params?.lastName ? 
+          `${route.params.firstName} ${route.params.lastName}` : 
+          'this user'
+        }
+        currentTheme={currentTheme}
+      />
+
+      <DeleteConnectionSuccessModal
+        visible={showDeleteConnectionSuccessModal}
+        onClose={handleDeleteConnectionSuccessClose}
         currentTheme={currentTheme}
       />
     </SafeAreaView>

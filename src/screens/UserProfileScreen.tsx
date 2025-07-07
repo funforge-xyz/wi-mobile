@@ -34,7 +34,7 @@ interface UserProfileProps {
 }
 
 export default function UserProfileScreen({ route, navigation }: UserProfileProps) {
-  const { userId, firstName = '', lastName = '', photoURL = '', bio = '' } = route.params;
+  const { userId, firstName = '', lastName = '', photoURL = '', bio = '' = route.params;
   const [profile, setProfile] = useState<UserProfile>({
     id: userId,
     firstName,
@@ -125,6 +125,11 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
         <UserProfileActions
           onBlockUser={handleBlockUser}
+          onDeleteConnection={() => navigation.navigate('UserPosts', { 
+            userId: route.params.userId,
+            firstName: route.params.firstName,
+            lastName: route.params.lastName
+          })}
           currentTheme={currentTheme}
           styles={styles}
         />
