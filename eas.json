@@ -4,20 +4,20 @@
   },
   "build": {
     "development": {
-      "gradleCommand": ":app:assembleDebug --stacktrace --info",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug --stacktrace --info"
       },
       "env": {
         "ENVIRONMENT": "development"
       }
     },
     "preview": {
-      "gradleCommand": ":app:assembleDebug --stacktrace --info",
       "distribution": "internal",
       "android": {
+        "gradleCommand": ":app:assembleDebug --stacktrace --info",
         "buildType": "apk"
       },
       "env": {
