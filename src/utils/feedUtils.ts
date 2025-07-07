@@ -268,20 +268,39 @@ export const loadConnectionPosts = async (
         const postLikesSnapshot = await getDocs(likesQuery);
 
         // Get comments count for this post (top-level comments)
-        const commentsQuery = query(
-          collection(firestore, 'comments'),
-          where('postId', '==', postId)
-        );
-        const commentsSnapshot = await getDocs(commentsQuery);
+        // First try subcollection approach
+        let commentsSnapshot;
+        try {
+          const commentsSubcollectionQuery = query(
+            collection(firestore, 'posts', postId, 'comments')
+          );
+          commentsSnapshot = await getDocs(commentsSubcollectionQuery);
+          console.log(`Found ${commentsSnapshot.size} comments in subcollection for post ${postId}`);
+        } catch (error) {
+          console.log('Subcollection approach failed, trying global comments collection');
+          // Fallback to global comments collection
+          const commentsQuery = query(
+            collection(firestore, 'comments'),
+            where('postId', '==', postId)
+          );
+          commentsSnapshot = await getDocs(commentsQuery);
+          console.log(`Found ${commentsSnapshot.size} comments in global collection for post ${postId}`);
+        }
 
         // Load replies count from subcollection for each comment
         let totalRepliesCount = 0;
         for (const commentDoc of commentsSnapshot.docs) {
-          const repliesQuery = query(
-            collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies')
-          );
-          const repliesSnapshot = await getDocs(repliesQuery);
-          totalRepliesCount += repliesSnapshot.size;
+          try {
+            const repliesQuery = query(
+              collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies')
+            );
+            const repliesSnapshot = await getDocs(repliesQuery);
+            totalRepliesCount += repliesSnapshot.size;
+            
+            console.log(`Comment ${commentDoc.id} has ${repliesSnapshot.size} replies`);
+          } catch (error) {
+            console.error(`Error loading replies for comment ${commentDoc.id}:`, error);
+          }
         }
 
         console.log('feedUtils - Firebase post data:', {
@@ -291,7 +310,9 @@ export const loadConnectionPosts = async (
           hasMediaURL: !!postData.mediaURL,
           topLevelComments: commentsSnapshot.size,
           totalReplies: totalRepliesCount,
-          totalComments: commentsSnapshot.size + totalRepliesCount
+          totalComments: commentsSnapshot.size + totalRepliesCount,
+          commentsQueryPath: `posts/${postId}/comments`,
+          commentsDocIds: commentsSnapshot.docs.map(doc => doc.id)
         });
 
         posts.push({
