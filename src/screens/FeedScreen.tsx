@@ -148,18 +148,14 @@ export default function FeedScreen({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
-      // Screen is focused - manually trigger viewability check to resume appropriate video
+      // Screen is focused - force viewability check by triggering a micro-scroll
       if (flatListRef.current && !loading && posts.length > 0) {
         setTimeout(() => {
-          // Force a viewability check by getting current viewable items
-          const flatListNode = flatListRef.current;
-          if (flatListNode && flatListNode._listRef && flatListNode._listRef._viewabilityTuples) {
-            // Manually trigger onViewableItemsChanged with current viewable items
-            flatListNode._onViewableItemsChanged?.({
-              viewableItems: flatListNode._listRef._viewabilityTuples[0]?.viewabilityHelper?.getViewableItems() || [],
-              changed: []
-            });
-          }
+          // Force viewability check by doing a micro-scroll (scroll by 1 pixel and back)
+          flatListRef.current?.scrollToOffset({ offset: 1, animated: false });
+          setTimeout(() => {
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+          }, 10);
         }, 100);
       }
 
