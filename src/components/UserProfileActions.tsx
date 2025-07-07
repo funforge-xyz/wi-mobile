@@ -101,16 +101,16 @@ export default function UserProfileActions({
       marginLeft: SPACING.xs,
     },
     deleteButton: {
-      borderColor: '#FF3B30',
-    },
-    deleteButtonText: {
-      color: '#FF3B30',
-    },
-    blockButton: {
       borderColor: '#FF9500',
     },
-    blockButtonText: {
+    deleteButtonText: {
       color: '#FF9500',
+    },
+    blockButton: {
+      borderColor: '#FF3B30',
+    },
+    blockButtonText: {
+      color: '#FF3B30',
     },
   });
 
@@ -123,7 +123,7 @@ export default function UserProfileActions({
           onPress={handleDeleteConnectionPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="person-remove" size={20} color="#FF3B30" />
+          <Ionicons name="person" size={20} color="#FF9500" />
           <Text style={[localStyles.actionButtonText, localStyles.deleteButtonText]}>
             {t('userProfile.deleteConnection', 'Delete Connection')}
           </Text>
@@ -135,7 +135,7 @@ export default function UserProfileActions({
           onPress={handleBlockPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="ban" size={20} color="#FF9500" />
+          <Ionicons name="ban" size={20} color="#FF3B30" />
           <Text style={[localStyles.actionButtonText, localStyles.blockButtonText]}>
             {t('userProfile.blockUser', 'Block User')}
           </Text>
