@@ -22,6 +22,8 @@ import NotificationsScreen from './src/screens/NotificationsScreen';
 import HelpSupportScreen from './src/screens/HelpSupportScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
+import CameraScreen from './src/screens/CameraScreen';
+import CreatePostScreen from './src/screens/CreatePostScreen';
 import { initializeFirebase } from './src/services/firebase';
 import { initializeNotifications, registerForPushNotifications } from './src/services/notifications';
 import { locationService } from './src/services/locationService';
