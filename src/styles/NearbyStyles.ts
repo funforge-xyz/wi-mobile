@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    paddingTop: SPACING.lg,
+    paddingTop: SPACING.md,
   },
   userItem: {
     flexDirection: 'row',

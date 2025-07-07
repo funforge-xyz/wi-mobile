@@ -19,7 +19,7 @@ export const createChatsStyles = (isDarkMode: boolean) => {
       alignItems: 'center',
     },
     listContent: {
-      paddingTop: SPACING.lg,
+      paddingTop: SPACING.md,
     },
     emptyContainer: {
       flex: 1,
