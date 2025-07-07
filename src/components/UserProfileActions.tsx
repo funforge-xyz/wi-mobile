@@ -123,17 +123,19 @@ export default function UserProfileActions({
   return (
     <>
       <View style={[localStyles.container, { backgroundColor: currentTheme.background }]}>
-        {/* Delete Connection Button */}
-        <TouchableOpacity
-          style={[localStyles.actionButton, localStyles.deleteButton, { borderColor: currentTheme.border }]}
-          onPress={handleDeleteConnectionPress}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="person" size={20} color="#FF9500" />
-          <Text style={[localStyles.actionButtonText, localStyles.deleteButtonText]}>
-            {t('userProfile.deleteConnection', 'Delete Connection')}
-          </Text>
-        </TouchableOpacity>
+        {/* Delete Connection Button - Only show if connected */}
+        {isConnected && (
+          <TouchableOpacity
+            style={[localStyles.actionButton, localStyles.deleteButton, { borderColor: currentTheme.border }]}
+            onPress={handleDeleteConnectionPress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="person" size={20} color="#FF9500" />
+            <Text style={[localStyles.actionButtonText, localStyles.deleteButtonText]}>
+              {t('userProfile.deleteConnection', 'Delete Connection')}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Block User Button */}
         <TouchableOpacity

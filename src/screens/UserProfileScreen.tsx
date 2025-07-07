@@ -50,6 +50,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const currentTheme = getTheme(isDarkMode);
@@ -57,6 +58,36 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   useEffect(() => {
     loadUserProfile();
   }, []);
+
+  const checkConnectionStatus = async () => {
+    try {
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return false;
+
+      const connectionsRef = collection(firestore, 'connections');
+      const connectionQuery = query(
+        connectionsRef,
+        where('participants', 'array-contains', currentUser.uid)
+      );
+
+      const snapshot = await getDocs(connectionQuery);
+      const connections = snapshot.docs.map(doc => doc.data());
+      
+      // Check if there's a connection with the target user
+      return connections.some(connection => 
+        connection.participants.includes(userId) && connection.status === 'active'
+      );
+    } catch (error) {
+      console.error('Error checking connection status:', error);
+      return false;
+    }
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -67,6 +98,10 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       setIsUserBlocked(blocked);
       
       if (!blocked) {
+        // Check connection status
+        const connected = await checkConnectionStatus();
+        setIsConnected(connected);
+
         const profileData = await loadUserProfileData(
           userId, 
           { firstName, lastName, photoURL, bio },
@@ -168,7 +203,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
             lastName: route.params.lastName
           })}
           currentTheme={currentTheme}
-          isConnected={false}
+          isConnected={isConnected}
           hasConnectionRequest={false}
           isBlocked={false}
           styles={styles}
