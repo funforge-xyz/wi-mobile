@@ -1,5 +1,6 @@
 
 import { View, Text, Modal, Animated, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../config/constants';
 import { addPostStyles } from '../styles/AddPostStyles';
@@ -11,6 +12,7 @@ interface SuccessModalProps {
   animation: Animated.Value;
   currentTheme: any;
   isLoading?: boolean;
+  onClose?: () => void;
 }
 
 export default function SuccessModal({
@@ -20,7 +22,17 @@ export default function SuccessModal({
   animation,
   currentTheme,
   isLoading = false,
+  onClose,
 }: SuccessModalProps) {
+  useEffect(() => {
+    if (visible && onClose) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000); // Auto-close after 2 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [visible, onClose]);
   return (
     <Modal
       visible={visible}

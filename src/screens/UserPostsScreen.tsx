@@ -257,7 +257,7 @@ export default function UserPostsScreen({ route, navigation }: any) {
         visible={showDeleteSuccessModal}
         title={t('userPosts.postDeleted', 'Post Deleted')}
         message={t('userPosts.postDeletedMessage', 'The post has been successfully deleted.')}
-        onClose={handleDeleteSuccessClose}
+        animation={new (require('react-native').Animated.Value)(1)}
         currentTheme={currentTheme}
       />
     </SafeAreaView>
