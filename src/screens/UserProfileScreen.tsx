@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ScrollView, ActivityIndicator, View } from 'react-native';
+import { ScrollView, ActivityIndicator, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
@@ -87,14 +87,19 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   };
 
   const handleConfirmBlock = async () => {
-    await handleBlockUserAction(
-      profile.id,
-      t,
-      () => {
-        setShowBlockModal(false);
-        setShowSuccessModal(true);
-      }
-    );
+    try {
+      await handleBlockUserAction(
+        profile.id,
+        t,
+        () => {
+          setShowBlockModal(false);
+          setShowSuccessModal(true);
+        }
+      );
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      setShowBlockModal(false);
+    }
   };
 
   const handleSuccessModalClose = () => {

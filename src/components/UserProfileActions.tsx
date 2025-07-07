@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -62,10 +61,17 @@ export default function UserProfileActions({
     setShowBlockModal(true);
   };
 
-  const handleConfirmBlock = () => {
-    setShowBlockModal(false);
-    onBlock();
-    setShowBlockSuccessModal(true);
+  const handleConfirmBlock = async () => {
+    try {
+      if (onBlock) {
+        await onBlock();
+      }
+      setShowBlockModal(false);
+      setShowBlockSuccessModal(true);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      setShowBlockModal(false);
+    }
   };
 
   const handleCancelBlock = () => {
