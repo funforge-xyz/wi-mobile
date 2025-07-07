@@ -461,6 +461,15 @@ export const loadFeedPosts = async (
       const commentsQuery = query(commentsCollection, where('postId', '==', postDoc.id));
       const commentsSnapshot = await getDocs(commentsQuery);
 
+      // Load replies count (assuming replies are in a subcollection called "replies")
+      let totalRepliesCount = 0;
+      for (const commentDoc of commentsSnapshot.docs) {
+          const repliesCollection = collection(firestore, 'comments', commentDoc.id, 'replies');
+          const repliesQuery = query(repliesCollection);
+          const repliesSnapshot = await getDocs(repliesQuery);
+          totalRepliesCount += repliesSnapshot.size;
+      }
+
       console.log('feedUtils - Firebase feed post data:', {
         id: postDoc.id,
         isFrontCamera: postData.isFrontCamera,
@@ -479,7 +488,7 @@ export const loadFeedPosts = async (
         isFrontCamera: postData.isFrontCamera,
         createdAt: postData.createdAt?.toDate?.() || new Date(),
         likesCount: likesSnapshot.size,
-        commentsCount: commentsSnapshot.size,
+        commentsCount: commentsSnapshot.size + totalRepliesCount,
         isLikedByUser: isLikedByUser,
         isAuthorOnline: userData?.lastSeen?.toDate && (Date.now() - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000),
         isFromConnection: false, // You may want to implement proper connection checking logic here
