@@ -34,7 +34,7 @@ export default function ConnectionRequestItem({
   isLastItem,
 }: ConnectionRequestItemProps) {
   const { t } = useTranslation();
-  
+
   const displayName = item.firstName && item.lastName 
     ? `${item.firstName} ${item.lastName}` 
     : 'Anonymous User';
@@ -70,7 +70,7 @@ export default function ConnectionRequestItem({
           style={[styles.iconButton, { backgroundColor: COLORS.primary }]}
           onPress={() => onReply(item)}
         >
-          <Ionicons name="checkmark" size={18} color="white" />
+          <Ionicons name="chatbubble" size={18} color="white" />
         </TouchableOpacity>
 
         <TouchableOpacity
