@@ -148,11 +148,18 @@ export default function FeedScreen({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
-      // Screen is focused - only check for visible videos if not loading and has posts
+      // Screen is focused - manually trigger viewability check to resume appropriate video
       if (flatListRef.current && !loading && posts.length > 0) {
-        // Trigger viewability check to resume appropriate video
         setTimeout(() => {
-          flatListRef.current?.recordInteraction();
+          // Force a viewability check by getting current viewable items
+          const flatListNode = flatListRef.current;
+          if (flatListNode && flatListNode._listRef && flatListNode._listRef._viewabilityTuples) {
+            // Manually trigger onViewableItemsChanged with current viewable items
+            flatListNode._onViewableItemsChanged?.({
+              viewableItems: flatListNode._listRef._viewabilityTuples[0]?.viewabilityHelper?.getViewableItems() || [],
+              changed: []
+            });
+          }
         }, 100);
       }
 
