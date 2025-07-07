@@ -133,6 +133,10 @@ export default function UserPostsScreen({ route, navigation }: any) {
     navigation.navigate('ProfileSettings');
   };
 
+  const handleConnectionsPress = () => {
+    navigation.navigate('Connections');
+  };
+
   const renderPostItem = ({ item, index }: { item: UserPost; index: number }) => {
     return (
       <UserPostsGridItem
@@ -151,6 +155,7 @@ export default function UserPostsScreen({ route, navigation }: any) {
       posts={posts}
       currentTheme={currentTheme}
       styles={styles}
+      onConnectionsPress={handleConnectionsPress}
     />
   );
 

@@ -1,5 +1,5 @@
 ;
-import { View, Text } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import AvatarImage from './AvatarImage';
@@ -14,14 +14,21 @@ interface UserProfile {
   lastUpdated?: number;
 }
 
-interface UserProfileDisplayProps {
-  profile: UserProfile | null;
+interface UserPostsProfileDisplayProps {
+  profile: any;
   posts: any[];
   currentTheme: any;
   styles: any;
+  onConnectionsPress?: () => void;
 }
 
-export default function UserPostsProfileDisplay({ profile, posts, currentTheme, styles }: UserProfileDisplayProps) {
+export default function UserPostsProfileDisplay({
+  profile,
+  posts,
+  currentTheme,
+  styles,
+  onConnectionsPress,
+}: UserPostsProfileDisplayProps) {
   const { t } = useTranslation();
 
   return (
@@ -58,14 +65,18 @@ export default function UserPostsProfileDisplay({ profile, posts, currentTheme, 
                 {t('profile.posts')}
               </Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statNumber, { color: currentTheme.text }]}>
-                {profile?.connectionsCount || 0}
-              </Text>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
-                {t('profile.connections')}
-              </Text>
-            </View>
+            <TouchableOpacity 
+            style={styles.statItem}
+            onPress={onConnectionsPress}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.statNumber, { color: currentTheme.text }]}>
+              {profile?.connectionsCount || 0}
+            </Text>
+            <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>
+              {t('profile.connections')}
+            </Text>
+          </TouchableOpacity>
           </View>
         </View>
       </View>

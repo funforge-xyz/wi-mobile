@@ -147,7 +147,6 @@
     "addMedia": "Add Photo/Video",
     "takePhoto": "Take Photo",
     "removePhoto": "Remove Photo",
-    "removeMedia": "Remove Media",
     "selectPhoto": "Select Photo",
     "selectMedia": "Select Media",
     "useCameraToAdd": "Use camera to add media",
@@ -533,5 +532,26 @@
     "retake": "Retake",
     "errorTakingPicture": "Failed to take picture",
     "errorRecordingVideo": "Failed to record video"
+  },
+  "profileDetails": {
+    "connectionsCount": "Connections",
+    "location": "Location",
+    "lastActiveTime": "Last active",
+    "editProfile": "Edit Profile"
+  },
+  "connections": {
+    "title": "Connections",
+    "searchConnections": "Search connections...",
+    "noConnections": "No Connections",
+    "noMatchingConnections": "No Matching Connections",
+    "connectWithPeople": "Start connecting with people nearby to see them here.",
+    "tryDifferentSearch": "Try a different search term.",
+    "connectedOn": "Connected on",
+    "delete": "Delete",
+    "block": "Block",
+    "deleteConnectionTitle": "Delete Connection",
+    "deleteConnectionMessage": "Are you sure you want to delete your connection with {{userName}}? This action cannot be undone.",
+    "connectionDeleted": "Connection Deleted",
+    "connectionDeletedMessage": "The connection has been successfully removed."
   }
 }
