@@ -142,8 +142,6 @@ export const checkIfUserIsBlocked = async (userId: string): Promise<boolean> => 
       return false;
     }
 
-    const firestore = getFirestore();
-
     // Check if current user blocked the target user
     const blockedByMeQuery = query(
       collection(firestore, 'blockedUsers'),
