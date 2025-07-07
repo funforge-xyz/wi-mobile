@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Dimensions, TouchableWithoutFeedback, Animated } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
 
 interface PostMediaProps {
   mediaURL: string;
@@ -19,6 +18,7 @@ interface PostMediaProps {
   onDoubleTap?: () => void;
   likeAnimationOpacity?: Animated.Value;
   likeAnimationScale?: Animated.Value;
+  videoPlayer?: any;
 }
 
 export default function PostMedia({ 
@@ -35,21 +35,9 @@ export default function PostMedia({
   onLoad,
   onDoubleTap,
   likeAnimationOpacity,
-  likeAnimationScale
+  likeAnimationScale,
+  videoPlayer
 }: PostMediaProps) {
-  const videoRef = useRef<VideoView>(null);
-  const [status, setStatus] = useState({});
-
-  useEffect(() => {
-    return () => {
-      // Stop the video when the component unmounts
-      if (videoRef.current) {
-        (async () => {
-          await videoRef.current.unloadAsync();
-        })();
-      }
-    };
-  }, []);
 
   const handleMuteUnmute = () => {
     if (onVideoMuteToggle) {
@@ -72,21 +60,20 @@ export default function PostMedia({
     ? { onPress: onDoubleTap }
     : { onPress: onPress, activeOpacity: 0.9 };
 
-  if (mediaType === 'video') {
+  if (mediaType === 'video' && videoPlayer) {
     return (
       <View style={styles.mediaContainer}>
         <TouchComponent {...touchProps}>
           <VideoView
-            ref={videoRef}
-            style={mediaStyle}
+            player={videoPlayer}
+            style={[
+              mediaStyle,
+              isFrontCamera && { transform: [{ scaleX: -1 }] }
+            ]}
             allowsFullscreen={false}
             allowsPictureInPicture={false}
+            nativeControls={false}
             contentFit="cover"
-            source={{ uri: mediaURL }}
-            shouldPlay={isVideoPlaying}
-            isMuted={isVideoMuted}
-            onLoad={() => onLoad && onLoad()}
-            onPlaybackStatusUpdate={status => setStatus(() => status)}
           />
         </TouchComponent>
         
