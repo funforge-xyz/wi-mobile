@@ -86,7 +86,8 @@ export default function FeedScreen({ navigation }: any) {
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     // Find the first viewable video post with at least 70% visibility
     const visibleVideoPosts = viewableItems.filter(item => 
-      item.item?.mediaType === 'video' && 
+      item.item && 
+      item.item.mediaType === 'video' && 
       item.isViewable && 
       (item.percentVisible || 0) >= 70
     );
@@ -95,7 +96,8 @@ export default function FeedScreen({ navigation }: any) {
       totalViewable: viewableItems.length,
       videoCount: visibleVideoPosts.length,
       currentlyPlaying: playingVideoId,
-      visibleVideos: visibleVideoPosts.map(v => ({ id: v.item.id, percent: v.percentVisible }))
+      visibleVideos: visibleVideoPosts.map(v => ({ id: v.item.id, percent: v.percentVisible, mediaType: v.item.mediaType })),
+      allItems: viewableItems.map(v => ({ id: v.item?.id, mediaType: v.item?.mediaType, isViewable: v.isViewable, percent: v.percentVisible }))
     });
 
     if (visibleVideoPosts.length > 0) {
