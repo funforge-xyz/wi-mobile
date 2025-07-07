@@ -267,18 +267,31 @@ export const loadConnectionPosts = async (
         );
         const postLikesSnapshot = await getDocs(likesQuery);
 
-        // Get comments count for this post
+        // Get comments count for this post (top-level comments)
         const commentsQuery = query(
           collection(firestore, 'comments'),
           where('postId', '==', postId)
         );
         const commentsSnapshot = await getDocs(commentsQuery);
 
+        // Load replies count from subcollection for each comment
+        let totalRepliesCount = 0;
+        for (const commentDoc of commentsSnapshot.docs) {
+          const repliesQuery = query(
+            collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies')
+          );
+          const repliesSnapshot = await getDocs(repliesQuery);
+          totalRepliesCount += repliesSnapshot.size;
+        }
+
         console.log('feedUtils - Firebase post data:', {
           id: postId,
           isFrontCamera: postData.isFrontCamera,
           mediaType: postData.mediaType,
-          hasMediaURL: !!postData.mediaURL
+          hasMediaURL: !!postData.mediaURL,
+          topLevelComments: commentsSnapshot.size,
+          totalReplies: totalRepliesCount,
+          totalComments: commentsSnapshot.size + totalRepliesCount
         });
 
         posts.push({
@@ -293,7 +306,7 @@ export const loadConnectionPosts = async (
           isFrontCamera: postData.isFrontCamera,
           createdAt: postData.createdAt?.toDate() || new Date(),
           likesCount: postLikesSnapshot.size,
-          commentsCount: commentsSnapshot.size,
+          commentsCount: commentsSnapshot.size + totalRepliesCount,
           showLikeCount: postData.showLikeCount ?? true,
           allowComments: postData.allowComments ?? true,
           isLikedByUser: likedPostIds.has(postId),
