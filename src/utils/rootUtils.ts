@@ -105,6 +105,11 @@ export const loadDarkModeSettings = async (settings: Settings) => {
   return await settings.getDarkMode();
 };
 
+export const initializeSettings = async () => {
+  const { Settings } = await import('../services/storage');
+  return new Settings();
+};
+
 export const handleSignOut = async (
   setIsAuthenticated: (value: boolean) => void,
   setShowOnboarding: (value: boolean) => void,
