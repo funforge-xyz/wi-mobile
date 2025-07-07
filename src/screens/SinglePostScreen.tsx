@@ -174,6 +174,12 @@ export default function SinglePostScreen({ route, navigation }: any) {
   // Load comments and likes after currentUser is available
   useEffect(() => {
     if (currentUser && post) {
+      // If user is blocked, stop loading immediately
+      if (isUserBlocked) {
+        setLoading(false);
+        return;
+      }
+      
       const loadInitialData = async () => {
         await Promise.all([
           loadCommentsData(),
@@ -183,7 +189,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
       };
       loadInitialData();
     }
-  }, [currentUser, post]);
+  }, [currentUser, post, isUserBlocked]);
 
   const loadCurrentUser = async () => {
     try {
@@ -204,16 +210,14 @@ export default function SinglePostScreen({ route, navigation }: any) {
         console.log('Blocked check result for user', postData.authorId, ':', blocked);
         setIsUserBlocked(blocked);
         
-        // Only set post data if user is not blocked
         if (!blocked) {
           setEditedContent(postData.content || '');
           setEditedAllowComments(postData.allowComments !== false);
           setEditedShowLikeCount(postData.showLikeCount !== false);
-          setPost(postData);
-        } else {
-          // If user is blocked, still set the post to stop loading but mark as blocked
-          setPost(postData);
         }
+        
+        // Always set the post to stop loading
+        setPost(postData);
       } else {
         Alert.alert(t('common.error'), t('singlePost.postNotFound'));
         navigation.goBack();
@@ -610,19 +614,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
     );
   }
 
-  if (!post) {
-    return (
-      <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={singlePostStyles.errorContainer}>
-          <Text style={[singlePostStyles.errorText, { color: currentTheme.text }]}>
-            {t('singlePost.postNotFound')}
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Show blocked user message if the post author is blocked
+  // Show blocked user message if the post author is blocked - check this BEFORE checking if post exists
   if (isUserBlocked) {
     return (
       <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
@@ -639,6 +631,18 @@ export default function SinglePostScreen({ route, navigation }: any) {
           </Text>
           <Text style={{ color: currentTheme.textSecondary, textAlign: 'center', lineHeight: 20 }}>
             {t('userProfile.cannotViewBlockedProfile')}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!post) {
+    return (
+      <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
+        <View style={singlePostStyles.errorContainer}>
+          <Text style={[singlePostStyles.errorText, { color: currentTheme.text }]}>
+            {t('singlePost.postNotFound')}
           </Text>
         </View>
       </SafeAreaView>
