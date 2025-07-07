@@ -191,6 +191,25 @@ export const setupRealtimeListeners = async (
     const firestore = getFirestore();
     const now = Date.now();
 
+    // Get blocked users (both directions)
+    const getBlockedUserIds = async () => {
+      const [blockedByMeQuery, blockedMeQuery] = await Promise.all([
+        getDocs(query(
+          collection(firestore, 'blockedUsers'),
+          where('blockerUserId', '==', currentUser.uid)
+        )),
+        getDocs(query(
+          collection(firestore, 'blockedUsers'),
+          where('blockedUserId', '==', currentUser.uid)
+        ))
+      ]);
+
+      return new Set([
+        ...blockedByMeQuery.docs.map(doc => doc.data().blockedUserId),
+        ...blockedMeQuery.docs.map(doc => doc.data().blockerUserId)
+      ]);
+    };
+
     // Real-time listener for connection requests (only pending ones)
     const requestsQuery = query(
       collection(firestore, 'connectionRequests'),
@@ -199,8 +218,16 @@ export const setupRealtimeListeners = async (
     );
 
     const unsubscribeRequests = onSnapshot(requestsQuery, async (snapshot) => {
+      const blockedUserIds = await getBlockedUserIds();
+      
       const requestPromises = snapshot.docs.map(async (requestDoc) => {
         const requestData = requestDoc.data();
+        
+        // Skip if user is blocked
+        if (blockedUserIds.has(requestData.fromUserId)) {
+          return null;
+        }
+
         const senderDoc = await getDoc(doc(firestore, 'users', requestData.fromUserId));
         const senderData = senderDoc.exists() ? senderDoc.data() : {};
 
@@ -217,7 +244,8 @@ export const setupRealtimeListeners = async (
         };
       });
 
-      const requests = await Promise.all(requestPromises);
+      const allRequests = await Promise.all(requestPromises);
+      const requests = allRequests.filter(request => request !== null) as ConnectionRequest[];
       requests.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       setConnectionRequests(requests);
     });
@@ -232,11 +260,17 @@ export const setupRealtimeListeners = async (
     const unsubscribeConnections = onSnapshot(connectionsQuery, async (snapshot) => {
       try {
         const connectionsMap = new Map();
+        const blockedUserIds = await getBlockedUserIds();
 
         const connectionPromises = snapshot.docs.map(async (connectionDoc): Promise<void> => {
           const connectionData = connectionDoc.data();
           const otherUserId = connectionData.participants?.find((id: string) => id !== currentUser.uid);
           if (!otherUserId) return;
+
+          // Skip if user is blocked
+          if (blockedUserIds.has(otherUserId)) {
+            return;
+          }
 
           const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
           const userData = userDoc.exists() ? userDoc.data() : {};
