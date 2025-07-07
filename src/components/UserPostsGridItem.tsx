@@ -81,7 +81,10 @@ export default function UserPostsGridItem({
           )}
           <Image
             source={{ uri: thumbnailUrl }}
-            style={[styles.gridItemImage, item.isFrontCamera && { transform: [{ scaleX: -1 }] }]}
+            style={[
+              styles.gridItemImage, 
+              item.isFrontCamera && { transform: [{ scaleX: -1 }] }
+            ]}
             resizeMode="cover"
             onLoad={() => setImageLoading(false)}
             onError={() => setImageLoading(false)}

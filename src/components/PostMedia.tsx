@@ -50,9 +50,10 @@ export default function PostMedia({
   const mediaStyle = [
     styles.media,
     style,
-    isFrontCamera && { transform: [{ scaleX: -1 }] },
     showBorderRadius && { borderRadius: 8 }
   ];
+
+  const frontCameraTransform = isFrontCamera ? { transform: [{ scaleX: -1 }] } : {};
 
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
@@ -68,7 +69,7 @@ export default function PostMedia({
             player={videoPlayer}
             style={[
               mediaStyle,
-              isFrontCamera && { transform: [{ scaleX: -1 }] }
+              frontCameraTransform
             ]}
             allowsFullscreen={false}
             allowsPictureInPicture={false}
@@ -111,7 +112,7 @@ export default function PostMedia({
       <TouchComponent {...touchProps}>
         <Image
           source={{ uri: mediaURL }}
-          style={mediaStyle}
+          style={[mediaStyle, frontCameraTransform]}
           resizeMode="cover"
           onLoad={() => {
             console.log('Image loaded successfully');
