@@ -163,16 +163,16 @@ export default function App() {
 
   
 
-  if (isLoading) {
-    return null; // Keep splash screen visible
-  }
-
   // Hide splash screen once we're past the initial loading
   useEffect(() => {
     if (!isLoading) {
       SplashScreen.hideAsync();
     }
   }, [isLoading]);
+
+  if (isLoading) {
+    return null; // Keep splash screen visible
+  }
 
   return (
     <Provider store={store}>
