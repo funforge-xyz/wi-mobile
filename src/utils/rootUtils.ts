@@ -117,6 +117,35 @@ export const handleSignOut = async (
   }
 };
 
+export const loadDarkModeSettings = async (dispatch: any) => {
+  try {
+    const { SettingsService } = await import('../services/settings');
+    const settingsService = SettingsService.getInstance();
+    const settings = await settingsService.loadSettings();
+    
+    // Import setTheme action
+    const { setTheme } = await import('../store/themeSlice');
+    
+    // Set the theme in Redux store
+    dispatch(setTheme(settings.darkMode));
+    
+    console.log('Dark mode settings loaded:', settings.darkMode);
+  } catch (error) {
+    console.error('Error loading dark mode settings:', error);
+  }
+};
+
+export const checkOnboardingStatus = async (): Promise<boolean> => {
+  try {
+    const { Settings } = await import('../services/storage');
+    const settings = new Settings();
+    return await settings.isOnboardingDone();
+  } catch (error) {
+    console.error('Error checking onboarding status:', error);
+    return false;
+  }
+};
+
 export const handleOnboardingComplete = async (
   setShowOnboarding: (value: boolean) => void
 ) => {
