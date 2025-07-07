@@ -34,7 +34,7 @@ interface UserProfileProps {
 }
 
 export default function UserProfileScreen({ route, navigation }: UserProfileProps) {
-  const { userId, firstName = '', lastName = '', photoURL = '', bio = '' = route.params;
+  const { userId, firstName = '', lastName = '', photoURL = '', bio = '' } = route.params;
   const [profile, setProfile] = useState<UserProfile>({
     id: userId,
     firstName,
