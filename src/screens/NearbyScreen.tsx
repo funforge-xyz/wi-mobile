@@ -130,11 +130,12 @@ export default function NearbyScreen({ navigation, route }: any) {
     }
   };
 
-  const renderUserItem = ({ item }: { item: NearbyUser }) => (
+  const renderUserItem = ({ item, index }: { item: NearbyUser; index: number }) => (
     <NearbyUserItem
       user={item}
       currentTheme={currentTheme}
       onPress={handleUserPress}
+      isLastItem={index === users.length - 1}
     />
   );
 

@@ -8,6 +8,7 @@ interface NearbyUserItemProps {
   user: NearbyUser;
   currentTheme: any;
   onPress: (user: NearbyUser) => void;
+  isLastItem?: boolean;
 }
 
 // Assuming COLORS is defined somewhere, e.g., in styles/colors.ts
@@ -20,10 +21,14 @@ export default function NearbyUserItem({
   user,
   currentTheme,
   onPress,
+  isLastItem = false,
 }: NearbyUserItemProps) {
   return (
     <TouchableOpacity
-      style={[styles.userItem, { backgroundColor: currentTheme.surface }]}
+      style={[
+        isLastItem ? styles.userItemLast : styles.userItem,
+        { borderBottomColor: currentTheme.border }
+      ]}
       onPress={() => onPress(user)}
     >
       <View style={styles.userInfo}>
