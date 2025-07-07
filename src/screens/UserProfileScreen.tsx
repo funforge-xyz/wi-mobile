@@ -79,9 +79,9 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       const snapshot = await getDocs(connectionQuery);
       const connections = snapshot.docs.map(doc => doc.data());
       
-      // Check if there's a connection with the target user
+      // Check if there's any connection with the target user (not just active ones)
       return connections.some(connection => 
-        connection.participants.includes(userId) && connection.status === 'active'
+        connection.participants.includes(userId)
       );
     } catch (error) {
       console.error('Error checking connection status:', error);
@@ -124,21 +124,29 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const handleConfirmBlock = async () => {
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
-      const { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc } = await import('firebase/firestore');
+      const { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc, deleteDoc } = await import('firebase/firestore');
       
       const auth = getAuth();
       const firestore = getFirestore();
       const currentUser = auth.currentUser;
 
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.error('No authenticated user');
+        setShowBlockModal(false);
+        return;
+      }
+
+      console.log('Blocking user:', profile.id);
 
       // Add to blocked users collection
-      await addDoc(collection(firestore, 'blockedUsers'), {
+      const blockDoc = await addDoc(collection(firestore, 'blockedUsers'), {
         blockedBy: currentUser.uid,
         blockedUser: profile.id,
         blockedAt: serverTimestamp(),
         reason: 'blocked_by_user'
       });
+
+      console.log('Block document created:', blockDoc.id);
 
       // Find and update any existing connection to blocked status
       const connectionsRef = collection(firestore, 'connections');
@@ -154,6 +162,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       });
 
       if (connectionToUpdate) {
+        console.log('Updating connection to blocked status:', connectionToUpdate.id);
         await updateDoc(doc(firestore, 'connections', connectionToUpdate.id), {
           status: 'blocked',
           blockedBy: currentUser.uid,
@@ -161,6 +170,37 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         });
       }
 
+      // Remove any pending connection requests
+      const requestsRef = collection(firestore, 'connectionRequests');
+      
+      // Outgoing requests
+      const outgoingQuery = query(
+        requestsRef,
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', profile.id)
+      );
+      
+      // Incoming requests
+      const incomingQuery = query(
+        requestsRef,
+        where('fromUserId', '==', profile.id),
+        where('toUserId', '==', currentUser.uid)
+      );
+
+      const [outgoingSnapshot, incomingSnapshot] = await Promise.all([
+        getDocs(outgoingQuery),
+        getDocs(incomingQuery)
+      ]);
+
+      // Delete all found requests
+      const deletePromises = [
+        ...outgoingSnapshot.docs.map(doc => deleteDoc(doc.ref)),
+        ...incomingSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      ];
+
+      await Promise.all(deletePromises);
+
+      console.log('User blocked successfully');
       setShowBlockModal(false);
       setShowSuccessModal(true);
     } catch (error) {
