@@ -21,6 +21,7 @@ import {
   sendChatMessage,
   loadMoreMessages,
 } from '../utils/chatUtils';
+import { checkIfUserIsBlocked } from '../utils/userProfileUtils';
 import { useTranslation } from 'react-i18next';
 
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -47,6 +48,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [messageUnsubscribe, setMessageUnsubscribe] = useState<(() => void) | null>(null);
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
   const messagesListRef = useRef<any>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
@@ -121,6 +123,15 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
     try {
       const currentUserId = getCurrentUserId();
       if (!currentUserId) return;
+
+      // Check if user is blocked first
+      const blocked = await checkIfUserIsBlocked(userId);
+      setIsUserBlocked(blocked);
+      
+      if (blocked) {
+        setLoading(false);
+        return;
+      }
 
       // Create chat room ID
       const roomId = createChatRoomId(currentUserId, userId);
@@ -206,7 +217,9 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   };
 
   const handleHeaderPress = () => {
-    navigation.navigate('UserProfile', { userId });
+    if (!isUserBlocked) {
+      navigation.navigate('UserProfile', { userId });
+    }
   };
 
   const handleLoadMore = async () => {
@@ -264,6 +277,31 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       <SafeAreaView style={[chatStyles.container, { backgroundColor: currentTheme.background }]}>
         <View style={chatStyles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isUserBlocked) {
+    return (
+      <SafeAreaView style={[chatStyles.container, { backgroundColor: currentTheme.background }]}>
+        <ChatHeader
+          onBackPress={handleBackPress}
+          onHeaderPress={() => {}} // Disabled for blocked users
+          userName={userName}
+          userPhotoURL={userPhotoURL}
+          userOnlineStatus={false}
+          currentTheme={currentTheme}
+          t={t}
+        />
+        
+        <View style={[chatStyles.loadingContainer, { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+          <Text style={[{ color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }]}>
+            {t('userProfile.userIsBlocked')}
+          </Text>
+          <Text style={[{ color: currentTheme.textSecondary, textAlign: 'center', lineHeight: 20 }]}>
+            {t('userProfile.cannotViewBlockedProfile')}
+          </Text>
         </View>
       </SafeAreaView>
     );
