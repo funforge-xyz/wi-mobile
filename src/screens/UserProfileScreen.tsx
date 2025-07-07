@@ -154,14 +154,21 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         />
 
         <UserProfileActions
-          onBlockUser={handleBlockUser}
+          onConnect={() => {}}
+          onMessage={() => {}}
+          onBlock={handleBlockUser}
           onDeleteConnection={() => navigation.navigate('UserPosts', { 
             userId: route.params.userId,
             firstName: route.params.firstName,
             lastName: route.params.lastName
           })}
           currentTheme={currentTheme}
+          isConnected={false}
+          hasConnectionRequest={false}
+          isBlocked={false}
           styles={styles}
+          userName={`${profile.firstName} ${profile.lastName}`}
+          navigation={navigation}
         />
       </ScrollView>
 
