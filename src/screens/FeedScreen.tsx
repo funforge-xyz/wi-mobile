@@ -297,6 +297,32 @@ export default function FeedScreen({ navigation }: any) {
         null, // lastTimestamp for initial load
         10 // limit - fetch 10 posts initially
       );
+      
+      // Debug log posts data
+      console.log('FeedScreen - RAW FETCHED POSTS FROM loadConnectionPosts:');
+      console.log('='.repeat(80));
+      console.log('Total posts fetched:', connectionPosts.length);
+      connectionPosts.forEach((post, index) => {
+        console.log(`RAW POST ${index + 1}:`, {
+          id: post.id,
+          authorId: post.authorId,
+          authorName: post.authorName,
+          authorPhotoURL: post.authorPhotoURL,
+          content: post.content?.substring(0, 100) + (post.content && post.content.length > 100 ? '...' : ''),
+          mediaURL: post.mediaURL ? 'HAS_MEDIA_URL' : 'NO_MEDIA_URL',
+          mediaType: post.mediaType,
+          isFrontCamera: post.isFrontCamera,
+          createdAt: post.createdAt,
+          likesCount: post.likesCount,
+          commentsCount: post.commentsCount,
+          showLikeCount: post.showLikeCount,
+          allowComments: post.allowComments,
+          isLikedByUser: post.isLikedByUser,
+          isAuthorOnline: post.isAuthorOnline,
+          isFromConnection: post.isFromConnection
+        });
+      });
+      console.log('='.repeat(80));
 
       if (isRefresh) {
         setPosts(connectionPosts);
@@ -479,26 +505,6 @@ export default function FeedScreen({ navigation }: any) {
       </SafeAreaView>
     );
   }
-
-  // Debug log posts data
-  console.log('FeedScreen - Rendered posts:', posts.length);
-  posts.forEach((post, index) => {
-    console.log(`Post ${index} [${post.id}]:`, {
-      id: post.id,
-      authorId: post.authorId,
-      authorName: post.authorName,
-      content: post.content?.substring(0, 50) + (post.content && post.content.length > 50 ? '...' : ''),
-      mediaURL: post.mediaURL ? 'HAS_MEDIA' : 'NO_MEDIA',
-      mediaType: post.mediaType,
-      isLikedByUser: post.isLikedByUser,
-      likesCount: post.likesCount,
-      commentsCount: post.commentsCount,
-      createdAt: post.createdAt?.toISOString?.() || post.createdAt,
-      isFromConnection: post.isFromConnection,
-      showLikeCount: post.showLikeCount,
-      allowComments: post.allowComments
-    });
-  });
 
   return (
     <SafeAreaView style={[feedStyles.container, { backgroundColor: currentTheme.background }]}>
