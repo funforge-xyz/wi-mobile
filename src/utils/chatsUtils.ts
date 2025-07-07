@@ -112,7 +112,7 @@ export const handleStartChat = (connection: Connection, navigation: any) => {
 export const blockUser = async (userId: string, connectionId: string) => {
   try {
     const { getAuth, getFirestore } = await import('../services/firebase');
-    const { addDoc, collection, serverTimestamp, doc, updateDoc } = await import('firebase/firestore');
+    const { addDoc, collection, serverTimestamp, doc, deleteDoc, query, where, getDocs } = await import('firebase/firestore');
 
     const auth = getAuth();
     const firestore = getFirestore();
@@ -129,17 +129,44 @@ export const blockUser = async (userId: string, connectionId: string) => {
       createdAt: serverTimestamp(),
     });
 
-    // Update connection status to blocked
-    const connectionRef = doc(firestore, 'connections', connectionId);
-    await updateDoc(connectionRef, {
-      status: 'blocked',
-      updatedAt: serverTimestamp(),
-    });
+    // Delete the connection entirely
+    if (connectionId) {
+      await deleteDoc(doc(firestore, 'connections', connectionId));
+    }
 
-    // Update Redux state to remove blocked user from nearby list
+    // Remove any pending connection requests (sent by current user)
+    const sentRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('fromUserId', '==', currentUser.uid),
+      where('toUserId', '==', userId)
+    );
+    const sentRequestsSnapshot = await getDocs(sentRequestsQuery);
+    
+    for (const requestDoc of sentRequestsSnapshot.docs) {
+      await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
+    }
+
+    // Remove any pending connection requests (sent by blocked user)
+    const receivedRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('fromUserId', '==', userId),
+      where('toUserId', '==', currentUser.uid)
+    );
+    const receivedRequestsSnapshot = await getDocs(receivedRequestsQuery);
+    
+    for (const requestDoc of receivedRequestsSnapshot.docs) {
+      await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
+    }
+
+    // Update Redux state to remove blocked user from nearby list and connections
     const { store } = await import('../store');
     const { removeBlockedUser } = await import('../store/nearbySlice');
+    const { removeConnection } = await import('../store/connectionsSlice');
+    
     store.dispatch(removeBlockedUser(userId));
+    if (connectionId) {
+      store.dispatch(removeConnection(connectionId));
+    }
 
     console.log('User blocked successfully');
   } catch (error) {

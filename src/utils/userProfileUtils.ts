@@ -52,7 +52,7 @@ export const handleBlockUserAction = async (
 ) => {
   try {
     const { getAuth, getFirestore } = await import('../services/firebase');
-    const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
+    const { addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, doc, updateDoc } = await import('firebase/firestore');
 
     const auth = getAuth();
     const firestore = getFirestore();
@@ -69,15 +69,100 @@ export const handleBlockUserAction = async (
       createdAt: serverTimestamp(),
     });
 
-    // Update Redux state to remove blocked user from nearby list
+    // Remove any existing connections
+    const connectionsQuery = query(
+      collection(firestore, 'connections'),
+      where('participants', 'array-contains', currentUser.uid)
+    );
+    const connectionsSnapshot = await getDocs(connectionsQuery);
+    
+    for (const connectionDoc of connectionsSnapshot.docs) {
+      const connectionData = connectionDoc.data();
+      if (connectionData.participants.includes(userId)) {
+        await deleteDoc(doc(firestore, 'connections', connectionDoc.id));
+      }
+    }
+
+    // Remove any pending connection requests (sent by current user)
+    const sentRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('fromUserId', '==', currentUser.uid),
+      where('toUserId', '==', userId)
+    );
+    const sentRequestsSnapshot = await getDocs(sentRequestsQuery);
+    
+    for (const requestDoc of sentRequestsSnapshot.docs) {
+      await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
+    }
+
+    // Remove any pending connection requests (sent by blocked user)
+    const receivedRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('fromUserId', '==', userId),
+      where('toUserId', '==', currentUser.uid)
+    );
+    const receivedRequestsSnapshot = await getDocs(receivedRequestsQuery);
+    
+    for (const requestDoc of receivedRequestsSnapshot.docs) {
+      await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
+    }
+
+    // Update Redux state to remove blocked user from nearby list and connections
     const { store } = await import('../store');
     const { removeBlockedUser } = await import('../store/nearbySlice');
+    const { removeConnection } = await import('../store/connectionsSlice');
+    
     store.dispatch(removeBlockedUser(userId));
+    
+    // Remove from connections state if exists
+    const connections = store.getState().connections.connections;
+    const connectionToRemove = connections.find(conn => 
+      conn.participants.includes(userId)
+    );
+    if (connectionToRemove) {
+      store.dispatch(removeConnection(connectionToRemove.id));
+    }
 
     onSuccess();
   } catch (error) {
     console.error('Error blocking user:', error);
     throw new Error(t('userProfile.failedToBlock'));
+  }
+};
+
+export const checkIfUserIsBlocked = async (userId: string): Promise<boolean> => {
+  try {
+    const { getAuth, getFirestore } = await import('../services/firebase');
+    const { query, where, getDocs, collection } = await import('firebase/firestore');
+
+    const auth = getAuth();
+    const firestore = getFirestore();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      return false;
+    }
+
+    // Check if current user blocked the target user
+    const blockedByMeQuery = query(
+      collection(firestore, 'blockedUsers'),
+      where('blockerUserId', '==', currentUser.uid),
+      where('blockedUserId', '==', userId)
+    );
+    const blockedByMeSnapshot = await getDocs(blockedByMeQuery);
+
+    // Check if target user blocked current user
+    const blockedMeQuery = query(
+      collection(firestore, 'blockedUsers'),
+      where('blockerUserId', '==', userId),
+      where('blockedUserId', '==', currentUser.uid)
+    );
+    const blockedMeSnapshot = await getDocs(blockedMeQuery);
+
+    return !blockedByMeSnapshot.empty || !blockedMeSnapshot.empty;
+  } catch (error) {
+    console.error('Error checking if user is blocked:', error);
+    return false;
   }
 };
 

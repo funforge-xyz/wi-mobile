@@ -475,7 +475,10 @@
     "userBlockedSuccess": "User Blocked Successfully",
     "userBlockedMessage": "The user has been blocked and removed from your connections. You won't see them in nearby feeds anymore.",
     "failedToBlock": "Failed to block user",
-    "failedToLoadProfile": "Failed to load user profile"
+    "failedToLoadProfile": "Failed to load user profile",
+    "userIsBlocked": "User is Blocked",
+    "userBlockedDescription": "This user has been blocked and their profile is not available.",
+    "cannotViewBlockedProfile": "You cannot view this user's profile because they have been blocked."
   },
   "terms": {
     "title": "Terms and Conditions",

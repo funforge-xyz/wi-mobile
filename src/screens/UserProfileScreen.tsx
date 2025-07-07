@@ -15,6 +15,7 @@ import { getTheme } from '../theme';
 import { 
   loadUserProfileData, 
   handleBlockUserAction, 
+  checkIfUserIsBlocked,
   UserProfile
 } from '../utils/userProfileUtils';
 
@@ -48,6 +49,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const [loading, setLoading] = useState(true);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const currentTheme = getTheme(isDarkMode);
@@ -59,14 +61,21 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const loadUserProfile = async () => {
     try {
       setLoading(true);
-      const profileData = await loadUserProfileData(
-        userId, 
-        { firstName, lastName, photoURL, bio },
-        t
-      );
+      
+      // Check if user is blocked first
+      const blocked = await checkIfUserIsBlocked(userId);
+      setIsUserBlocked(blocked);
+      
+      if (!blocked) {
+        const profileData = await loadUserProfileData(
+          userId, 
+          { firstName, lastName, photoURL, bio },
+          t
+        );
 
-      if (profileData) {
-        setProfile(profileData);
+        if (profileData) {
+          setProfile(profileData);
+        }
       }
     } finally {
       setLoading(false);
@@ -104,6 +113,27 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <ProfileSkeleton />
+      </SafeAreaView>
+    );
+  }
+
+  if (isUserBlocked) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+        <UserProfileHeader
+          onBackPress={() => navigation.goBack()}
+          currentTheme={currentTheme}
+          styles={styles}
+        />
+        
+        <View style={[styles.content, { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+          <Text style={[styles.blockedTitle, { color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10 }]}>
+            {t('userProfile.userIsBlocked')}
+          </Text>
+          <Text style={[styles.blockedMessage, { color: currentTheme.textSecondary, textAlign: 'center', lineHeight: 20 }]}>
+            {t('userProfile.cannotViewBlockedProfile')}
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
