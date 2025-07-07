@@ -16,6 +16,7 @@ import {
   loadNotifications, 
   markAsRead, 
   markAllAsRead, 
+  deleteNotification,
   formatTimeAgo 
 } from '../utils/notificationsUtils';
 import NotificationsHeader from '../components/NotificationsHeader';
@@ -121,6 +122,15 @@ export default function NotificationsScreen({ navigation }: any) {
     }
   };
 
+  const handleDeleteNotification = async (notification: Notification) => {
+    try {
+      await deleteNotification(notification.id);
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await handleLoadNotifications();
@@ -133,6 +143,7 @@ export default function NotificationsScreen({ navigation }: any) {
       currentTheme={currentTheme}
       formatTimeAgo={(date) => formatTimeAgo(date, t)}
       onPress={handleNotificationPress}
+      onDelete={handleDeleteNotification}
       isLastItem={index === notifications.length - 1}
     />
   );

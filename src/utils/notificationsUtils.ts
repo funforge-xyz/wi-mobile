@@ -68,6 +68,12 @@ export const markAllAsRead = async (notifications: Notification[]): Promise<void
   await Promise.all(updatePromises);
 };
 
+export const deleteNotification = async (notificationId: string): Promise<void> => {
+  const firestore = getFirestore();
+  const notificationRef = doc(firestore, 'notifications', notificationId);
+  await import('firebase/firestore').then(({ deleteDoc }) => deleteDoc(notificationRef));
+};
+
 export const formatTimeAgo = (date: Date, t: any) => {
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();

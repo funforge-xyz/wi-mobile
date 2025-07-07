@@ -10,6 +10,7 @@ interface NotificationItemProps {
   currentTheme: any;
   formatTimeAgo: (date: Date) => string;
   onPress: (notification: Notification) => void;
+  onDelete: (notification: Notification) => void;
   isLastItem?: boolean;
 }
 
@@ -94,6 +95,10 @@ const itemStyles = {
     borderRadius: 4,
     marginLeft: SPACING.sm,
   },
+  deleteButton: {
+    padding: SPACING.xs,
+    marginLeft: SPACING.sm,
+  },
 };
 
 const NotificationItem = ({ 
@@ -101,6 +106,7 @@ const NotificationItem = ({
   currentTheme, 
   formatTimeAgo, 
   onPress,
+  onDelete,
   isLastItem = false
 }: NotificationItemProps) => {
   return (
@@ -150,6 +156,14 @@ const NotificationItem = ({
         {!item.read && (
           <View style={[itemStyles.unreadIndicator, { backgroundColor: COLORS.primary }]} />
         )}
+        
+        <TouchableOpacity
+          style={itemStyles.deleteButton}
+          onPress={() => onDelete(item)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="trash-outline" size={16} color={currentTheme.textSecondary} />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
