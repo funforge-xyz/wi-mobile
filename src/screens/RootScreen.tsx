@@ -11,6 +11,7 @@ import {
 } from '../utils/rootUtils';
 import { fetchUserProfile, loadUserLanguagePreference } from '../store/userSlice';
 import { getAuth } from 'firebase/auth';
+import { authService } from '../services/auth';
 
 import LoginScreen from './LoginScreen';
 import OnboardingScreen from './OnboardingScreen';
