@@ -284,6 +284,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
           styles={styles}
           userName={`${profile.firstName} ${profile.lastName}`}
           navigation={navigation}
+          disableInternalModals={true}
         />
       </ScrollView>
 

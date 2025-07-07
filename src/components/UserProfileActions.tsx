@@ -18,8 +18,9 @@ interface UserProfileActionsProps {
   hasConnectionRequest: boolean;
   isBlocked: boolean;
   styles: any;
-  userName?: string;
+  userName: string;
   navigation?: any;
+  disableInternalModals?: boolean;
 }
 
 export default function UserProfileActions({
@@ -31,8 +32,10 @@ export default function UserProfileActions({
   isConnected,
   hasConnectionRequest,
   isBlocked,
-  userName = '',
+  styles,
+  userName,
   navigation,
+  disableInternalModals = false,
 }: UserProfileActionsProps) {
   const { t } = useTranslation();
   const [showDeleteConnectionModal, setShowDeleteConnectionModal] = useState(false);
@@ -140,7 +143,7 @@ export default function UserProfileActions({
         {/* Block User Button */}
         <TouchableOpacity
           style={[localStyles.actionButton, localStyles.blockButton, { borderColor: currentTheme.border }]}
-          onPress={handleBlockPress}
+          onPress={disableInternalModals ? onBlock : () => setShowBlockModal(true)}
           activeOpacity={0.7}
         >
           <Ionicons name="ban" size={20} color="#FF3B30" />
@@ -167,19 +170,22 @@ export default function UserProfileActions({
       />
 
       {/* Block User Confirmation Modal */}
-      <BlockUserConfirmationModal
-        visible={showBlockModal}
-        onConfirm={handleConfirmBlock}
-        onCancel={handleCancelBlock}
-        currentTheme={currentTheme}
-      />
+      {!disableInternalModals && (
+        <>
+          <BlockUserConfirmationModal
+            visible={showBlockModal}
+            onConfirm={handleConfirmBlock}
+            onCancel={handleCancelBlock}
+            currentTheme={currentTheme}
+          />
 
-      {/* Block User Success Modal */}
-      <BlockUserSuccessModal
-        visible={showBlockSuccessModal}
-        onClose={handleBlockSuccessClose}
-        currentTheme={currentTheme}
-      />
+          <BlockUserSuccessModal
+            visible={showBlockSuccessModal}
+            onClose={handleBlockSuccessClose}
+            currentTheme={currentTheme}
+          />
+        </>
+      )}
     </>
   );
 }
