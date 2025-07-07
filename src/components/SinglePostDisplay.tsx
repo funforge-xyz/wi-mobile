@@ -47,7 +47,6 @@ interface SinglePostDisplayProps {
   isVideoMuted?: boolean;
   onVideoPlayPause?: () => void;
   onVideoMuteToggle?: () => void;
-  isFrontCamera?: boolean;
 }
 
 export default function SinglePostDisplay({
@@ -64,7 +63,6 @@ export default function SinglePostDisplay({
   isVideoMuted,
   onVideoPlayPause,
   onVideoMuteToggle,
-  isFrontCamera,
 }: SinglePostDisplayProps) {
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
   const [lastTap, setLastTap] = useState<number | null>(null);
@@ -167,7 +165,7 @@ export default function SinglePostDisplay({
                   player={videoPlayer}
                   style={[
                     styles.video,
-                    isFrontCamera && { transform: [{ scaleX: -1 }] }
+                    post.isFrontCamera && { transform: [{ scaleX: -1 }] }
                   ]}
                   allowsFullscreen={false}
                   allowsPictureInPicture={false}
@@ -221,7 +219,7 @@ export default function SinglePostDisplay({
               mediaURL={post.mediaURL}
               mediaType={post.mediaType}
               onLoad={() => setIsMediaLoading(false)}
-              isFrontCamera={isFrontCamera}
+              isFrontCamera={post.isFrontCamera}
               style={styles.media}
               onDoubleTap={handleDoubleTap}
               likeAnimationOpacity={likeAnimationOpacity}
