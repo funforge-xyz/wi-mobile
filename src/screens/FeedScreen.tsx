@@ -317,29 +317,44 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true);
   };
 
-  const handleLike = async (postId: string, currentLiked: boolean) => {
+  const { getFirestore, getAuth } = await import('../services/firebase');
+  const firestore = getFirestore();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const handleLike = async (postId: string, newLikedState: boolean) => {
+    if (!user) return;
+
+    const currentPost = posts.find(p => p.id === postId);
+    if (!currentPost) return;
+
+    const currentLiked = currentPost.isLikedByUser;
+
+    // Don't process if the state is already what we want
+    if (currentLiked === newLikedState) return;
+
+    // Optimistic update
+    setPosts(prevPosts => prevPosts.map(post => 
+      post.id === postId 
+        ? { 
+            ...post, 
+            isLikedByUser: newLikedState,
+            likesCount: newLikedState ? post.likesCount + 1 : post.likesCount - 1
+          }
+        : post
+    ));
+
     try {
-      // Get firebase instances
-      const { getFirestore, getAuth } = await import('../services/firebase');
-      const firestore = getFirestore();
-      const auth = getAuth();
-      const user = auth.currentUser;
+      const likesCollectionRef = collection(firestore, 'posts', postId, 'likes');
 
-      // Optimistically update UI first
-      setPosts(prevPosts => prevPosts.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              isLikedByUser: !currentLiked,
-              likesCount: currentLiked ? post.likesCount - 1 : post.likesCount + 1
-            }
-          : post
-      ));
-
-      const postRef = doc(firestore, 'posts', postId);
-      const likesCollectionRef = collection(postRef, 'likes');
-
-      if (currentLiked) {
+      if (newLikedState) {
+        // Like: add a like document
+        await addDoc(likesCollectionRef, {
+          authorId: user?.uid,
+          authorName: user?.displayName || 'Anonymous',
+          createdAt: new Date(),
+        });
+      } else {
         // Unlike: remove the like document
         const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
         const userLikeSnapshot = await getDocs(userLikeQuery);
@@ -347,13 +362,6 @@ export default function FeedScreen({ navigation }: any) {
         if (!userLikeSnapshot.empty) {
           await deleteDoc(userLikeSnapshot.docs[0].ref);
         }
-      } else {
-        // Like: add a like document
-        await addDoc(likesCollectionRef, {
-          authorId: user?.uid,
-          authorName: user?.displayName || 'Anonymous',
-          createdAt: new Date(),
-        });
       }
     } catch (error) {
       console.error('Error updating like:', error);

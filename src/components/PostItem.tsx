@@ -126,7 +126,7 @@ export default function PostItem({
   const likesCount = post.likesCount;
 
   const handleLikePress = () => {
-    onLike(post.id, liked);
+    onLike(post.id, !liked);
   };
 
   const handleVideoMuteToggle = () => {
@@ -164,13 +164,19 @@ export default function PostItem({
     if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
       // This is a double tap - only like if not already liked
       if (!liked) {
-        onLike(post.id, liked);
+        onLike(post.id, true);
         triggerLikeAnimation();
       }
       setLastTap(null);
     } else {
       // This is a single tap - record the time
       setLastTap(now);
+      // Clear the timeout to prevent single tap from firing after double tap
+      setTimeout(() => {
+        if (lastTap === now) {
+          setLastTap(null);
+        }
+      }, DOUBLE_PRESS_DELAY);
     }
   };
 
