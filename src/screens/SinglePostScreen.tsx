@@ -38,6 +38,7 @@ import {
   toggleCommentLike,
   deleteComment,
 } from '../utils/singlePostUtils';
+import { checkIfUserIsBlocked } from '../utils/userProfileUtils';
 import { useAppDispatch } from '../hooks/redux';
 import { updatePost as updatePostInFeed } from '../store/feedSlice';
 import { updatePostLike } from '../store/userSlice';
@@ -123,6 +124,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
   const [newlyAddedReplyParentId, setNewlyAddedReplyParentId] = useState<string | undefined>(undefined);
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [isUserBlocked, setIsUserBlocked] = useState(false);
   const commentInputRef = useRef<TextInput>(null);
 
   const { t } = useTranslation();
@@ -197,6 +199,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
       const postData = await loadPost(postId);
 
       if (postData) {
+        // Check if the post author is blocked or has blocked the current user
+        const blocked = await checkIfUserIsBlocked(postData.authorId);
+        setIsUserBlocked(blocked);
+        
         setEditedContent(postData.content || '');
         setEditedAllowComments(postData.allowComments !== false);
         setEditedShowLikeCount(postData.showLikeCount !== false);
@@ -604,6 +610,29 @@ export default function SinglePostScreen({ route, navigation }: any) {
         <View style={singlePostStyles.errorContainer}>
           <Text style={[singlePostStyles.errorText, { color: currentTheme.text }]}>
             {t('singlePost.postNotFound')}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show blocked user message if the post author is blocked
+  if (isUserBlocked) {
+    return (
+      <SafeAreaView style={[singlePostStyles.container, { backgroundColor: currentTheme.background }]}>
+        <SinglePostHeader
+          onBack={() => navigation.goBack()}
+          onEdit={() => {}}
+          canEdit={false}
+          currentTheme={currentTheme}
+        />
+        
+        <View style={[singlePostStyles.errorContainer, { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+          <Text style={[singlePostStyles.errorText, { color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10 }]}>
+            {t('userProfile.userIsBlocked')}
+          </Text>
+          <Text style={[singlePostStyles.errorText, { color: currentTheme.textSecondary, textAlign: 'center', lineHeight: 20 }]}>
+            {t('userProfile.cannotViewBlockedProfile')}
           </Text>
         </View>
       </SafeAreaView>
