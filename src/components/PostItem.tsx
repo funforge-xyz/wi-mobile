@@ -50,6 +50,7 @@ interface PostItemProps {
   onVideoMuteToggle?: (postId: string) => void;
   onVideoPlayPauseToggle?: (postId: string, shouldPlay: boolean) => void;
   onCommentsCountChange?: (postId: string, newCount: number) => void;
+  onLikesCountChange?: (postId: string, newCount: number, isLikedByUser: boolean) => void;
 }
 
 export default function PostItem({ 
@@ -268,6 +269,11 @@ export default function PostItem({
         onCommentsCountChange={(newCount) => {
           if (onCommentsCountChange) {
             onCommentsCountChange(post.id, newCount);
+          }
+        }}
+        onLikesCountChange={(newCount, isLikedByUser) => {
+          if (onLikesCountChange) {
+            onLikesCountChange(post.id, newCount, isLikedByUser);
           }
         }}
       />

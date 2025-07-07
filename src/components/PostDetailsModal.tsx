@@ -37,6 +37,8 @@ import CommentInput from './CommentInput';
 import PostActions from './PostActions';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useEvent } from 'expo';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { handlePostLike } from '../utils/feedUtils';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -46,14 +48,16 @@ interface PostDetailsModalProps {
   postId: string;
   currentTheme: any;
   onCommentsCountChange?: (newCount: number) => void;
+  onLikesCountChange?: (newCount: number, isLikedByUser: boolean) => void;
 }
 
-export default function PostDetailsModal({
-  visible,
-  onClose,
-  postId,
-  currentTheme,
+export default function PostDetailsModal({ 
+  visible, 
+  onClose, 
+  postId, 
+  currentTheme, 
   onCommentsCountChange,
+  onLikesCountChange 
 }: PostDetailsModalProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -181,24 +185,53 @@ export default function PostDetailsModal({
   };
 
   const handleLikePress = async () => {
-    console.log('PostDetailsModal - handleLikePress called:', {
-      postId,
-      post: post ? {
-        id: post.id,
-        authorName: post.authorName,
-        content: post.content?.substring(0, 50) + '...'
-      } : null,
-      currentLikes: likes.length,
-      userLiked: userLiked,
-      currentUser: currentUser?.uid
-    });
+    if (!post || !currentUser) return;
 
     try {
-      await handleLike(postId, likes, currentUser);
-      console.log('PostDetailsModal - handleLike completed successfully');
+      const newLikedState = !post.isLikedByUser;
+      const currentLikesCount = post.likesCount;
+
+      // Optimistic update
+      setPost(prevPost => prevPost ? {
+        ...prevPost,
+        isLikedByUser: newLikedState,
+        likesCount: newLikedState 
+          ? prevPost.likesCount + 1 
+          : Math.max(0, prevPost.likesCount - 1)
+      } : null);
+
+      await handlePostLike(postId, newLikedState, currentUser);
+
+      // Reload post to get updated Firebase counts
+      const firestore = getFirestore();
+      const postRef = doc(firestore, 'posts', postId);
+      const updatedPostDoc = await getDoc(postRef);
+
+      if (updatedPostDoc.exists()) {
+        const updatedPostData = updatedPostDoc.data();
+        const newLikesCount = updatedPostData.likesCount || 0;
+
+        setPost(prevPost => prevPost ? {
+          ...prevPost,
+          likesCount: newLikesCount
+        } : null);
+
+        // Notify parent component of the change
+        if (onLikesCountChange) {
+          onLikesCountChange(newLikesCount, newLikedState);
+        }
+      }
+
+      console.log('PostDetailsModal - Like handled successfully');
+
     } catch (error) {
-      console.error('PostDetailsModal - Error in handleLikePress:', error);
-      Alert.alert(t('common.error'), t('singlePost.failedToUpdateLike'));
+      console.error('PostDetailsModal - Error handling like:', error);
+      // Revert optimistic update on error
+      setPost(prevPost => prevPost ? {
+        ...prevPost,
+        isLikedByUser: !newLikedState,
+        likesCount: currentLikesCount
+      } : null);
     }
   };
 
@@ -252,9 +285,20 @@ export default function PostDetailsModal({
       setCommentText('');
       setReplyToComment(null);
 
-      // Reload comments
+      // Reload comments to refresh the list
       const updatedComments = await loadComments(postId, currentUser?.uid);
       setComments(updatedComments);
+
+      // Get updated post data from Firebase to get accurate comments count
+      const firestore = getFirestore();
+      const postRef = doc(firestore, 'posts', postId);
+      const updatedPostDoc = await getDoc(postRef);
+
+      if (updatedPostDoc.exists() && onCommentsCountChange) {
+        const updatedPostData = updatedPostDoc.data();
+        const newCommentsCount = updatedPostData.commentsCount || 0;
+        onCommentsCountChange(newCommentsCount);
+      }
 
       if (!parentCommentId) {
         setTimeout(() => {
@@ -471,8 +515,8 @@ export default function PostDetailsModal({
                     }]}>
                       <PostActions
                         liked={userLiked}
-                        likesCount={likes.length}
-                        commentsCount={comments.length}
+                        likesCount={post.likesCount}
+                        commentsCount={post.commentsCount}
                         showLikeCount={true}
                         allowComments={post.allowComments}
                         onLikePress={handleLikePress}

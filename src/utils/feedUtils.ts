@@ -260,59 +260,13 @@ export const loadConnectionPosts = async (
         const postData = postDoc.data();
         const postId = postDoc.id;
 
-        // Get likes count for this post
-        const likesQuery = query(
-          collection(firestore, 'likes'),
-          where('postId', '==', postId)
-        );
-        const postLikesSnapshot = await getDocs(likesQuery);
-
-        // Get comments count for this post (top-level comments)
-        // First try subcollection approach
-        let commentsSnapshot;
-        try {
-          const commentsSubcollectionQuery = query(
-            collection(firestore, 'posts', postId, 'comments')
-          );
-          commentsSnapshot = await getDocs(commentsSubcollectionQuery);
-          console.log(`Found ${commentsSnapshot.size} comments in subcollection for post ${postId}`);
-        } catch (error) {
-          console.log('Subcollection approach failed, trying global comments collection');
-          // Fallback to global comments collection
-          const commentsQuery = query(
-            collection(firestore, 'comments'),
-            where('postId', '==', postId)
-          );
-          commentsSnapshot = await getDocs(commentsQuery);
-          console.log(`Found ${commentsSnapshot.size} comments in global collection for post ${postId}`);
-        }
-
-        // Load replies count from subcollection for each comment
-        let totalRepliesCount = 0;
-        for (const commentDoc of commentsSnapshot.docs) {
-          try {
-            const repliesQuery = query(
-              collection(firestore, 'posts', postId, 'comments', commentDoc.id, 'replies')
-            );
-            const repliesSnapshot = await getDocs(repliesQuery);
-            totalRepliesCount += repliesSnapshot.size;
-            
-            console.log(`Comment ${commentDoc.id} has ${repliesSnapshot.size} replies`);
-          } catch (error) {
-            console.error(`Error loading replies for comment ${commentDoc.id}:`, error);
-          }
-        }
-
         console.log('feedUtils - Firebase post data:', {
           id: postId,
           isFrontCamera: postData.isFrontCamera,
           mediaType: postData.mediaType,
           hasMediaURL: !!postData.mediaURL,
-          topLevelComments: commentsSnapshot.size,
-          totalReplies: totalRepliesCount,
-          totalComments: commentsSnapshot.size + totalRepliesCount,
-          commentsQueryPath: `posts/${postId}/comments`,
-          commentsDocIds: commentsSnapshot.docs.map(doc => doc.id)
+          firebaseLikesCount: postData.likesCount || 0,
+          firebaseCommentsCount: postData.commentsCount || 0
         });
 
         posts.push({
@@ -326,8 +280,8 @@ export const loadConnectionPosts = async (
           mediaType: postData.mediaType,
           isFrontCamera: postData.isFrontCamera,
           createdAt: postData.createdAt?.toDate() || new Date(),
-          likesCount: postLikesSnapshot.size,
-          commentsCount: commentsSnapshot.size + totalRepliesCount,
+          likesCount: postData.likesCount || 0,
+          commentsCount: postData.commentsCount || 0,
           showLikeCount: postData.showLikeCount ?? true,
           allowComments: postData.allowComments ?? true,
           isLikedByUser: likedPostIds.has(postId),
@@ -476,39 +430,24 @@ export const loadFeedPosts = async (
        const userDoc = await getDoc(doc(firestore, 'users', authorId));
        const userData = userDoc.data();
 
-      // Load likes count and check if user liked
-      const likesCollection = collection(firestore, 'likes'),
-          likesQuery = query(likesCollection, where('postId', '==', postDoc.id));
-      const likesSnapshot = await getDocs(likesQuery);
-
-
+      // Check if user liked this post
       let isLikedByUser = false;
-      likesSnapshot.forEach((likeDoc) => {
-          if (likeDoc.data().userId === currentUserId) {
-            isLikedByUser = true;
-          }
-        });
-
-
-      // Load comments count
-      const commentsCollection = collection(firestore, 'comments');
-      const commentsQuery = query(commentsCollection, where('postId', '==', postDoc.id));
-      const commentsSnapshot = await getDocs(commentsQuery);
-
-      // Load replies count (assuming replies are in a subcollection called "replies")
-      let totalRepliesCount = 0;
-      for (const commentDoc of commentsSnapshot.docs) {
-          const repliesCollection = collection(firestore, 'comments', commentDoc.id, 'replies');
-          const repliesQuery = query(repliesCollection);
-          const repliesSnapshot = await getDocs(repliesQuery);
-          totalRepliesCount += repliesSnapshot.size;
+      if (currentUserId) {
+        const likesQuery = query(
+          collection(firestore, 'posts', postDoc.id, 'likes'),
+          where('authorId', '==', currentUserId)
+        );
+        const userLikeSnapshot = await getDocs(likesQuery);
+        isLikedByUser = !userLikeSnapshot.empty;
       }
 
       console.log('feedUtils - Firebase feed post data:', {
         id: postDoc.id,
         isFrontCamera: postData.isFrontCamera,
         mediaType: postData.mediaType,
-        hasMediaURL: !!postData.mediaURL
+        hasMediaURL: !!postData.mediaURL,
+        firebaseLikesCount: postData.likesCount || 0,
+        firebaseCommentsCount: postData.commentsCount || 0
       });
 
       return {
@@ -521,8 +460,8 @@ export const loadFeedPosts = async (
         mediaType: postData.mediaType,
         isFrontCamera: postData.isFrontCamera,
         createdAt: postData.createdAt?.toDate?.() || new Date(),
-        likesCount: likesSnapshot.size,
-        commentsCount: commentsSnapshot.size + totalRepliesCount,
+        likesCount: postData.likesCount || 0,
+        commentsCount: postData.commentsCount || 0,
         isLikedByUser: isLikedByUser,
         isAuthorOnline: userData?.lastSeen?.toDate && (Date.now() - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000),
         isFromConnection: false, // You may want to implement proper connection checking logic here

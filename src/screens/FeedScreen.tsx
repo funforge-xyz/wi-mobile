@@ -33,7 +33,10 @@ import {
   where, 
   getDocs, 
   deleteDoc, 
-  addDoc 
+  addDoc ,
+  updateDoc,
+  increment,
+  getDoc
 } from 'firebase/firestore';
 
 interface ConnectionPost {
@@ -297,7 +300,7 @@ export default function FeedScreen({ navigation }: any) {
         null, // lastTimestamp for initial load
         10 // limit - fetch 10 posts initially
       );
-      
+
       // Debug log posts data
       console.log('FeedScreen - RAW FETCHED POSTS FROM loadConnectionPosts:');
       console.log('='.repeat(80));
@@ -395,21 +398,17 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true);
   };
 
+  const { getFirestore, getAuth } = await import('../services/firebase');
+  const firestore = getFirestore();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
   const handleLike = async (postId: string, newLikedState: boolean) => {
-    const { getFirestore, getAuth } = await import('../services/firebase');
-    const firestore = getFirestore();
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (!user) return;
-
-    const currentPost = posts.find(p => p.id === postId);
+    const currentPost = posts.find(post => post.id === postId);
     if (!currentPost) return;
 
     const currentLiked = currentPost.isLikedByUser;
-
-    // Don't process if the state is already what we want
-    if (currentLiked === newLikedState) return;
+    const currentLikesCount = currentPost.likesCount;
 
     // Optimistic update
     setPosts(prevPosts => prevPosts.map(post => 
@@ -417,34 +416,58 @@ export default function FeedScreen({ navigation }: any) {
         ? { 
             ...post, 
             isLikedByUser: newLikedState,
-            likesCount: newLikedState ? post.likesCount + 1 : post.likesCount - 1
+            likesCount: newLikedState 
+              ? post.likesCount + 1 
+              : Math.max(0, post.likesCount - 1)
           }
         : post
     ));
 
     try {
       const likesCollectionRef = collection(firestore, 'posts', postId, 'likes');
+      const postRef = doc(firestore, 'posts', postId);
 
       if (newLikedState) {
-        // Like: add a like document
+        // Like: add a like document and update post likesCount
         await addDoc(likesCollectionRef, {
           authorId: user?.uid,
           authorName: user?.displayName || 'Anonymous',
           createdAt: new Date(),
         });
+        await updateDoc(postRef, {
+          likesCount: increment(1)
+        });
         console.log('FeedScreen - Successfully added like to Firebase');
       } else {
-        // Unlike: remove the like document
+        // Unlike: remove the like document and update post likesCount
         const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
         const userLikeSnapshot = await getDocs(userLikeQuery);
 
         if (!userLikeSnapshot.empty) {
           const likeDoc = userLikeSnapshot.docs[0];
           await deleteDoc(likeDoc.ref);
+          await updateDoc(postRef, {
+            likesCount: increment(-1)
+          });
           console.log('FeedScreen - Successfully removed like from Firebase');
         } else {
           console.log('FeedScreen - No like document found to remove');
         }
+      }
+
+      // Reload the specific post to get updated counts from Firebase
+      const updatedPostDoc = await getDoc(postRef);
+      if (updatedPostDoc.exists()) {
+        const updatedPostData = updatedPostDoc.data();
+        setPosts(prevPosts => prevPosts.map(post => 
+          post.id === postId 
+            ? { 
+                ...post, 
+                likesCount: updatedPostData.likesCount || 0,
+                isLikedByUser: newLikedState
+              }
+            : post
+        ));
       }
     } catch (error) {
       console.error('FeedScreen - Error handling like:', error);
@@ -455,7 +478,7 @@ export default function FeedScreen({ navigation }: any) {
           ? { 
               ...post, 
               isLikedByUser: currentLiked,
-              likesCount: currentPost.likesCount
+              likesCount: currentLikesCount
             }
           : post
       ));
@@ -544,7 +567,20 @@ export default function FeedScreen({ navigation }: any) {
               isVideoMuted={mutedVideos.has(item.id)}
               onVideoMuteToggle={handleVideoMuteToggle}
               onVideoPlayPauseToggle={handleVideoPlayPauseToggle}
-              onCommentsCountChange={handleCommentsCountChange}
+              onCommentsCountChange={(postId, newCount) => {
+                setPosts(prevPosts => prevPosts.map(post => 
+                  post.id === postId 
+                    ? { ...post, commentsCount: newCount }
+                    : post
+                ));
+              }}
+              onLikesCountChange={(postId, newCount, isLikedByUser) => {
+                setPosts(prevPosts => prevPosts.map(post => 
+                  post.id === postId 
+                    ? { ...post, likesCount: newCount, isLikedByUser: isLikedByUser }
+                    : post
+                ));
+              }}
             />
           )}
           refreshControl={
