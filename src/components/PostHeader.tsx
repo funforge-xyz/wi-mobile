@@ -1,8 +1,8 @@
-
 import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity
 } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,8 @@ interface PostHeaderProps {
   isAuthorOnline: boolean;
   isFromConnection: boolean;
   currentTheme: any;
+  navigation: any;
+  authorId: string;
 }
 
 export default function PostHeader({
@@ -24,6 +26,8 @@ export default function PostHeader({
   isAuthorOnline,
   isFromConnection,
   currentTheme,
+  navigation,
+  authorId,
 }: PostHeaderProps) {
   const { t } = useTranslation();
 
@@ -50,15 +54,31 @@ export default function PostHeader({
     }
   };
 
+  const handleProfilePress = () => {
+    if (navigation && authorId) {
+      const [firstName, ...lastNameParts] = authorName.split(' ');
+      const lastName = lastNameParts.join(' ');
+
+      navigation.navigate('UserProfile', {
+        userId: authorId,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        photoURL: authorPhotoURL || '',
+      });
+    }
+  };
+
   return (
     <View style={styles.postHeader}>
       <View style={styles.userInfo}>
-        <UserAvatar
-          photoURL={authorPhotoURL}
-          isOnline={isAuthorOnline}
-          size={40}
-          currentTheme={currentTheme}
-        />
+        <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
+          <UserAvatar
+            photoURL={authorPhotoURL}
+            isOnline={isAuthorOnline}
+            size={40}
+            currentTheme={currentTheme}
+          />
+        </TouchableOpacity>
         <View>
           <View style={styles.usernameRow}>
             <Text style={[styles.username, { color: currentTheme.text }]}>{authorName}</Text>

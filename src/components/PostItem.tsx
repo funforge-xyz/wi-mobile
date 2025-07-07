@@ -130,6 +130,8 @@ export default function PostItem({
         isAuthorOnline={post.isAuthorOnline}
         isFromConnection={post.isFromConnection}
         currentTheme={currentTheme}
+        authorId={post.authorId}
+        navigation={navigation}
       />
 
       {post.content && (
