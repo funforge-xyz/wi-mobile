@@ -8,7 +8,7 @@ channel = "stable-24_05"
 run = ["sh", "-c", "npm run start"]
 
 [workflows]
-runButton = "Install and Run"
+runButton = "Development Build"
 
 [[workflows.workflow]]
 name = "Install and Run"
@@ -22,6 +22,15 @@ args = "npm install --legacy-peer-deps"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm start"
+
+[[workflows.workflow]]
+name = "Development Build"
+author = 24709384
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx expo run:android --dev-client"
 
 [[ports]]
 localPort = 8081
