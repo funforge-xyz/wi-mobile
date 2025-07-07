@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
-  TouchableOpacity,
-  Text,
-  Animated,
   StyleSheet,
-  Dimensions,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { SPACING, FONTS, COLORS } from '../config/constants';
+import { VideoView, useVideoPlayer } from 'expo-video';
+import { Ionicons } from '@expo/vector-icons';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
@@ -16,7 +17,6 @@ import PostActions from './PostActions';
 import PostDetailsModal from './PostDetailsModal';
 import SkeletonLoader from './SkeletonLoader';
 import { useTranslation } from 'react-i18next';
-import { useVideoPlayer } from 'expo-video';
 
 const { width } = Dimensions.get('window');
 
@@ -70,32 +70,34 @@ export default function PostItem({
 
   const { t } = useTranslation();
 
-  // Initialize video player for video posts
+  // Create video player for video posts
   const videoPlayer = useVideoPlayer(
-    post?.mediaURL && post?.mediaType === 'video' ? post.mediaURL : null, 
-    player => {
-      player.loop = true;
-      player.muted = isVideoMuted || false;
+    post.mediaType === 'video' ? post.mediaURL : null,
+    (player) => {
+      if (player && post.mediaType === 'video') {
+        player.muted = isVideoMuted;
+        if (isVideoPlaying) {
+          player.play();
+        } else {
+          player.pause();
+        }
+      }
     }
   );
 
-  // Control video playback based on isVideoPlaying prop
+  console.log('PostItem - isMediaLoading:', isMediaLoading, 'mediaType:', post.mediaType, 'mediaURL:', !!post.mediaURL);
+
+  // Update video player when playback state changes
   useEffect(() => {
-    if (post?.mediaType === 'video' && videoPlayer) {
+    if (videoPlayer && post.mediaType === 'video') {
+      videoPlayer.muted = isVideoMuted;
       if (isVideoPlaying) {
         videoPlayer.play();
       } else {
         videoPlayer.pause();
       }
     }
-  }, [isVideoPlaying, post?.mediaType, videoPlayer]);
-
-  // Control video mute state
-  useEffect(() => {
-    if (post?.mediaType === 'video' && videoPlayer) {
-      videoPlayer.muted = isVideoMuted || false;
-    }
-  }, [isVideoMuted, post?.mediaType, videoPlayer]);
+  }, [videoPlayer, isVideoPlaying, isVideoMuted, post.mediaType]);
 
   // Use post data directly instead of local state
   const liked = post.isLikedByUser;
@@ -188,17 +190,17 @@ export default function PostItem({
           <PostMedia
             mediaURL={post.mediaURL}
             mediaType={post.mediaType}
+            onLoad={() => setIsMediaLoading(false)}
             isFrontCamera={post.isFrontCamera}
             style={styles.media}
-            onDoubleTap={handleDoubleTap}
-            onLoad={() => setIsMediaLoading(false)}
             showBorderRadius={showImageBorderRadius}
+            onDoubleTap={handleDoubleTap}
             likeAnimationOpacity={likeAnimationOpacity}
             likeAnimationScale={likeAnimationScale}
             isVideoPlaying={isVideoPlaying}
             isVideoMuted={isVideoMuted}
             onVideoMuteToggle={onVideoMuteToggle}
-            videoPlayer={videoPlayer}
+            videoPlayer={post.mediaType === 'video' ? videoPlayer : undefined}
           />
         </View>
       )}

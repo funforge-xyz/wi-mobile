@@ -38,11 +38,47 @@ export default function PostMedia({
   likeAnimationScale,
   videoPlayer
 }: PostMediaProps) {
+  const [isMediaLoaded, setIsMediaLoaded] = useState(false);
+  
+  // Create video player if it's a video and no external player provided
+  const internalVideoPlayer = useVideoPlayer(
+    mediaType === 'video' && !videoPlayer ? mediaURL : null,
+    (player) => {
+      if (player) {
+        player.muted = isVideoMuted;
+        if (isVideoPlaying) {
+          player.play();
+        } else {
+          player.pause();
+        }
+      }
+    }
+  );
+
+  const activeVideoPlayer = videoPlayer || internalVideoPlayer;
+
+  // Update video player state when props change
+  useEffect(() => {
+    if (activeVideoPlayer && mediaType === 'video') {
+      activeVideoPlayer.muted = isVideoMuted;
+      if (isVideoPlaying) {
+        activeVideoPlayer.play();
+      } else {
+        activeVideoPlayer.pause();
+      }
+    }
+  }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType]);
 
   const handleMuteUnmute = () => {
     if (onVideoMuteToggle) {
       onVideoMuteToggle();
     }
+  };
+
+  const handleMediaLoad = () => {
+    console.log('Media loaded:', mediaType, mediaURL);
+    setIsMediaLoaded(true);
+    onLoad?.();
   };
 
   if (!mediaURL) return null;
@@ -61,12 +97,12 @@ export default function PostMedia({
     ? { onPress: onDoubleTap }
     : { onPress: onPress, activeOpacity: 0.9 };
 
-  if (mediaType === 'video' && videoPlayer) {
+  if (mediaType === 'video') {
     return (
       <View style={styles.mediaContainer}>
         <TouchComponent {...touchProps}>
           <VideoView
-            player={videoPlayer}
+            player={activeVideoPlayer}
             style={[
               mediaStyle,
               frontCameraTransform
@@ -75,10 +111,16 @@ export default function PostMedia({
             allowsPictureInPicture={false}
             nativeControls={false}
             contentFit="cover"
+            onLoadStart={() => console.log('Video load started')}
+            onLoad={handleMediaLoad}
+            onError={(error) => {
+              console.error('Video load error:', error);
+              handleMediaLoad(); // Still call onLoad to hide skeleton
+            }}
           />
         </TouchComponent>
         
-        {isVideoPlaying && onVideoMuteToggle && (
+        {onVideoMuteToggle && (
           <TouchableOpacity 
             style={styles.muteButton} 
             onPress={handleMuteUnmute}
@@ -114,13 +156,10 @@ export default function PostMedia({
           source={{ uri: mediaURL }}
           style={[mediaStyle, frontCameraTransform]}
           resizeMode="cover"
-          onLoad={() => {
-            console.log('Image loaded successfully');
-            onLoad?.();
-          }}
+          onLoad={handleMediaLoad}
           onError={(error) => {
-            console.log('Image load error:', error);
-            onLoad?.();
+            console.error('Image load error:', error);
+            handleMediaLoad(); // Still call onLoad to hide skeleton
           }}
         />
       </TouchComponent>
