@@ -1,10 +1,16 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAuth as getFirebaseAuth, connectAuthEmulator } from 'firebase/auth';
+import { 
+  getAuth as getFirebaseAuth, 
+  initializeAuth, 
+  getReactNativePersistence,
+  connectAuthEmulator 
+} from 'firebase/auth';
 import { getFirestore as getFirebaseFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage as getFirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 import { FIREBASE_API_KEY } from 'react-native-dotenv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   projectId: "wichat-a6e48",
@@ -42,8 +48,20 @@ export const initializeFirebase = async () => {
       // Initialize app
       app = initializeApp(firebaseConfig);
       
-      // Initialize services synchronously
-      auth = getFirebaseAuth(app);
+      // Initialize Auth with explicit persistence for React Native
+      try {
+        auth = initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage)
+        });
+      } catch (error: any) {
+        // If auth is already initialized, get the existing instance
+        if (error.code === 'auth/already-initialized') {
+          auth = getFirebaseAuth(app);
+        } else {
+          throw error;
+        }
+      }
+      
       firestore = getFirebaseFirestore(app);
       storage = getFirebaseStorage(app);
       

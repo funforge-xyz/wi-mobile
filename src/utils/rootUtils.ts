@@ -31,47 +31,62 @@ export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
     // Wait for auth state to be determined with a longer timeout
     return new Promise((resolve) => {
       let resolved = false;
+      let timeout: NodeJS.Timeout;
 
       // Set a timeout to prevent hanging
-      const timeout = setTimeout(() => {
+      timeout = setTimeout(() => {
         if (!resolved) {
           resolved = true;
-          console.log('Auth state check timed out, assuming no user');
+          console.log('Auth state timeout - assuming not authenticated');
           resolve(false);
         }
-      }, 10000); // 10 second timeout
+      }, 15000); // 15 second timeout for better persistence handling
 
+      // Listen for auth state changes with persistence in mind
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (resolved) return;
 
-        unsubscribe(); // Only need the first auth state change
-        clearTimeout(timeout);
-        resolved = true;
+        try {
+          if (user) {
+            console.log('User authenticated from persistence:', user.uid);
 
-        if (user) {
-          console.log('User found during initialization:', user.uid);
-
-          try {
-            // Ensure user is verified
+            // Reload user to get fresh data from server
             await user.reload();
-            const currentUser = auth.currentUser;
 
-            if (currentUser && currentUser.emailVerified) {
-              console.log('User is verified and authenticated');
-              resolve(true);
-            } else {
-              console.log('User is not verified');
-              if (currentUser) {
-                await signOut(auth);
-              }
+            // Check if email is verified
+            if (!user.emailVerified) {
+              console.log('User email not verified, signing out');
+              await signOut(auth);
+              resolved = true;
+              clearTimeout(timeout);
+              resolve(false);
+              return;
+            }
+
+            // Verify token is still valid
+            try {
+              await user.getIdToken(true); // Force refresh
+              const isAuth = await authService.isAuthenticated();
+              resolved = true;
+              clearTimeout(timeout);
+              resolve(isAuth);
+            } catch (tokenError) {
+              console.error('Token validation failed:', tokenError);
+              await signOut(auth);
+              resolved = true;
+              clearTimeout(timeout);
               resolve(false);
             }
-          } catch (error) {
-            console.error('Error reloading user:', error);
+          } else {
+            console.log('No user authenticated from persistence');
+            resolved = true;
+            clearTimeout(timeout);
             resolve(false);
           }
-        } else {
-          console.log('No user found during initialization');
+        } catch (error) {
+          console.error('Error in auth state change handler:', error);
+          resolved = true;
+          clearTimeout(timeout);
           resolve(false);
         }
       });

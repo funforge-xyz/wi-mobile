@@ -47,14 +47,19 @@ export class AuthService {
           throw new Error('email-not-verified');
         }
 
-        const token = await user.getIdToken();
+        // Get ID token and store for persistence
+        const token = await user.getIdToken(false); // Don't force refresh on login
         await this.credentials.setToken(token);
         await this.credentials.setUser({
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
           photoURL: user.photoURL,
+          emailVerified: user.emailVerified,
+          lastSignInTime: user.metadata.lastSignInTime,
         });
+
+        console.log('User signed in and persisted:', user.uid);
       }
 
       return user;
@@ -252,30 +257,47 @@ export class AuthService {
 
   async isAuthenticated(): Promise<boolean> {
     try {
-      // Check both local token and Firebase auth state
-      const token = await this.credentials.getToken();
-      
-      if (!token) {
-        return false;
-      }
-      
-      // Also check Firebase auth state
       const auth = getAuth();
       const currentUser = auth.currentUser;
       
+      // If no Firebase user, clear local storage and return false
       if (!currentUser) {
-        // Clear token if no Firebase user
         await this.credentials.removeToken();
+        await this.credentials.removeUser();
         return false;
       }
       
       // Check if email is verified
       if (!currentUser.emailVerified) {
         await this.credentials.removeToken();
+        await this.credentials.removeUser();
         return false;
       }
       
-      return true;
+      // Check if we have a valid token
+      const token = await this.credentials.getToken();
+      if (!token) {
+        // Try to get a fresh token from Firebase
+        try {
+          const freshToken = await currentUser.getIdToken(false);
+          await this.credentials.setToken(freshToken);
+          return true;
+        } catch (tokenError) {
+          console.error('Failed to get fresh token:', tokenError);
+          return false;
+        }
+      }
+      
+      // Validate token is not expired by trying to refresh it
+      try {
+        await currentUser.getIdToken(true); // Force refresh to validate
+        return true;
+      } catch (tokenError) {
+        console.error('Token validation failed:', tokenError);
+        await this.credentials.removeToken();
+        await this.credentials.removeUser();
+        return false;
+      }
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;
