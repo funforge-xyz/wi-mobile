@@ -654,6 +654,8 @@ export default function FeedScreen({ navigation }: any) {
           ListEmptyComponent={
             <EmptyFeedState 
               currentTheme={currentTheme} 
+              title={currentUserLocation ? t('feed.noPosts') : undefined}
+              subtitle={currentUserLocation ? t('feed.shareFirst') : undefined}
               onLocationEnabled={() => {
                 // Refresh feed when location is enabled
                 loadPosts(true);
