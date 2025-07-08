@@ -1,23 +1,30 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
-  FlatList,
   RefreshControl,
   AppState,
   ActivityIndicator,
   ViewabilityConfig,
   ViewToken,
+  Dimensions,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList } from 'react-native-gesture-handler';
 import { useAppSelector } from '../hooks/redux';
 import { locationService } from '../services/locationService';
 import NotificationBell from '../components/NotificationBell';
 import FeedSkeleton from '../components/FeedSkeleton';
-import PostItem from '../components/PostItem';
+import PostMedia from '../components/PostMedia';
 import EmptyFeedState from '../components/EmptyFeedState';
+import PostDetailsModal from '../components/PostDetailsModal';
+import UserAvatar from '../components/UserAvatar';
 import { useTranslation } from 'react-i18next';
 import { 
   updateUserLastSeen, 
@@ -25,7 +32,6 @@ import {
   handleLikePost,
   loadConnectionPosts 
 } from '../utils/feedUtils';
-import { feedStyles } from '../styles/FeedStyles';
 import { getTheme } from '../theme';
 import { 
   doc, 
@@ -40,6 +46,8 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
+
+const { width, height } = Dimensions.get('window');
 
 interface ConnectionPost {
   id: string;
@@ -70,7 +78,8 @@ export default function FeedScreen({ navigation }: any) {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-  const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
+  const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [notificationKey, setNotificationKey] = useState(0);
   const [isScreenFocused, setIsScreenFocused] = useState(true);
   const [rememberedVideoId, setRememberedVideoId] = useState<string | null>(null);
@@ -78,6 +87,7 @@ export default function FeedScreen({ navigation }: any) {
   const [currentUserLocation, setCurrentUserLocation] = useState<any>(null);
   const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const flatListRef = useRef<FlatList>(null);
@@ -85,73 +95,36 @@ export default function FeedScreen({ navigation }: any) {
   const currentTheme = getTheme(isDarkMode);
 
   const viewabilityConfig: ViewabilityConfig = {
-    viewAreaCoveragePercentThreshold: 70, // Video needs to be 70% visible to autoplay
-    minimumViewTime: 200, // Must be visible for at least 200ms to avoid flicker
+    viewAreaCoveragePercentThreshold: 80,
+    minimumViewTime: 300,
     waitForInteraction: false,
   };
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    // Don't start videos if the screen is not focused
-    if (!isScreenFocused) {
+    if (!isScreenFocused || viewableItems.length === 0) {
       return;
     }
 
-    // Find the first viewable video post with at least 70% visibility
-    const visibleVideoPosts = viewableItems.filter(item => 
-      item.item && 
-      item.item.mediaType === 'video' && 
-      item.isViewable && 
-      (item.percentVisible ?? 100) >= 70
-    );
-
-    console.log('Viewable items changed:', {
-      totalViewable: viewableItems.length,
-      videoCount: visibleVideoPosts.length,
-      currentlyPlaying: playingVideoId,
-      visibleVideos: visibleVideoPosts.map(v => ({ id: v.item.id, percent: v.percentVisible, mediaType: v.item.mediaType })),
-      allItems: viewableItems.map(v => ({ id: v.item?.id, mediaType: v.item?.mediaType, isViewable: v.isViewable, percent: v.percentVisible }))
-    });
-
-    if (visibleVideoPosts.length > 0) {
-      // Play the first fully visible video
-      const mostVisibleVideo = visibleVideoPosts.reduce((prev, current) => 
-        (current.percentVisible || 0) > (prev.percentVisible || 0) ? current : prev
-      );
-
-      if (mostVisibleVideo.item.id !== playingVideoId) {
-        console.log('Setting playing video to:', mostVisibleVideo.item.id);
-        setPlayingVideoId(mostVisibleVideo.item.id);
-      }
-    } else {
-      // No video posts are sufficiently visible, stop all playback
-      if (playingVideoId) {
-        console.log('Stopping video playback');
+    const visibleItem = viewableItems[0];
+    if (visibleItem && visibleItem.item) {
+      const post = visibleItem.item;
+      setCurrentIndex(visibleItem.index || 0);
+      
+      // Auto-play videos when they become visible
+      if (post.mediaType === 'video' && post.id !== playingVideoId) {
+        setPlayingVideoId(post.id);
+      } else if (post.mediaType === 'image' && playingVideoId) {
         setPlayingVideoId(null);
       }
     }
   }, [playingVideoId, isScreenFocused]);
 
-  const handleVideoMuteToggle = useCallback((postId: string) => {
-    setMutedVideos(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
+  const onScrollToIndexFailed = (info: any) => {
+    const wait = new Promise(resolve => setTimeout(resolve, 500));
+    wait.then(() => {
+      flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
     });
-  }, []);
-
-  const handleVideoPlayPauseToggle = useCallback((postId: string, shouldPlay: boolean) => {
-    if (shouldPlay) {
-      console.log('Manually starting video:', postId);
-      setPlayingVideoId(postId);
-    } else {
-      console.log('Manually pausing video:', postId);
-      setPlayingVideoId(null);
-    }
-  }, []);
+  };
 
   // Force NotificationBell to re-render when screen comes into focus
   useFocusEffect(
@@ -165,26 +138,20 @@ export default function FeedScreen({ navigation }: any) {
     useCallback(() => {
       setIsScreenFocused(true);
 
-      // Screen is focused - restore previously playing video if it exists
       if (rememberedVideoId && posts.length > 0) {
-        // Check if the remembered video is still in the posts array
         const videoStillExists = posts.some(post => post.id === rememberedVideoId && post.mediaType === 'video');
         if (videoStillExists) {
-          console.log('Restoring previously playing video:', rememberedVideoId);
           setPlayingVideoId(rememberedVideoId);
-          setRememberedVideoId(null); // Clear the remembered video
+          setRememberedVideoId(null);
         } else {
-          setRememberedVideoId(null); // Clear if video no longer exists
+          setRememberedVideoId(null);
         }
       }
 
       return () => {
-        // Screen is losing focus - remember currently playing video and pause it
-        // Use a ref to get current value without adding to dependencies
         setRememberedVideoId(prev => {
           const currentPlayingId = playingVideoId;
           if (currentPlayingId) {
-            console.log('Remembering playing video for restoration:', currentPlayingId);
             return currentPlayingId;
           }
           return prev;
@@ -202,10 +169,8 @@ export default function FeedScreen({ navigation }: any) {
 
     const initializeAndSetupAuth = async () => {
       try {
-        // Ensure Firebase is initialized first
         const { initializeFirebase, getAuth } = await import('../services/firebase');
 
-        // Initialize Firebase if not already done
         console.log('FeedScreen: Initializing Firebase...');
         await initializeFirebase();
         console.log('FeedScreen: Firebase initialized successfully');
@@ -215,10 +180,8 @@ export default function FeedScreen({ navigation }: any) {
         unsubscribe = auth.onAuthStateChanged(async (user: any) => {
           if (user) {
             try {
-              // Wait for user to be fully authenticated and verified
               await user.reload();
 
-              // Double-check that user is still valid after reload
               const currentUser = auth.currentUser;
               if (!currentUser) {
                 console.log('User not found after reload');
@@ -227,13 +190,11 @@ export default function FeedScreen({ navigation }: any) {
                 return;
               }
 
-              // Load user settings first
               const radius = await loadUserSettings();
               if (radius) {
                 setUserRadius(radius);
               }
 
-              // Get current user location with timeout
               let location = null;
               try {
                 console.log('FeedScreen: Getting user location...');
@@ -247,20 +208,16 @@ export default function FeedScreen({ navigation }: any) {
                 setCurrentUserLocation(location);
               } catch (locationError) {
                 console.log('FeedScreen: Location service not available:', locationError);
-                // Set loading to false since we can't get location
                 setLoading(false);
                 return;
               }
 
-              // Initialize location tracking for the authenticated user (with error handling)
               setTimeout(() => {
                 locationService.startLocationTracking().catch((error) => {
                   console.log('Location tracking not available:', error);
-                  // Continue without location tracking
                 });
               }, 1000);
 
-              // Always load posts, but with different radius based on location availability
               console.log('FeedScreen: Loading posts...');
               await loadPosts();
             } catch (error) {
@@ -274,19 +231,16 @@ export default function FeedScreen({ navigation }: any) {
           }
         });
 
-        // Handle app state changes to update lastSeen
         const handleAppStateChange = (nextAppState: string) => {
           if (nextAppState === 'active') {
             updateUserLastSeen().catch(console.error);
           } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-            // Update lastSeen when app goes to background to show user as offline
             updateUserLastSeen().catch(console.error);
           }
         };
 
         appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
-        // Set up interval to update lastSeen every 30 seconds
         lastSeenInterval = setInterval(() => {
           updateUserLastSeen().catch(console.error);
         }, 30000);
@@ -306,16 +260,12 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-
-
   const loadPosts = async (isRefresh = false) => {
     console.log('loadPosts called:', { isRefresh, currentUserLocation, userRadius });
 
-    // If no location, set radius to 0 to prevent seeing other users
     const effectiveRadius = currentUserLocation ? userRadius : 0;
     const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
-    // Check if user is still authenticated
     const { getAuth } = await import('../services/firebase');
     const auth = getAuth();
     if (!auth.currentUser) {
@@ -330,14 +280,12 @@ export default function FeedScreen({ navigation }: any) {
     let timeout: NodeJS.Timeout;
 
     try {
-      // Set loading state
       if (isRefresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
 
-      // Set timeout for loading state
       timeout = setTimeout(() => {
         console.log('Loading timeout - resetting loading state');
         if (isRefresh) {
@@ -345,40 +293,18 @@ export default function FeedScreen({ navigation }: any) {
         } else {
           setLoading(false);
         }
-      }, 15000); // 15 second timeout
+      }, 15000);
 
       const connectionPosts = await loadConnectionPosts(
         effectiveRadius, 
         effectiveLocation, 
-        null, // lastTimestamp for initial load
-        10 // limit - fetch 10 posts initially
+        null,
+        10
       );
 
-      // Debug log posts data
       console.log('FeedScreen - RAW FETCHED POSTS FROM loadConnectionPosts:');
       console.log('='.repeat(80));
       console.log('Total posts fetched:', connectionPosts.length);
-      connectionPosts.forEach((post, index) => {
-        console.log(`RAW POST ${index + 1}:`, {
-          id: post.id,
-          authorId: post.authorId,
-          authorName: post.authorName,
-          authorPhotoURL: post.authorPhotoURL,
-          content: post.content?.substring(0, 100) + (post.content && post.content.length > 100 ? '...' : ''),
-          mediaURL: post.mediaURL ? 'HAS_MEDIA_URL' : 'NO_MEDIA_URL',
-          mediaType: post.mediaType,
-          isFrontCamera: post.isFrontCamera,
-          createdAt: post.createdAt,
-          likesCount: post.likesCount,
-          commentsCount: post.commentsCount,
-          showLikeCount: post.showLikeCount,
-          allowComments: post.allowComments,
-          isLikedByUser: post.isLikedByUser,
-          isAuthorOnline: post.isAuthorOnline,
-          isFromConnection: post.isFromConnection
-        });
-      });
-      console.log('='.repeat(80));
 
       if (isRefresh) {
         setPosts(connectionPosts);
@@ -386,12 +312,10 @@ export default function FeedScreen({ navigation }: any) {
         setPosts(connectionPosts);
       }
 
-      // Set the last post timestamp for pagination
       if (connectionPosts.length > 0) {
         setLastPostTimestamp(connectionPosts[connectionPosts.length - 1].createdAt);
       }
 
-      // Check if we have more posts
       setHasMorePosts(connectionPosts.length === 10);
 
       if (timeout) clearTimeout(timeout);
@@ -426,7 +350,7 @@ export default function FeedScreen({ navigation }: any) {
         effectiveRadius,
         effectiveLocation,
         lastPostTimestamp,
-        10 // Load 10 more posts
+        10
       );
 
       console.log('Loaded more posts:', morePosts.length);
@@ -465,7 +389,6 @@ export default function FeedScreen({ navigation }: any) {
     const currentLiked = currentPost.isLikedByUser;
     const currentLikesCount = currentPost.likesCount;
 
-    // Optimistic update
     setPosts(prevPosts => prevPosts.map(post => 
       post.id === postId 
         ? { 
@@ -483,7 +406,6 @@ export default function FeedScreen({ navigation }: any) {
       const postRef = doc(firestore, 'posts', postId);
 
       if (newLikedState) {
-        // Like: add a like document and update post likesCount
         await addDoc(likesCollectionRef, {
           authorId: user?.uid,
           authorName: user?.displayName || 'Anonymous',
@@ -494,7 +416,6 @@ export default function FeedScreen({ navigation }: any) {
         });
         console.log('FeedScreen - Successfully added like to Firebase');
       } else {
-        // Unlike: remove the like document and update post likesCount
         const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
         const userLikeSnapshot = await getDocs(userLikeQuery);
 
@@ -510,7 +431,6 @@ export default function FeedScreen({ navigation }: any) {
         }
       }
 
-      // Reload the specific post to get updated counts from Firebase
       const updatedPostDoc = await getDoc(postRef);
       if (updatedPostDoc.exists()) {
         const updatedPostData = updatedPostDoc.data();
@@ -527,7 +447,6 @@ export default function FeedScreen({ navigation }: any) {
     } catch (error) {
       console.error('FeedScreen - Error handling like:', error);
 
-      // Revert optimistic update on error
       setPosts(prevPosts => prevPosts.map(post => 
         post.id === postId 
           ? { 
@@ -540,154 +459,291 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
-  const handlePostLike = async (postId: string, currentlyLiked: boolean) => {
-    try {
-      const result = await handleLikePost(postId, !currentlyLiked, posts);
-      if (result) {
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
-            post.id === postId 
-              ? { 
-                  ...post, 
-                  isLikedByUser: !currentlyLiked,
-                  likesCount: currentlyLiked ? post.likesCount - 1 : post.likesCount + 1
-                }
-              : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error handling post like:', error);
+  const handleVideoPlayPause = (postId: string) => {
+    if (playingVideoId === postId) {
+      setPlayingVideoId(null);
+    } else {
+      setPlayingVideoId(postId);
     }
   };
 
-  const handleCommentsCountChange = (postId: string, newCount: number) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
-          ? { ...post, commentsCount: newCount }
-          : post
-      )
+  const handleCommentsPress = (postId: string) => {
+    setSelectedPostId(postId);
+    setShowPostDetailsModal(true);
+  };
+
+  const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
+    const isPlaying = playingVideoId === item.id;
+    
+    return (
+      <View style={styles.postContainer}>
+        {/* Full screen media */}
+        <View style={styles.mediaContainer}>
+          {item.mediaURL && (
+            <PostMedia
+              mediaURL={item.mediaURL}
+              mediaType={item.mediaType}
+              isFrontCamera={item.isFrontCamera}
+              style={styles.media}
+              showBorderRadius={false}
+              onDoubleTap={() => handleLike(item.id, !item.isLikedByUser)}
+              isVideoPlaying={isPlaying}
+              isVideoMuted={false}
+              onVideoPlayPause={() => handleVideoPlayPause(item.id)}
+            />
+          )}
+
+          {/* Top header with notification bell */}
+          <View style={styles.topHeader}>
+            <Text style={styles.headerTitle}>{t('feed.title')}</Text>
+            <NotificationBell 
+              key={notificationKey}
+              onPress={() => navigation.navigate('Notifications')} 
+              color="white"
+            />
+          </View>
+
+          {/* Bottom overlay content */}
+          <View style={styles.bottomOverlay}>
+            {/* Left side - User info and description */}
+            <View style={styles.leftContent}>
+              <View style={styles.userInfo}>
+                <UserAvatar
+                  photoURL={item.authorPhotoURL}
+                  name={item.authorName}
+                  size={40}
+                  showOnlineStatus={false}
+                />
+                <Text style={styles.authorName}>{item.authorName}</Text>
+              </View>
+              {item.content && (
+                <Text style={styles.description} numberOfLines={3}>
+                  {item.content}
+                </Text>
+              )}
+            </View>
+
+            {/* Right side - Actions */}
+            <View style={styles.rightActions}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleLike(item.id, !item.isLikedByUser)}
+              >
+                <Ionicons
+                  name={item.isLikedByUser ? "heart" : "heart-outline"}
+                  size={28}
+                  color={item.isLikedByUser ? "#FF3040" : "white"}
+                />
+                {item.showLikeCount && (
+                  <Text style={styles.actionText}>{item.likesCount}</Text>
+                )}
+              </TouchableOpacity>
+
+              {item.allowComments && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleCommentsPress(item.id)}
+                >
+                  <Ionicons name="chatbubble-outline" size={28} color="white" />
+                  <Text style={styles.actionText}>{item.commentsCount}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Video tap overlay for play/pause */}
+          {item.mediaType === 'video' && (
+            <TouchableWithoutFeedback onPress={() => handleVideoPlayPause(item.id)}>
+              <View style={styles.videoTapOverlay} />
+            </TouchableWithoutFeedback>
+          )}
+        </View>
+      </View>
     );
   };
 
-  const handleVideoVisibilityChange = (postId: string, isVisible: boolean) => {
-    if (isVisible) {
-      setPlayingVideoId(postId);
-    } else if (playingVideoId === postId) {
-      setPlayingVideoId(null);
+  const handleScroll = (event: any) => {
+    const { contentOffset } = event.nativeEvent;
+    const currentIndex = Math.round(contentOffset.y / height);
+    
+    // Load more posts when approaching the end
+    if (currentIndex >= posts.length - 3 && hasMorePosts && !loadingMore) {
+      loadMorePosts();
     }
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={[feedStyles.container, { backgroundColor: currentTheme.background }]}>
-        <View style={[feedStyles.header, { borderBottomColor: currentTheme.border }]}>
-          <Text style={[feedStyles.headerTitle, { color: currentTheme.text }]}>{t('feed.title')}</Text>
-          <NotificationBell 
-            onPress={() => navigation.navigate('Notifications')} 
-            color={currentTheme.text}
-          />
-        </View>
-        <FeedSkeleton count={3} />
+      <SafeAreaView style={styles.container}>
+        <FeedSkeleton count={1} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[feedStyles.container, { backgroundColor: currentTheme.background }]}>
-      <View style={[feedStyles.header, { borderBottomColor: currentTheme.border }]}>
-        <Text style={[feedStyles.headerTitle, { color: currentTheme.text }]}>{t('feed.title')}</Text>
-        <NotificationBell 
-          key={notificationKey}
-          onPress={() => navigation.navigate('Notifications')} 
-          color={currentTheme.text}
+    <SafeAreaView style={styles.container}>
+      {posts.length === 0 ? (
+        <EmptyFeedState 
+          currentTheme={currentTheme} 
+          title={currentUserLocation ? t('feed.noPosts') : undefined}
+          subtitle={currentUserLocation ? t('feed.shareFirst') : undefined}
+          onLocationEnabled={() => {
+            loadPosts(true);
+          }}
         />
-      </View>
-
-      {!currentUserLocation && (
-        <View style={feedStyles.locationAlertContainer}>
-          <View style={[feedStyles.locationAlertPill, { backgroundColor: '#FFA50015', borderColor: '#FFA50030' }]}>
-            <Ionicons name="location-outline" size={14} color="#FFA500" />
-            <Text style={[feedStyles.locationAlertText, { color: '#FFA500' }]}>
-              {t('feed.locationDisabledAlert')}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      <View style={{ flex: 1 }}>
+      ) : (
         <FlatList
           ref={flatListRef}
           data={posts}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PostItem
-              key={item.id}
-              post={item}
-              onLike={handlePostLike}
-              currentTheme={currentTheme}
-              navigation={navigation}
-              showImageBorderRadius={false}
-              isVideoPlaying={playingVideoId === item.id}
-              isVideoMuted={mutedVideos.has(item.id)}
-              onVideoMuteToggle={handleVideoMuteToggle}
-              onVideoPlayPauseToggle={handleVideoPlayPauseToggle}
-              onCommentsCountChange={(postId, newCount) => {
-                setPosts(prevPosts => prevPosts.map(post => 
-                  post.id === postId 
-                    ? { ...post, commentsCount: newCount }
-                    : post
-                ));
-              }}
-              onLikesCountChange={(postId, newCount, isLikedByUser) => {
-                setPosts(prevPosts => prevPosts.map(post => 
-                  post.id === postId 
-                    ? { ...post, likesCount: newCount, isLikedByUser: isLikedByUser }
-                    : post
-                ));
-              }}
-            />
-          )}
+          renderItem={renderPost}
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+          snapToInterval={height}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          onScrollToIndexFailed={onScrollToIndexFailed}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          removeClippedSubviews={false}
+          initialNumToRender={2}
+          maxToRenderPerBatch={3}
+          windowSize={5}
           refreshControl={
             <RefreshControl 
               refreshing={refreshing} 
               onRefresh={onRefresh}
-              tintColor={currentTheme.primary}
-              colors={[currentTheme.primary]}
-              progressBackgroundColor={currentTheme.background}
+              tintColor="white"
+              colors={["white"]}
+              progressBackgroundColor="transparent"
             />
           }
-          ListEmptyComponent={
-            <EmptyFeedState 
-              currentTheme={currentTheme} 
-              title={currentUserLocation ? t('feed.noPosts') : undefined}
-              subtitle={currentUserLocation ? t('feed.shareFirst') : undefined}
-              onLocationEnabled={() => {
-                // Refresh feed when location is enabled
-                loadPosts(true);
-              }}
-            />
-          }
-          ListFooterComponent={
-            loadingMore ? (
-              <View style={{ padding: 20, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={currentTheme.primary} />
-              </View>
-            ) : null
-          }
-          onEndReached={loadMorePosts}
-          onEndReachedThreshold={0.5}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          removeClippedSubviews={false}
-          initialNumToRender={5}
-          maxToRenderPerBatch={5}
-          windowSize={10}
         />
-      </View>
+      )}
+
+      <PostDetailsModal
+        visible={showPostDetailsModal}
+        onClose={() => {
+          setShowPostDetailsModal(false);
+          setSelectedPostId(null);
+        }}
+        postId={selectedPostId}
+        currentTheme={currentTheme}
+        onCommentsCountChange={(newCount) => {
+          if (selectedPostId) {
+            setPosts(prevPosts => prevPosts.map(post => 
+              post.id === selectedPostId 
+                ? { ...post, commentsCount: newCount }
+                : post
+            ));
+          }
+        }}
+        onLikesCountChange={(newCount, isLikedByUser) => {
+          if (selectedPostId) {
+            setPosts(prevPosts => prevPosts.map(post => 
+              post.id === selectedPostId 
+                ? { ...post, likesCount: newCount, isLikedByUser: isLikedByUser }
+                : post
+            ));
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  postContainer: {
+    width: width,
+    height: height,
+    position: 'relative',
+  },
+  mediaContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  media: {
+    width: '100%',
+    height: '100%',
+  },
+  topHeader: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    zIndex: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  bottomOverlay: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
+    zIndex: 10,
+  },
+  leftContent: {
+    flex: 1,
+    marginRight: 16,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  authorName: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  description: {
+    color: 'white',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 4,
+  },
+  rightActions: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  actionButton: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  actionText: {
+    color: 'white',
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  videoTapOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    zIndex: 5,
+  },
+});
