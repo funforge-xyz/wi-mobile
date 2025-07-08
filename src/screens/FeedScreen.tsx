@@ -9,6 +9,7 @@ import {
   ViewabilityConfig,
   ViewToken,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector } from '../hooks/redux';
