@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Image, TouchableOpacity, StyleSheet, View, Dimensions, TouchableWithoutFeedback, Animated } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { Image, StyleSheet, View, Animated, TouchableWithoutFeedback } from 'react-native';
+import { VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 
 interface PostMediaProps {
@@ -14,10 +14,8 @@ interface PostMediaProps {
   likeAnimationOpacity?: any;
   likeAnimationScale?: any;
   isVideoPlaying?: boolean;
-  isVideoMuted?: boolean;
-  onVideoMuteToggle?: () => void;
-  onVideoPlayPause?: () => void;
   videoPlayer?: any;
+  onVideoTap?: () => void;
 }
 
 export default function PostMedia({
@@ -30,99 +28,51 @@ export default function PostMedia({
   onDoubleTap,
   likeAnimationOpacity,
   likeAnimationScale,
-  isVideoPlaying,
-  isVideoMuted,
-  onVideoMuteToggle,
-  onVideoPlayPause,
+  isVideoPlaying = false,
   videoPlayer,
+  onVideoTap,
 }: PostMediaProps) {
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  // Use external video player if provided, otherwise create internal one
-  const internalVideoPlayer = useVideoPlayer(
-    mediaType === 'video' && !videoPlayer ? mediaURL : null,
-    (player) => {
-      if (player && mediaType === 'video') {
-        player.loop = true;
-        player.muted = isVideoMuted;
-        // Don't auto-play on creation
-      }
-    }
-  );
+  console.log('PostMedia render - mediaType:', mediaType, 'isVideoPlaying:', isVideoPlaying, 'hasVideoPlayer:', !!videoPlayer);
 
-  const activeVideoPlayer = videoPlayer || internalVideoPlayer;
-
-  // Update video player state when props change
-  useEffect(() => {
-    if (activeVideoPlayer && mediaType === 'video') {
-      activeVideoPlayer.muted = isVideoMuted;
-      if (isVideoPlaying) {
-        activeVideoPlayer.play();
-      } else {
-        activeVideoPlayer.pause();
-      }
-    }
-  }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType]);
-
-  // Don't reset hasBeenTapped during autoplay - only when video stops completely
-  useEffect(() => {
-    if (mediaType === 'video' && !isVideoPlaying && hasBeenTapped) {
-      // Reset hasBeenTapped only when video stops playing completely
-      console.log('Video stopped playing, keeping hasBeenTapped as true');
-    }
-  }, [isVideoPlaying, mediaType, hasBeenTapped]);
-
-  const handleMuteUnmute = () => {
-    if (onVideoMuteToggle) {
-      onVideoMuteToggle();
-    }
-  };
-
-  const handlePlayPause = () => {
-    if (onVideoPlayPause) {
-      onVideoPlayPause();
-    }
-  };
-
+  // Handle media loading
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
     setIsMediaLoaded(true);
     onLoad?.();
   };
 
-  if (!mediaURL) return null;
-
-  const mediaStyle = [
-    styles.media,
-    style,
-    showBorderRadius && { borderRadius: 8 }
-  ];
-
-  const frontCameraTransform = isFrontCamera ? { transform: [{ scaleX: -1 }] } : {};
-
-  const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
+  // Reset tapped state when video starts playing (autoplay)
+  useEffect(() => {
+    if (mediaType === 'video' && isVideoPlaying && !hasBeenTapped) {
+      // This is autoplay, don't show any buttons
+      console.log('Video autoplay detected, not showing controls');
+    }
+  }, [isVideoPlaying, hasBeenTapped, mediaType]);
 
   const handlePress = () => {
-    console.log('handlePress called - mediaType:', mediaType, 'hasBeenTapped:', hasBeenTapped, 'isVideoPlaying:', isVideoPlaying);
-    
+    console.log('PostMedia handlePress called - mediaType:', mediaType);
+
     if (mediaType === 'video') {
       // Always set hasBeenTapped to true on any tap
       setHasBeenTapped(true);
       console.log('Setting hasBeenTapped to true');
-      
-      if (onVideoPlayPause) {
-        onVideoPlayPause();
+
+      // Call video tap handler
+      if (onVideoTap) {
+        onVideoTap();
       }
-      
+
       // Show animation when pausing (when currently playing)
       if (isVideoPlaying) {
         console.log('Video was playing, showing pause animation');
         playButtonScale.setValue(0);
         playButtonOpacity.setValue(1);
-        
+
         Animated.parallel([
           Animated.timing(playButtonScale, {
             toValue: 1.2,
@@ -140,42 +90,50 @@ export default function PostMedia({
         });
       }
     }
+
+    // Handle double tap for likes
     if (onDoubleTap) {
       onDoubleTap();
     }
   };
 
-  const touchProps = onDoubleTap
-    ? { onPress: handlePress }
-    : { onPress: handlePress, activeOpacity: 0.9 };
+  if (!mediaURL) return null;
+
+  const mediaStyle = [
+    styles.media,
+    style,
+    showBorderRadius && { borderRadius: 8 }
+  ];
+
+  const frontCameraTransform = isFrontCamera ? { transform: [{ scaleX: -1 }] } : {};
 
   if (mediaType === 'video') {
-    console.log('Rendering VideoView with player:', !!activeVideoPlayer);
+    console.log('Rendering VideoView with player:', !!videoPlayer);
 
-    if (!activeVideoPlayer) {
+    if (!videoPlayer) {
       console.warn('No video player available for video:', mediaURL);
       return (
         <View style={[styles.mediaContainer, { backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }]}>
-          <TouchComponent {...touchProps}>
+          <TouchableWithoutFeedback onPress={handlePress}>
             <View style={mediaStyle} />
-          </TouchComponent>
+          </TouchableWithoutFeedback>
         </View>
       );
     }
 
     return (
       <View style={styles.mediaContainer}>
-        <TouchComponent {...touchProps}>
+        <TouchableWithoutFeedback onPress={handlePress}>
           <VideoView
-            player={activeVideoPlayer}
+            player={videoPlayer}
             style={[
               mediaStyle,
-              isFrontCamera && { transform: [{ scaleX: -1 }] }
+              frontCameraTransform
             ]}
             allowsFullscreen={false}
             allowsPictureInPicture={false}
             nativeControls={false}
-            contentFit="contain"
+            contentFit="cover"
             onLoadStart={() => {
               console.log('Video load started for:', mediaURL);
             }}
@@ -188,7 +146,7 @@ export default function PostMedia({
               handleMediaLoad(); // Still call onLoad to hide skeleton
             }}
           />
-        </TouchComponent>
+        </TouchableWithoutFeedback>
 
         {/* Static play button overlay - show when paused and tapped */}
         {!isVideoPlaying && hasBeenTapped && (
@@ -234,18 +192,18 @@ export default function PostMedia({
 
   return (
     <View style={styles.mediaContainer}>
-      <TouchComponent {...touchProps}>
+      <TouchableWithoutFeedback onPress={handlePress}>
         <Image
           source={{ uri: mediaURL }}
-          style={[mediaStyle, isFrontCamera && { transform: [{ scaleX: -1 }] }]}
-          resizeMode="contain"
+          style={[mediaStyle, frontCameraTransform]}
+          resizeMode="cover"
           onLoad={handleMediaLoad}
           onError={(error) => {
             console.error('Image load error:', error);
             handleMediaLoad(); // Still call onLoad to hide skeleton
           }}
         />
-      </TouchComponent>
+      </TouchableWithoutFeedback>
 
       {/* Animated heart overlay for images */}
       {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
@@ -273,11 +231,6 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 0,
   },
-  video: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 0,
-  },
   likeAnimationOverlay: {
     position: 'absolute',
     top: 0,
@@ -286,6 +239,7 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    pointerEvents: 'none',
   },
   playButtonOverlay: {
     position: 'absolute',
@@ -295,5 +249,6 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    pointerEvents: 'none',
   },
 });
