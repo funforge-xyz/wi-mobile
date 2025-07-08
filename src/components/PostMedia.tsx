@@ -67,6 +67,14 @@ export default function PostMedia({
     }
   }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType]);
 
+  // Reset hasBeenTapped when video starts playing initially (autoplay)
+  useEffect(() => {
+    if (mediaType === 'video' && isVideoPlaying && !hasBeenTapped) {
+      console.log('Video started playing (likely autoplay), resetting hasBeenTapped');
+      setHasBeenTapped(false);
+    }
+  }, [isVideoPlaying, mediaType, hasBeenTapped]);
+
   const handleMuteUnmute = () => {
     if (onVideoMuteToggle) {
       onVideoMuteToggle();
@@ -98,7 +106,8 @@ export default function PostMedia({
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
   const handlePress = () => {
-    console.log('handlePress called - mediaType:', mediaType, 'hasBeenTapped:', hasBeenTapped, 'isVideoPlaying:', isVideoPlaying);
+    const actuallyPlaying = activeVideoPlayer?.playing || false;
+    console.log('handlePress called - mediaType:', mediaType, 'hasBeenTapped:', hasBeenTapped, 'isVideoPlaying prop:', isVideoPlaying, 'actually playing:', actuallyPlaying);
     
     if (mediaType === 'video') {
       // Set hasBeenTapped on any tap (first tap or subsequent taps)
@@ -199,7 +208,7 @@ export default function PostMedia({
         )}
         
         {/* Debug: Log when conditions change */}
-        {console.log('Render conditions - isVideoPlaying:', isVideoPlaying, 'hasBeenTapped:', hasBeenTapped, 'shouldShowPlayButton:', !isVideoPlaying && hasBeenTapped)}
+        {console.log('Render conditions - isVideoPlaying:', isVideoPlaying, 'hasBeenTapped:', hasBeenTapped, 'shouldShowPlayButton:', !isVideoPlaying && hasBeenTapped, 'activeVideoPlayer playing:', activeVideoPlayer?.playing)}
 
         {/* Animated play button overlay - only for tap animation */}
         {isVideoPlaying && hasBeenTapped && (
