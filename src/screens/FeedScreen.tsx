@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
@@ -12,6 +11,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  SafeAreaView,
+  Alert,
+  Animated,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -91,6 +94,12 @@ export default function FeedScreen({ navigation }: any) {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
   const flatListRef = useRef<FlatList>(null);
+  const [videoPlayers, setVideoPlayers] = useState<Map<string, any>>(new Map());
+  const [videoMuteStates, setVideoMuteStates] = useState<Map<string, boolean>>(new Map());
+  const [videoPlayStates, setVideoPlayStates] = useState<Map<string, boolean>>(new Map());
+  const [visiblePostIndex, setVisiblePostIndex] = useState(0);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
 
   const currentTheme = getTheme(isDarkMode);
 
@@ -109,7 +118,7 @@ export default function FeedScreen({ navigation }: any) {
     if (visibleItem && visibleItem.item) {
       const post = visibleItem.item;
       setCurrentIndex(visibleItem.index || 0);
-      
+
       // Auto-play videos when they become visible
       if (post.mediaType === 'video' && post.id !== playingVideoId) {
         setPlayingVideoId(post.id);
@@ -345,7 +354,7 @@ export default function FeedScreen({ navigation }: any) {
 
       const effectiveRadius = currentUserLocation ? userRadius : 0;
       const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
-      
+
       const morePosts = await loadConnectionPosts(
         effectiveRadius,
         effectiveLocation,
@@ -474,7 +483,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
     const isPlaying = playingVideoId === item.id;
-    
+
     return (
       <View style={styles.postContainer}>
         {/* Full screen media */}
@@ -493,7 +502,7 @@ export default function FeedScreen({ navigation }: any) {
             />
           )}
 
-          
+
 
           {/* Bottom overlay content */}
           <View style={styles.bottomOverlay}>
@@ -557,7 +566,7 @@ export default function FeedScreen({ navigation }: any) {
   const handleScroll = (event: any) => {
     const { contentOffset } = event.nativeEvent;
     const currentIndex = Math.round(contentOffset.y / (height - 100));
-    
+
     // Load more posts when approaching the end
     if (currentIndex >= posts.length - 3 && hasMorePosts && !loadingMore) {
       loadMorePosts();
@@ -737,6 +746,46 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'transparent',
-    zIndex: 5,
+  },
+  descriptionModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  descriptionModalContent: {
+    backgroundColor: 'rgba(40, 40, 40, 0.95)',
+    borderRadius: 16,
+    padding: 20,
+    maxWidth: '100%',
+    maxHeight: '80%',
+  },
+  descriptionModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  userInfoModal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatarModal: {
+    marginRight: 12,
+  },
+  userNameModal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  descriptionModalText: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: 'white',
   },
 });

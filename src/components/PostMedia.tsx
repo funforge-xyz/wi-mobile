@@ -37,6 +37,8 @@ export default function PostMedia({
   videoPlayer,
 }: PostMediaProps) {
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
+  const [hasBeenTapped, setHasBeenTapped] = useState(false);
+  const playButtonOpacity = useRef(new Animated.Value(0)).current;
 
   // Use external video player if provided, otherwise create internal one
   const internalVideoPlayer = useVideoPlayer(
@@ -94,9 +96,24 @@ export default function PostMedia({
 
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
+  const handlePress = () => {
+    if (mediaType === 'video' && !hasBeenTapped) {
+      setHasBeenTapped(true);
+      // Animate play button appearance
+      Animated.timing(playButtonOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+    if (onDoubleTap) {
+      onDoubleTap();
+    }
+  };
+
   const touchProps = onDoubleTap
-    ? { onPress: onDoubleTap }
-    : { onPress: onPress, activeOpacity: 0.9 };
+    ? { onPress: handlePress }
+    : { onPress: handlePress, activeOpacity: 0.9 };
 
   if (mediaType === 'video') {
     console.log('Rendering VideoView with player:', !!activeVideoPlayer);
@@ -139,22 +156,20 @@ export default function PostMedia({
           />
         </TouchComponent>
 
-        {/* Centered play button overlay */}
-        {!isVideoPlaying && (
+        {/* Centered play button overlay - only show after first tap and when paused */}
+        {!isVideoPlaying && hasBeenTapped && (
           <Animated.View style={[
             styles.playButtonOverlay,
             {
-              opacity: likeAnimationOpacity || 1,
+              opacity: playButtonOpacity,
               transform: [{ scale: likeAnimationScale || 1 }]
             }
           ]}>
-            <View style={styles.playButtonContainer}>
-              <Ionicons
-                name="play"
-                size={60}
-                color="white"
-              />
-            </View>
+            <Ionicons
+              name="play"
+              size={60}
+              color="white"
+            />
           </Animated.View>
         )}
 
@@ -235,13 +250,6 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  playButtonContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 50,
-    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
