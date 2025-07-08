@@ -1,102 +1,83 @@
 
 import { View, StyleSheet, Dimensions } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
-import { useAppSelector } from '../hooks/redux';
 import { SPACING } from '../config/constants';
-import { getTheme } from '../theme';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface FeedSkeletonProps {
   count?: number;
 }
 
 export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
-  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-
-  const currentTheme = getTheme(isDarkMode);
-
   const renderSkeletonPost = (index: number) => (
-    <View key={index} style={[styles.postContainer, { backgroundColor: currentTheme.surface }]}>
-      {/* Header with avatar and user info */}
-      <View style={styles.postHeader}>
-        <View style={styles.userInfo}>
-          <SkeletonLoader
-            width={40}
-            height={40}
-            borderRadius={20}
-            style={styles.avatar}
-          />
-          <View style={styles.userTextInfo}>
-            <SkeletonLoader
-              width={120}
-              height={16}
-              borderRadius={8}
-              style={styles.username}
-            />
-            <SkeletonLoader
-              width={80}
-              height={12}
-              borderRadius={6}
-              style={styles.timestamp}
-            />
-          </View>
-        </View>
-      </View>
-
-      {/* Post content text */}
-      <View style={styles.contentContainer}>
-        <SkeletonLoader
-          width={width - (SPACING.md * 2)}
-          height={16}
-          borderRadius={8}
-          style={styles.contentLine}
-        />
-        <SkeletonLoader
-          width={width - (SPACING.md * 4)}
-          height={16}
-          borderRadius={8}
-          style={styles.contentLine}
-        />
-      </View>
-
-      {/* Post image */}
+    <View key={index} style={styles.postContainer}>
+      {/* Media takes most of the screen */}
       <SkeletonLoader
         width={width}
-        height={width * 5/4}
+        height={height * 0.7}
         borderRadius={0}
-        style={styles.postImage}
+        style={styles.postMedia}
       />
 
-      {/* Actions (like, comment) */}
-      <View style={styles.actionsContainer}>
-        <View style={styles.actionItem}>
-          <SkeletonLoader
-            width={24}
-            height={24}
-            borderRadius={12}
-            style={styles.actionIcon}
-          />
-          <SkeletonLoader
-            width={20}
-            height={14}
-            borderRadius={7}
-            style={styles.actionText}
-          />
+      {/* Bottom overlay with user info and actions */}
+      <View style={styles.bottomOverlay}>
+        <View style={styles.leftSection}>
+          {/* User info */}
+          <View style={styles.userInfo}>
+            <SkeletonLoader
+              width={40}
+              height={40}
+              borderRadius={20}
+              style={styles.avatar}
+            />
+            <View style={styles.userTextInfo}>
+              <SkeletonLoader
+                width={120}
+                height={16}
+                borderRadius={8}
+                style={styles.username}
+              />
+              <SkeletonLoader
+                width={200}
+                height={14}
+                borderRadius={7}
+                style={styles.description}
+              />
+            </View>
+          </View>
         </View>
-        <View style={styles.actionItem}>
-          <SkeletonLoader
-            width={24}
-            height={24}
-            borderRadius={12}
-            style={styles.actionIcon}
-          />
-          <SkeletonLoader
-            width={15}
-            height={14}
-            borderRadius={7}
-            style={styles.actionText}
-          />
+
+        {/* Right actions */}
+        <View style={styles.rightActions}>
+          <View style={styles.actionItem}>
+            <SkeletonLoader
+              width={32}
+              height={32}
+              borderRadius={16}
+              style={styles.actionIcon}
+            />
+            <SkeletonLoader
+              width={20}
+              height={12}
+              borderRadius={6}
+              style={styles.actionText}
+            />
+          </View>
+          <View style={styles.actionItem}>
+            <SkeletonLoader
+              width={32}
+              height={32}
+              borderRadius={16}
+              style={styles.actionIcon}
+            />
+            <SkeletonLoader
+              width={15}
+              height={12}
+              borderRadius={6}
+              style={styles.actionText}
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -112,21 +93,35 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
   },
   postContainer: {
-    marginBottom: SPACING.sm,
-    paddingVertical: SPACING.md,
+    width: width,
+    height: height,
+    position: 'relative',
+    backgroundColor: 'black',
   },
-  postHeader: {
+  postMedia: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  bottomOverlay: {
+    position: 'absolute',
+    bottom: 120,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
+  },
+  leftSection: {
+    flex: 1,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: SPACING.sm,
   },
   avatar: {
     marginRight: SPACING.sm,
@@ -137,29 +132,20 @@ const styles = StyleSheet.create({
   username: {
     marginBottom: SPACING.xs,
   },
-  timestamp: {},
-  contentContainer: {
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  contentLine: {
+  description: {
     marginBottom: SPACING.xs,
   },
-  postImage: {
-    marginBottom: SPACING.sm,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.sm,
+  rightActions: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingLeft: SPACING.md,
   },
   actionItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   actionIcon: {
-    marginRight: SPACING.xs,
+    marginBottom: SPACING.xs,
   },
   actionText: {},
 });

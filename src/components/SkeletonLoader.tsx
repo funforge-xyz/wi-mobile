@@ -1,7 +1,5 @@
 import { useRef, useEffect } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
-import { useAppSelector } from '../hooks/redux';
-import { getTheme } from '../theme';
 
 interface SkeletonLoaderProps {
   width: number;
@@ -11,10 +9,11 @@ interface SkeletonLoaderProps {
 }
 
 export default function SkeletonLoader({ width, height, borderRadius = 0, style }: SkeletonLoaderProps) {
-  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const animatedValue = useRef(new Animated.Value(0)).current;
 
-  const currentTheme = getTheme(isDarkMode);
+  // Always use dark theme colors for skeleton
+  const skeletonColor = '#1a1a1a';
+  const shimmerColor = '#2a2a2a';
 
   useEffect(() => {
     const animation = Animated.loop(
@@ -43,7 +42,7 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style 
           width,
           height,
           borderRadius,
-          backgroundColor: currentTheme.skeleton,
+          backgroundColor: skeletonColor,
           overflow: 'hidden',
         },
         style,
@@ -53,7 +52,7 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style 
         style={[
           StyleSheet.absoluteFillObject,
           {
-            backgroundColor: currentTheme.shimmer,
+            backgroundColor: shimmerColor,
             transform: [{ translateX }],
             width: width * 0.5,
             opacity: 0.8,
