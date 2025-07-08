@@ -26,7 +26,25 @@ interface PostMediaProps {
   onVideoMuteToggle?: () => void;
   onVideoPlayPause?: () => void;
   videoPlayer?: any;
-  isVideoLoading?: boolean;
+  isLoading?: boolean;
+}
+
+interface PostMediaProps {
+  mediaURL: string;
+  mediaType?: 'image' | 'video';
+  style?: any;
+  showBorderRadius?: boolean;
+  onLoad?: () => void;
+  isFrontCamera?: boolean;
+  onDoubleTap?: () => void;
+  likeAnimationOpacity?: any;
+  likeAnimationScale?: any;
+  isVideoPlaying?: boolean;
+  isVideoMuted?: boolean;
+  onVideoMuteToggle?: () => void;
+  onVideoPlayPause?: () => void;
+  videoPlayer?: any;
+  isLoading?: boolean; // New prop to control loading from parent
 }
 
 export default function PostMedia({
@@ -44,26 +62,14 @@ export default function PostMedia({
   onVideoMuteToggle,
   onVideoPlayPause,
   videoPlayer,
-  isVideoLoading,
+  isLoading,
 }: PostMediaProps) {
-  const [isMediaLoading, setIsMediaLoading] = useState(!!mediaURL);
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  console.log('PostMedia - isMediaLoading:', isMediaLoading, 'mediaType:', mediaType, 'isVideoLoading:', isVideoLoading);
-
-  // Handle loading state based on media type and video loading prop
-  useEffect(() => {
-    if (mediaType === 'video') {
-      // For videos, use the isVideoLoading prop from parent
-      setIsMediaLoading(!!isVideoLoading);
-    } else {
-      // For images, keep loading true until onLoad is called
-      setIsMediaLoading(!!mediaURL);
-    }
-  }, [mediaURL, mediaType, isVideoLoading]);
+  console.log('PostMedia - isLoading:', isLoading, 'mediaType:', mediaType);
 
   // Reset hasBeenTapped when video starts playing (autoplay)
   useEffect(() => {
@@ -74,12 +80,11 @@ export default function PostMedia({
 
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
-    setIsMediaLoading(false);
     onLoad?.();
   };
 
   const handleDoubleTap = () => {
-    if (isMediaLoading) return;
+    if (isLoading) return;
     
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
@@ -139,7 +144,7 @@ export default function PostMedia({
   return (
     <View style={styles.mediaContainer}>
       {/* Skeleton loader overlay while loading - always dark for media */}
-      {isMediaLoading && (
+      {isLoading && (
         <TouchableWithoutFeedback onPress={handleDoubleTap}>
           <View style={styles.mediaLoadingSkeleton}>
             <SkeletonLoader
@@ -169,7 +174,7 @@ export default function PostMedia({
           </TouchableWithoutFeedback>
 
           {/* Static play button overlay - show when paused and tapped */}
-          {!isVideoPlaying && hasBeenTapped && !isMediaLoading && (
+          {!isVideoPlaying && hasBeenTapped && !isLoading && (
             <View style={styles.playButtonOverlay}>
               <Ionicons
                 name="play"

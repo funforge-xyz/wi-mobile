@@ -308,6 +308,7 @@ export default function PostItem({
             onVideoMuteToggle={() => onVideoMuteToggle?.(post.id)}
             onVideoPlayPause={() => onVideoPlayPauseToggle?.(post.id, !isVideoPlaying)}
             videoPlayer={activeVideoPlayer}
+            isLoading={isMediaLoading}
           />
         </View>
       )}
