@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Image, 
@@ -13,7 +12,7 @@ import SkeletonLoader from './SkeletonLoader';
 
 interface PostMediaProps {
   mediaURL: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'picture' | 'video';
   style?: any;
   showBorderRadius?: boolean;
   onLoad?: () => void;
@@ -31,7 +30,7 @@ interface PostMediaProps {
 
 interface PostMediaProps {
   mediaURL: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'picture' | 'video';
   style?: any;
   showBorderRadius?: boolean;
   onLoad?: () => void;
@@ -49,7 +48,7 @@ interface PostMediaProps {
 
 export default function PostMedia({
   mediaURL,
-  mediaType = 'image',
+  mediaType = 'picture',
   style,
   showBorderRadius = false,
   onLoad,
@@ -64,7 +63,7 @@ export default function PostMedia({
   videoPlayer,
   isLoading: externalIsLoading,
 }: PostMediaProps) {
-  const [internalIsLoading, setInternalIsLoading] = useState(mediaType === 'image');
+  const [internalIsLoading, setInternalIsLoading] = useState(mediaType === 'picture');
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
@@ -84,7 +83,7 @@ export default function PostMedia({
 
   // Reset loading state when media URL changes
   useEffect(() => {
-    if (mediaType === 'image') {
+    if (mediaType === 'picture') {
       setInternalIsLoading(true);
     } else {
       setInternalIsLoading(false);
@@ -99,7 +98,7 @@ export default function PostMedia({
 
   const handleDoubleTap = () => {
     if (isLoading) return;
-    
+
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
 
@@ -112,21 +111,21 @@ export default function PostMedia({
     } else {
       // This is a single tap - handle video play/pause
       setLastTap(now);
-      
+
       if (mediaType === 'video') {
         setHasBeenTapped(true);
         console.log('Video tapped, setting hasBeenTapped to true');
-        
+
         if (onVideoPlayPause) {
           onVideoPlayPause();
         }
-        
+
         // Show animation when pausing (when currently playing)
         if (isVideoPlaying) {
           console.log('Video was playing, showing pause animation');
           playButtonScale.setValue(0);
           playButtonOpacity.setValue(1);
-          
+
           Animated.parallel([
             Animated.timing(playButtonScale, {
               toValue: 1.2,
@@ -233,7 +232,7 @@ export default function PostMedia({
             </Animated.View>
           )}
         </View>
-      ) : mediaType === 'image' ? (
+      ) : mediaType === 'picture' ? (
         <View style={styles.imageContainer}>
           <TouchableWithoutFeedback onPress={handleDoubleTap}>
             <Image
@@ -248,7 +247,7 @@ export default function PostMedia({
             />
           </TouchableWithoutFeedback>
 
-          {/* Animated heart overlay for images */}
+          {/* Animated heart overlay for pictures */}
           {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
             <Animated.View style={[
               styles.likeAnimationOverlay,
