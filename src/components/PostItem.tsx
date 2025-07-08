@@ -124,12 +124,12 @@ export default function PostItem({
     }
   }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, post.mediaType, post.mediaURL]);
 
-  // Handle media loading differently for videos vs images
+  // Handle media loading differently for videos vs images  
   useEffect(() => {
     if (post.mediaType === 'video' && post.mediaURL) {
       // For videos, set loading to false immediately to show the VideoView
       setIsMediaLoading(false);
-    } else if (post.mediaType === 'image' && post.mediaURL) {
+    } else if (post.mediaType === 'picture' && post.mediaURL) {
       // For images, keep loading true until onLoad is called
       setIsMediaLoading(true);
     } else {
@@ -308,7 +308,6 @@ export default function PostItem({
             onVideoMuteToggle={() => onVideoMuteToggle?.(post.id)}
             onVideoPlayPause={() => onVideoPlayPauseToggle?.(post.id, !isVideoPlaying)}
             videoPlayer={activeVideoPlayer}
-            isLoading={isMediaLoading}
           />
         </View>
       )}

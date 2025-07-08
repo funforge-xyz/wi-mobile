@@ -63,16 +63,12 @@ export default function PostMedia({
   videoPlayer,
   isLoading: externalIsLoading,
 }: PostMediaProps) {
-  const [internalIsLoading, setInternalIsLoading] = useState(mediaType === 'picture');
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  // Use external loading state if provided, otherwise use internal state
-  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
-
-  console.log('PostMedia - isLoading:', isLoading, 'mediaType:', mediaType);
+  console.log('PostMedia - externalIsLoading:', externalIsLoading, 'mediaType:', mediaType);
 
   // Reset hasBeenTapped when video starts playing (autoplay)
   useEffect(() => {
@@ -81,18 +77,8 @@ export default function PostMedia({
     }
   }, [isVideoPlaying, mediaType, hasBeenTapped]);
 
-  // Reset loading state when media URL changes
-  useEffect(() => {
-    if (mediaType === 'picture') {
-      setInternalIsLoading(true);
-    } else {
-      setInternalIsLoading(false);
-    }
-  }, [mediaURL, mediaType]);
-
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
-    setInternalIsLoading(false);
     onLoad?.();
   };
 
@@ -156,20 +142,6 @@ export default function PostMedia({
 
   return (
     <View style={styles.mediaContainer}>
-      {/* Skeleton loader overlay while loading - always dark for media */}
-      {isLoading && (
-        <TouchableWithoutFeedback onPress={handleDoubleTap}>
-          <View style={styles.mediaLoadingSkeleton}>
-            <SkeletonLoader
-              width="100%"
-              height="100%"
-              borderRadius={showBorderRadius ? 8 : 0}
-              forceDarkTheme={true}
-            />
-          </View>
-        </TouchableWithoutFeedback>
-      )}
-
       {mediaType === 'video' && videoPlayer ? (
         <View style={styles.videoContainer}>
           <TouchableWithoutFeedback onPress={handleDoubleTap}>
@@ -194,7 +166,7 @@ export default function PostMedia({
           </TouchableWithoutFeedback>
 
           {/* Static play button overlay - show when paused and tapped */}
-          {!isVideoPlaying && hasBeenTapped && !isLoading && (
+          {!isVideoPlaying && hasBeenTapped && (
             <View style={styles.playButtonOverlay}>
               <Ionicons
                 name="play"
