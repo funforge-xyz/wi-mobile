@@ -564,7 +564,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const handleScroll = (event: any) => {
     const { contentOffset } = event.nativeEvent;
-    const currentIndex = Math.round(contentOffset.y / height);
+    const currentIndex = Math.round(contentOffset.y / (height - 100));
     
     // Load more posts when approaching the end
     if (currentIndex >= posts.length - 3 && hasMorePosts && !loadingMore) {
@@ -581,16 +581,18 @@ export default function FeedScreen({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {posts.length === 0 ? (
-        <EmptyFeedState 
-          currentTheme={currentTheme} 
-          title={currentUserLocation ? t('feed.noPosts') : undefined}
-          subtitle={currentUserLocation ? t('feed.shareFirst') : undefined}
-          onLocationEnabled={() => {
-            loadPosts(true);
-          }}
-        />
+        <View style={styles.emptyStateContainer}>
+          <EmptyFeedState 
+            currentTheme={currentTheme} 
+            title={currentUserLocation ? t('feed.noPosts') : undefined}
+            subtitle={currentUserLocation ? t('feed.shareFirst') : undefined}
+            onLocationEnabled={() => {
+              loadPosts(true);
+            }}
+          />
+        </View>
       ) : (
         <FlatList
           ref={flatListRef}
@@ -599,7 +601,7 @@ export default function FeedScreen({ navigation }: any) {
           renderItem={renderPost}
           pagingEnabled
           showsVerticalScrollIndicator={false}
-          snapToInterval={height}
+          snapToInterval={height - 100}
           snapToAlignment="start"
           decelerationRate="fast"
           onViewableItemsChanged={onViewableItemsChanged}
@@ -611,6 +613,8 @@ export default function FeedScreen({ navigation }: any) {
           initialNumToRender={2}
           maxToRenderPerBatch={3}
           windowSize={5}
+          style={styles.feedList}
+          contentContainerStyle={styles.feedContentContainer}
           refreshControl={
             <RefreshControl 
               refreshing={refreshing} 
@@ -650,7 +654,7 @@ export default function FeedScreen({ navigation }: any) {
           }
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -659,10 +663,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'black',
   },
+  emptyStateContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+    paddingBottom: 100,
+  },
+  feedList: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  feedContentContainer: {
+    paddingBottom: 100,
+  },
   postContainer: {
     width: width,
-    height: height,
+    height: height - 100,
     position: 'relative',
+    backgroundColor: 'black',
   },
   mediaContainer: {
     width: '100%',
@@ -693,7 +710,7 @@ const styles = StyleSheet.create({
   },
   bottomOverlay: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 120,
     left: 0,
     right: 0,
     flexDirection: 'row',
