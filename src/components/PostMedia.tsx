@@ -67,19 +67,13 @@ export default function PostMedia({
     }
   }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType]);
 
-  // Reset hasBeenTapped only when video actually starts playing (not just when prop changes)
+  // Don't reset hasBeenTapped during autoplay - only when video stops completely
   useEffect(() => {
-    if (mediaType === 'video' && activeVideoPlayer) {
-      const actuallyPlaying = activeVideoPlayer.playing;
-      console.log('Video player state changed - actuallyPlaying:', actuallyPlaying, 'isVideoPlaying prop:', isVideoPlaying);
-      
-      // Only reset hasBeenTapped if the video is actually playing AND autoplay is happening
-      if (actuallyPlaying && isVideoPlaying && !hasBeenTapped) {
-        console.log('Video actually started playing (autoplay), resetting hasBeenTapped');
-        setHasBeenTapped(false);
-      }
+    if (mediaType === 'video' && !isVideoPlaying && hasBeenTapped) {
+      // Reset hasBeenTapped only when video stops playing completely
+      console.log('Video stopped playing, keeping hasBeenTapped as true');
     }
-  }, [activeVideoPlayer?.playing, isVideoPlaying, mediaType, hasBeenTapped]);
+  }, [isVideoPlaying, mediaType, hasBeenTapped]);
 
   const handleMuteUnmute = () => {
     if (onVideoMuteToggle) {
@@ -112,11 +106,10 @@ export default function PostMedia({
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
   const handlePress = () => {
-    const actuallyPlaying = activeVideoPlayer?.playing || false;
-    console.log('handlePress called - mediaType:', mediaType, 'hasBeenTapped:', hasBeenTapped, 'isVideoPlaying prop:', isVideoPlaying, 'actually playing:', actuallyPlaying);
+    console.log('handlePress called - mediaType:', mediaType, 'hasBeenTapped:', hasBeenTapped, 'isVideoPlaying:', isVideoPlaying);
     
     if (mediaType === 'video') {
-      // Set hasBeenTapped on any tap (first tap or subsequent taps)
+      // Always set hasBeenTapped to true on any tap
       setHasBeenTapped(true);
       console.log('Setting hasBeenTapped to true');
       
@@ -124,10 +117,9 @@ export default function PostMedia({
         onVideoPlayPause();
       }
       
-      // Show play button animation when pausing (use actual player state)
-      if (actuallyPlaying || isVideoPlaying) {
+      // Show animation when pausing (when currently playing)
+      if (isVideoPlaying) {
         console.log('Video was playing, showing pause animation');
-        // Reset and animate play button
         playButtonScale.setValue(0);
         playButtonOpacity.setValue(1);
         
@@ -146,8 +138,6 @@ export default function PostMedia({
         ]).start(() => {
           playButtonScale.setValue(1);
         });
-      } else {
-        console.log('Video was paused, should show static play button');
       }
     }
     if (onDoubleTap) {
@@ -200,7 +190,7 @@ export default function PostMedia({
           />
         </TouchComponent>
 
-        {/* Static play button overlay - only show when paused and after first tap */}
+        {/* Static play button overlay - show when paused and tapped */}
         {!isVideoPlaying && hasBeenTapped && (
           <View style={styles.playButtonOverlay}>
             <Ionicons
@@ -210,26 +200,21 @@ export default function PostMedia({
             />
           </View>
         )}
-        
-        {/* Debug: Log when conditions change */}
-        {console.log('Render conditions - isVideoPlaying:', isVideoPlaying, 'hasBeenTapped:', hasBeenTapped, 'shouldShowPlayButton:', !isVideoPlaying && hasBeenTapped, 'activeVideoPlayer playing:', activeVideoPlayer?.playing)}
 
-        {/* Animated play button overlay - only for tap animation */}
-        {isVideoPlaying && hasBeenTapped && (
-          <Animated.View style={[
-            styles.playButtonOverlay,
-            {
-              opacity: playButtonOpacity,
-              transform: [{ scale: playButtonScale }]
-            }
-          ]}>
-            <Ionicons
-              name="play"
-              size={60}
-              color="white"
-            />
-          </Animated.View>
-        )}
+        {/* Animated pause button overlay - only for tap-to-pause animation */}
+        <Animated.View style={[
+          styles.playButtonOverlay,
+          {
+            opacity: playButtonOpacity,
+            transform: [{ scale: playButtonScale }]
+          }
+        ]}>
+          <Ionicons
+            name="pause"
+            size={60}
+            color="white"
+          />
+        </Animated.View>
 
         {/* Animated heart overlay */}
         {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
