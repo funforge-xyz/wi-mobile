@@ -493,15 +493,7 @@ export default function FeedScreen({ navigation }: any) {
             />
           )}
 
-          {/* Top header with notification bell */}
-          <View style={styles.topHeader}>
-            <Text style={styles.headerTitle}>{t('feed.title')}</Text>
-            <NotificationBell 
-              key={notificationKey}
-              onPress={() => navigation.navigate('Notifications')} 
-              color="white"
-            />
-          </View>
+          
 
           {/* Bottom overlay content */}
           <View style={styles.bottomOverlay}>
@@ -582,6 +574,16 @@ export default function FeedScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Fixed header at the top */}
+      <View style={styles.fixedHeader}>
+        <Text style={styles.headerTitle}>{t('feed.title')}</Text>
+        <NotificationBell 
+          key={notificationKey}
+          onPress={() => navigation.navigate('Notifications')} 
+          color="white"
+        />
+      </View>
+
       {posts.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <EmptyFeedState 
@@ -692,7 +694,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  topHeader: {
+  fixedHeader: {
     position: 'absolute',
     top: 50,
     left: 0,
@@ -701,7 +703,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    zIndex: 10,
+    zIndex: 1000,
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontSize: 20,
