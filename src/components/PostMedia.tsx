@@ -39,6 +39,7 @@ export default function PostMedia({
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
+  const playButtonScale = useRef(new Animated.Value(1)).current;
 
   // Use external video player if provided, otherwise create internal one
   const internalVideoPlayer = useVideoPlayer(
@@ -97,14 +98,34 @@ export default function PostMedia({
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
   const handlePress = () => {
-    if (mediaType === 'video' && !hasBeenTapped) {
-      setHasBeenTapped(true);
-      // Animate play button appearance
-      Animated.timing(playButtonOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+    if (mediaType === 'video') {
+      if (onVideoPlayPause) {
+        onVideoPlayPause();
+      }
+      
+      // Show play button animation when pausing
+      if (isVideoPlaying) {
+        setHasBeenTapped(true);
+        // Reset and animate play button
+        playButtonScale.setValue(0);
+        playButtonOpacity.setValue(1);
+        
+        Animated.parallel([
+          Animated.timing(playButtonScale, {
+            toValue: 1.2,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(playButtonOpacity, {
+            toValue: 0,
+            duration: 300,
+            delay: 200,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          playButtonScale.setValue(1);
+        });
+      }
     }
     if (onDoubleTap) {
       onDoubleTap();
@@ -156,13 +177,24 @@ export default function PostMedia({
           />
         </TouchComponent>
 
-        {/* Centered play button overlay - only show after first tap and when paused */}
+        {/* Centered play button overlay - only show when paused and after first tap */}
         {!isVideoPlaying && hasBeenTapped && (
+          <View style={styles.playButtonOverlay}>
+            <Ionicons
+              name="play"
+              size={60}
+              color="white"
+            />
+          </View>
+        )}
+
+        {/* Play button animation overlay */}
+        {hasBeenTapped && (
           <Animated.View style={[
             styles.playButtonOverlay,
             {
               opacity: playButtonOpacity,
-              transform: [{ scale: likeAnimationScale || 1 }]
+              transform: [{ scale: playButtonScale }]
             }
           ]}>
             <Ionicons
