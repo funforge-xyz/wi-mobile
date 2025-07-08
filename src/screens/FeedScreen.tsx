@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
   },
   bottomOverlay: {
     position: 'absolute',
-    bottom: 120,
+    bottom: 140,
     left: 0,
     right: 0,
     flexDirection: 'row',

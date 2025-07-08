@@ -32,7 +32,16 @@ export default function RootTabNavigator({ isDarkMode }: RootTabNavigatorProps) 
         },
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: isDarkMode ? '#B0B0B0' : COLORS.textSecondary,
-        tabBarStyle: getTabBarStyles(isDarkMode),
+        tabBarStyle: route.name === 'Home' 
+          ? { 
+              ...getTabBarStyles(isDarkMode), 
+              backgroundColor: 'transparent',
+              borderTopWidth: 0,
+              elevation: 0,
+              shadowOpacity: 0,
+              position: 'absolute'
+            }
+          : getTabBarStyles(isDarkMode),
         tabBarLabelStyle: getTabBarLabelStyle(),
         headerShown: false,
       })}
