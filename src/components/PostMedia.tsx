@@ -67,13 +67,19 @@ export default function PostMedia({
     }
   }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType]);
 
-  // Reset hasBeenTapped when video starts playing initially (autoplay)
+  // Reset hasBeenTapped only when video actually starts playing (not just when prop changes)
   useEffect(() => {
-    if (mediaType === 'video' && isVideoPlaying && !hasBeenTapped) {
-      console.log('Video started playing (likely autoplay), resetting hasBeenTapped');
-      setHasBeenTapped(false);
+    if (mediaType === 'video' && activeVideoPlayer) {
+      const actuallyPlaying = activeVideoPlayer.playing;
+      console.log('Video player state changed - actuallyPlaying:', actuallyPlaying, 'isVideoPlaying prop:', isVideoPlaying);
+      
+      // Only reset hasBeenTapped if the video is actually playing AND autoplay is happening
+      if (actuallyPlaying && isVideoPlaying && !hasBeenTapped) {
+        console.log('Video actually started playing (autoplay), resetting hasBeenTapped');
+        setHasBeenTapped(false);
+      }
     }
-  }, [isVideoPlaying, mediaType, hasBeenTapped]);
+  }, [activeVideoPlayer?.playing, isVideoPlaying, mediaType, hasBeenTapped]);
 
   const handleMuteUnmute = () => {
     if (onVideoMuteToggle) {
@@ -111,17 +117,15 @@ export default function PostMedia({
     
     if (mediaType === 'video') {
       // Set hasBeenTapped on any tap (first tap or subsequent taps)
-      if (!hasBeenTapped) {
-        console.log('Setting hasBeenTapped to true');
-        setHasBeenTapped(true);
-      }
+      setHasBeenTapped(true);
+      console.log('Setting hasBeenTapped to true');
       
       if (onVideoPlayPause) {
         onVideoPlayPause();
       }
       
-      // Show play button animation when pausing
-      if (isVideoPlaying) {
+      // Show play button animation when pausing (use actual player state)
+      if (actuallyPlaying || isVideoPlaying) {
         console.log('Video was playing, showing pause animation');
         // Reset and animate play button
         playButtonScale.setValue(0);
