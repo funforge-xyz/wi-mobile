@@ -122,16 +122,16 @@ export const loadDarkModeSettings = async (dispatch: any) => {
   try {
     const { SettingsService } = await import('../services/settings');
     const settingsService = SettingsService.getInstance();
-    
+
     // First load the settings
     const settings = await settingsService.loadSettings();
-    
+
     // Import setTheme action
     const { setTheme } = await import('../store/themeSlice');
-    
+
     // Set the theme in Redux store
     dispatch(setTheme(settings.darkMode));
-    
+
     console.log('Dark mode settings loaded and applied:', settings.darkMode);
     console.log('Full settings loaded:', settings);
   } catch (error) {
@@ -186,3 +186,19 @@ export const getTabBarLabelStyle = () => ({
   fontFamily: 'System',
   fontSize: 12,
 });
+
+export const utilHandleOnboardingComplete = async (
+  settings: Settings,
+  setShowOnboarding: (show: boolean) => void
+) => {
+  try {
+    console.log('Saving onboarding completion...');
+    await settings.setOnboardingCompleted(true);
+    console.log('Onboarding completion saved successfully');
+    setShowOnboarding(false);
+  } catch (error) {
+    console.error('Error saving onboarding completion:', error);
+    // Still hide onboarding even if saving fails
+    setShowOnboarding(false);
+  }
+};

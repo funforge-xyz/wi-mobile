@@ -135,7 +135,15 @@ export default function RootScreen() {
   };
 
   const handleOnboardingComplete = async () => {
-    await utilHandleOnboardingComplete(settings, setShowOnboarding);
+    try {
+      await utilHandleOnboardingComplete(settings, setShowOnboarding);
+      // Ensure we explicitly set showOnboarding to false
+      setShowOnboarding(false);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      // Still hide onboarding even if there's an error saving to storage
+      setShowOnboarding(false);
+    }
   };
 
   const handleLoginSuccess = () => {
