@@ -55,16 +55,30 @@ export default function PostHeader({
   };
 
   const handleProfilePress = () => {
+    console.log('Profile pressed - authorId:', authorId, 'navigation:', !!navigation);
     if (navigation && authorId) {
       const [firstName, ...lastNameParts] = authorName.split(' ');
       const lastName = lastNameParts.join(' ');
 
-      navigation.navigate('UserProfile', {
+      console.log('Navigating to UserProfile with:', {
         userId: authorId,
         firstName: firstName || '',
         lastName: lastName || '',
         photoURL: authorPhotoURL || '',
       });
+
+      try {
+        navigation.navigate('UserProfile', {
+          userId: authorId,
+          firstName: firstName || '',
+          lastName: lastName || '',
+          photoURL: authorPhotoURL || '',
+        });
+      } catch (error) {
+        console.error('Navigation error:', error);
+      }
+    } else {
+      console.warn('Navigation or authorId missing:', { navigation: !!navigation, authorId });
     }
   };
 

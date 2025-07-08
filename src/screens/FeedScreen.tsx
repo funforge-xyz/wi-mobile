@@ -518,14 +518,9 @@ export default function FeedScreen({ navigation }: any) {
                 <Text style={styles.authorName}>{item.authorName}</Text>
               </View>
               {item.content && (
-                <TouchableOpacity onPress={() => {
-                  setSelectedPost(item);
-                  setShowDescriptionModal(true);
-                }}>
-                  <Text style={styles.description} numberOfLines={3}>
-                    {item.content}
-                  </Text>
-                </TouchableOpacity>
+                <Text style={styles.description} numberOfLines={3}>
+                  {item.content}
+                </Text>
               )}
             </View>
 
@@ -660,45 +655,6 @@ export default function FeedScreen({ navigation }: any) {
           }
         }}
       />
-
-      {/* Description Modal */}
-      <Modal
-        visible={showDescriptionModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDescriptionModal(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setShowDescriptionModal(false)}>
-          <View style={styles.descriptionModalOverlay}>
-            <TouchableWithoutFeedback onPress={() => {}}>
-              <View style={styles.descriptionModalContent}>
-                <View style={styles.descriptionModalHeader}>
-                  <View style={styles.userInfoModal}>
-                    <View style={styles.avatarModal}>
-                      <UserAvatar
-                        photoURL={selectedPost?.authorPhotoURL}
-                        name={selectedPost?.authorName}
-                        size={32}
-                        showOnlineStatus={false}
-                      />
-                    </View>
-                    <Text style={styles.userNameModal}>{selectedPost?.authorName}</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setShowDescriptionModal(false)}
-                  >
-                    <Ionicons name="close" size={24} color="white" />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.descriptionModalText}>
-                  {selectedPost?.content}
-                </Text>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </View>
   );
 }
