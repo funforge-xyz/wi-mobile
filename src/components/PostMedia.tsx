@@ -164,7 +164,7 @@ export default function PostMedia({
               allowsFullscreen={false}
               allowsPictureInPicture={false}
               nativeControls={false}
-              contentFit="cover"
+              contentFit="contain"
             />
           </TouchableWithoutFeedback>
 
@@ -213,7 +213,7 @@ export default function PostMedia({
             <Image
               source={{ uri: mediaURL }}
               style={[mediaStyle, isFrontCamera && { transform: [{ scaleX: -1 }] }]}
-              resizeMode="cover"
+              resizeMode="contain"
               onLoad={handleMediaLoad}
               onError={(error) => {
                 console.error('Image load error:', error);
@@ -256,6 +256,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     position: 'relative',
+    backgroundColor: 'black',
   },
   media: {
     width: '100%',

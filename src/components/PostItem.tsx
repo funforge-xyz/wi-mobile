@@ -95,11 +95,11 @@ export default function PostItem({
   // Debug logging for isFrontCamera
   console.log('PostItem - Post ID:', post.id, 'isFrontCamera:', post.isFrontCamera, 'mediaType:', post.mediaType);
 
-  // Create video player for video posts - only create if we have a video
-  const videoPlayer = useVideoPlayer(
-    post.mediaType === 'video' && post.mediaURL ? post.mediaURL : null, 
+  // Create video player for video posts - always call hook, but conditionally set source
+  const internalVideoPlayer = useVideoPlayer(
+    post.mediaType === 'video' && post.mediaURL ? post.mediaURL : '', 
     player => {
-      if (player && post.mediaType === 'video') {
+      if (player && post.mediaType === 'video' && post.mediaURL) {
         player.loop = true;
         player.muted = isVideoMuted;
         // Don't auto-play on creation, let the visibility logic handle it
@@ -107,19 +107,22 @@ export default function PostItem({
     }
   );
 
+  // Use the passed videoPlayer prop if available, otherwise use internal
+  const activeVideoPlayer = videoPlayer || internalVideoPlayer;
+
   // Update video player when playback state changes
   useEffect(() => {
-    if (videoPlayer && post.mediaType === 'video') {
-      videoPlayer.muted = isVideoMuted;
+    if (activeVideoPlayer && post.mediaType === 'video' && post.mediaURL) {
+      activeVideoPlayer.muted = isVideoMuted;
       if (isVideoPlaying) {
         console.log('Playing video:', post.id);
-        videoPlayer.play();
+        activeVideoPlayer.play();
       } else {
         console.log('Pausing video:', post.id);
-        videoPlayer.pause();
+        activeVideoPlayer.pause();
       }
     }
-  }, [videoPlayer, isVideoPlaying, isVideoMuted, post.mediaType]);
+  }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, post.mediaType, post.mediaURL]);
 
   // Handle media loading differently for videos vs images
   useEffect(() => {
@@ -304,7 +307,7 @@ export default function PostItem({
             isVideoMuted={isVideoMuted}
             onVideoMuteToggle={() => onVideoMuteToggle?.(post.id)}
             onVideoPlayPause={() => onVideoPlayPauseToggle?.(post.id, !isVideoPlaying)}
-            videoPlayer={videoPlayer}
+            videoPlayer={activeVideoPlayer}
           />
         </View>
       )}
