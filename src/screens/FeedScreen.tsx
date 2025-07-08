@@ -577,7 +577,6 @@ export default function FeedScreen({ navigation }: any) {
 
   const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
     const isPlaying = playingVideoId === item.id;
-    const isLoading = item.mediaType === 'video' ? false : true; // Videos show immediately, images need loading
 
     return (
       <View style={styles.postContainer}>
@@ -595,7 +594,6 @@ export default function FeedScreen({ navigation }: any) {
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
               onVideoPlayPause={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}
-              isLoading={isLoading}
             />
           )}
 

@@ -62,12 +62,16 @@ export default function PostMedia({
   onVideoMuteToggle,
   onVideoPlayPause,
   videoPlayer,
-  isLoading,
+  isLoading: externalIsLoading,
 }: PostMediaProps) {
+  const [internalIsLoading, setInternalIsLoading] = useState(mediaType === 'image');
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
+
+  // Use external loading state if provided, otherwise use internal state
+  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
 
   console.log('PostMedia - isLoading:', isLoading, 'mediaType:', mediaType);
 
@@ -78,8 +82,18 @@ export default function PostMedia({
     }
   }, [isVideoPlaying, mediaType, hasBeenTapped]);
 
+  // Reset loading state when media URL changes
+  useEffect(() => {
+    if (mediaType === 'image') {
+      setInternalIsLoading(true);
+    } else {
+      setInternalIsLoading(false);
+    }
+  }, [mediaURL, mediaType]);
+
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
+    setInternalIsLoading(false);
     onLoad?.();
   };
 
