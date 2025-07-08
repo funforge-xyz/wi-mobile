@@ -170,6 +170,13 @@ export default function PostMedia({
               allowsPictureInPicture={false}
               nativeControls={false}
               contentFit="contain"
+              onVideoViewDidMountForInternalPlayer={() => {
+                console.log('PostMedia - VideoView mounted for:', mediaURL);
+                if (isVideoPlaying && videoPlayer) {
+                  console.log('PostMedia - Auto-starting video playback');
+                  videoPlayer.play();
+                }
+              }}
             />
           </TouchableWithoutFeedback>
 
@@ -221,8 +228,8 @@ export default function PostMedia({
               resizeMode="contain"
               onLoad={handleMediaLoad}
               onError={(error) => {
-                console.error('Image load error:', error);
-                handleMediaLoad(); // Still call onLoad to hide skeleton
+                console.warn('PostMedia - Image failed to load:', mediaURL);
+                handleMediaLoad(); // Still call onLoad to hide skeleton even on error
               }}
             />
           </TouchableWithoutFeedback>

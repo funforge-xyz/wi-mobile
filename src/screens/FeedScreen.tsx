@@ -123,13 +123,50 @@ export default function FeedScreen({ navigation }: any) {
       setCurrentIndex(visibleItem.index || 0);
 
       // Auto-play videos when they become visible
-      if (post.mediaType === 'video' && post.id !== playingVideoId) {
+      if (post.mediaType === 'video') {
+        console.log('Video post became visible, auto-playing:', post.id);
         setPlayingVideoId(post.id);
-      } else if (post.mediaType === 'image' && playingVideoId) {
+        // Update video states for this specific video
+        setVideoStates(prev => ({
+          ...prev,
+          [post.id]: {
+            ...prev[post.id],
+            isPlaying: true,
+            isMuted: false
+          }
+        }));
+        setCurrentlyPlayingVideo(post.id);
+        
+        // Pause all other videos
+        Object.keys(videoStates).forEach(id => {
+          if (id !== post.id && videoStates[id]?.isPlaying) {
+            setVideoStates(prev => ({
+              ...prev,
+              [id]: {
+                ...prev[id],
+                isPlaying: false
+              }
+            }));
+          }
+        });
+      } else if (post.mediaType === 'image') {
+        // Pause all videos when image is visible
         setPlayingVideoId(null);
+        setCurrentlyPlayingVideo(null);
+        Object.keys(videoStates).forEach(id => {
+          if (videoStates[id]?.isPlaying) {
+            setVideoStates(prev => ({
+              ...prev,
+              [id]: {
+                ...prev[id],
+                isPlaying: false
+              }
+            }));
+          }
+        });
       }
     }
-  }, [playingVideoId, isScreenFocused]);
+  }, [playingVideoId, isScreenFocused, videoStates]);
 
   const onScrollToIndexFailed = (info: any) => {
     const wait = new Promise(resolve => setTimeout(resolve, 500));
@@ -472,13 +509,21 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const handleVideoPlayPauseToggle = (postId: string, shouldPlay: boolean) => {
-    console.log('handleVideoPlayPauseToggle:', postId, shouldPlay);
+    console.log('FeedScreen - handleVideoPlayPauseToggle:', postId, shouldPlay);
+
+    // Update the playing video ID for PostMedia
+    if (shouldPlay) {
+      setPlayingVideoId(postId);
+    } else {
+      setPlayingVideoId(null);
+    }
 
     setVideoStates(prev => ({
       ...prev,
       [postId]: {
         ...prev[postId],
-        isPlaying: shouldPlay
+        isPlaying: shouldPlay,
+        isMuted: prev[postId]?.isMuted || false
       }
     }));
 
@@ -532,6 +577,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
     const isPlaying = playingVideoId === item.id;
+    const isLoading = item.mediaType === 'video' ? false : true; // Videos show immediately, images need loading
 
     return (
       <View style={styles.postContainer}>
@@ -544,10 +590,12 @@ export default function FeedScreen({ navigation }: any) {
               isFrontCamera={item.isFrontCamera}
               style={styles.media}
               showBorderRadius={false}
+              onLoad={() => {}} // Handle load completion
               onDoubleTap={() => handleLike(item.id, !item.isLikedByUser)}
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
               onVideoPlayPause={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}
+              isLoading={isLoading}
             />
           )}
 
