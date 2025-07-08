@@ -48,7 +48,6 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
-import { useVideoPlayer } from 'expo-video';
 
 const { width, height } = Dimensions.get('window');
 
@@ -95,10 +94,15 @@ export default function FeedScreen({ navigation }: any) {
   const { t } = useTranslation();
   const flatListRef = useRef<FlatList>(null);
   const [videoPlayers, setVideoPlayers] = useState<Map<string, any>>(new Map());
-  const [videoLoadingStates, setVideoLoadingStates] = useState<Map<string, boolean>>(new Map());
+  const [videoMuteStates, setVideoMuteStates] = useState<Map<string, boolean>>(new Map());
+  const [videoPlayStates, setVideoPlayStates] = useState<Map<string, boolean>>(new Map());
   const [visiblePostIndex, setVisiblePostIndex] = useState(0);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  // Video player management
+  const [currentlyPlayingVideo, setCurrentlyPlayingVideo] = useState<string | null>(null);
+  const [videoStates, setVideoStates] = useState<{[key: string]: {isPlaying: boolean, isMuted: boolean}}>({});
+  const [focusedVideoId, setFocusedVideoId] = useState<string | null>(null);
 
   const currentTheme = getTheme(isDarkMode);
 
@@ -107,50 +111,6 @@ export default function FeedScreen({ navigation }: any) {
     minimumViewTime: 300,
     waitForInteraction: false,
   };
-
-  // Create video players for all video posts
-  useEffect(() => {
-    const createVideoPlayers = async () => {
-      const newVideoPlayers = new Map(videoPlayers);
-      const newLoadingStates = new Map(videoLoadingStates);
-
-      for (const post of posts) {
-        if (post.mediaType === 'video' && post.mediaURL && !newVideoPlayers.has(post.id)) {
-          console.log('Creating video player for post:', post.id);
-          
-          try {
-            const { useVideoPlayer } = await import('expo-video');
-            const player = useVideoPlayer(post.mediaURL, (player) => {
-              player.loop = true;
-              player.muted = false;
-              
-              // Don't auto-play on creation
-              player.pause();
-              
-              console.log('Video player created for:', post.id);
-              newLoadingStates.set(post.id, false);
-              setVideoLoadingStates(new Map(newLoadingStates));
-            });
-            
-            newVideoPlayers.set(post.id, player);
-            newLoadingStates.set(post.id, true);
-          } catch (error) {
-            console.error('Error creating video player for post:', post.id, error);
-            newLoadingStates.set(post.id, false);
-          }
-        }
-      }
-
-      if (newVideoPlayers.size !== videoPlayers.size) {
-        setVideoPlayers(newVideoPlayers);
-        setVideoLoadingStates(newLoadingStates);
-      }
-    };
-
-    if (posts.length > 0) {
-      createVideoPlayers();
-    }
-  }, [posts]);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (!isScreenFocused || viewableItems.length === 0) {
@@ -162,37 +122,14 @@ export default function FeedScreen({ navigation }: any) {
       const post = visibleItem.item;
       setCurrentIndex(visibleItem.index || 0);
 
-      // Control video playback based on visibility
+      // Auto-play videos when they become visible
       if (post.mediaType === 'video' && post.id !== playingVideoId) {
-        console.log('Video became visible, starting autoplay:', post.id);
-        
-        // Pause all other videos
-        videoPlayers.forEach((player, postId) => {
-          if (postId !== post.id && player) {
-            console.log('Pausing other video:', postId);
-            player.pause();
-          }
-        });
-
-        // Play the visible video
-        const player = videoPlayers.get(post.id);
-        if (player) {
-          console.log('Starting autoplay for:', post.id);
-          player.play();
-          setPlayingVideoId(post.id);
-        }
+        setPlayingVideoId(post.id);
       } else if (post.mediaType === 'image' && playingVideoId) {
-        // Pause all videos when an image is visible
-        console.log('Image became visible, pausing all videos');
-        videoPlayers.forEach((player) => {
-          if (player) {
-            player.pause();
-          }
-        });
         setPlayingVideoId(null);
       }
     }
-  }, [playingVideoId, isScreenFocused, videoPlayers]);
+  }, [playingVideoId, isScreenFocused]);
 
   const onScrollToIndexFailed = (info: any) => {
     const wait = new Promise(resolve => setTimeout(resolve, 500));
@@ -216,12 +153,7 @@ export default function FeedScreen({ navigation }: any) {
       if (rememberedVideoId && posts.length > 0) {
         const videoStillExists = posts.some(post => post.id === rememberedVideoId && post.mediaType === 'video');
         if (videoStillExists) {
-          const player = videoPlayers.get(rememberedVideoId);
-          if (player) {
-            console.log('Resuming remembered video:', rememberedVideoId);
-            player.play();
-            setPlayingVideoId(rememberedVideoId);
-          }
+          setPlayingVideoId(rememberedVideoId);
           setRememberedVideoId(null);
         } else {
           setRememberedVideoId(null);
@@ -229,15 +161,6 @@ export default function FeedScreen({ navigation }: any) {
       }
 
       return () => {
-        // Pause all videos when losing focus
-        console.log('Screen losing focus, pausing all videos');
-        videoPlayers.forEach((player, postId) => {
-          if (player) {
-            console.log('Pausing video due to focus loss:', postId);
-            player.pause();
-          }
-        });
-
         setRememberedVideoId(prev => {
           const currentPlayingId = playingVideoId;
           if (currentPlayingId) {
@@ -248,7 +171,7 @@ export default function FeedScreen({ navigation }: any) {
         setPlayingVideoId(null);
         setIsScreenFocused(false);
       };
-    }, [rememberedVideoId, posts.length, videoPlayers, playingVideoId])
+    }, [rememberedVideoId, posts.length])
   );
 
   useEffect(() => {
@@ -548,35 +471,57 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
-  const handleVideoPlayPause = (postId: string) => {
-    console.log('handleVideoPlayPause called for:', postId, 'current playing:', playingVideoId);
-    
-    const player = videoPlayers.get(postId);
-    if (!player) {
-      console.warn('No video player found for post:', postId);
-      return;
-    }
+  const handleVideoPlayPauseToggle = (postId: string, shouldPlay: boolean) => {
+    console.log('handleVideoPlayPauseToggle:', postId, shouldPlay);
 
-    if (playingVideoId === postId) {
-      // Currently playing, pause it
-      console.log('Pausing video:', postId);
-      player.pause();
-      setPlayingVideoId(null);
-    } else {
-      // Not playing, start it and pause others
-      console.log('Playing video:', postId);
-      
-      // Pause all other videos
-      videoPlayers.forEach((otherPlayer, otherPostId) => {
-        if (otherPostId !== postId && otherPlayer) {
-          console.log('Pausing other video:', otherPostId);
-          otherPlayer.pause();
+    setVideoStates(prev => ({
+      ...prev,
+      [postId]: {
+        ...prev[postId],
+        isPlaying: shouldPlay
+      }
+    }));
+
+    if (shouldPlay) {
+      // Pause other videos when this one starts playing
+      setCurrentlyPlayingVideo(postId);
+      Object.keys(videoStates).forEach(id => {
+        if (id !== postId && videoStates[id]?.isPlaying) {
+          setVideoStates(prev => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              isPlaying: false
+            }
+          }));
         }
       });
+    } else {
+      setCurrentlyPlayingVideo(null);
+    }
+  };
 
-      // Play this video
-      player.play();
-      setPlayingVideoId(postId);
+  // Handle video focus changes for autoplay
+  const handleVideoFocus = (postId: string) => {
+    console.log('Video in focus:', postId);
+    setFocusedVideoId(postId);
+
+    // Auto-play the focused video if it's not already playing
+    const post = posts.find(p => p.id === postId);
+    if (post?.mediaType === 'video') {
+      const currentState = videoStates[postId];
+      if (!currentState?.isPlaying) {
+        handleVideoPlayPauseToggle(postId, true);
+      }
+    }
+  };
+
+  const handleVideoBlur = (postId: string) => {
+    console.log('Video lost focus:', postId);
+    if (focusedVideoId === postId) {
+      setFocusedVideoId(null);
+      // Pause the video when it loses focus
+      handleVideoPlayPauseToggle(postId, false);
     }
   };
 
@@ -587,10 +532,6 @@ export default function FeedScreen({ navigation }: any) {
 
   const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
     const isPlaying = playingVideoId === item.id;
-    const videoPlayer = videoPlayers.get(item.id);
-    const isVideoLoading = videoLoadingStates.get(item.id) || false;
-
-    console.log('Rendering post:', item.id, 'mediaType:', item.mediaType, 'isPlaying:', isPlaying, 'hasPlayer:', !!videoPlayer);
 
     return (
       <View style={styles.postContainer}>
@@ -605,13 +546,8 @@ export default function FeedScreen({ navigation }: any) {
               showBorderRadius={false}
               onDoubleTap={() => handleLike(item.id, !item.isLikedByUser)}
               isVideoPlaying={isPlaying}
-              videoPlayer={videoPlayer}
-              onVideoTap={() => handleVideoPlayPause(item.id)}
-              onLoad={() => {
-                if (item.mediaType === 'video') {
-                  setVideoLoadingStates(prev => new Map(prev.set(item.id, false)));
-                }
-              }}
+              isVideoMuted={false}
+              onVideoPlayPause={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}
             />
           )}
 
@@ -667,7 +603,7 @@ export default function FeedScreen({ navigation }: any) {
 
           {/* Video tap overlay for play/pause */}
           {item.mediaType === 'video' && (
-            <TouchableWithoutFeedback onPress={() => handleVideoPlayPause(item.id)}>
+            <TouchableWithoutFeedback onPress={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}>
               <View style={styles.videoTapOverlay} />
             </TouchableWithoutFeedback>
           )}

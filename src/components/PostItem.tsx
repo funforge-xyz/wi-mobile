@@ -41,29 +41,44 @@ interface ConnectionPost {
 
 interface PostItemProps {
   post: ConnectionPost;
-  onLike: (postId: string, liked: boolean) => void;
+  liked: boolean;
+  likesCount: number;
+  commentsCount: number;
+  onLikePress: () => void;
+  onCommentPress: () => void;
+  onUserPress: () => void;
+  onPostPress: () => void;
   currentTheme: any;
-  navigation: any;
-  showImageBorderRadius?: boolean;
   isVideoPlaying?: boolean;
   isVideoMuted?: boolean;
+  isVideoLoading?: boolean;
   onVideoMuteToggle?: (postId: string) => void;
   onVideoPlayPauseToggle?: (postId: string, shouldPlay: boolean) => void;
-  onCommentsCountChange?: (postId: string, newCount: number) => void;
-  onLikesCountChange?: (postId: string, newCount: number, isLikedByUser: boolean) => void;
+  onVideoFocus?: () => void;
+  onVideoBlur?: () => void;
+  videoPlayer?: any;
+  showImageBorderRadius?: boolean;
 }
 
-export default function PostItem({ 
-  post, 
-  onLike, 
-  currentTheme, 
-  navigation, 
-  showImageBorderRadius,
-  isVideoPlaying = false,
-  isVideoMuted = false,
+export default function PostItem({
+  post,
+  liked,
+  likesCount,
+  commentsCount,
+  onLikePress,
+  onCommentPress,
+  onUserPress,
+  onPostPress,
+  currentTheme,
+  isVideoPlaying,
+  isVideoMuted,
+  isVideoLoading,
   onVideoMuteToggle,
   onVideoPlayPauseToggle,
-  onCommentsCountChange
+  onVideoFocus,
+  onVideoBlur,
+  videoPlayer,
+  showImageBorderRadius = true,
 }: PostItemProps) {
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
