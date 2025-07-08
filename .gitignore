@@ -53,3 +53,7 @@ package-lock.json
 google-services.json
 
 .env
+
+credentials.json
+*.p12
+*.mobileprovision

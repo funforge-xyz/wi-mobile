@@ -24,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     googleServicesFile: "./GoogleService-Info.plist",
     supportsTablet: true,
-    bundleIdentifier: "com.wichat.app",
+    bundleIdentifier: "com.wichatapp",
     infoPlist: {
       NSLocationAlwaysAndWhenInUseUsageDescription: "WiChat needs location access to find nearby users and enable location-based features.",
       NSLocationAlwaysUsageDescription: "WiChat needs background location access to keep finding nearby users even when the app is not active.",
@@ -39,9 +39,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleServicesFile: "./google-services.json",
     adaptiveIcon: {
       foregroundImage: "./assets/images/app_icon.png",
-      backgroundColor: "#FFFFFF"
+      backgroundColor: "#FA4169"
     },
-    package: "com.wichat.app",
+    package: "com.wichatapp",
     permissions: [
       "ACCESS_COARSE_LOCATION",
       "ACCESS_FINE_LOCATION", 

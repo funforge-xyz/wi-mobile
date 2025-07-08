@@ -23,8 +23,15 @@
       }
     },
     "production": {
-      "env": {
+     "env": {
         "ENVIRONMENT": "production"
+      },
+      "ios": {
+        "credentialsSource": "local"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "credentialsSource": "local"
       }
     }
   },
