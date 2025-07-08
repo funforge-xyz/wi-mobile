@@ -99,13 +99,15 @@ export default function PostMedia({
 
   const handlePress = () => {
     if (mediaType === 'video') {
+      // Set hasBeenTapped on any tap (first tap or subsequent taps)
+      setHasBeenTapped(true);
+      
       if (onVideoPlayPause) {
         onVideoPlayPause();
       }
       
       // Show play button animation when pausing
       if (isVideoPlaying) {
-        setHasBeenTapped(true);
         // Reset and animate play button
         playButtonScale.setValue(0);
         playButtonOpacity.setValue(1);
@@ -177,7 +179,7 @@ export default function PostMedia({
           />
         </TouchComponent>
 
-        {/* Centered play button overlay - only show when paused and after first tap */}
+        {/* Static play button overlay - only show when paused and after first tap */}
         {!isVideoPlaying && hasBeenTapped && (
           <View style={styles.playButtonOverlay}>
             <Ionicons
@@ -188,8 +190,8 @@ export default function PostMedia({
           </View>
         )}
 
-        {/* Play button animation overlay */}
-        {hasBeenTapped && (
+        {/* Animated play button overlay - only for tap animation */}
+        {isVideoPlaying && hasBeenTapped && (
           <Animated.View style={[
             styles.playButtonOverlay,
             {
