@@ -38,4 +38,22 @@ export const feedStyles = StyleSheet.create({
     borderRadius: 4,
     marginLeft: 8,
   },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+  },
+  locationAlert: {
+    padding: SPACING.md,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  locationAlertText: {
+    fontSize: 14,
+    textAlign: 'center',
+    fontFamily: FONTS.medium,
+  },
 });

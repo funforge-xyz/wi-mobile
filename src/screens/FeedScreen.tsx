@@ -259,14 +259,9 @@ export default function FeedScreen({ navigation }: any) {
                 });
               }, 1000);
 
-              // Load posts only if we have location
-              if (location) {
-                console.log('FeedScreen: Loading posts with location...');
-                await loadPosts();
-              } else {
-                console.log('FeedScreen: No location available, stopping loading');
-                setLoading(false);
-              }
+              // Always load posts, but with different radius based on location availability
+              console.log('FeedScreen: Loading posts...');
+              await loadPosts();
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
@@ -315,12 +310,9 @@ export default function FeedScreen({ navigation }: any) {
   const loadPosts = async (isRefresh = false) => {
     console.log('loadPosts called:', { isRefresh, currentUserLocation, userRadius });
 
-    if (!currentUserLocation) {
-      console.log('No location available, cannot load posts');
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
+    // If no location, set radius to 0 to prevent seeing other users
+    const effectiveRadius = currentUserLocation ? userRadius : 0;
+    const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
     // Check if user is still authenticated
     const { getAuth } = await import('../services/firebase');
@@ -355,8 +347,8 @@ export default function FeedScreen({ navigation }: any) {
       }, 15000); // 15 second timeout
 
       const connectionPosts = await loadConnectionPosts(
-        userRadius, 
-        currentUserLocation, 
+        effectiveRadius, 
+        effectiveLocation, 
         null, // lastTimestamp for initial load
         10 // limit - fetch 10 posts initially
       );
@@ -426,9 +418,12 @@ export default function FeedScreen({ navigation }: any) {
       console.log('Loading more posts...');
       setLoadingMore(true);
 
+      const effectiveRadius = currentUserLocation ? userRadius : 0;
+      const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
+      
       const morePosts = await loadConnectionPosts(
-        userRadius,
-        currentUserLocation,
+        effectiveRadius,
+        effectiveLocation,
         lastPostTimestamp,
         10 // Load 10 more posts
       );
@@ -608,6 +603,14 @@ export default function FeedScreen({ navigation }: any) {
           color={currentTheme.text}
         />
       </View>
+
+      {!currentUserLocation && (
+        <View style={[feedStyles.locationAlert, { backgroundColor: currentTheme.warning || '#FFF3CD', borderColor: currentTheme.warningBorder || '#FFEAA7' }]}>
+          <Text style={[feedStyles.locationAlertText, { color: currentTheme.warningText || '#856404' }]}>
+            {t('feed.locationDisabledAlert')}
+          </Text>
+        </View>
+      )}
 
       <View style={{ flex: 1 }}>
         <FlatList

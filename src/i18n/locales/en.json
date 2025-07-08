@@ -92,7 +92,7 @@
   "feed": {
     "title": "Feed",
     "noPosts": "No posts yet",
-    "shareFirst": "Share your first post to get started",
+    "shareFirst": "Share your first post to connect with people nearby!",
     "whatsOnMind": "What's on your mind?",
     "post": "Post",
     "like": "Like",
@@ -105,7 +105,8 @@
       "title": "No posts yet",
       "description": "Connect with nearby users to see their posts in your feed.",
       "enableLocation": "Enable Location"
-    }
+    },
+    "locationDisabledAlert": "Enable location to see posts from nearby users and connect with people around you."
   },
   "nearby": {
     "title": "Nearby",
