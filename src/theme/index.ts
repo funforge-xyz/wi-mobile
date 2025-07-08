@@ -16,6 +16,8 @@ export interface Theme {
   warning: string;
   shimmer: string;
   skeleton: string;
+  skeletonBase: string;
+  skeletonHighlight: string;
 }
 
 export const lightTheme: Theme = {
@@ -33,7 +35,9 @@ export const lightTheme: Theme = {
   success: COLORS.success,
   warning: COLORS.warning,
   shimmer: COLORS.shimmer,
-  skeleton: COLORS.skeleton
+  skeleton: COLORS.skeleton,
+  skeletonBase: '#e0e0e0',
+  skeletonHighlight: '#f0f0f0'
 };
 
 export const darkTheme: Theme = {
@@ -51,7 +55,9 @@ export const darkTheme: Theme = {
   success: COLORS.success,
   warning: COLORS.warning,
   shimmer: COLORS.darkShimmer,
-  skeleton: COLORS.darkSkeleton
+  skeleton: COLORS.darkSkeleton,
+  skeletonBase: '#1a1a1a',
+  skeletonHighlight: '#2a2a2a'
 };
 
 export const getTheme = (isDarkMode: boolean): Theme => {

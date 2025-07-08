@@ -1,4 +1,3 @@
-
 import { View, StyleSheet, Dimensions } from 'react-native';
 import SkeletonLoader from './SkeletonLoader';
 import { SPACING } from '../config/constants';
@@ -18,6 +17,7 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
         height={height * 0.7}
         borderRadius={0}
         style={styles.postMedia}
+        forceDarkTheme={true}
       />
 
       {/* Bottom overlay with user info and actions */}
@@ -30,6 +30,7 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
               height={40}
               borderRadius={20}
               style={styles.avatar}
+              forceDarkTheme={true}
             />
             <View style={styles.userTextInfo}>
               <SkeletonLoader
@@ -37,12 +38,14 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
                 height={16}
                 borderRadius={8}
                 style={styles.username}
+                forceDarkTheme={true}
               />
               <SkeletonLoader
                 width={200}
                 height={14}
                 borderRadius={7}
                 style={styles.description}
+                forceDarkTheme={true}
               />
             </View>
           </View>
@@ -56,12 +59,14 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
               height={32}
               borderRadius={16}
               style={styles.actionIcon}
+              forceDarkTheme={true}
             />
             <SkeletonLoader
               width={20}
               height={12}
               borderRadius={6}
               style={styles.actionText}
+              forceDarkTheme={true}
             />
           </View>
           <View style={styles.actionItem}>
@@ -70,12 +75,14 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
               height={32}
               borderRadius={16}
               style={styles.actionIcon}
+              forceDarkTheme={true}
             />
             <SkeletonLoader
               width={15}
               height={12}
               borderRadius={6}
               style={styles.actionText}
+              forceDarkTheme={true}
             />
           </View>
         </View>
