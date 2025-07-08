@@ -233,7 +233,7 @@ export default function PostMedia({
             </Animated.View>
           )}
         </View>
-      ) : (
+      ) : mediaType === 'image' ? (
         <View style={styles.imageContainer}>
           <TouchableWithoutFeedback onPress={handleDoubleTap}>
             <Image
@@ -261,7 +261,7 @@ export default function PostMedia({
             </Animated.View>
           )}
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
