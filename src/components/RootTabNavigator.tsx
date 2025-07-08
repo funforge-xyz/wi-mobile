@@ -30,8 +30,8 @@ export default function RootTabNavigator({ isDarkMode }: RootTabNavigatorProps) 
           const iconName = getTabBarIcon(route.name, focused);
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: isDarkMode ? '#B0B0B0' : COLORS.textSecondary,
+        tabBarActiveTintColor: route.name === 'Home' ? 'white' : COLORS.primary,
+        tabBarInactiveTintColor: route.name === 'Home' ? 'rgba(255, 255, 255, 0.7)' : (isDarkMode ? '#B0B0B0' : COLORS.textSecondary),
         tabBarStyle: route.name === 'Home' 
           ? { 
               ...getTabBarStyles(isDarkMode), 

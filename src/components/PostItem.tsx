@@ -72,6 +72,8 @@ export default function PostItem({
   const videoRef = useRef<any>(null);
   const likeAnimationScale = useRef(new Animated.Value(1)).current;
   const likeAnimationOpacity = useRef(new Animated.Value(0)).current;
+  const playButtonAnimationScale = useRef(new Animated.Value(1)).current;
+  const playButtonAnimationOpacity = useRef(new Animated.Value(0)).current;
 
   const { t } = useTranslation();
 
@@ -165,34 +167,76 @@ export default function PostItem({
   };
 
   const handleDoubleTap = () => {
-    if (isMediaLoading) return;
     const now = Date.now();
-    const DOUBLE_PRESS_DELAY = 300;
+    const DOUBLE_TAP_DELAY = 300;
 
-    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
-      // This is a double tap - only like if not already liked
-      if (!post.isLikedByUser) {
-        console.log('PostItem - Double tap like triggered:', {
-          postId: post.id,
-          authorName: post.authorName
-        });
-        onLike(post.id, true);
-        triggerLikeAnimation();
-      } else {
-        console.log('PostItem - Double tap ignored, post already liked:', {
-          postId: post.id
-        });
-      }
+    if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
+      // Double tap detected - trigger like
+      onLike(post.id, !post.isLikedByUser);
+
+      // Animate like heart
+      Animated.sequence([
+        Animated.timing(likeAnimationOpacity, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.parallel([
+          Animated.timing(likeAnimationScale, {
+            toValue: 1.5,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(likeAnimationOpacity, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(likeAnimationScale, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
       setLastTap(null);
     } else {
-      // This is a single tap - record the time
       setLastTap(now);
-      // Clear the timeout to prevent single tap from firing after double tap
-      setTimeout(() => {
-        if (lastTap === now) {
-          setLastTap(null);
+
+      // Single tap on video - toggle play/pause with animation
+      if (post.mediaType === 'video') {
+        const shouldPlay = !isVideoPlaying;
+        onVideoPlayPauseToggle?.(post.id, shouldPlay);
+
+        // Show play button animation when pausing
+        if (!shouldPlay) {
+          Animated.sequence([
+            Animated.timing(playButtonAnimationOpacity, {
+              toValue: 1,
+              duration: 0,
+              useNativeDriver: true,
+            }),
+            Animated.parallel([
+              Animated.timing(playButtonAnimationScale, {
+                toValue: 1.2,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+              Animated.timing(playButtonAnimationOpacity, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+            ]),
+            Animated.timing(playButtonAnimationScale, {
+              toValue: 1,
+              duration: 0,
+              useNativeDriver: true,
+            }),
+          ]).start();
         }
-      }, DOUBLE_PRESS_DELAY);
+      }
     }
   };
 
@@ -234,18 +278,18 @@ export default function PostItem({
           <PostMedia
             mediaURL={post.mediaURL}
             mediaType={post.mediaType}
+            style={[styles.media]}
+            showBorderRadius={showImageBorderRadius}
             onLoad={() => setIsMediaLoading(false)}
             isFrontCamera={post.isFrontCamera}
-            style={styles.media}
-            showBorderRadius={showImageBorderRadius}
             onDoubleTap={handleDoubleTap}
-            likeAnimationOpacity={likeAnimationOpacity}
-            likeAnimationScale={likeAnimationScale}
+            likeAnimationOpacity={post.mediaType === 'video' ? playButtonAnimationOpacity : likeAnimationOpacity}
+            likeAnimationScale={post.mediaType === 'video' ? playButtonAnimationScale : likeAnimationScale}
             isVideoPlaying={isVideoPlaying}
             isVideoMuted={isVideoMuted}
-            onVideoMuteToggle={() => onVideoMuteToggle && onVideoMuteToggle(post.id)}
-            onVideoPlayPause={handleVideoPlayPause}
-            videoPlayer={post.mediaType === 'video' ? videoPlayer : undefined}
+            onVideoMuteToggle={() => onVideoMuteToggle?.(post.id)}
+            onVideoPlayPause={() => onVideoPlayPauseToggle?.(post.id, !isVideoPlaying)}
+            videoPlayer={videoPlayer}
           />
         </View>
       )}

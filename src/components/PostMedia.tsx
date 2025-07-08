@@ -139,32 +139,24 @@ export default function PostMedia({
           />
         </TouchComponent>
 
-        {/* Video control buttons */}
-              <View style={styles.videoControls}>
-                {/* Play/Pause button */}
-                <TouchableOpacity
-                  style={styles.controlButton}
-                  onPress={handlePlayPause}
-                >
-                  <Ionicons
-                    name={isVideoPlaying ? 'pause' : 'play'}
-                    size={24}
-                    color="white"
-                  />
-                </TouchableOpacity>
-
-                {/* Mute/Unmute button */}
-                <TouchableOpacity
-                  style={styles.controlButton}
-                  onPress={onVideoMuteToggle}
-                >
-                  <Ionicons
-                    name={isVideoMuted ? 'volume-mute' : 'volume-high'}
-                    size={24}
-                    color="white"
-                  />
-                </TouchableOpacity>
-              </View>
+        {/* Centered play button overlay */}
+        {!isVideoPlaying && (
+          <Animated.View style={[
+            styles.playButtonOverlay,
+            {
+              opacity: likeAnimationOpacity || 1,
+              transform: [{ scale: likeAnimationScale || 1 }]
+            }
+          ]}>
+            <View style={styles.playButtonContainer}>
+              <Ionicons
+                name="play"
+                size={60}
+                color="white"
+              />
+            </View>
+          </Animated.View>
+        )}
 
         {/* Animated heart overlay */}
         {onDoubleTap && likeAnimationOpacity && likeAnimationScale && (
@@ -237,17 +229,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  videoControls: {
+  playButtonOverlay: {
     position: 'absolute',
-    bottom: 12,
-    right: 12,
-    flexDirection: 'row',
-    gap: 8,
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  controlButton: {
+  playButtonContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 20,
-    padding: 8,
+    borderRadius: 50,
+    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
