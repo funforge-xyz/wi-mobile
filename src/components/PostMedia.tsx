@@ -124,7 +124,7 @@ export default function PostMedia({
             allowsFullscreen={false}
             allowsPictureInPicture={false}
             nativeControls={false}
-            contentFit="cover"
+            contentFit="contain"
             onLoadStart={() => {
               console.log('Video load started for:', mediaURL);
             }}
@@ -188,7 +188,7 @@ export default function PostMedia({
         <Image
           source={{ uri: mediaURL }}
           style={[mediaStyle, isFrontCamera && { transform: [{ scaleX: -1 }] }]}
-          resizeMode="cover"
+          resizeMode="contain"
           onLoad={handleMediaLoad}
           onError={(error) => {
             console.error('Image load error:', error);

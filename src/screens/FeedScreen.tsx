@@ -574,16 +574,6 @@ export default function FeedScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      {/* Fixed header at the top */}
-      <View style={styles.fixedHeader}>
-        <Text style={styles.headerTitle}>{t('feed.title')}</Text>
-        <NotificationBell 
-          key={notificationKey}
-          onPress={() => navigation.navigate('Notifications')} 
-          color="white"
-        />
-      </View>
-
       {posts.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <EmptyFeedState 
@@ -603,7 +593,7 @@ export default function FeedScreen({ navigation }: any) {
           renderItem={renderPost}
           pagingEnabled
           showsVerticalScrollIndicator={false}
-          snapToInterval={height - 100}
+          snapToInterval={height}
           snapToAlignment="start"
           decelerationRate="fast"
           onViewableItemsChanged={onViewableItemsChanged}
@@ -668,18 +658,18 @@ const styles = StyleSheet.create({
   emptyStateContainer: {
     flex: 1,
     backgroundColor: 'black',
-    paddingBottom: 100,
+    paddingBottom: 80,
   },
   feedList: {
     flex: 1,
     backgroundColor: 'black',
   },
   feedContentContainer: {
-    paddingBottom: 100,
+    paddingBottom: 80,
   },
   postContainer: {
     width: width,
-    height: height - 100,
+    height: height,
     position: 'relative',
     backgroundColor: 'black',
   },
@@ -694,26 +684,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  fixedHeader: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    zIndex: 1000,
-    backgroundColor: 'transparent',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-  },
   bottomOverlay: {
     position: 'absolute',
-    bottom: 140,
+    bottom: 120,
     left: 0,
     right: 0,
     flexDirection: 'row',
