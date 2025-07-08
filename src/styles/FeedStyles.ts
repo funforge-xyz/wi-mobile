@@ -44,16 +44,22 @@ export const feedStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
   },
-  locationAlert: {
-    padding: SPACING.md,
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.sm,
-    borderRadius: 8,
+  locationAlertContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+  },
+  locationAlertPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: 20,
     borderWidth: 1,
   },
   locationAlertText: {
-    fontSize: 14,
-    textAlign: 'center',
+    fontSize: 12,
     fontFamily: FONTS.medium,
+    marginLeft: SPACING.xs,
   },
 });

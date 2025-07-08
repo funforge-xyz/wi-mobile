@@ -605,10 +605,13 @@ export default function FeedScreen({ navigation }: any) {
       </View>
 
       {!currentUserLocation && (
-        <View style={[feedStyles.locationAlert, { backgroundColor: currentTheme.warning || '#FFF3CD', borderColor: currentTheme.warningBorder || '#FFEAA7' }]}>
-          <Text style={[feedStyles.locationAlertText, { color: currentTheme.warningText || '#856404' }]}>
-            {t('feed.locationDisabledAlert')}
-          </Text>
+        <View style={feedStyles.locationAlertContainer}>
+          <View style={[feedStyles.locationAlertPill, { backgroundColor: '#FFF3CD', borderColor: '#FFEAA7' }]}>
+            <Ionicons name="location-outline" size={14} color="#856404" />
+            <Text style={[feedStyles.locationAlertText, { color: '#856404' }]}>
+              {t('feed.locationDisabledAlert')}
+            </Text>
+          </View>
         </View>
       )}
 
