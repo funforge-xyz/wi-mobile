@@ -98,9 +98,14 @@ export default function PostMedia({
   const TouchComponent = onDoubleTap ? TouchableWithoutFeedback : TouchableOpacity;
 
   const handlePress = () => {
+    console.log('handlePress called - mediaType:', mediaType, 'hasBeenTapped:', hasBeenTapped, 'isVideoPlaying:', isVideoPlaying);
+    
     if (mediaType === 'video') {
       // Set hasBeenTapped on any tap (first tap or subsequent taps)
-      setHasBeenTapped(true);
+      if (!hasBeenTapped) {
+        console.log('Setting hasBeenTapped to true');
+        setHasBeenTapped(true);
+      }
       
       if (onVideoPlayPause) {
         onVideoPlayPause();
@@ -108,6 +113,7 @@ export default function PostMedia({
       
       // Show play button animation when pausing
       if (isVideoPlaying) {
+        console.log('Video was playing, showing pause animation');
         // Reset and animate play button
         playButtonScale.setValue(0);
         playButtonOpacity.setValue(1);
@@ -127,6 +133,8 @@ export default function PostMedia({
         ]).start(() => {
           playButtonScale.setValue(1);
         });
+      } else {
+        console.log('Video was paused, should show static play button');
       }
     }
     if (onDoubleTap) {
@@ -189,6 +197,9 @@ export default function PostMedia({
             />
           </View>
         )}
+        
+        {/* Debug: Log when conditions change */}
+        {console.log('Render conditions - isVideoPlaying:', isVideoPlaying, 'hasBeenTapped:', hasBeenTapped, 'shouldShowPlayButton:', !isVideoPlaying && hasBeenTapped)}
 
         {/* Animated play button overlay - only for tap animation */}
         {isVideoPlaying && hasBeenTapped && (
