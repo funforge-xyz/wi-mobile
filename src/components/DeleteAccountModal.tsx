@@ -1,201 +1,379 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  Modal,
-  ActivityIndicator,
   TouchableOpacity,
-  ScrollView,
-  Animated,
+  Modal,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../config/constants';
-import { styles, modalStyles } from '../styles/SettingsStyles';
+import { useTheme } from '../hooks/redux';
 import { authService } from '../services/auth';
-import ConfirmationModal from './ConfirmationModal';
-import SuccessModal from './SuccessModal';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface DeleteAccountModalProps {
   visible: boolean;
   onClose: () => void;
-  currentTheme: any;
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
 }
 
-export default function DeleteAccountModal({
+export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   visible,
   onClose,
-  currentTheme,
-  isLoading,
-  setIsLoading,
-}: DeleteAccountModalProps) {
+}) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const confirmAnimation = useRef(new Animated.Value(0)).current;
-  const successAnimation = useRef(new Animated.Value(0)).current;
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDeletePress = () => {
     setShowConfirmModal(true);
-    Animated.spring(confirmAnimation, {
-      toValue: 1,
-      useNativeDriver: true,
-      tension: 100,
-      friction: 8,
-    }).start();
-  };
-
-  const handleCancelConfirm = () => {
-    Animated.spring(confirmAnimation, {
-      toValue: 0,
-      useNativeDriver: true,
-      tension: 100,
-      friction: 8,
-    }).start(() => {
-      setShowConfirmModal(false);
-    });
   };
 
   const handleConfirmDelete = async () => {
-    // Hide confirmation modal first
-    Animated.spring(confirmAnimation, {
-      toValue: 0,
-      useNativeDriver: true,
-      tension: 100,
-      friction: 8,
-    }).start(() => {
-      setShowConfirmModal(false);
-    });
-
+    setShowConfirmModal(false);
     setIsLoading(true);
-    
+
     try {
       await authService.deleteProfile();
-      
       setIsLoading(false);
-      setShowSuccessModal(true);
+      setShowSuccess(true);
       
-      Animated.spring(successAnimation, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 100,
-        friction: 8,
-      }).start();
-
-      // Auto-close after 2 seconds
+      // Close the success modal after 2 seconds
       setTimeout(() => {
-        Animated.spring(successAnimation, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 100,
-          friction: 8,
-        }).start(() => {
-          setShowSuccessModal(false);
-          onClose();
-        });
+        setShowSuccess(false);
+        onClose();
       }, 2000);
-      
     } catch (error: any) {
       setIsLoading(false);
-      // You might want to show an error modal here instead of alert
-      console.error('Delete account error:', error.message);
+      console.error('Delete account error:', error);
+      
+      if (error.message.includes('recent login')) {
+        Alert.alert(
+          t('settings.deleteAccount'),
+          'For security reasons, please sign out and sign back in before deleting your account.',
+          [{ text: t('common.ok') }]
+        );
+      } else {
+        Alert.alert(
+          t('common.error'),
+          'Failed to delete account. Please try again.',
+          [{ text: t('common.ok') }]
+        );
+      }
+    }
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
+  };
+
+  const handleClose = () => {
+    if (!isLoading && !showSuccess) {
+      onClose();
     }
   };
 
   return (
     <>
-      <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('settings.deleteAccount')}</Text>
-            <View style={{ width: 60 }} />
-          </View>
-
-          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-            <View style={modalStyles.warningSection}>
-              <View style={[modalStyles.warningIconContainer, { backgroundColor: `${COLORS.error}15` }]}>
-                <Ionicons name="warning" size={48} color={COLORS.error} />
+      {/* Main Delete Account Modal */}
+      <Modal
+        visible={visible && !showConfirmModal && !isLoading && !showSuccess}
+        transparent
+        animationType="fade"
+        onRequestClose={handleClose}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 12,
+            padding: 24,
+            margin: 20,
+            maxWidth: 340,
+            width: '100%',
+          }}>
+            <View style={{
+              alignItems: 'center',
+              marginBottom: 20,
+            }}>
+              <View style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: '#FF4444',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}>
+                <Icon name="warning" size={30} color="#FFFFFF" />
               </View>
-              <Text style={[modalStyles.warningTitle, { color: COLORS.error }]}>{t('settings.thisActionIsPermanent')}</Text>
-              <Text style={[modalStyles.warningText, { color: currentTheme.text }]}>
-                {t('settings.deletingAccountRemovesData')}
+              <Text style={{
+                fontSize: 20,
+                fontWeight: '600',
+                color: colors.text,
+                marginBottom: 8,
+                textAlign: 'center',
+              }}>
+                {t('settings.deleteAccount')}
               </Text>
-
-              <View style={[modalStyles.listContainer, { backgroundColor: currentTheme.surface }]}>
-                <View style={modalStyles.listItem}>
-                  <Ionicons name="person-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourProfileInfo')}</Text>
-                </View>
-                <View style={modalStyles.listItem}>
-                  <Ionicons name="document-text-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourPostsAndComments')}</Text>
-                </View>
-                <View style={modalStyles.listItem}>
-                  <Ionicons name="chatbubbles-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourChatHistory')}</Text>
-                </View>
-                <View style={[modalStyles.listItem, { borderBottomWidth: 0 }]}>
-                  <Ionicons name="people-outline" size={16} color={currentTheme.textSecondary} />
-                  <Text style={[modalStyles.listItemText, { color: currentTheme.textSecondary }]}>{t('settings.yourConnectionsAndFollowers')}</Text>
-                </View>
-              </View>
-
-              <View style={[modalStyles.cautionBox, { backgroundColor: `${COLORS.error}08`, borderColor: `${COLORS.error}40` }]}>
-                <Ionicons name="alert-circle-outline" size={20} color={COLORS.error} />
-                <Text style={[modalStyles.cautionText, { color: currentTheme.text }]}>
-                  {t('settings.thisActionCannotBeUndone')}
-                </Text>
-              </View>
+              <Text style={{
+                fontSize: 14,
+                color: colors.textSecondary,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}>
+                This action will permanently delete your account and all associated data. This cannot be undone.
+              </Text>
             </View>
 
-            <TouchableOpacity
-              style={[modalStyles.deleteButton, { opacity: isLoading ? 0.7 : 1 }]}
-              onPress={handleDeletePress}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <Ionicons name="trash-outline" size={20} color="white" />
-                  <Text style={modalStyles.deleteButtonText}>{t('settings.deleteMyAccount')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </ScrollView>
-        </SafeAreaView>
+            <View style={{
+              flexDirection: 'row',
+              gap: 12,
+            }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: colors.border,
+                  alignItems: 'center',
+                }}
+                onPress={handleClose}
+              >
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: colors.text,
+                }}>
+                  {t('common.cancel')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: '#FF4444',
+                  alignItems: 'center',
+                }}
+                onPress={handleDeletePress}
+              >
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: '#FFFFFF',
+                }}>
+                  {t('common.delete')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       {/* Confirmation Modal */}
-      <ConfirmationModal
+      <Modal
         visible={showConfirmModal}
-        title={t('settings.deleteAccount')}
-        message={t('settings.areYouSureYouWantToDeleteAccount')}
-        confirmText={t('settings.delete')}
-        cancelText={t('common.cancel')}
-        onConfirm={handleConfirmDelete}
-        onCancel={handleCancelConfirm}
-        currentTheme={currentTheme}
-        isDestructive={true}
-        animation={confirmAnimation}
-      />
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelConfirm}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 12,
+            padding: 24,
+            margin: 20,
+            maxWidth: 340,
+            width: '100%',
+          }}>
+            <View style={{
+              alignItems: 'center',
+              marginBottom: 20,
+            }}>
+              <View style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: '#FF4444',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}>
+                <Icon name="delete-forever" size={30} color="#FFFFFF" />
+              </View>
+              <Text style={{
+                fontSize: 20,
+                fontWeight: '600',
+                color: colors.text,
+                marginBottom: 8,
+                textAlign: 'center',
+              }}>
+                Confirm Deletion
+              </Text>
+              <Text style={{
+                fontSize: 14,
+                color: colors.textSecondary,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}>
+                Are you absolutely sure you want to delete your account? This will remove all your posts, connections, and data permanently.
+              </Text>
+            </View>
 
-      {/* Loading/Success Modal */}
-      <SuccessModal
-        visible={isLoading || showSuccessModal}
-        title={isLoading ? t('settings.deletingAccount') : t('settings.accountDeleted')}
-        message={isLoading ? t('settings.pleaseWait') : t('settings.accountDeletedSuccessfully')}
-        animation={isLoading ? new Animated.Value(1) : successAnimation}
-        currentTheme={currentTheme}
-        isLoading={isLoading}
-      />
+            <View style={{
+              flexDirection: 'row',
+              gap: 12,
+            }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: colors.border,
+                  alignItems: 'center',
+                }}
+                onPress={handleCancelConfirm}
+              >
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: colors.text,
+                }}>
+                  {t('common.cancel')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: '#FF4444',
+                  alignItems: 'center',
+                }}
+                onPress={handleConfirmDelete}
+              >
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: '#FFFFFF',
+                }}>
+                  Yes, Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Loading Modal */}
+      <Modal
+        visible={isLoading}
+        transparent
+        animationType="fade"
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 12,
+            padding: 32,
+            alignItems: 'center',
+            minWidth: 200,
+          }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.text,
+              marginTop: 16,
+              textAlign: 'center',
+            }}>
+              Deleting Account...
+            </Text>
+            <Text style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+              marginTop: 8,
+              textAlign: 'center',
+            }}>
+              Please wait while we delete your account and all associated data.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccess}
+        transparent
+        animationType="fade"
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 12,
+            padding: 32,
+            alignItems: 'center',
+            minWidth: 200,
+          }}>
+            <View style={{
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              backgroundColor: '#4CAF50',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 16,
+            }}>
+              <Icon name="check" size={30} color="#FFFFFF" />
+            </View>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+              marginBottom: 8,
+              textAlign: 'center',
+            }}>
+              Account Deleted
+            </Text>
+            <Text style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+              textAlign: 'center',
+            }}>
+              Your account has been permanently deleted.
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </>
   );
-}
+};
