@@ -241,10 +241,7 @@ export const loadConnectionPosts = async (
       return (userA.distance || 0) - (userB.distance || 0);
     });
 
-    // Get posts from eligible users created within last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
+    // Get posts from eligible users (removed 7-day filter)
     const posts: ConnectionPost[] = [];
     const postsPerUser = Math.ceil(limit / Math.min(sortedUserIds.length, 10)); // Distribute pageSize among users
 
@@ -265,7 +262,6 @@ export const loadConnectionPosts = async (
       let postsQuery = query(
         collection(firestore, 'posts'),
         where('authorId', '==', userId),
-        where('createdAt', '>=', Timestamp.fromDate(sevenDaysAgo)),
         orderBy('createdAt', 'desc'),
         firestoreLimit(postsPerUser)
       );
@@ -275,7 +271,6 @@ export const loadConnectionPosts = async (
         postsQuery = query(
           collection(firestore, 'posts'),
           where('authorId', '==', userId),
-          where('createdAt', '>=', Timestamp.fromDate(sevenDaysAgo)),
           where('createdAt', '<', Timestamp.fromDate(lastTimestamp)),
           orderBy('createdAt', 'desc'),
           firestoreLimit(postsPerUser)
@@ -679,7 +674,7 @@ export async function loadFeedPosts(
           createdAt: post.createdAt.toDate(),
           isLikedByUser,
           isAuthorOnline: authorData.isOnline,
-          isFromConnection: authorData.isConnection
+          isFromConnection: connectedUserIds.has(post.authorId)
         });
       }
     }
