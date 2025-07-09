@@ -179,20 +179,23 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   const handleGoogleSignIn = async () => {
-    // TODO: Google Sign In not working with Expo Go - temporarily disabled
-    setErrorMessage('auth.googleSignInUnavailable');
-    return;
-
-    // setIsLoading(true);
-    // setErrorMessage('');
-    // try {
-    //   await authService.signInWithGoogle();
-    //   onLoginSuccess?.();
-    // } catch (error: any) {
-    //   setErrorMessage(getErrorMessage(error));
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const user = await authService.signInWithGoogle();
+      
+      // Load user's preferred language from Firebase after successful login
+      if (user?.uid) {
+        const { loadUserLanguagePreference } = await import('../store/userSlice');
+        dispatch(loadUserLanguagePreference(user.uid));
+      }
+      
+      onLoginSuccess?.();
+    } catch (error: any) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

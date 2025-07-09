@@ -8,9 +8,11 @@ import {
   updateProfile,
   updatePassword,
   reload,
-  sendEmailVerification
+  sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithCredential
 } from 'firebase/auth';
-// import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth } from './firebase';
 import { Credentials } from './storage';
 
@@ -19,10 +21,10 @@ export class AuthService {
   private onSignOutCallback?: () => void;
 
   constructor() {
-    // TODO: Google Sign In configuration disabled for Expo Go compatibility
-    // GoogleSignin.configure({
-    //   webClientId: 'your-web-client-id', // Add your actual web client ID
-    // });
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      webClientId: '38067432350-your-web-client-id-here.apps.googleusercontent.com', // Replace with your actual web client ID from Firebase console
+    });
   }
 
   // Alias for signInWithEmail for backward compatibility
@@ -181,33 +183,60 @@ export class AuthService {
   }
 
   async signInWithGoogle(): Promise<FirebaseUser | null> {
-    // TODO: Google Sign In not working with Expo Go - temporarily disabled
-    throw new Error('Google Sign In is temporarily disabled in development');
-
-    // try {
-    //   await GoogleSignin.hasPlayServices();
-    //   const { idToken } = await GoogleSignin.signIn();
-    //   
-    //   const googleCredential = GoogleAuthProvider.credential(idToken);
-    //   const userCredential = await signInWithCredential(auth, googleCredential);
-    //   const user = userCredential.user;
-    //   
-    //   if (user) {
-    //     const token = await user.getIdToken();
-    //     await this.credentials.setToken(token);
-    //     await this.credentials.setUser({
-    //       uid: user.uid,
-    //       email: user.email,
-    //       displayName: user.displayName,
-    //       photoURL: user.photoURL,
-    //     });
-    //   }
-    //   
-    //   return user;
-    // } catch (error) {
-    //   console.error('Google sign in error:', error);
-    //   throw error;
-    // }
+    try {
+      await GoogleSignin.hasPlayServices();
+      const { idToken } = await GoogleSignin.signIn();
+      
+      const auth = getAuth();
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, googleCredential);
+      const user = userCredential.user;
+      
+      if (user) {
+        // Get ID token and store for persistence
+        const token = await user.getIdToken(false);
+        await this.credentials.setToken(token);
+        
+        // Check if this is a new user and create Firestore document if needed
+        const { getFirestore } = await import('./firebase');
+        const { doc, getDoc, setDoc } = await import('firebase/firestore');
+        
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          // Create user document for new Google sign-in users
+          await setDoc(userDocRef, {
+            email: user.email,
+            firstName: user.displayName?.split(' ')[0] || '',
+            lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+            bio: '',
+            photoURL: user.photoURL || '',
+            thumbnailURL: '',
+            trackingRadius: 100, // Default 100m in meters
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+        
+        await this.credentials.setUser({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified,
+          lastSignInTime: user.metadata.lastSignInTime,
+        });
+        
+        console.log('User signed in with Google and persisted:', user.uid);
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      throw error;
+    }
   }
 
   setOnSignOutCallback(callback: () => void) {
@@ -220,9 +249,13 @@ export class AuthService {
       await signOut(auth);
       await this.credentials.removeToken();
       await this.credentials.removeUser();
-      // TODO: Google Sign In calls disabled for Expo Go compatibility
-      // await GoogleSignin.revokeAccess();
-      // await GoogleSignin.signOut();
+      // Sign out from Google if user was signed in with Google
+      try {
+        await GoogleSignin.revokeAccess();
+        await GoogleSignin.signOut();
+      } catch (googleSignOutError) {
+        console.log('Google sign out error (user may not have been signed in with Google):', googleSignOutError);
+      }
 
       // Trigger navigation reset
       if (this.onSignOutCallback) {
