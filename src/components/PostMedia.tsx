@@ -26,24 +26,7 @@ interface PostMediaProps {
   onVideoPlayPause?: () => void;
   videoPlayer?: any;
   isLoading?: boolean;
-}
-
-interface PostMediaProps {
-  mediaURL: string;
-  mediaType?: 'picture' | 'video';
-  style?: any;
-  showBorderRadius?: boolean;
-  onLoad?: () => void;
-  isFrontCamera?: boolean;
-  onDoubleTap?: () => void;
-  likeAnimationOpacity?: any;
-  likeAnimationScale?: any;
-  isVideoPlaying?: boolean;
-  isVideoMuted?: boolean;
-  onVideoMuteToggle?: () => void;
-  onVideoPlayPause?: () => void;
-  videoPlayer?: any;
-  isLoading?: boolean; // New prop to control loading from parent
+  postId?: string;
 }
 
 export default function PostMedia({
@@ -71,11 +54,12 @@ export default function PostMedia({
   const [externalIsLoading, setExternalIsLoading] = useState(isLoading);
   const lastTapRef = useRef<number | null>(null);
 
-  // Create video player for video content - like in SinglePostDisplay
+  // Create video player for video content - only when we have a video
+  const shouldCreatePlayer = mediaType === 'video' && mediaURL;
   const internalVideoPlayer = useVideoPlayer(
-    mediaType === 'video' && mediaURL ? mediaURL : '', 
+    shouldCreatePlayer ? mediaURL : '', 
     player => {
-      if (player && mediaType === 'video' && mediaURL) {
+      if (player && shouldCreatePlayer) {
         player.loop = true;
         player.muted = isVideoMuted || false;
       }
@@ -83,7 +67,7 @@ export default function PostMedia({
   );
 
   // Use the passed videoPlayer prop if available, otherwise use internal
-  const activeVideoPlayer = videoPlayer || internalVideoPlayer;
+  const activeVideoPlayer = videoPlayer || (shouldCreatePlayer ? internalVideoPlayer : null);
 
 
 
@@ -96,6 +80,7 @@ export default function PostMedia({
 
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
+    setExternalIsLoading(false);
     onLoad?.();
   };
 
@@ -149,11 +134,7 @@ export default function PostMedia({
     }
   };
 
-  useEffect(() => {
-    if (onLoad && !externalIsLoading) {
-      onLoad();
-    }
-  }, [externalIsLoading, onLoad]);
+  
 
   // Update video player when playback state changes - like in SinglePostDisplay
   useEffect(() => {
