@@ -136,7 +136,7 @@ export default function FeedScreen({ navigation }: any) {
       const firestore = getFirestore();
       const currentUser = auth.currentUser;
 
-      if (!currentUser) return;
+      if (!currentUser) return new Set<string>();
 
       const connectionsQuery = query(
         collection(firestore, 'connections'),
@@ -156,8 +156,10 @@ export default function FeedScreen({ navigation }: any) {
       });
 
       setConnectionIds(connectedUserIds);
+      return connectedUserIds;
     } catch (error) {
       console.error('Error loading user connections:', error);
+      return new Set<string>();
     }
   };
 
@@ -332,7 +334,7 @@ export default function FeedScreen({ navigation }: any) {
 
               // Load user connections BEFORE loading posts
               console.log('FeedScreen: Loading user connections...');
-              await loadUserConnections();
+              const freshConnectionIds = await loadUserConnections();
 
               setTimeout(() => {
                 locationService.startLocationTracking().catch((error) => {
@@ -341,7 +343,7 @@ export default function FeedScreen({ navigation }: any) {
               }, 1000);
 
               console.log('FeedScreen: Loading posts...');
-              await loadPosts();
+              await loadPosts(false, freshConnectionIds);
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
@@ -382,7 +384,7 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  const loadPosts = async (isRefresh = false) => {
+  const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>) => {
     console.log('loadPosts called:', { isRefresh, currentUserLocation, userRadius });
 
     const effectiveRadius = currentUserLocation ? userRadius : 0;
@@ -426,13 +428,16 @@ export default function FeedScreen({ navigation }: any) {
       const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
       let feedPosts = feedResult.posts;
 
+      // Use fresh connection data if provided, otherwise use current state
+      const activeConnectionIds = freshConnectionIds || connectionIds;
+
       // Filter out current user's posts and add connection information
       // (loadFeedPosts already handles location filtering properly)
       const postsWithConnectionInfo = feedPosts
         .filter(post => post.authorId !== currentUser?.uid) // Exclude current user's posts
         .map(post => ({
           ...post,
-          isFromConnection: connectionIds.has(post.authorId)
+          isFromConnection: activeConnectionIds.has(post.authorId)
         }));
 
       console.log('FeedScreen - RAW FETCHED POSTS FROM loadFeedPosts:');
@@ -583,10 +588,10 @@ export default function FeedScreen({ navigation }: any) {
     setMediaLoadingStates({});
     
     // Reload user connections in case they changed
-    await loadUserConnections();
+    const freshConnectionIds = await loadUserConnections();
     
-    // Load posts with refresh flag
-    await loadPosts(true);
+    // Load posts with refresh flag and fresh connection data
+    await loadPosts(true, freshConnectionIds);
   };
 
   const handleLike = async (postId: string, newLikedState: boolean) => {
