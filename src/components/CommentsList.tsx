@@ -272,10 +272,6 @@ export default function CommentsList({
 
   return (
     <View style={styles.commentsSection}>
-      <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
-        {t('singlePost.comments')} ({comments.length})
-      </Text>
-
       <ScrollView 
         ref={scrollViewRef}
         nestedScrollEnabled={true}

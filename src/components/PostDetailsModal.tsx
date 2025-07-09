@@ -413,7 +413,7 @@ export default function PostDetailsModal({
             <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
           <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
-            {t('singlePost.comments')} ({post?.commentsCount || 0})
+            {`${t('singlePost.comments')} ${comments?.length ? `(${comments?.length})`:''}`}
           </Text>
           <View style={modalStyles.modalHeaderButton} />
         </View>
