@@ -117,32 +117,23 @@ export default function PostMedia({
               onVideoPlayPause();
             }
 
-            // Show pause animation when pausing
+            // Show play animation when pausing, hide when playing
             if (isVideoPlaying) {
-              console.log('Video was playing, showing pause animation');
-              setShowPauseIndicator(true);
+              console.log('Video was playing, showing play button');
               
               playButtonScale.setValue(0);
               playButtonOpacity.setValue(1);
 
-              Animated.parallel([
-                Animated.timing(playButtonScale, {
-                  toValue: 1.2,
-                  duration: 300,
-                  useNativeDriver: true,
-                }),
-                Animated.timing(playButtonOpacity, {
-                  toValue: 0,
-                  duration: 300,
-                  delay: 200,
-                  useNativeDriver: true,
-                }),
-              ]).start(() => {
+              Animated.timing(playButtonScale, {
+                toValue: 1.2,
+                duration: 300,
+                useNativeDriver: true,
+              }).start(() => {
                 playButtonScale.setValue(1);
               });
             } else {
-              // Video is paused, hide pause indicator when playing
-              setShowPauseIndicator(false);
+              // Video is paused, hide play button when playing
+              playButtonOpacity.setValue(0);
             }
           }
         }
@@ -200,16 +191,16 @@ export default function PostMedia({
               />
             </TouchableWithoutFeedback>
 
-          {/* Animated pause button overlay - only for tap-to-pause animation */}
+          {/* Animated play button overlay - show when video is paused */}
           <Animated.View style={[
             styles.playButtonOverlay,
             {
-              opacity: playButtonOpacity,
+              opacity: !isVideoPlaying ? 1 : playButtonOpacity,
               transform: [{ scale: playButtonScale }]
             }
           ]}>
             <Ionicons
-              name="pause"
+              name="play"
               size={60}
               color="white"
             />
