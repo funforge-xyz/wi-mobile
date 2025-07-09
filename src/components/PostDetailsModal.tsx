@@ -433,7 +433,7 @@ export default function PostDetailsModal({
           <KeyboardAvoidingView 
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 20}
           >
             <View style={{ flex: 1 }}>
               <KeyboardAwareScrollView 
@@ -446,8 +446,7 @@ export default function PostDetailsModal({
               >
                 {/* Post Actions */}
                 <View style={[postModalStyles.actionsOnly, { 
-                  backgroundColor: currentTheme.background,
-                  borderBottomColor: currentTheme.border 
+                  backgroundColor: currentTheme.background
                 }]}>
                   <PostActions
                     liked={userLiked}
@@ -534,6 +533,5 @@ const postModalStyles = StyleSheet.create({
   actionsOnly: {
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
   },
 });
