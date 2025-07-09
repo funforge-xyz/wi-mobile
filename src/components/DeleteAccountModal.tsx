@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
 import { authService } from '../services/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -23,6 +23,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const colors = getTheme(isDarkMode);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -45,9 +46,15 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       setIsLoading(false);
       setShowSuccess(true);
 
-      // Close the success modal after 2 seconds
-      setTimeout(() => {
+      // Close the success modal after 2 seconds and sign out
+      setTimeout(async () => {
         setShowSuccess(false);
+        try {
+          await authService.logout(dispatch);
+        } catch (logoutError) {
+          console.error('Logout error after account deletion:', logoutError);
+          // Even if logout fails, the account is deleted, so we should still close
+        }
         onClose();
       }, 2000);
     } catch (error: any) {

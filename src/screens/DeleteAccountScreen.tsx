@@ -11,13 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
 import { authService } from '../services/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function DeleteAccountScreen() {
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const colors = getTheme(isDarkMode);
@@ -40,10 +41,15 @@ export default function DeleteAccountScreen() {
       setIsLoading(false);
       setShowSuccess(true);
       
-      // Close the success modal after 2 seconds and navigate back
-      setTimeout(() => {
+      // Close the success modal after 2 seconds and sign out
+      setTimeout(async () => {
         setShowSuccess(false);
-        navigation.goBack();
+        try {
+          await authService.logout(dispatch);
+        } catch (logoutError) {
+          console.error('Logout error after account deletion:', logoutError);
+          // Even if logout fails, the account is deleted, so we should still navigate
+        }
       }, 2000);
     } catch (error: any) {
       setIsLoading(false);
