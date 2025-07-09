@@ -425,30 +425,8 @@ export default function FeedScreen({ navigation }: any) {
       const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
       let feedPosts = feedResult.posts;
 
-      // Apply additional filtering based on location and network if available
-      if (currentUserLocation && userRadius > 0) {
-        // Calculate bounding box for location filtering
-        const latDelta = userRadius / 111.32; // 1 degree lat ≈ 111.32 km
-        const lonDelta = userRadius / (111.32 * Math.cos(currentUserLocation.latitude * Math.PI / 180));
-
-        const minLat = currentUserLocation.latitude - latDelta;
-        const maxLat = currentUserLocation.latitude + latDelta;
-        const minLon = currentUserLocation.longitude - lonDelta;
-        const maxLon = currentUserLocation.longitude + lonDelta;
-
-        // Filter posts by location
-        feedPosts = feedPosts.filter(post => {
-          if (!post.authorLocation) return false;
-          
-          const authorLat = post.authorLocation.latitude;
-          const authorLon = post.authorLocation.longitude;
-          
-          return authorLat >= minLat && authorLat <= maxLat && 
-                 authorLon >= minLon && authorLon <= maxLon;
-        });
-      }
-
       // Filter out current user's posts and add connection information
+      // (loadFeedPosts already handles location filtering properly)
       const postsWithConnectionInfo = feedPosts
         .filter(post => post.authorId !== currentUser?.uid) // Exclude current user's posts
         .map(post => ({
