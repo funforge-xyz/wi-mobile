@@ -204,7 +204,7 @@ export default function PostMedia({
             </Animated.View>
           )}
         </View>
-      ) : mediaType === 'picture' ? (
+      ) : mediaType === 'picture' || mediaType === 'image' ? (
         <View style={styles.imageContainer}>
           <TouchableWithoutFeedback onPress={handleDoubleTap}>
             <Image

@@ -138,7 +138,7 @@ export default function FeedScreen({ navigation }: any) {
           }
         }));
         setCurrentlyPlayingVideo(post.id);
-        
+
         // Pause all other videos
         Object.keys(videoStates).forEach(id => {
           if (id !== post.id && videoStates[id]?.isPlaying) {
@@ -362,7 +362,7 @@ export default function FeedScreen({ navigation }: any) {
         // Initialize loading states for all posts with images
         const newLoadingStates: {[key: string]: boolean} = {};
         connectionPosts.forEach(post => {
-          if (post.mediaType === 'picture' && post.mediaURL) {
+          if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
             newLoadingStates[post.id] = true;
           }
         });
@@ -372,7 +372,7 @@ export default function FeedScreen({ navigation }: any) {
         // Initialize loading states for all posts with images
         const newLoadingStates: {[key: string]: boolean} = {};
         connectionPosts.forEach(post => {
-          if (post.mediaType === 'picture' && post.mediaURL) {
+          if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
             newLoadingStates[post.id] = true;
           }
         });
@@ -428,18 +428,18 @@ export default function FeedScreen({ navigation }: any) {
           console.log('Total posts after loading more:', newPosts.length);
           return newPosts;
         });
-        
+
         // Initialize loading states for new posts with images
         setMediaLoadingStates(prev => {
           const newLoadingStates = { ...prev };
           morePosts.forEach(post => {
-            if (post.mediaType === 'picture' && post.mediaURL) {
+            if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
               newLoadingStates[post.id] = true;
             }
           });
           return newLoadingStates;
         });
-        
+
         setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
         setHasMorePosts(morePosts.length === 10);
       } else {
