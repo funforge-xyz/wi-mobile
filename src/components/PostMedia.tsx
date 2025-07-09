@@ -53,6 +53,7 @@ export default function PostMedia({
   const playButtonScale = useRef(new Animated.Value(1)).current;
   const [externalIsLoading, setExternalIsLoading] = useState(isLoading);
   const lastTapRef = useRef<number | null>(null);
+  const [showPauseIndicator, setShowPauseIndicator] = useState(false);
 
   // Create video player for video content - only when we have a video
   const shouldCreatePlayer = mediaType === 'video' && mediaURL;
@@ -108,9 +109,11 @@ export default function PostMedia({
           onVideoPlayPause();
         }
 
-        // Show animation when pausing (when currently playing)
+        // Show pause animation when pausing
         if (isVideoPlaying) {
           console.log('Video was playing, showing pause animation');
+          setShowPauseIndicator(true);
+          
           playButtonScale.setValue(0);
           playButtonOpacity.setValue(1);
 
@@ -129,6 +132,9 @@ export default function PostMedia({
           ]).start(() => {
             playButtonScale.setValue(1);
           });
+        } else {
+          // Video is paused, hide pause indicator when playing
+          setShowPauseIndicator(false);
         }
       }
     }
@@ -184,14 +190,19 @@ export default function PostMedia({
               />
             </TouchableWithoutFeedback>
 
-          {/* Static play button overlay - show when paused and tapped */}
-          {!isVideoPlaying && hasBeenTapped && (
+          {/* Static pause indicator - show when paused and has been tapped */}
+          {!isVideoPlaying && (hasBeenTapped || showPauseIndicator) && (
             <View style={styles.playButtonOverlay}>
-              <Ionicons
-                name="play"
-                size={60}
-                color="white"
-              />
+              <View style={styles.pauseIndicatorContainer}>
+                <Ionicons
+                  name="play"
+                  size={60}
+                  color="white"
+                />
+                <View style={styles.pauseTextContainer}>
+                  <Text style={styles.pauseText}>Tap to play</Text>
+                </View>
+              </View>
             </View>
           )}
 
@@ -296,6 +307,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     pointerEvents: 'none',
+  },
+  pauseIndicatorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pauseTextContainer: {
+    marginTop: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  pauseText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   likeAnimationOverlay: {
     position: 'absolute',

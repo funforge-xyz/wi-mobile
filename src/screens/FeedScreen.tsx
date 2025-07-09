@@ -544,6 +544,37 @@ export default function FeedScreen({ navigation }: any) {
   const handleVideoPlayPauseToggle = (postId: string, shouldPlay: boolean) => {
     console.log('FeedScreen - handleVideoPlayPauseToggle:', postId, shouldPlay);
 
+    // Update video states immediately for UI responsiveness
+    setVideoStates(prev => ({
+      ...prev,
+      [postId]: {
+        ...prev[postId],
+        isPlaying: shouldPlay
+      }
+    }));
+
+    // Update playing video ID
+    if (shouldPlay) {
+      setPlayingVideoId(postId);
+      setCurrentlyPlayingVideo(postId);
+      
+      // Pause all other videos
+      Object.keys(videoStates).forEach(id => {
+        if (id !== postId && videoStates[id]?.isPlaying) {
+          setVideoStates(prev => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              isPlaying: false
+            }
+          }));
+        }
+      });
+    } else {
+      setPlayingVideoId(null);
+      setCurrentlyPlayingVideo(null);
+    }
+
     const videoPlayer = videoPlayersRef.current[postId];
     if (videoPlayer) {
       if (shouldPlay) {
@@ -722,7 +753,10 @@ export default function FeedScreen({ navigation }: any) {
 
           {/* Video tap overlay for play/pause */}
           {item.mediaType === 'video' && (
-            <TouchableWithoutFeedback onPress={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}>
+            <TouchableWithoutFeedback onPress={() => {
+              const currentlyPlaying = videoStates[item.id]?.isPlaying || isPlaying;
+              handleVideoPlayPauseToggle(item.id, !currentlyPlaying);
+            }}>
               <View style={styles.videoTapOverlay} />
             </TouchableWithoutFeedback>
           )}
