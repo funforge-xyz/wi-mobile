@@ -691,7 +691,10 @@ export default function SinglePostScreen({ route, navigation }: any) {
             showsVerticalScrollIndicator={false}
           >
             <SinglePostDisplay
-              post={post}
+              post={{
+                ...post,
+                showLikeCount: post.showLikeCount || (post.authorId === currentUser?.uid)
+              }}
               liked={userLiked}
               likesCount={likes.length}
               commentsCount={comments.length}
