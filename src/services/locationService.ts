@@ -132,40 +132,61 @@ export class LocationService {
       }
 
       // Get current location first with timeout and fallback
+      console.log('🗺️ Starting location tracking - getting initial position...');
       let currentLocation;
       try {
+        console.log('📍 Attempting to get current location with balanced accuracy...');
         currentLocation = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
           timeInterval: 10000, // 10 second timeout
         });
+        console.log('✅ Got current location (balanced):', {
+          lat: currentLocation.coords.latitude,
+          lng: currentLocation.coords.longitude,
+          accuracy: currentLocation.coords.accuracy
+        });
       } catch (locationError) {
-        console.log('Failed to get current location, trying with lower accuracy:', locationError);
+        console.log('⚠️ Failed to get current location, trying with lower accuracy:', locationError);
         try {
+          console.log('📍 Attempting to get current location with low accuracy...');
           currentLocation = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Low,
             timeInterval: 15000, // 15 second timeout
           });
+          console.log('✅ Got current location (low accuracy):', {
+            lat: currentLocation.coords.latitude,
+            lng: currentLocation.coords.longitude,
+            accuracy: currentLocation.coords.accuracy
+          });
         } catch (fallbackError) {
-          console.log('Failed to get location with fallback, trying last known position:', fallbackError);
+          console.log('⚠️ Failed to get location with fallback, trying last known position:', fallbackError);
           try {
+            console.log('📍 Attempting to get last known position...');
             currentLocation = await Location.getLastKnownPositionAsync({
               maxAge: 60000, // Accept location up to 1 minute old
             });
             if (!currentLocation) {
-              console.log('No last known position available, skipping location tracking');
+              console.log('❌ No last known position available, skipping location tracking');
               return false;
             }
+            console.log('✅ Got last known position:', {
+              lat: currentLocation.coords.latitude,
+              lng: currentLocation.coords.longitude,
+              age: Date.now() - currentLocation.timestamp
+            });
           } catch (lastKnownError) {
-            console.log('Failed to get last known position, skipping location tracking:', lastKnownError);
+            console.log('❌ Failed to get last known position, skipping location tracking:', lastKnownError);
             return false;
           }
         }
       }
 
+      console.log('📤 Updating initial location in Firestore...');
       await updateUserLocationInFirestore(
         currentLocation.coords.latitude,
         currentLocation.coords.longitude
       );
+      console.log('✅ Initial location updated successfully');
 
       // Ensure the background task is properly defined before starting
       const isTaskDefined = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
@@ -177,6 +198,11 @@ export class LocationService {
 
       // Start background location updates
       try {
+        console.log('🔄 Starting background location updates...', {
+          updateInterval: UPDATE_INTERVAL / 1000 / 60 + ' minutes',
+          distanceInterval: '50 meters',
+          accuracy: 'Balanced'
+        });
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
           accuracy: Location.Accuracy.Balanced,
           timeInterval: UPDATE_INTERVAL,
@@ -188,13 +214,14 @@ export class LocationService {
             notificationBody: 'WiChat is tracking your location to find nearby users',
           },
         });
+        console.log('✅ Background location updates started successfully');
       } catch (startError) {
-        console.error('Failed to start location updates:', startError);
+        console.error('❌ Failed to start location updates:', startError);
         return false;
       }
 
       this.isTracking = true;
-      console.log('Background location tracking started');
+      console.log('🎯 Location tracking is now active (foreground + background)');
       return true;
     } catch (error) {
       console.error('Error starting location tracking:', error);
@@ -217,41 +244,65 @@ export class LocationService {
 
   async getCurrentLocation(): Promise<{ latitude: number; longitude: number } | null> {
     try {
+      console.log('📍 getCurrentLocation() called - checking permissions...');
       const hasPermissions = await this.checkPermissions();
       if (!hasPermissions) {
+        console.log('❌ No location permissions, returning null');
         return null;
       }
 
+      console.log('✅ Permissions OK, getting current location...');
       let location;
       try {
+        console.log('📍 Trying balanced accuracy...');
         location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
           timeInterval: 10000,
         });
+        console.log('✅ Got location (balanced):', {
+          lat: location.coords.latitude,
+          lng: location.coords.longitude,
+          accuracy: location.coords.accuracy
+        });
       } catch (error) {
-        console.log('Failed to get current location, trying with lower accuracy:', error);
+        console.log('⚠️ Failed to get current location, trying with lower accuracy:', error);
         try {
+          console.log('📍 Trying low accuracy...');
           location = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Low,
             timeInterval: 15000,
           });
+          console.log('✅ Got location (low accuracy):', {
+            lat: location.coords.latitude,
+            lng: location.coords.longitude,
+            accuracy: location.coords.accuracy
+          });
         } catch (fallbackError) {
-          console.log('Failed with low accuracy, trying last known position:', fallbackError);
+          console.log('⚠️ Failed with low accuracy, trying last known position:', fallbackError);
+          console.log('📍 Trying last known position...');
           location = await Location.getLastKnownPositionAsync({
             maxAge: 300000, // Accept location up to 5 minutes old
           });
           if (!location) {
+            console.log('❌ No last known position available');
             return null;
           }
+          console.log('✅ Got last known position:', {
+            lat: location.coords.latitude,
+            lng: location.coords.longitude,
+            age: (Date.now() - location.timestamp) / 1000 + ' seconds old'
+          });
         }
       }
 
-      return {
+      const result = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       };
+      console.log('📍 getCurrentLocation() returning:', result);
+      return result;
     } catch (error) {
-      console.error('Error getting current location:', error);
+      console.error('❌ Error getting current location:', error);
       return null;
     }
   }
@@ -276,14 +327,16 @@ export class LocationService {
   onAppForeground(): void {
     this.isInForeground = true;
     this.backgroundUpdateCount = 0; // Reset counter when app comes to foreground
-    console.log('App in foreground - reset background update counter');
+    console.log('🌟 App in foreground - location tracking switched to foreground mode');
+    console.log('📊 Background update counter reset, tracking status:', this.isTracking);
   }
 
   // Call this when app goes to background
   onAppBackground(): void {
     this.isInForeground = false;
     this.backgroundUpdateCount = 0; // Reset counter for new background session
-    console.log('App in background - starting new background session');
+    console.log('🌙 App in background - starting new background session');
+    console.log('📊 Background update limit:', this.maxBackgroundUpdates);
   }
 
   // Check if we should allow background update
@@ -304,20 +357,25 @@ export class LocationService {
 // Helper function to update user location in Firestore
 async function updateUserLocationInFirestore(latitude: number, longitude: number): Promise<void> {
   try {
+    console.log('📤 updateUserLocationInFirestore() called with coords:', { latitude, longitude });
+    
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      console.log('No authenticated user found');
+      console.log('❌ No authenticated user found');
       return;
     }
 
+    console.log('👤 Authenticated user:', currentUser.uid);
     const firestore = getFirestore();
     const userRef = doc(firestore, 'users', currentUser.uid);
 
     // Get enhanced WiFi network info
+    console.log('📶 Getting WiFi network info...');
     const { wifiService } = await import('./wifiService');
     const wifiInfo = await wifiService.getCurrentWifiInfo();
+    console.log('📶 WiFi info:', { isConnected: wifiInfo.isConnected, networkId: wifiInfo.networkId });
     
     const updateData: any = {
       location: {
@@ -332,19 +390,23 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     if (wifiInfo.isConnected && wifiInfo.networkId) {
       updateData.currentNetworkId = wifiInfo.networkId;
       updateData.lastNetworkUpdate = new Date();
+      console.log('📶 Adding network info to update');
     } else {
       // Clear network info if not connected to WiFi
       updateData.currentNetworkId = null;
+      console.log('📶 Clearing network info (not connected to WiFi)');
     }
 
+    console.log('💾 Updating Firestore document...');
     await updateDoc(userRef, updateData);
 
-    console.log('User location and network updated in Firestore:', { 
+    console.log('✅ User location and network updated in Firestore successfully:', { 
       location: { latitude, longitude }, 
-      networkId: wifiInfo.networkId
+      networkId: wifiInfo.networkId,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error updating user location in Firestore:', error);
+    console.error('❌ Error updating user location in Firestore:', error);
   }
 }
 
