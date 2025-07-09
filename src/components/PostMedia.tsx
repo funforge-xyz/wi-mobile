@@ -48,9 +48,9 @@ interface PostMediaProps {
 
 export default function PostMedia({
   mediaURL,
-  mediaType = 'picture',
+  mediaType,
   style,
-  showBorderRadius = false,
+  showBorderRadius = true,
   onLoad,
   isFrontCamera,
   onDoubleTap,
@@ -61,12 +61,29 @@ export default function PostMedia({
   onVideoMuteToggle,
   onVideoPlayPause,
   videoPlayer,
-  isLoading: externalIsLoading,
+  isLoading = false,
+  postId,
 }: PostMediaProps) {
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
+  const [externalIsLoading, setExternalIsLoading] = useState(isLoading);
+  const lastTapRef = useRef<number | null>(null);
+
+  // Create video player for video content - like in SinglePostDisplay
+  const internalVideoPlayer = useVideoPlayer(
+    mediaType === 'video' && mediaURL ? mediaURL : '', 
+    player => {
+      if (player && mediaType === 'video' && mediaURL) {
+        player.loop = true;
+        player.muted = isVideoMuted || false;
+      }
+    }
+  );
+
+  // Use the passed videoPlayer prop if available, otherwise use internal
+  const activeVideoPlayer = videoPlayer || internalVideoPlayer;
 
 
 
@@ -132,16 +149,23 @@ export default function PostMedia({
     }
   };
 
-  // Update video player when playback state changes
   useEffect(() => {
-    if (videoPlayer && mediaType === 'video') {
+    if (onLoad && !externalIsLoading) {
+      onLoad();
+    }
+  }, [externalIsLoading, onLoad]);
+
+  // Update video player when playback state changes - like in SinglePostDisplay
+  useEffect(() => {
+    if (activeVideoPlayer && mediaType === 'video' && mediaURL) {
+      activeVideoPlayer.muted = isVideoMuted || false;
       if (isVideoPlaying) {
-        videoPlayer.play();
+        activeVideoPlayer.play();
       } else {
-        videoPlayer.pause();
+        activeVideoPlayer.pause();
       }
     }
-  }, [videoPlayer, isVideoPlaying, mediaType]);
+  }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType, mediaURL]);
 
   // Listen to video player events
   // const { isPlaying: videoIsPlaying } = useEvent(videoPlayer, 'playingChange', { isPlaying: videoPlayer?.playing || false });
@@ -156,28 +180,28 @@ export default function PostMedia({
 
   return (
     <View style={styles.mediaContainer}>
-      {mediaType === 'video' && videoPlayer ? (
-        <View style={styles.videoContainer}>
-          <TouchableWithoutFeedback onPress={handleDoubleTap}>
-            <VideoView
-              player={videoPlayer}
-              style={[
-                mediaStyle,
-                isFrontCamera && { transform: [{ scaleX: -1 }] }
-              ]}
-              allowsFullscreen={false}
-              allowsPictureInPicture={false}
-              nativeControls={false}
-              contentFit="contain"
-              onVideoViewDidMountForInternalPlayer={() => {
-                console.log('PostMedia - VideoView mounted for:', mediaURL);
-                if (isVideoPlaying && videoPlayer) {
-                  console.log('PostMedia - Auto-starting video playback');
-                  videoPlayer.play();
-                }
-              }}
-            />
-          </TouchableWithoutFeedback>
+      {mediaType === 'video' && activeVideoPlayer ? (
+          <View style={styles.videoContainer}>
+            <TouchableWithoutFeedback onPress={handleDoubleTap}>
+              <VideoView
+                player={activeVideoPlayer}
+                style={[
+                  styles.media,
+                  isFrontCamera && { transform: [{ scaleX: -1 }] }
+                ]}
+                allowsFullscreen={false}
+                allowsPictureInPicture={false}
+                nativeControls={false}
+                contentFit="contain"
+                onVideoViewDidMountForInternalPlayer={() => {
+                  console.log('PostMedia - VideoView mounted for:', mediaURL);
+                  if (isVideoPlaying && activeVideoPlayer) {
+                    console.log('PostMedia - Auto-starting video playback');
+                    activeVideoPlayer.play();
+                  }
+                }}
+              />
+            </TouchableWithoutFeedback>
 
           {/* Static play button overlay - show when paused and tapped */}
           {!isVideoPlaying && hasBeenTapped && (

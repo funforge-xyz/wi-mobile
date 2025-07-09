@@ -605,23 +605,15 @@ export default function FeedScreen({ navigation }: any) {
     }));
   };
 
-  // Create video players for all video posts
+  // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
+  const videoPlayerCreated = useRef<Set<string>>(new Set());
+  
   useEffect(() => {
-    posts.forEach(post => {
-      if (post.mediaType === 'video' && post.mediaURL && !videoPlayersRef.current[post.id]) {
-        const player = useVideoPlayer(post.mediaURL, player => {
-          player.loop = true;
-          player.muted = false;
-        });
-
-        videoPlayersRef.current[post.id] = player;
-      }
-    });
-
     // Clean up players for posts that no longer exist
     Object.keys(videoPlayersRef.current).forEach(postId => {
       if (!posts.find(post => post.id === postId)) {
         delete videoPlayersRef.current[postId];
+        videoPlayerCreated.current.delete(postId);
       }
     });
   }, [posts]);
@@ -660,6 +652,7 @@ export default function FeedScreen({ navigation }: any) {
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
               onVideoPlayPause={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}
+              postId={item.id}
             />
           )}
 
