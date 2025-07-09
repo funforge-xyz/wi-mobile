@@ -200,22 +200,6 @@ export default function PostMedia({
               />
             </TouchableWithoutFeedback>
 
-          {/* Static pause indicator - show when paused and has been tapped */}
-          {!isVideoPlaying && (hasBeenTapped || showPauseIndicator) && (
-            <View style={styles.playButtonOverlay}>
-              <View style={styles.pauseIndicatorContainer}>
-                <Ionicons
-                  name="play"
-                  size={60}
-                  color="white"
-                />
-                <View style={styles.pauseTextContainer}>
-                  <Text style={styles.pauseText}>Tap to play</Text>
-                </View>
-              </View>
-            </View>
-          )}
-
           {/* Animated pause button overlay - only for tap-to-pause animation */}
           <Animated.View style={[
             styles.playButtonOverlay,
@@ -317,22 +301,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     pointerEvents: 'none',
-  },
-  pauseIndicatorContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pauseTextContainer: {
-    marginTop: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  pauseText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
   },
   likeAnimationOverlay: {
     position: 'absolute',
