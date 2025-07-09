@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { VideoView, useVideoPlayer, useEvent } from 'expo-video';
 import { useAppSelector } from '../hooks/redux';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from '../hooks/usePostActions';
