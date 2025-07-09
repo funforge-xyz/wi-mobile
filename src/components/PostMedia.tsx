@@ -132,8 +132,9 @@ export default function PostMedia({
                 playButtonScale.setValue(1);
               });
             } else {
-              // Video is paused, keep play button visible for subsequent taps
+              // Video is now playing, hide play button
               console.log('Video is now playing, hiding play button');
+              playButtonOpacity.setValue(0);
             }
           }
         }
