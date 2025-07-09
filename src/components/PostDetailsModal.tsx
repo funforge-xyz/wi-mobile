@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -139,7 +138,7 @@ export default function PostDetailsModal({
     }
   };
 
-  
+
 
   const handleAddComment = async (commentText: string) => {
     if (!commentText || !commentText.trim() || !currentUser) return;
@@ -166,9 +165,8 @@ export default function PostDetailsModal({
       // Always update comment count for both top-level comments and replies
       // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
-        // Get current comments count from Redux user posts (which is the source of truth)
-        const currentPostFromRedux = userPosts.find(p => p.id === post.id);
-        const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
+        // Get current comments count from local post state
+        const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
         const newCommentsCount = currentCommentsCount + 1;
 
         // Update Redux slices
@@ -344,9 +342,8 @@ export default function PostDetailsModal({
       // Update comment count based on how many comments were actually deleted
       // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
-        // Get current comments count from Redux user posts (which is the source of truth)
-        const currentPostFromRedux = userPosts.find(p => p.id === post.id);
-        const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
+        // Get current comments count from local post state
+        const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
         const newCommentsCount = Math.max(0, currentCommentsCount - deletedCommentsCount);
 
         // Update Redux slices
@@ -395,7 +392,7 @@ export default function PostDetailsModal({
     videoPlayer.muted = newMutedState;
   };
 
-  
+
 
   return (
     <Modal 
