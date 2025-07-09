@@ -196,7 +196,7 @@ export default function PostMedia({
           <Animated.View style={[
             styles.playButtonOverlay,
             {
-              opacity: (!isVideoPlaying && hasBeenTapped) ? 1 : playButtonOpacity,
+              opacity: (!isVideoPlaying && hasBeenTapped) ? 1 : 0,
               transform: [{ scale: playButtonScale }]
             }
           ]}>
