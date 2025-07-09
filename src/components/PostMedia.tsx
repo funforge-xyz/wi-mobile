@@ -132,8 +132,8 @@ export default function PostMedia({
                 playButtonScale.setValue(1);
               });
             } else {
-              // Video is paused, hide play button when playing
-              playButtonOpacity.setValue(0);
+              // Video is paused, keep play button visible for subsequent taps
+              console.log('Video is now playing, hiding play button');
             }
           }
         }
@@ -191,11 +191,11 @@ export default function PostMedia({
               />
             </TouchableWithoutFeedback>
 
-          {/* Animated play button overlay - show when video is paused */}
+          {/* Animated play button overlay - show when video is paused and has been tapped */}
           <Animated.View style={[
             styles.playButtonOverlay,
             {
-              opacity: !isVideoPlaying ? 1 : playButtonOpacity,
+              opacity: (!isVideoPlaying && hasBeenTapped) ? 1 : playButtonOpacity,
               transform: [{ scale: playButtonScale }]
             }
           ]}>
