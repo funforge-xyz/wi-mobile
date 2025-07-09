@@ -465,7 +465,7 @@ export default function PostDetailsModal({
                     liked={userLiked}
                     likesCount={likes.length}
                     commentsCount={comments.length}
-                    showLikeCount={true}
+                    showLikeCount={post.showLikeCount || (post.authorId === currentUser?.uid)}
                     allowComments={post.allowComments}
                     onLikePress={handleLikePress}
                     onCommentPress={() => {}}
