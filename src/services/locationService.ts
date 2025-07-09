@@ -137,10 +137,10 @@ export class LocationService {
       console.log('🗺️ Starting location tracking - getting initial position...');
       let currentLocation;
       try {
-        console.log('📍 Attempting to get current location with balanced accuracy...');
+        console.log('📍 Attempting to get current location with best navigation accuracy...');
         currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-          timeInterval: 10000, // 10 second timeout
+          accuracy: Location.Accuracy.BestForNavigation,
+          timeInterval: 15000, // 15 second timeout for high accuracy
         });
         console.log('✅ Got current location (balanced):', {
           lat: currentLocation.coords.latitude,
@@ -148,12 +148,12 @@ export class LocationService {
           accuracy: currentLocation.coords.accuracy
         });
       } catch (locationError) {
-        console.log('⚠️ Failed to get current location, trying with lower accuracy:', locationError);
+        console.log('⚠️ Failed to get current location, trying with highest accuracy...');
         try {
-          console.log('📍 Attempting to get current location with low accuracy...');
+          console.log('📍 Attempting to get current location with highest accuracy...');
           currentLocation = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Low,
-            timeInterval: 15000, // 15 second timeout
+            accuracy: Location.Accuracy.Highest,
+            timeInterval: 20000, // 20 second timeout for high accuracy
           });
           console.log('✅ Got current location (low accuracy):', {
             lat: currentLocation.coords.latitude,
@@ -202,13 +202,13 @@ export class LocationService {
       try {
         console.log('🔄 Starting background location updates...', {
           updateInterval: BACKGROUND_UPDATE_INTERVAL / 1000 / 60 + ' minutes',
-          distanceInterval: '50 meters',
-          accuracy: 'Balanced'
+          distanceInterval: '10 meters',
+          accuracy: 'BestForNavigation'
         });
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-          accuracy: Location.Accuracy.Balanced,
+          accuracy: Location.Accuracy.BestForNavigation,
           timeInterval: BACKGROUND_UPDATE_INTERVAL,
-          distanceInterval: 50, // Update if moved more than 50 meters
+          distanceInterval: 10, // Update if moved more than 10 meters
           deferredUpdatesInterval: BACKGROUND_UPDATE_INTERVAL,
           showsBackgroundLocationIndicator: true,
           foregroundService: {
@@ -263,10 +263,10 @@ export class LocationService {
       console.log('✅ Permissions OK, getting current location...');
       let location;
       try {
-        console.log('📍 Trying balanced accuracy...');
+        console.log('📍 Trying best navigation accuracy...');
         location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-          timeInterval: 10000,
+          accuracy: Location.Accuracy.BestForNavigation,
+          timeInterval: 15000,
         });
         console.log('✅ Got location (balanced):', {
           lat: location.coords.latitude,
@@ -276,10 +276,10 @@ export class LocationService {
       } catch (error) {
         console.log('⚠️ Failed to get current location, trying with lower accuracy:', error);
         try {
-          console.log('📍 Trying low accuracy...');
+          console.log('📍 Trying highest accuracy...');
           location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Low,
-            timeInterval: 15000,
+            accuracy: Location.Accuracy.Highest,
+            timeInterval: 20000,
           });
           console.log('✅ Got location (low accuracy):', {
             lat: location.coords.latitude,
