@@ -32,6 +32,7 @@ import { locationService } from './src/services/locationService';
 // Types
 import { RootStackParamList } from './src/types/navigation';
 import SinglePostScreen from './src/screens/SinglePostScreen';
+import DeleteAccountScreen from './src/screens/DeleteAccountScreen';
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
@@ -161,7 +162,7 @@ export default function App() {
     };
   }, []);
 
-  
+
 
   // Hide splash screen once we're past the initial loading
   useEffect(() => {
@@ -203,6 +204,7 @@ export default function App() {
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="ChatImages" component={ChatImagesScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
             <Stack.Screen name="Terms" component={TermsScreen} />
             <Stack.Screen 
           name="SinglePost" 
