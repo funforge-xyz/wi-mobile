@@ -433,7 +433,7 @@ export default function PostDetailsModal({
           <KeyboardAvoidingView 
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 20}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
           >
             <View style={{ flex: 1 }}>
               <KeyboardAwareScrollView 
@@ -483,10 +483,7 @@ export default function PostDetailsModal({
 
               {/* Comment Input */}
               {post.allowComments && currentUser && (
-                <View style={[{ 
-                  backgroundColor: currentTheme.background,
-                  paddingTop: SPACING.sm 
-                }]}>
+                <View style={{ backgroundColor: currentTheme.background }}>
                   <CommentInput
                     ref={commentInputRef}
                     value={commentText}

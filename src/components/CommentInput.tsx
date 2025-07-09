@@ -93,7 +93,8 @@ export default CommentInput;
 
 const styles = StyleSheet.create({
   container: {
-    padding: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     borderTopWidth: 1,
   },
   replyIndicator: {
