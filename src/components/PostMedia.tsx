@@ -68,7 +68,7 @@ export default function PostMedia({
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  
+
 
   // Reset hasBeenTapped when video starts playing (autoplay)
   useEffect(() => {
@@ -131,6 +131,20 @@ export default function PostMedia({
       }
     }
   };
+
+  // Update video player when playback state changes
+  useEffect(() => {
+    if (videoPlayer && mediaType === 'video') {
+      if (isVideoPlaying) {
+        videoPlayer.play();
+      } else {
+        videoPlayer.pause();
+      }
+    }
+  }, [videoPlayer, isVideoPlaying, mediaType]);
+
+  // Listen to video player events
+  // const { isPlaying: videoIsPlaying } = useEvent(videoPlayer, 'playingChange', { isPlaying: videoPlayer?.playing || false });
 
   if (!mediaURL) return null;
 

@@ -107,6 +107,9 @@ export default function PostItem({
     }
   );
 
+  // Listen to video player events
+  const { isPlaying: videoIsActuallyPlaying } = useEvent(internalVideoPlayer, 'playingChange', { isPlaying: internalVideoPlayer?.playing || false });
+
   // Use the passed videoPlayer prop if available, otherwise use internal
   const activeVideoPlayer = videoPlayer || internalVideoPlayer;
 

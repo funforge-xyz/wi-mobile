@@ -61,6 +61,9 @@ export default function CreatePostScreen() {
     player.muted = isMuted;
   });
 
+  // Listen to video player events
+  const { isPlaying: previewIsPlaying } = useEvent(previewPlayer, 'playingChange', { isPlaying: previewPlayer?.playing || false });
+
   const fullscreenPlayer = useVideoPlayer(mediaUri || '', player => {
     player.loop = true;
     player.muted = false;

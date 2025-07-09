@@ -49,7 +49,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
-import { Video } from 'expo-av';
+import { Video } from 'expo-video';
 
 const { width, height } = Dimensions.get('window');
 
@@ -544,39 +544,25 @@ export default function FeedScreen({ navigation }: any) {
   const handleVideoPlayPauseToggle = (postId: string, shouldPlay: boolean) => {
     console.log('FeedScreen - handleVideoPlayPauseToggle:', postId, shouldPlay);
 
-    // Update the playing video ID for PostMedia
-    if (shouldPlay) {
-      setPlayingVideoId(postId);
-    } else {
-      setPlayingVideoId(null);
+    const videoPlayer = videoPlayersRef.current[postId];
+    if (videoPlayer) {
+      if (shouldPlay) {
+        videoPlayer.play();
+      } else {
+        videoPlayer.pause();
+      }
     }
+  };
 
+  // Update video states when actual playback changes
+  const updateVideoPlayingState = (postId: string, isPlaying: boolean) => {
     setVideoStates(prev => ({
       ...prev,
       [postId]: {
         ...prev[postId],
-        isPlaying: shouldPlay,
-        isMuted: prev[postId]?.isMuted || false
+        isPlaying
       }
     }));
-
-    if (shouldPlay) {
-      // Pause other videos when this one starts playing
-      setCurrentlyPlayingVideo(postId);
-      Object.keys(videoStates).forEach(id => {
-        if (id !== postId && videoStates[id]?.isPlaying) {
-          setVideoStates(prev => ({
-            ...prev,
-            [id]: {
-              ...prev[id],
-              isPlaying: false
-            }
-          }));
-        }
-      });
-    } else {
-      setCurrentlyPlayingVideo(null);
-    }
   };
 
   // Handle video focus changes for autoplay
