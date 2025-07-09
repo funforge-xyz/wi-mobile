@@ -24,7 +24,7 @@ import EditProfileModal from '../components/EditProfileModal';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import RadiusSelectionModal from '../components/RadiusSelectionModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
-import DeleteAccountModal from '../components/DeleteAccountModal';
+
 import { styles } from '../styles/SettingsStyles';
 import { getTheme } from '../theme';
 import {
@@ -66,7 +66,7 @@ export default function SettingsScreen() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
   const [showSettingsOption, setShowSettingsOption] = useState(false);
-  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
@@ -278,7 +278,7 @@ export default function SettingsScreen() {
   };
 
   const showDeleteAccountModalHandler = () => {
-    setShowDeleteAccountModal(true);
+    navigation.navigate('DeleteAccount');
   };
 
   const showNetworkInfo = () => {
@@ -470,14 +470,7 @@ export default function SettingsScreen() {
         setIsLoading={setIsLoading}
       />
 
-      {/* Delete Account Modal */}
-      <DeleteAccountModal
-        visible={showDeleteAccountModal}
-        onClose={() => setShowDeleteAccountModal(false)}
-        currentTheme={currentTheme}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-      />
+      
 
       {/* Push Notification Permission Modal */}
       <PushNotificationModal
