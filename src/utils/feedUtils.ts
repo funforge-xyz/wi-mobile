@@ -642,7 +642,7 @@ export async function loadFeedPosts(
         collection(firestore, 'posts'),
         where('authorId', 'in', batch),
         orderBy('createdAt', 'desc'),
-        limit(limit)
+        firestoreLimit(limit)
       );
 
       if (lastDoc) {
@@ -651,7 +651,7 @@ export async function loadFeedPosts(
           where('authorId', 'in', batch),
           orderBy('createdAt', 'desc'),
           startAfter(lastDoc),
-          limit(limit)
+          firestoreLimit(limit)
         );
       }
 
