@@ -90,6 +90,8 @@
   },
   "feed": {
     "title": "Početna",
+    "loading": "Učitavanje...",
+    "checkingLocation": "Provjera dozvola za lokaciju...",
     "noPosts": "Još nema objava",
     "shareFirst": "Podijelite vašu prvu objavu da počnete",
     "whatsOnMind": "Šta vam je na umu?",
@@ -101,8 +103,8 @@
     "likes": "Sviđanja",
     "failedToLoad": "Neuspješno učitavanje objava",
     "empty": {
-      "title": "Još nema objava",
-      "description": "Povežite se sa korisnicima u blizini da vidite njihove objave u vašem feed-u.",
+      "locationRequired": "Potrebna lokacija",
+      "enableLocationDescription": "Omogućite usluge lokacije da vidite objave ljudi u blizini i počnete se povezivati sa svojom zajednicom.",
       "enableLocation": "Omogući lokaciju"
     }
   },

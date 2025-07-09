@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -26,6 +27,25 @@ export default function EmptyFeedState({
   onLocationEnabled
 }: EmptyFeedStateProps) {
   const { t } = useTranslation();
+  const [hasLocationPermission, setHasLocationPermission] = useState<boolean | null>(null);
+  const [isLocationTracking, setIsLocationTracking] = useState(false);
+
+  useEffect(() => {
+    checkLocationStatus();
+  }, []);
+
+  const checkLocationStatus = async () => {
+    try {
+      const hasPermissions = await locationService.checkPermissions();
+      const isTracking = locationService.isLocationTrackingActive();
+      
+      setHasLocationPermission(hasPermissions);
+      setIsLocationTracking(isTracking);
+    } catch (error) {
+      console.error('Error checking location status:', error);
+      setHasLocationPermission(false);
+    }
+  };
 
   const handleEnableLocation = async () => {
     try {
@@ -33,6 +53,8 @@ export default function EmptyFeedState({
       if (hasPermissions) {
         // Start location tracking
         await locationService.startLocationTracking();
+        setHasLocationPermission(true);
+        setIsLocationTracking(true);
         // Notify parent component to refresh the feed
         if (onLocationEnabled) {
           onLocationEnabled();
@@ -43,23 +65,61 @@ export default function EmptyFeedState({
     }
   };
 
+  // Determine what to show based on location status
+  const getDisplayContent = () => {
+    if (hasLocationPermission === null) {
+      // Still checking permissions
+      return {
+        title: t('feed.loading'),
+        subtitle: t('feed.checkingLocation'),
+        showButton: false,
+        buttonText: '',
+        icon: 'time-outline'
+      };
+    }
+
+    if (!hasLocationPermission || !isLocationTracking) {
+      // Location not enabled
+      return {
+        title: t('feed.empty.locationRequired'),
+        subtitle: t('feed.empty.enableLocationDescription'),
+        showButton: true,
+        buttonText: t('feed.empty.enableLocation'),
+        icon: 'location-outline'
+      };
+    }
+
+    // Location is enabled but no posts
+    return {
+      title: title || t('feed.noPosts'),
+      subtitle: subtitle || t('feed.shareFirst'),
+      showButton: false,
+      buttonText: '',
+      icon: icon
+    };
+  };
+
+  const content = getDisplayContent();
+
   return (
     <View style={styles.emptyState}>
-      <Ionicons name={icon as any} size={64} color={currentTheme.textSecondary} />
+      <Ionicons name={content.icon as any} size={64} color={currentTheme.textSecondary} />
       <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
-        {title || t('feed.noPosts')}
+        {content.title}
       </Text>
       <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
-        {subtitle || t('feed.shareFirst')}
+        {content.subtitle}
       </Text>
-      <TouchableOpacity 
-        style={[styles.locationButton, { backgroundColor: currentTheme.primary }]}
-        onPress={handleEnableLocation}
-      >
-        <Text style={[styles.locationButtonText, { color: currentTheme.buttonText }]}>
-          {t('feed.empty.enableLocation')}
-        </Text>
-      </TouchableOpacity>
+      {content.showButton && (
+        <TouchableOpacity 
+          style={[styles.locationButton, { backgroundColor: currentTheme.primary }]}
+          onPress={handleEnableLocation}
+        >
+          <Text style={[styles.locationButtonText, { color: currentTheme.buttonText }]}>
+            {content.buttonText}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -76,6 +136,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,

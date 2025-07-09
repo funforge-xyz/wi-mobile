@@ -91,22 +91,20 @@
   },
   "feed": {
     "title": "Feed",
+    "loading": "Loading...",
+    "checkingLocation": "Checking location permissions...",
     "noPosts": "No posts yet",
-    "shareFirst": "Share your first post to connect with people nearby!",
-    "whatsOnMind": "What's on your mind?",
-    "post": "Post",
-    "like": "Like",
-    "comment": "Comment",
-    "share": "Share",
-    "comments": "Comments",
-    "likes": "Likes",
-    "failedToLoad": "Failed to load posts",
+    "shareFirst": "Be the first to share something with your network!",
+    "likesCount": "{{count}} like",
+    "likesCount_plural": "{{count}} likes",
+    "viewComments": "View all {{count}} comments",
+    "addComment": "Add a comment...",
+    "postComment": "Post",
     "empty": {
-      "title": "No posts yet",
-      "description": "Connect with nearby users to see their posts in your feed.",
+      "locationRequired": "Location Required",
+      "enableLocationDescription": "Enable location services to see posts from people nearby and start connecting with your community.",
       "enableLocation": "Enable Location"
-    },
-    "locationDisabledAlert": "Enable location to see posts from nearby users and connect with people around you."
+    }
   },
   "nearby": {
     "title": "Nearby",
