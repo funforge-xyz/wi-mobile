@@ -4,7 +4,8 @@ import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { getAuth } from './firebase';
 
 const LOCATION_TASK_NAME = 'background-location-task';
-const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const BACKGROUND_UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const FOREGROUND_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Define the background task with error handling
 try {
@@ -51,6 +52,7 @@ export class LocationService {
   private backgroundUpdateCount = 0;
   private maxBackgroundUpdates = 5;
   private isInForeground = true;
+  private foregroundLocationInterval?: NodeJS.Timeout;
   private permissionModalCallback?: (showModal: boolean, permissionDenied?: boolean, hasTriedRequest?: boolean) => void;
 
   static getInstance(): LocationService {
@@ -199,15 +201,15 @@ export class LocationService {
       // Start background location updates
       try {
         console.log('🔄 Starting background location updates...', {
-          updateInterval: UPDATE_INTERVAL / 1000 / 60 + ' minutes',
+          updateInterval: BACKGROUND_UPDATE_INTERVAL / 1000 / 60 + ' minutes',
           distanceInterval: '50 meters',
           accuracy: 'Balanced'
         });
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
           accuracy: Location.Accuracy.Balanced,
-          timeInterval: UPDATE_INTERVAL,
+          timeInterval: BACKGROUND_UPDATE_INTERVAL,
           distanceInterval: 50, // Update if moved more than 50 meters
-          deferredUpdatesInterval: UPDATE_INTERVAL,
+          deferredUpdatesInterval: BACKGROUND_UPDATE_INTERVAL,
           showsBackgroundLocationIndicator: true,
           foregroundService: {
             notificationTitle: 'Location Tracking',
@@ -221,6 +223,12 @@ export class LocationService {
       }
 
       this.isTracking = true;
+      
+      // Start foreground location updates if in foreground
+      if (this.isInForeground) {
+        this.startForegroundLocationUpdates();
+      }
+      
       console.log('🎯 Location tracking is now active (foreground + background)');
       return true;
     } catch (error) {
@@ -235,8 +243,9 @@ export class LocationService {
       if (isTaskDefined) {
         await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       }
+      this.stopForegroundLocationUpdates();
       this.isTracking = false;
-      console.log('Background location tracking stopped');
+      console.log('Location tracking stopped (foreground + background)');
     } catch (error) {
       console.error('Error stopping location tracking:', error);
     }
@@ -329,12 +338,19 @@ export class LocationService {
     this.backgroundUpdateCount = 0; // Reset counter when app comes to foreground
     console.log('🌟 App in foreground - location tracking switched to foreground mode');
     console.log('📊 Background update counter reset, tracking status:', this.isTracking);
+    
+    // Update location immediately when coming to foreground
+    if (this.isTracking) {
+      this.updateLocationNow();
+      this.startForegroundLocationUpdates();
+    }
   }
 
   // Call this when app goes to background
   onAppBackground(): void {
     this.isInForeground = false;
     this.backgroundUpdateCount = 0; // Reset counter for new background session
+    this.stopForegroundLocationUpdates();
     console.log('🌙 App in background - starting new background session');
     console.log('📊 Background update limit:', this.maxBackgroundUpdates);
   }
@@ -351,6 +367,44 @@ export class LocationService {
     }
     
     return true;
+  }
+
+  // Start foreground location updates (every 5 minutes)
+  private startForegroundLocationUpdates(): void {
+    if (this.foregroundLocationInterval) {
+      clearInterval(this.foregroundLocationInterval);
+    }
+    
+    console.log('🔄 Starting foreground location updates (5-minute interval)');
+    this.foregroundLocationInterval = setInterval(async () => {
+      if (this.isInForeground && this.isTracking) {
+        console.log('⏰ Foreground location update triggered');
+        await this.updateLocationNow();
+      }
+    }, FOREGROUND_UPDATE_INTERVAL);
+  }
+
+  // Stop foreground location updates
+  private stopForegroundLocationUpdates(): void {
+    if (this.foregroundLocationInterval) {
+      clearInterval(this.foregroundLocationInterval);
+      this.foregroundLocationInterval = undefined;
+      console.log('🛑 Foreground location updates stopped');
+    }
+  }
+
+  // Update location immediately
+  private async updateLocationNow(): Promise<void> {
+    try {
+      console.log('📍 Getting current location for immediate update...');
+      const location = await this.getCurrentLocation();
+      if (location) {
+        await updateUserLocationInFirestore(location.latitude, location.longitude);
+        console.log('✅ Location updated immediately');
+      }
+    } catch (error) {
+      console.error('❌ Error updating location immediately:', error);
+    }
   }
 }
 
