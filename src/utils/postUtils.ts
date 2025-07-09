@@ -70,6 +70,8 @@ export const createPost = async (
       postType: postData.postType || 'text',
       allowComments: postData.allowComments,
       showLikeCount: postData.showLikeCount,
+      likesCount: 0,
+      commentsCount: 0,
       createdAt: serverTimestamp(),
       ...(postData.isFrontCamera !== undefined && { isFrontCamera: postData.isFrontCamera }),
     });
