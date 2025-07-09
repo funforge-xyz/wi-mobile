@@ -442,20 +442,16 @@ export default function PostDetailsModal({
           <KeyboardAvoidingView 
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 20}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
             <View style={{ flex: 1 }}>
               <KeyboardAwareScrollView 
                 style={{ flex: 1 }}
                 enableOnAndroid={true}
-                extraScrollHeight={100}
-                extraHeight={Platform.OS === 'ios' ? 100 : 150}
+                extraScrollHeight={20}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
-                enableAutomaticScroll={true}
-                resetScrollToCoords={{ x: 0, y: 0 }}
-                scrollEventThrottle={16}
               >
                 {/* Post Actions */}
                 <View style={[postModalStyles.actionsOnly, { 
@@ -494,9 +490,12 @@ export default function PostDetailsModal({
                 </View>
               </KeyboardAwareScrollView>
 
-              {/* Comment Input */}
+              {/* Comment Input - Fixed at bottom with keyboard awareness */}
               {post.allowComments && currentUser && (
-                <View style={{ backgroundColor: currentTheme.background }}>
+                <View style={[{ 
+                  backgroundColor: currentTheme.background,
+                  paddingTop: SPACING.sm 
+                }]}>
                   <CommentInput
                     ref={commentInputRef}
                     value={commentText}
