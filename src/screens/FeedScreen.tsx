@@ -106,6 +106,7 @@ export default function FeedScreen({ navigation }: any) {
   const [videoStates, setVideoStates] = useState<{[key: string]: {isPlaying: boolean, isMuted: boolean}}>({});
   const [focusedVideoId, setFocusedVideoId] = useState<string | null>(null);
   const [mediaLoadingStates, setMediaLoadingStates] = useState<{[key: string]: boolean}>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<{[key: string]: boolean}>({});
 
   const currentTheme = getTheme(isDarkMode);
   const videoPlayersRef = useRef<{[key: string]: any}>({});
@@ -636,6 +637,13 @@ export default function FeedScreen({ navigation }: any) {
     }));
   };
 
+  const toggleDescriptionExpansion = (postId: string) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
   // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
   const videoPlayerCreated = useRef<Set<string>>(new Set());
   
@@ -724,9 +732,14 @@ export default function FeedScreen({ navigation }: any) {
                 <Text style={styles.authorName}>{item.authorName}</Text>
               </TouchableOpacity>
               {item.content && (
-                <Text style={styles.description} numberOfLines={3}>
-                  {item.content}
-                </Text>
+                <TouchableOpacity onPress={() => toggleDescriptionExpansion(item.id)}>
+                  <Text 
+                    style={styles.description} 
+                    numberOfLines={expandedDescriptions[item.id] ? undefined : 3}
+                  >
+                    {item.content}
+                  </Text>
+                </TouchableOpacity>
               )}
             </View>
 
