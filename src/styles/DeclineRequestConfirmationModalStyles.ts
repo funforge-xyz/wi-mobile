@@ -1,6 +1,6 @@
 
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../config/constants';
+import { COLORS, SPACING, FONTS } from '../config/constants';
 
 export const styles = StyleSheet.create({
   modalOverlay: {
@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
   },
   confirmationModal: {
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 16,
     padding: SPACING.xl,
     alignItems: 'center',
     minWidth: 280,
@@ -29,13 +29,14 @@ export const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontFamily: FONTS.bold,
     textAlign: 'center',
     marginBottom: SPACING.md,
   },
   message: {
-    fontSize: FONTS.sizes.md,
+    fontSize: 16,
+    fontFamily: FONTS.regular,
     textAlign: 'center',
     marginBottom: SPACING.xl,
     lineHeight: 22,
@@ -50,7 +51,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: 12,
     alignItems: 'center',
   },
   cancelButton: {
@@ -60,12 +61,12 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.error,
   },
   cancelButtonText: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '500',
+    fontSize: 16,
+    fontFamily: FONTS.medium,
   },
   confirmButtonText: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '500',
+    fontSize: 16,
+    fontFamily: FONTS.medium,
     color: COLORS.white,
   },
 });
