@@ -662,7 +662,21 @@ export default function FeedScreen({ navigation }: any) {
           <View style={styles.bottomOverlay}>
             {/* Left side - User info and description */}
             <View style={styles.leftContent}>
-              <View style={styles.userInfo}>
+              <TouchableOpacity 
+                style={styles.userInfo}
+                onPress={() => {
+                  const [firstName, ...lastNameParts] = item.authorName.split(' ');
+                  const lastName = lastNameParts.join(' ');
+                  
+                  navigation.navigate('UserProfile', {
+                    userId: item.authorId,
+                    firstName: firstName || '',
+                    lastName: lastName || '',
+                    photoURL: item.authorPhotoURL || '',
+                    bio: item.content || ''
+                  });
+                }}
+              >
                 <UserAvatar
                   photoURL={item.authorPhotoURL}
                   name={item.authorName}
@@ -670,7 +684,7 @@ export default function FeedScreen({ navigation }: any) {
                   showOnlineStatus={false}
                 />
                 <Text style={styles.authorName}>{item.authorName}</Text>
-              </View>
+              </TouchableOpacity>
               {item.content && (
                 <Text style={styles.description} numberOfLines={3}>
                   {item.content}
@@ -737,6 +751,13 @@ export default function FeedScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Loading indicator at top */}
+      {(loading || refreshing) && (
+        <View style={styles.topLoadingIndicator}>
+          <ActivityIndicator size="small" color="white" />
+        </View>
+      )}
+      
       {posts.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <EmptyFeedState 
@@ -866,6 +887,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  topLoadingIndicator: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 100,
+    paddingVertical: 8,
   },
   authorName: {
     color: 'white',
