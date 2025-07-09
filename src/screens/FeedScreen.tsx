@@ -804,7 +804,16 @@ export default function FeedScreen({ navigation }: any) {
   const handleCommentsCountChange = (postId: string, newCount: number) => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
-        post.id === postId 
+        post.id === postId ? { ...post, commentsCount: newCount } : post
+      )
+    );
+
+    // Also update Redux state to keep it in sync
+    dispatch(updatePostInFeed({
+      postId,
+      updates: { commentsCount: newCount }
+    }));
+  };st.id === postId 
           ? { ...post, commentsCount: newCount }
           : post
       )

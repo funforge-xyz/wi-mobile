@@ -208,7 +208,7 @@ export default function PostDetailsModal({
           commentsCount: newCommentsCount 
         } : null);
 
-        // Notify parent component of the change
+        // Notify parent component of the change (both for comments and replies)
         if (onCommentsCountChange) {
           onCommentsCountChange(newCommentsCount);
         }
@@ -383,7 +383,7 @@ export default function PostDetailsModal({
         // Sync local post state with Redux state
         setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
 
-        // Notify parent component of the change
+        // Notify parent component of the change (both for comments and replies)
         if (onCommentsCountChange) {
           onCommentsCountChange(newCommentsCount);
         }
