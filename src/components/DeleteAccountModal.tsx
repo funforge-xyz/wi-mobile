@@ -9,7 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../hooks/redux';
+import { useAppSelector } from '../hooks/redux';
+import { getTheme } from '../theme';
 import { authService } from '../services/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -23,7 +24,8 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const colors = getTheme(isDarkMode);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
