@@ -314,37 +314,7 @@ export const handleChangePassword = async (
   }
 };
 
-export const handleDeleteAccount = async (
-  setShowDeleteAccountModal: (show: boolean) => void,
-  setIsLoading: (loading: boolean) => void,
-  t: (key: string) => string
-) => {
-  Alert.alert(
-    t('settings.deleteAccount'),
-    t('settings.areYouSureYouWantToDeleteAccount'),
-    [
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
-      {
-        text: t('settings.delete'),
-        style: 'destructive',
-        onPress: async () => {
-          setIsLoading(true);
-          try {
-            const { authService } = await import('../services/auth');
-            await authService.deleteProfile();
-            setShowDeleteAccountModal(false);
-          } catch (error: any) {
-            Alert.alert(t('common.error'), error.message);
-            setIsLoading(false);
-          }
-        },
-      },
-    ]
-  );
-};
+// Delete account logic is now handled directly in DeleteAccountModal component
 
 export const compressImage = async (uri: string): Promise<string> => {
   try {

@@ -326,7 +326,11 @@
     "connectionNotifications": "New connection requests",
     "openSettings": "Open Settings",
     "enableNotificationsInDeviceSettings": "Please enable notifications in your device settings to receive important updates",
-    "permissionRequired": "Permission Required"
+    "permissionRequired": "Permission Required",
+    "deletingAccount": "Deleting Account",
+    "accountDeleted": "Account Deleted",
+    "accountDeletedSuccessfully": "Your account has been successfully deleted.",
+    "pleaseWait": "Please wait while we process your request..."
   },
   "notifications": {
     "title": "Notifications",
@@ -355,7 +359,7 @@
     "camera": "Camera",
     "gallery": "Gallery",
     "failedToSend": "Failed to send message",
-    "failedToLoad": "Failed to load messages"
+    "failedToLoad": "Failed toload messages"
   },
   "onboarding": {
     "welcome": "Welcome to Wi Chat",

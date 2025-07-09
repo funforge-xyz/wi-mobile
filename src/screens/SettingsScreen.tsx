@@ -36,7 +36,6 @@ import {
   handleToggleSameNetworkMatching,
   handleTrackingRadiusChange,
   handleChangePassword,
-  handleDeleteAccount,
   handleImagePicker,
   handleCameraCapture,
   showImagePickerOptions,
@@ -133,12 +132,12 @@ export default function SettingsScreen() {
   const handleToggleTheme = async () => {
     try {
       const newDarkMode = !isDarkMode;
-      
+
       // Save to AsyncStorage first
       const { SettingsService } = await import('../services/settings');
       const settingsService = SettingsService.getInstance();
       await settingsService.setDarkMode(newDarkMode);
-      
+
       // Then update Redux state
       dispatch(toggleTheme());
 
