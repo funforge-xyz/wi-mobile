@@ -34,7 +34,10 @@ export default function ChatsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [showDeclineSuccessModal, setShowDeclineSuccessModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<ConnectionRequest | null>(null);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const { t } = useTranslation();
 
@@ -121,11 +124,8 @@ export default function ChatsScreen({ navigation }: any) {
   };
 
   const onDeclineRequest = (request: ConnectionRequest) => {
-    // Create a wrapper function that matches the expected signature
-    const translateWrapper = (key: string, fallback?: string) => {
-      return fallback ? t(key, fallback) : t(key);
-    };
-    handleDeclineRequest(request, translateWrapper);
+    setSelectedRequest(request);
+    setShowDeclineModal(true);
   };
 
   const onStartChat = (connection: Connection) => {

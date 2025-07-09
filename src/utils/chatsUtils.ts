@@ -78,28 +78,7 @@ export const handleReplyToRequest = (request: ConnectionRequest, navigation: any
   });
 };
 
-export const handleDeclineRequest = async (request: ConnectionRequest, t: (key: string, fallback?: string) => string) => {
-  Alert.alert(
-    t('chats.declineRequest', 'Decline Request'),
-    t('chats.declineRequestMessage', 'Are you sure you want to decline the request from {{user}}?').replace('{{user}}', request.firstName || t('profile.anonymousUser', 'Anonymous User')),
-    [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Decline',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const firestore = getFirestore();
-            await deleteDoc(doc(firestore, 'connectionRequests', request.id));
-          } catch (error) {
-            console.error('Error declining request:', error);
-            Alert.alert('Error', 'Failed to decline request');
-          }
-        }
-      }
-    ]
-  );
-};
+// Decline request handling is now done in ChatsScreen component with custom modals
 
 export const handleStartChat = (connection: Connection, navigation: any) => {
   navigation.navigate('Chat', {
