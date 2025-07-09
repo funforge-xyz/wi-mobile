@@ -42,18 +42,14 @@ const PulsingLogo: React.FC<PulsingLogoProps> = ({ size = 60 }) => {
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
         elevation: 5,
         padding: size * 0.1,
       }}>
         <Image 
-          source={require('../../assets/icons/app_icon_color_on_white.svg')}
+          source={require('../../assets/images/app_icon.png')}
           style={{
             width: size * 0.8,
             height: size * 0.8,
