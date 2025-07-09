@@ -51,7 +51,7 @@ const getMessageStatusIcon = (message: Message) => {
           <Ionicons 
             name="checkmark" 
             size={16} 
-            color="#4FC3F7" 
+            color="#ffffff" 
             style={styles.secondCheck}
           />
         </View>
