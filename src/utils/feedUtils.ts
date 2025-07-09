@@ -509,13 +509,23 @@ export async function loadFeedPosts(
       return { posts: [], hasMore: false };
     }
 
-    // Get blocked users
-    const blockedUsersQuery = query(
-      collection(firestore, 'blocks'),
-      where('blockerId', '==', currentUser.uid)
-    );
-    const blockedUsersSnapshot = await getDocs(blockedUsersQuery);
-    const blockedUserIds = new Set(blockedUsersSnapshot.docs.map(doc => doc.data().blockedId));
+    // Get blocked users (both directions)
+    const [blockedByMeQuery, blockedMeQuery] = await Promise.all([
+      getDocs(query(
+        collection(firestore, 'blockedUsers'),
+        where('blockedBy', '==', currentUser.uid)
+      )),
+      getDocs(query(
+        collection(firestore, 'blockedUsers'),
+        where('blockedUser', '==', currentUser.uid)
+      ))
+    ]);
+
+    // Combine both directions of blocking
+    const blockedUserIds = new Set([
+      ...blockedByMeQuery.docs.map(doc => doc.data().blockedUser), // Users I blocked
+      ...blockedMeQuery.docs.map(doc => doc.data().blockedBy) // Users who blocked me
+    ]);
 
     // Get connected users
     const connectionsQuery = query(
