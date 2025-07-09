@@ -150,10 +150,29 @@ export default function PostDetailsModal({
 
   const handleLikePress = async () => {
     try {
+      const wasLiked = likes.some(like => like.authorId === currentUser?.uid);
+      
       await handleLike(postId, likes, currentUser);
+      
       // Reload likes to get updated state
       const updatedLikes = await loadLikes(postId);
       setLikes(updatedLikes);
+      
+      // Notify parent component of like count change
+      if (onLikesCountChange && post) {
+        const newLikedState = !wasLiked;
+        const newLikesCount = updatedLikes.length;
+        
+        // Update local post state
+        setPost(prevPost => prevPost ? {
+          ...prevPost,
+          likesCount: newLikesCount,
+          isLikedByUser: newLikedState
+        } : null);
+        
+        // Notify parent component
+        onLikesCountChange(newLikesCount, newLikedState);
+      }
     } catch (error) {
       Alert.alert(t('common.error'), t('singlePost.failedToUpdateLike'));
     }
