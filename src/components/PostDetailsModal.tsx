@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -10,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -33,6 +35,7 @@ import SinglePostDisplay from './SinglePostDisplay';
 import CommentsList from './CommentsList';
 import CommentInput from './CommentInput';
 import PostActions from './PostActions';
+import DeleteCommentConfirmationModal from './DeleteCommentConfirmationModal';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useEvent } from 'expo';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -73,6 +76,8 @@ export default function PostDetailsModal({
   const [newlyAddedReplyParentId, setNewlyAddedReplyParentId] = useState<string | undefined>(undefined);
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<{id: string, authorId: string, parentCommentId?: string} | null>(null);
 
   const commentInputRef = useRef<TextInput>(null);
 
@@ -105,6 +110,8 @@ export default function PostDetailsModal({
     setCommentText('');
     setReplyToComment(null);
     setNewlyAddedReplyParentId(undefined);
+    setShowDeleteCommentModal(false);
+    setCommentToDelete(null);
   };
 
   const handleClose = () => {
@@ -142,53 +149,13 @@ export default function PostDetailsModal({
   };
 
   const handleLikePress = async () => {
-    if (!post || !currentUser) return;
-
-    const newLikedState = !post.isLikedByUser;
-    const currentLikesCount = post.likesCount;
-
     try {
-      // Optimistic update
-      setPost(prevPost => prevPost ? {
-        ...prevPost,
-        isLikedByUser: newLikedState,
-        likesCount: newLikedState 
-          ? prevPost.likesCount + 1 
-          : Math.max(0, prevPost.likesCount - 1)
-      } : null);
-
-      await handlePostLike(postId, newLikedState, currentUser);
-
-      // Reload post to get updated Firebase counts
-      const firestore = getFirestore();
-      const postRef = doc(firestore, 'posts', postId);
-      const updatedPostDoc = await getDoc(postRef);
-
-      if (updatedPostDoc.exists()) {
-        const updatedPostData = updatedPostDoc.data();
-        const newLikesCount = updatedPostData.likesCount || 0;
-
-        setPost(prevPost => prevPost ? {
-          ...prevPost,
-          likesCount: newLikesCount
-        } : null);
-
-        // Notify parent component of the change
-        if (onLikesCountChange) {
-          onLikesCountChange(newLikesCount, newLikedState);
-        }
-      }
-
-      console.log('PostDetailsModal - Like handled successfully');
-
+      await handleLike(postId, likes, currentUser);
+      // Reload likes to get updated state
+      const updatedLikes = await loadLikes(postId);
+      setLikes(updatedLikes);
     } catch (error) {
-      console.error('PostDetailsModal - Error handling like:', error);
-      // Revert optimistic update on error
-      setPost(prevPost => prevPost ? {
-        ...prevPost,
-        isLikedByUser: !newLikedState,
-        likesCount: currentLikesCount
-      } : null);
+      Alert.alert(t('common.error'), t('singlePost.failedToUpdateLike'));
     }
   };
 
@@ -197,6 +164,12 @@ export default function PostDetailsModal({
 
     try {
       setSubmittingComment(true);
+
+      const currentUserData = {
+        firstName: currentUser.displayName?.split(' ')[0] || '',
+        lastName: currentUser.displayName?.split(' ')[1] || '',
+        photoURL: currentUser.photoURL || ''
+      };
 
       const parentCommentId = replyToComment?.id;
 
@@ -208,12 +181,15 @@ export default function PostDetailsModal({
         parentCommentId
       );
 
-      // Update comment count in Redux
+      // Always update comment count for both top-level comments and replies
+      // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
+        // Get current comments count from Redux user posts (which is the source of truth)
         const currentPostFromRedux = userPosts.find(p => p.id === post.id);
         const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
         const newCommentsCount = currentCommentsCount + 1;
 
+        // Update Redux slices
         dispatch(updatePostInFeed({
           postId: post.id,
           updates: {
@@ -226,15 +202,22 @@ export default function PostDetailsModal({
           commentsCount: newCommentsCount
         }));
 
+        // Sync local post state with Redux state
         setPost(prevPost => prevPost ? { 
           ...prevPost, 
           commentsCount: newCommentsCount 
         } : null);
+
+        // Notify parent component of the change
+        if (onCommentsCountChange) {
+          onCommentsCountChange(newCommentsCount);
+        }
       }
 
-      // Handle reply marking
+      // If this was a reply, mark it for auto-expand
       if (parentCommentId) {
         setNewlyAddedReplyParentId(parentCommentId);
+        // Clear the marker after a short delay
         setTimeout(() => setNewlyAddedReplyParentId(undefined), 1000);
       }
 
@@ -242,29 +225,21 @@ export default function PostDetailsModal({
       setCommentText('');
       setReplyToComment(null);
 
-      // Reload comments to refresh the list
+      // Reload comments to get updated like status
       const updatedComments = await loadComments(postId, currentUser?.uid);
       setComments(updatedComments);
 
-      // Get updated post data from Firebase to get accurate comments count
-      const firestore = getFirestore();
-      const postRef = doc(firestore, 'posts', postId);
-      const updatedPostDoc = await getDoc(postRef);
-
-      if (updatedPostDoc.exists() && onCommentsCountChange) {
-        const updatedPostData = updatedPostDoc.data();
-        const newCommentsCount = updatedPostData.commentsCount || 0;
-        onCommentsCountChange(newCommentsCount);
-      }
-
+      // For top-level comments, scroll to the end to show the new comment
       if (!parentCommentId) {
         setTimeout(() => {
+          // Trigger scroll to end by setting a temporary state
           setNewlyAddedReplyParentId('scroll-to-end');
           setTimeout(() => setNewlyAddedReplyParentId(undefined), 100);
         }, 500);
       }
     } catch (error) {
       console.error('Error adding comment:', error);
+      Alert.alert(t('common.error'), t('singlePost.failedToAddComment'));
     } finally {
       setSubmittingComment(false);
     }
@@ -272,6 +247,7 @@ export default function PostDetailsModal({
 
   const handleReplyToComment = (commentId: string, authorName: string) => {
     setReplyToComment({ id: commentId, authorName });
+    // Focus the input field after a short delay to ensure the UI has updated
     setTimeout(() => {
       commentInputRef.current?.focus();
     }, 100);
@@ -288,7 +264,7 @@ export default function PostDetailsModal({
     const likesCountChange = newLikedState ? 1 : -1;
 
     try {
-      // Update local state immediately
+      // Update local state immediately for responsive UI
       setComments(prevComments => {
         return prevComments.map(comment => {
           if (comment.id === commentId) {
@@ -302,7 +278,7 @@ export default function PostDetailsModal({
         });
       });
 
-      // Update Firebase
+      // Then update Firebase
       await toggleCommentLike(
         post.id,
         commentId,
@@ -311,8 +287,12 @@ export default function PostDetailsModal({
         t,
         parentCommentId
       );
+
+      // Don't reload comments data here - let the real-time listener handle it
+      // But we need to make sure our local state persists
     } catch (error) {
       console.error('Error liking comment:', error);
+
       // Revert local state on error
       setComments(prevComments => {
         return prevComments.map(comment => {
@@ -326,49 +306,68 @@ export default function PostDetailsModal({
           return comment;
         });
       });
+
+      Alert.alert(t('common.error'), t('singlePost.failedToLikeComment'));
     }
   };
 
   const handleDeleteComment = async (commentId: string, commentAuthorId: string, parentCommentId?: string) => {
     if (!currentUser || (commentAuthorId !== currentUser.uid && post?.authorId !== currentUser.uid)) {
+      Alert.alert(t('error.title'), t('error.unauthorized'));
       return;
     }
 
+    setCommentToDelete({ id: commentId, authorId: commentAuthorId, parentCommentId });
+    setShowDeleteCommentModal(true);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!commentToDelete || !post) return;
+
+    setShowDeleteCommentModal(false);
+
     try {
-      await deleteComment(post.id, commentId, parentCommentId);
+      await deleteComment(post.id, commentToDelete.id, commentToDelete.parentCommentId);
 
-      // Update local state and comment count
-      let deletedCommentsCount = 1;
+      // Calculate how many comments will be deleted
+      let deletedCommentsCount = 1; // The comment itself
 
-      if (parentCommentId) {
+      // Update local comments state immediately
+      if (commentToDelete.parentCommentId) {
+        // This is a reply - remove it from the comments array and update parent's reply count
         setComments(prevComments => {
           return prevComments.map(comment => {
-            if (comment.id === parentCommentId) {
+            if (comment.id === commentToDelete.parentCommentId) {
               return {
                 ...comment,
                 repliesCount: Math.max(0, (comment.repliesCount || 1) - 1)
               };
             }
             return comment;
-          }).filter(comment => comment.id !== commentId);
+          }).filter(comment => comment.id !== commentToDelete.id);
         });
       } else {
-        const repliesToDelete = comments.filter(comment => comment.parentCommentId === commentId);
-        deletedCommentsCount += repliesToDelete.length;
+        // This is a top-level comment - remove it and all its replies
+        // Count how many replies this comment has before deleting
+        const repliesToDelete = comments.filter(comment => comment.parentCommentId === commentToDelete.id);
+        deletedCommentsCount += repliesToDelete.length; // Add the number of replies
 
         setComments(prevComments => {
           return prevComments.filter(comment => 
-            comment.id !== commentId && comment.parentCommentId !== commentId
+            comment.id !== commentToDelete.id && comment.parentCommentId !== commentToDelete.id
           );
         });
       }
 
-      // Update Redux state
+      // Update comment count based on how many comments were actually deleted
+      // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
+        // Get current comments count from Redux user posts (which is the source of truth)
         const currentPostFromRedux = userPosts.find(p => p.id === post.id);
         const currentCommentsCount = typeof currentPostFromRedux?.commentsCount === 'number' ? currentPostFromRedux.commentsCount : 0;
         const newCommentsCount = Math.max(0, currentCommentsCount - deletedCommentsCount);
 
+        // Update Redux slices
         dispatch(updatePostInFeed({
           postId: post.id,
           updates: {
@@ -381,10 +380,20 @@ export default function PostDetailsModal({
           commentsCount: newCommentsCount
         }));
 
+        // Sync local post state with Redux state
         setPost(prevPost => prevPost ? { ...prevPost, commentsCount: newCommentsCount } : null);
+
+        // Notify parent component of the change
+        if (onCommentsCountChange) {
+          onCommentsCountChange(newCommentsCount);
+        }
       }
+
+      setCommentToDelete(null);
     } catch (error) {
       console.error('Error deleting comment:', error);
+      Alert.alert(t('common.error'), t('singlePost.failedToDeleteComment'));
+      setCommentToDelete(null);
     }
   };
 
@@ -450,8 +459,8 @@ export default function PostDetailsModal({
                 }]}>
                   <PostActions
                     liked={userLiked}
-                    likesCount={post.likesCount || 0}
-                    commentsCount={post.commentsCount || 0}
+                    likesCount={likes.length}
+                    commentsCount={comments.length}
                     showLikeCount={true}
                     allowComments={post.allowComments}
                     onLikePress={handleLikePress}
@@ -505,6 +514,17 @@ export default function PostDetailsModal({
             </Text>
           </View>
         )}
+
+        {/* Delete Comment Confirmation Modal */}
+        <DeleteCommentConfirmationModal
+          visible={showDeleteCommentModal}
+          onConfirm={confirmDeleteComment}
+          onCancel={() => {
+            setShowDeleteCommentModal(false);
+            setCommentToDelete(null);
+          }}
+          currentTheme={currentTheme}
+        />
       </SafeAreaView>
     </Modal>
   );
