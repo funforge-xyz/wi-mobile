@@ -679,10 +679,17 @@ export default function FeedScreen({ navigation }: any) {
               style={styles.media}
               showBorderRadius={false}
               onLoad={() => handleMediaLoad(item.id)}
-              onDoubleTap={() => handleLike(item.id, !item.isLikedByUser)}
+              onDoubleTap={() => {
+                console.log('PostMedia double tap - liking post:', item.id);
+                handleLike(item.id, !item.isLikedByUser);
+              }}
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
-              onVideoPlayPause={() => handleVideoPlayPauseToggle(item.id, !isPlaying)}
+              onVideoPlayPause={() => {
+                console.log('PostMedia video play/pause toggle:', item.id);
+                const currentlyPlaying = videoStates[item.id]?.isPlaying || isPlaying;
+                handleVideoPlayPauseToggle(item.id, !currentlyPlaying);
+              }}
               postId={item.id}
             />
           )}
@@ -751,15 +758,7 @@ export default function FeedScreen({ navigation }: any) {
             </View>
           </View>
 
-          {/* Video tap overlay for play/pause */}
-          {item.mediaType === 'video' && (
-            <TouchableWithoutFeedback onPress={() => {
-              const currentlyPlaying = videoStates[item.id]?.isPlaying || isPlaying;
-              handleVideoPlayPauseToggle(item.id, !currentlyPlaying);
-            }}>
-              <View style={styles.videoTapOverlay} />
-            </TouchableWithoutFeedback>
-          )}
+          
         </View>
       </View>
     );
@@ -957,14 +956,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '600',
   },
-  videoTapOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-  },
+  
   descriptionModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',

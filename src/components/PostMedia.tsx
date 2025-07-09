@@ -4,7 +4,8 @@ import {
   StyleSheet, 
   View, 
   TouchableWithoutFeedback, 
-  Animated 
+  Animated,
+  Text 
 } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
@@ -91,52 +92,61 @@ export default function PostMedia({
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
 
-    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+    if (lastTapRef.current && (now - lastTapRef.current) < DOUBLE_PRESS_DELAY) {
       // This is a double tap
+      console.log('Double tap detected');
       if (onDoubleTap) {
         onDoubleTap();
       }
       setLastTap(null);
+      lastTapRef.current = null;
     } else {
       // This is a single tap - handle video play/pause
       setLastTap(now);
+      lastTapRef.current = now;
 
-      if (mediaType === 'video') {
-        setHasBeenTapped(true);
-        console.log('Video tapped, setting hasBeenTapped to true');
+      // Delay single tap action to allow for potential double tap
+      setTimeout(() => {
+        if (lastTapRef.current === now) {
+          // Single tap confirmed
+          if (mediaType === 'video') {
+            console.log('Single tap on video - toggling play/pause');
+            setHasBeenTapped(true);
 
-        if (onVideoPlayPause) {
-          onVideoPlayPause();
+            if (onVideoPlayPause) {
+              onVideoPlayPause();
+            }
+
+            // Show pause animation when pausing
+            if (isVideoPlaying) {
+              console.log('Video was playing, showing pause animation');
+              setShowPauseIndicator(true);
+              
+              playButtonScale.setValue(0);
+              playButtonOpacity.setValue(1);
+
+              Animated.parallel([
+                Animated.timing(playButtonScale, {
+                  toValue: 1.2,
+                  duration: 300,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(playButtonOpacity, {
+                  toValue: 0,
+                  duration: 300,
+                  delay: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start(() => {
+                playButtonScale.setValue(1);
+              });
+            } else {
+              // Video is paused, hide pause indicator when playing
+              setShowPauseIndicator(false);
+            }
+          }
         }
-
-        // Show pause animation when pausing
-        if (isVideoPlaying) {
-          console.log('Video was playing, showing pause animation');
-          setShowPauseIndicator(true);
-          
-          playButtonScale.setValue(0);
-          playButtonOpacity.setValue(1);
-
-          Animated.parallel([
-            Animated.timing(playButtonScale, {
-              toValue: 1.2,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(playButtonOpacity, {
-              toValue: 0,
-              duration: 300,
-              delay: 200,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            playButtonScale.setValue(1);
-          });
-        } else {
-          // Video is paused, hide pause indicator when playing
-          setShowPauseIndicator(false);
-        }
-      }
+      }, DOUBLE_PRESS_DELAY);
     }
   };
 
