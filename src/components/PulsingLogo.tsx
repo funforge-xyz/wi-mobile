@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, Text } from 'react-native';
+import { View, Animated, Image } from 'react-native';
 import { useAppSelector } from '../hooks/redux';
 import { getTheme } from '../theme';
 
@@ -42,7 +42,7 @@ const PulsingLogo: React.FC<PulsingLogoProps> = ({ size = 60 }) => {
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: colors.primary,
+        backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: colors.primary,
@@ -50,15 +50,16 @@ const PulsingLogo: React.FC<PulsingLogoProps> = ({ size = 60 }) => {
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 5,
+        padding: size * 0.1,
       }}>
-        <Text style={{
-          fontSize: size * 0.3,
-          fontWeight: 'bold',
-          color: '#FFFFFF',
-          letterSpacing: 1,
-        }}>
-          Wi
-        </Text>
+        <Image 
+          source={require('../../assets/icons/app_icon_color_on_white.svg')}
+          style={{
+            width: size * 0.8,
+            height: size * 0.8,
+          }}
+          resizeMode="contain"
+        />
       </Animated.View>
     </View>
   );

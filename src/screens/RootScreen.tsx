@@ -13,6 +13,7 @@ import {
 import { fetchUserProfile, loadUserLanguagePreference } from '../store/userSlice';
 import { getAuth } from 'firebase/auth';
 import { authService } from '../services/auth';
+import PulsingLogo from '../components/PulsingLogo';
 
 import LoginScreen from './LoginScreen';
 import OnboardingScreen from './OnboardingScreen';
@@ -159,10 +160,7 @@ export default function RootScreen() {
         alignItems: 'center',
         backgroundColor: isDarkMode ? '#121212' : '#FFFFFF'
       }}>
-        <ActivityIndicator 
-          size="large" 
-          color={isDarkMode ? '#6366F1' : '#6366F1'} 
-        />
+        <PulsingLogo size={80} />
       </View>
     );
   }

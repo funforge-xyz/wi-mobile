@@ -47,9 +47,18 @@ export default function DeleteAccountScreen() {
         try {
           // Use the same sign-out process as the profile sign-out button
           await authService.signOut();
+          // Navigate back to login screen
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' as never }],
+          });
         } catch (logoutError) {
           console.error('Logout error after account deletion:', logoutError);
-          // Even if logout fails, the account is deleted, so callback should still trigger
+          // Even if logout fails, the account is deleted, navigate to login
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' as never }],
+          });
         }
       }, 2000);
     } catch (error: any) {
