@@ -1044,6 +1044,7 @@ export default function FeedScreen({ navigation }: any) {
           setSelectedPostId(null);
         }}
         postId={selectedPostId}
+        post={selectedPostId ? posts.find(p => p.id === selectedPostId) : null}
         currentTheme={currentTheme}
         onCommentsCountChange={(newCount) => {
           if (selectedPostId) {

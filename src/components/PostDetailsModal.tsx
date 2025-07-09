@@ -44,6 +44,7 @@ interface PostDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   postId: string;
+  post?: any;
   currentTheme: any;
   onCommentsCountChange?: (newCount: number) => void;
 }
@@ -52,6 +53,7 @@ export default function PostDetailsModal({
   visible, 
   onClose, 
   postId, 
+  post: passedPost,
   currentTheme, 
   onCommentsCountChange
 }: PostDetailsModalProps) {
@@ -96,7 +98,7 @@ export default function PostDetailsModal({
     if (visible && postId) {
       loadData();
     }
-  }, [visible, postId]);
+  }, [visible, postId, passedPost]);
 
   const resetState = () => {
     setPost(null);
@@ -122,11 +124,19 @@ export default function PostDetailsModal({
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
 
-      // Load post data
-      const postData = await loadPost(postId);
-      if (postData) {
+      // Use passed post if available, otherwise load from Firebase
+      let postData;
+      if (passedPost) {
+        postData = passedPost;
         setPost(postData);
+      } else {
+        postData = await loadPost(postId);
+        if (postData) {
+          setPost(postData);
+        }
+      }
 
+      if (postData) {
         // Load comments
         const commentsData = await loadComments(postId, user?.uid);
         setComments(commentsData);
@@ -165,7 +175,7 @@ export default function PostDetailsModal({
       // Always update comment count for both top-level comments and replies
       // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
-        // Get current comments count from local post state
+        // Get current comments count from the current post state (either passed or loaded)
         const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
         const newCommentsCount = currentCommentsCount + 1;
 
@@ -342,7 +352,7 @@ export default function PostDetailsModal({
       // Update comment count based on how many comments were actually deleted
       // Update Redux state to keep both FeedScreen and UserPostsScreen in sync
       if (post) {
-        // Get current comments count from local post state
+        // Get current comments count from the current post state (either passed or loaded)
         const currentCommentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : 0;
         const newCommentsCount = Math.max(0, currentCommentsCount - deletedCommentsCount);
 
