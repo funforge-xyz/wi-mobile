@@ -50,6 +50,7 @@ import {
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
 import { useVideoPlayer, useEvent } from 'expo-video';
+import { COLORS } from '../config/constants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -962,7 +963,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   connectionBadge: {
-    backgroundColor: 'rgba(0, 122, 255, 0.8)',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
