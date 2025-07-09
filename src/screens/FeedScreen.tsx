@@ -729,7 +729,14 @@ export default function FeedScreen({ navigation }: any) {
                   size={40}
                   showOnlineStatus={false}
                 />
-                <Text style={styles.authorName}>{item.authorName}</Text>
+                <View style={styles.authorNameContainer}>
+                  <Text style={styles.authorName}>{item.authorName}</Text>
+                  {item.isFromConnection && (
+                    <View style={styles.connectionBadge}>
+                      <Text style={styles.connectionText}>Connection</Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
               {item.content && (
                 <TouchableOpacity onPress={() => toggleDescriptionExpansion(item.id)}>
@@ -943,11 +950,28 @@ const styles = StyleSheet.create({
     zIndex: 100,
     paddingVertical: 8,
   },
+  authorNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+    flex: 1,
+  },
   authorName: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 12,
+  },
+  connectionBadge: {
+    backgroundColor: 'rgba(0, 122, 255, 0.8)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  connectionText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
   },
   description: {
     color: 'white',
