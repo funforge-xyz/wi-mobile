@@ -10,9 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput,
-  Dimensions,
-  PanResponder,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
@@ -31,6 +28,7 @@ import {
 } from '../utils/singlePostUtils';
 import { updatePost as updatePostInFeed } from '../store/feedSlice';
 import { updatePostLike } from '../store/userSlice';
+import { styles, modalStyles } from '../styles/SettingsStyles';
 import SinglePostDisplay from './SinglePostDisplay';
 import CommentsList from './CommentsList';
 import CommentInput from './CommentInput';
@@ -39,8 +37,6 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import { useEvent } from 'expo';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { handlePostLike } from '../utils/feedUtils';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface PostDetailsModalProps {
   visible: boolean;
@@ -79,7 +75,6 @@ export default function PostDetailsModal({
   const [isVideoMuted, setIsVideoMuted] = useState(false);
 
   const commentInputRef = useRef<TextInput>(null);
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   // Initialize video player for video posts
   const videoPlayer = useVideoPlayer(
@@ -96,53 +91,11 @@ export default function PostDetailsModal({
 
   const { isPlaying } = useEvent(videoPlayer, 'playingChange', { isPlaying: videoPlayer.playing });
 
-  // Pan responder for swipe to close
-  const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dy) > 20 && gestureState.dy > 0;
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      if (gestureState.dy > 0) {
-        translateY.setValue(gestureState.dy);
-      }
-    },
-    onPanResponderRelease: (evt, gestureState) => {
-      if (gestureState.dy > 100) {
-        closeModal();
-      } else {
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-        }).start();
-      }
-    },
-  });
-
   useEffect(() => {
     if (visible && postId) {
-      openModal();
       loadData();
     }
   }, [visible, postId]);
-
-  const openModal = () => {
-    Animated.timing(translateY, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const closeModal = () => {
-    Animated.timing(translateY, {
-      toValue: SCREEN_HEIGHT,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      onClose();
-      resetState();
-    });
-  };
 
   const resetState = () => {
     setPost(null);
@@ -152,7 +105,11 @@ export default function PostDetailsModal({
     setCommentText('');
     setReplyToComment(null);
     setNewlyAddedReplyParentId(undefined);
-    translateY.setValue(SCREEN_HEIGHT);
+  };
+
+  const handleClose = () => {
+    onClose();
+    resetState();
   };
 
   const loadData = async () => {
@@ -450,179 +407,114 @@ export default function PostDetailsModal({
   const userLiked = likes.some(like => like.authorId === currentUser?.uid);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="none"
-      transparent={true}
-      onRequestClose={closeModal}
+    <Modal 
+      visible={visible} 
+      animationType="slide" 
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
-        <TouchableOpacity 
-          style={styles.backdrop} 
-          activeOpacity={1} 
-          onPress={closeModal}
-        />
-        <Animated.View
-          style={[
-            styles.modalContainer,
-            {
-              backgroundColor: currentTheme.background,
-              transform: [{ translateY }],
-            }
-          ]}
-          {...panResponder.panHandlers}
-        >
-          <SafeAreaView style={{ flex: 1 }}>
-            {/* Handle bar */}
-            <View style={styles.handleBar}>
-              <View style={[styles.handle, { backgroundColor: currentTheme.border }]} />
-            </View>
+      <SafeAreaView style={[styles.modalContainer, { backgroundColor: currentTheme.background }]}>
+        <View style={[styles.modalHeader, { borderBottomColor: currentTheme.border }]}>
+          <TouchableOpacity 
+            onPress={handleClose}
+            style={modalStyles.modalHeaderButton}
+          >
+            <Text style={[styles.modalCancel, { color: currentTheme.textSecondary }]}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+          <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{t('singlePost.comments')}</Text>
+          <View style={modalStyles.modalHeaderButton} />
+        </View>
 
-            {/* Header */}
-            <View style={[styles.header, { borderBottomColor: currentTheme.border }]}>
-              <TouchableOpacity onPress={closeModal} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color={currentTheme.text} />
-              </TouchableOpacity>
-              <Text style={[styles.headerTitle, { color: currentTheme.text }]}>
-                {t('singlePost.comments')}
-              </Text>
-              <View style={{ width: 24 }} />
-            </View>
-
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-              </View>
-            ) : post ? (
-              <KeyboardAvoidingView 
+        {loading ? (
+          <View style={postModalStyles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+        ) : post ? (
+          <KeyboardAvoidingView 
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+            <View style={{ flex: 1 }}>
+              <KeyboardAwareScrollView 
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+                enableOnAndroid={true}
+                extraScrollHeight={20}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
               >
-                <View style={{ flex: 1 }}>
-                  <KeyboardAwareScrollView 
-                    style={{ flex: 1 }}
-                    enableOnAndroid={true}
-                    extraScrollHeight={20}
-                    keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {/* Post Actions */}
-                    <View style={[styles.actionsOnly, { 
-                      backgroundColor: currentTheme.background,
-                      borderBottomColor: currentTheme.border 
-                    }]}>
-                      <PostActions
-                        liked={userLiked}
-                        likesCount={post.likesCount || 0}
-                        commentsCount={post.commentsCount || 0}
-                        showLikeCount={true}
-                        allowComments={post.allowComments}
-                        onLikePress={handleLikePress}
-                        onCommentPress={() => {}}
-                        currentTheme={currentTheme}
-                      />
-                    </View>
-
-                    {/* Comments Section */}
-                    <View style={[{ 
-                      paddingHorizontal: SPACING.md, 
-                      paddingTop: SPACING.md,
-                      backgroundColor: currentTheme.background 
-                    }]}>
-                      <CommentsList
-                        comments={comments}
-                        allowComments={post.allowComments}
-                        currentUserId={currentUser?.uid}
-                        postAuthorId={post.authorId}
-                        onDeleteComment={handleDeleteComment}
-                        onLikeComment={handleLikeComment}
-                        onReplyToComment={handleReplyToComment}
-                        onShowReplies={() => {}}
-                        currentTheme={currentTheme}
-                        newlyAddedReplyParentId={newlyAddedReplyParentId}
-                      />
-                    </View>
-                  </KeyboardAwareScrollView>
-
-                  {/* Comment Input */}
-                  {post.allowComments && currentUser && (
-                    <View style={[{ 
-                      backgroundColor: currentTheme.background,
-                      paddingTop: SPACING.sm 
-                    }]}>
-                      <CommentInput
-                        ref={commentInputRef}
-                        value={commentText}
-                        onChangeText={setCommentText}
-                        onSubmit={() => handleAddComment(commentText)}
-                        isSubmitting={submittingComment}
-                        currentTheme={currentTheme}
-                        replyToComment={replyToComment}
-                        onCancelReply={handleCancelReply}
-                      />
-                    </View>
-                  )}
+                {/* Post Actions */}
+                <View style={[postModalStyles.actionsOnly, { 
+                  backgroundColor: currentTheme.background,
+                  borderBottomColor: currentTheme.border 
+                }]}>
+                  <PostActions
+                    liked={userLiked}
+                    likesCount={post.likesCount || 0}
+                    commentsCount={post.commentsCount || 0}
+                    showLikeCount={true}
+                    allowComments={post.allowComments}
+                    onLikePress={handleLikePress}
+                    onCommentPress={() => {}}
+                    currentTheme={currentTheme}
+                  />
                 </View>
-              </KeyboardAvoidingView>
-            ) : (
-              <View style={styles.errorContainer}>
-                <Text style={[styles.errorText, { color: currentTheme.text }]}>
-                  {t('singlePost.postNotFound')}
-                </Text>
-              </View>
-            )}
-          </SafeAreaView>
-        </Animated.View>
-      </View>
+
+                {/* Comments Section */}
+                <View style={[{ 
+                  paddingHorizontal: SPACING.md, 
+                  paddingTop: SPACING.md,
+                  backgroundColor: currentTheme.background 
+                }]}>
+                  <CommentsList
+                    comments={comments}
+                    allowComments={post.allowComments}
+                    currentUserId={currentUser?.uid}
+                    postAuthorId={post.authorId}
+                    onDeleteComment={handleDeleteComment}
+                    onLikeComment={handleLikeComment}
+                    onReplyToComment={handleReplyToComment}
+                    onShowReplies={() => {}}
+                    currentTheme={currentTheme}
+                    newlyAddedReplyParentId={newlyAddedReplyParentId}
+                  />
+                </View>
+              </KeyboardAwareScrollView>
+
+              {/* Comment Input */}
+              {post.allowComments && currentUser && (
+                <View style={[{ 
+                  backgroundColor: currentTheme.background,
+                  paddingTop: SPACING.sm 
+                }]}>
+                  <CommentInput
+                    ref={commentInputRef}
+                    value={commentText}
+                    onChangeText={setCommentText}
+                    onSubmit={() => handleAddComment(commentText)}
+                    isSubmitting={submittingComment}
+                    currentTheme={currentTheme}
+                    replyToComment={replyToComment}
+                    onCancelReply={handleCancelReply}
+                  />
+                </View>
+              )}
+            </View>
+          </KeyboardAvoidingView>
+        ) : (
+          <View style={postModalStyles.errorContainer}>
+            <Text style={[postModalStyles.errorText, { color: currentTheme.text }]}>
+              {t('singlePost.postNotFound')}
+            </Text>
+          </View>
+        )}
+      </SafeAreaView>
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  backdrop: {
-    flex: 1,
-  },
-  modalContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: SCREEN_HEIGHT * 0.9,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  handleBar: {
-    alignItems: 'center',
-    paddingVertical: SPACING.xs,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: FONTS.bold,
-    flex: 1,
-    textAlign: 'center',
-  },
-  backButton: {
-    padding: SPACING.xs,
-  },
+const postModalStyles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
