@@ -804,12 +804,16 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const handleCommentsCountChange = (postId: string, newCount: number) => {
-    // Update local posts state
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
+    console.log('FeedScreen - handleCommentsCountChange:', postId, newCount);
+    
+    // Update local posts state with the exact count passed from modal
+    setPosts(prevPosts => {
+      const updated = prevPosts.map(post => 
         post.id === postId ? { ...post, commentsCount: newCount } : post
-      )
-    );
+      );
+      console.log('FeedScreen - Updated posts:', updated.find(p => p.id === postId)?.commentsCount);
+      return updated;
+    });
 
     // Also update Redux state to keep it in sync
     dispatch(updatePost({
@@ -1043,11 +1047,7 @@ export default function FeedScreen({ navigation }: any) {
         currentTheme={currentTheme}
         onCommentsCountChange={(newCount) => {
           if (selectedPostId) {
-            setPosts(prevPosts => prevPosts.map(post => 
-              post.id === selectedPostId 
-                ? { ...post, commentsCount: newCount }
-                : post
-            ));
+            handleCommentsCountChange(selectedPostId, newCount);
           }
         }}
       />
