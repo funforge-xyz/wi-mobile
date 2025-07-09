@@ -17,6 +17,8 @@ import PostActions from './PostActions';
 import PostDetailsModal from './PostDetailsModal';
 import SkeletonLoader from './SkeletonLoader';
 import { useTranslation } from 'react-i18next';
+import { getFirestore, collection, addDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
+import { authService } from '../services/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -140,17 +142,36 @@ export default function PostItem({
     }
   }, [post.mediaURL, post.mediaType]);
 
-  const handleLikePress = () => {
-    const newLikedState = !post.isLikedByUser;
-    console.log('PostItem - handleLikePress called:', {
-      postId: post.id,
-      currentLikedState: post.isLikedByUser,
-      newLikedState,
-      currentLikesCount: post.likesCount,
-      authorName: post.authorName,
-      content: post.content?.substring(0, 50) + '...'
-    });
-    onLike(post.id, newLikedState);
+  const handleLikePress = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) return;
+
+      const db = getFirestore();
+      const likesRef = collection(db, 'posts', post.id, 'likes');
+      
+      // Check if user already liked this post
+      const existingLikeQuery = query(likesRef, where('authorId', '==', currentUser.uid));
+      const existingLikeSnapshot = await getDocs(existingLikeQuery);
+      
+      if (!existingLikeSnapshot.empty) {
+        // User has already liked - remove the like
+        const likeDoc = existingLikeSnapshot.docs[0];
+        await deleteDoc(likeDoc.ref);
+      } else {
+        // User hasn't liked - add the like
+        await addDoc(likesRef, {
+          authorId: currentUser.uid,
+          authorName: currentUser.displayName || 'Anonymous',
+          createdAt: new Date()
+        });
+      }
+      
+      // Trigger parent component update
+      onLikePress();
+    } catch (error) {
+      console.error('Error handling like in PostItem:', error);
+    }
   };
 
   const handleVideoMuteToggle = () => {
@@ -193,7 +214,7 @@ export default function PostItem({
 
     if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
       // Double tap detected - trigger like
-      onLike(post.id, !post.isLikedByUser);
+      handleLikePress();
 
       // Animate like heart
       Animated.sequence([
