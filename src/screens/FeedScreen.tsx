@@ -49,6 +49,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
+import { Video } from 'expo-av';
 
 const { width, height } = Dimensions.get('window');
 
@@ -107,6 +108,8 @@ export default function FeedScreen({ navigation }: any) {
   const [mediaLoadingStates, setMediaLoadingStates] = useState<{[key: string]: boolean}>({});
 
   const currentTheme = getTheme(isDarkMode);
+  const videoPlayersRef = useRef<{[key: string]: any}>({});
+
 
   const viewabilityConfig: ViewabilityConfig = {
     viewAreaCoveragePercentThreshold: 80,
@@ -580,13 +583,17 @@ export default function FeedScreen({ navigation }: any) {
   const handleVideoFocus = (postId: string) => {
     console.log('Video in focus:', postId);
     setFocusedVideoId(postId);
-
     // Auto-play the focused video if it's not already playing
     const post = posts.find(p => p.id === postId);
     if (post?.mediaType === 'video') {
       const currentState = videoStates[postId];
       if (!currentState?.isPlaying) {
-        handleVideoPlayPauseToggle(postId, true);
+        // Start the video player but don't update isPlaying state yet
+        // The state will be updated when the video actually starts playing
+        const videoPlayer = videoPlayersRef.current[postId];
+        if (videoPlayer) {
+          videoPlayer.play();
+        }
       }
     }
   };
@@ -611,6 +618,71 @@ export default function FeedScreen({ navigation }: any) {
       [postId]: false
     }));
   };
+
+  // Create video players for all video posts
+  useEffect(() => {
+    posts.forEach(post => {
+      if (post.mediaType === 'video' && post.mediaURL && !videoPlayersRef.current[post.id]) {
+        const player = new Video(post.mediaURL);
+        player.loop = true;
+        player.muted = false;
+
+        // Add status listener to track actual play state
+        player.addListener('statusChange', (status) => {
+          console.log(`Video ${post.id} status changed to:`, status);
+          if (status === 'playing') {
+            // Video actually started playing, update state
+            setVideoStates(prev => ({
+              ...prev,
+              [post.id]: {
+                ...prev[post.id],
+                isPlaying: true,
+                isMuted: prev[post.id]?.isMuted || false
+              }
+            }));
+            setPlayingVideoId(post.id);
+            setCurrentlyPlayingVideo(post.id);
+
+            // Pause other videos
+            Object.keys(videoStates).forEach(id => {
+              if (id !== post.id && videoStates[id]?.isPlaying) {
+                const otherPlayer = videoPlayersRef.current[id];
+                if (otherPlayer) {
+                  otherPlayer.pause();
+                }
+              }
+            });
+          } else if (status === 'paused' || status === 'idle') {
+            // Video actually paused
+            setVideoStates(prev => ({
+              ...prev,
+              [post.id]: {
+                ...prev[post.id],
+                isPlaying: false
+              }
+            }));
+            if (playingVideoId === post.id) {
+              setPlayingVideoId(null);
+              setCurrentlyPlayingVideo(null);
+            }
+          }
+        });
+
+        videoPlayersRef.current[post.id] = player;
+      }
+    });
+
+    // Clean up players for posts that no longer exist
+    Object.keys(videoPlayersRef.current).forEach(postId => {
+      if (!posts.find(post => post.id === postId)) {
+        const player = videoPlayersRef.current[postId];
+        if (player) {
+          player.removeAllListeners();
+        }
+        delete videoPlayersRef.current[postId];
+      }
+    });
+  }, [posts]);
 
   const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
     const isPlaying = playingVideoId === item.id;

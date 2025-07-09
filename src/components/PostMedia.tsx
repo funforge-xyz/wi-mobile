@@ -68,7 +68,7 @@ export default function PostMedia({
   const playButtonOpacity = useRef(new Animated.Value(0)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  console.log('PostMedia - externalIsLoading:', externalIsLoading, 'mediaType:', mediaType);
+  
 
   // Reset hasBeenTapped when video starts playing (autoplay)
   useEffect(() => {
