@@ -47,7 +47,6 @@ interface PostDetailsModalProps {
   postId: string;
   currentTheme: any;
   onCommentsCountChange?: (newCount: number) => void;
-  onLikesCountChange?: (newCount: number, isLikedByUser: boolean) => void;
 }
 
 export default function PostDetailsModal({ 
@@ -55,8 +54,7 @@ export default function PostDetailsModal({
   onClose, 
   postId, 
   currentTheme, 
-  onCommentsCountChange,
-  onLikesCountChange 
+  onCommentsCountChange
 }: PostDetailsModalProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -64,7 +62,6 @@ export default function PostDetailsModal({
 
   const [post, setPost] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
-  const [likes, setLikes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -105,7 +102,6 @@ export default function PostDetailsModal({
   const resetState = () => {
     setPost(null);
     setComments([]);
-    setLikes([]);
     setLoading(true);
     setCommentText('');
     setReplyToComment(null);
@@ -132,14 +128,9 @@ export default function PostDetailsModal({
       if (postData) {
         setPost(postData);
 
-        // Load comments and likes
-        const [commentsData, likesData] = await Promise.all([
-          loadComments(postId, user?.uid),
-          loadLikes(postId)
-        ]);
-
+        // Load comments
+        const commentsData = await loadComments(postId, user?.uid);
         setComments(commentsData);
-        setLikes(likesData);
       }
     } catch (error) {
       console.error('Error loading post data:', error);
@@ -148,35 +139,7 @@ export default function PostDetailsModal({
     }
   };
 
-  const handleLikePress = async () => {
-    try {
-      const wasLiked = likes.some(like => like.authorId === currentUser?.uid);
-      
-      await handleLike(postId, likes, currentUser);
-      
-      // Reload likes to get updated state
-      const updatedLikes = await loadLikes(postId);
-      setLikes(updatedLikes);
-      
-      // Notify parent component of like count change
-      if (onLikesCountChange && post) {
-        const newLikedState = !wasLiked;
-        const newLikesCount = updatedLikes.length;
-        
-        // Update local post state
-        setPost(prevPost => prevPost ? {
-          ...prevPost,
-          likesCount: newLikesCount,
-          isLikedByUser: newLikedState
-        } : null);
-        
-        // Notify parent component
-        onLikesCountChange(newLikesCount, newLikedState);
-      }
-    } catch (error) {
-      Alert.alert(t('common.error'), t('singlePost.failedToUpdateLike'));
-    }
-  };
+  
 
   const handleAddComment = async (commentText: string) => {
     if (!commentText || !commentText.trim() || !currentUser) return;
@@ -432,7 +395,7 @@ export default function PostDetailsModal({
     videoPlayer.muted = newMutedState;
   };
 
-  const userLiked = likes.some(like => like.authorId === currentUser?.uid);
+  
 
   return (
     <Modal 
@@ -476,22 +439,6 @@ export default function PostDetailsModal({
                 resetScrollToCoords={{ x: 0, y: 0 }}
                 scrollEventThrottle={16}
               >
-                {/* Post Actions */}
-                <View style={[postModalStyles.actionsOnly, { 
-                  backgroundColor: currentTheme.background
-                }]}>
-                  <PostActions
-                    liked={userLiked}
-                    likesCount={likes.length}
-                    commentsCount={comments.length}
-                    showLikeCount={post.showLikeCount || (post.authorId === currentUser?.uid)}
-                    allowComments={post.allowComments}
-                    onLikePress={handleLikePress}
-                    onCommentPress={() => {}}
-                    currentTheme={currentTheme}
-                  />
-                </View>
-
                 {/* Comments Section */}
                 <View style={[{ 
                   paddingHorizontal: SPACING.md, 
@@ -572,9 +519,5 @@ const postModalStyles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.regular,
     textAlign: 'center',
-  },
-  actionsOnly: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
   },
 });

@@ -341,13 +341,13 @@ export default function FeedScreen({ navigation }: any) {
               // Start location tracking and wait for initial location update
               console.log('FeedScreen: Starting location tracking...');
               const locationTrackingStarted = await locationService.startLocationTracking();
-              
+
               if (locationTrackingStarted) {
                 console.log('FeedScreen: Location tracking started successfully');
-                
+
                 // Wait a moment for the initial location update to complete
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                
+
                 // Get the updated location after tracking started
                 const updatedLocation = await locationService.getCurrentLocation();
                 if (updatedLocation) {
@@ -462,10 +462,10 @@ export default function FeedScreen({ navigation }: any) {
       console.log('Current user location:', currentUserLocation);
       console.log('User radius:', userRadius);
       console.log('Connection IDs:', Array.from(connectionIds));
-      
+
       // Debug: Log which users have posts vs which are in nearby
       console.log('Authors with posts:', postsWithConnectionInfo.map(p => ({ id: p.authorId, name: p.authorName })));
-      
+
       // Log posts that might be from users outside radius
       postsWithConnectionInfo.forEach(post => {
         if (currentUserLocation && post.authorLocation) {
@@ -594,7 +594,7 @@ export default function FeedScreen({ navigation }: any) {
     setHasMorePosts(true);
     setError(null);
     setRetryCount(0);
-    
+
     // Reset video states
     setPlayingVideoId(null);
     setCurrentlyPlayingVideo(null);
@@ -602,10 +602,10 @@ export default function FeedScreen({ navigation }: any) {
     setFocusedVideoId(null);
     setExpandedDescriptions({});
     setMediaLoadingStates({});
-    
+
     // Reload user connections in case they changed
     const freshConnectionIds = await loadUserConnections();
-    
+
     // Load posts with refresh flag and fresh connection data
     await loadPosts(true, freshConnectionIds);
   };
@@ -818,15 +818,7 @@ export default function FeedScreen({ navigation }: any) {
     }));
   };
 
-  const handleLikesCountChange = (postId: string, newCount: number, isLikedByUser: boolean) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
-          ? { ...post, likesCount: newCount, isLikedByUser }
-          : post
-      )
-    );
-  };
+  
 
   // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
   const videoPlayerCreated = useRef<Set<string>>(new Set());
@@ -884,7 +876,6 @@ export default function FeedScreen({ navigation }: any) {
               }}
               postId={item.id}
               onCommentsCountChange={handleCommentsCountChange}
-              onLikesCountChange={handleLikesCountChange}
             />
           )}
 
@@ -1055,15 +1046,6 @@ export default function FeedScreen({ navigation }: any) {
             setPosts(prevPosts => prevPosts.map(post => 
               post.id === selectedPostId 
                 ? { ...post, commentsCount: newCount }
-                : post
-            ));
-          }
-        }}
-        onLikesCountChange={(newCount, isLikedByUser) => {
-          if (selectedPostId) {
-            setPosts(prevPosts => prevPosts.map(post => 
-              post.id === selectedPostId 
-                ? { ...post, likesCount: newCount, isLikedByUser: isLikedByUser }
                 : post
             ));
           }
