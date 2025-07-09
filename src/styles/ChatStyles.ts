@@ -50,7 +50,7 @@ export const createChatStyles = (isDarkMode: boolean) => {
       maxWidth: '80%',
     },
     ownMessageText: {
-      color: COLORS.white,
+      color: '#ffffff',
       fontSize: 16,
       fontFamily: FONTS.regular,
     },
