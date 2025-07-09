@@ -1,67 +1,36 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
+import { useAppSelector } from '../hooks/redux';
+import { getTheme } from '../theme';
+import PulsingLogo from './PulsingLogo';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { store } from '../store';
 import FeedSkeleton from './FeedSkeleton';
 
 export default function AppLoadingSkeleton() {
+  const { theme } = useAppSelector(state => state.account);
+  const colors = getTheme(theme === 'dark');
+
   return (
     <Provider store={store}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <View style={{
-          height: 60,
-          backgroundColor: '#FFFFFF',
-          borderBottomWidth: 1,
-          borderBottomColor: '#E5E5E5',
+          flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          paddingTop: 10,
+          backgroundColor: colors.background,
         }}>
-          <View style={{
-            width: 100,
-            height: 20,
-            backgroundColor: '#E5E5E5',
-            borderRadius: 10,
-          }} />
-        </View>
-
-        {/* Main content skeleton */}
-        <View style={{ flex: 1 }}>
-          <FeedSkeleton />
-        </View>
-
-        {/* Bottom tab skeleton */}
-        <View style={{
-          height: 80,
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E5E5',
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          paddingBottom: 20,
-        }}>
-          {['Feed', 'Nearby', 'Chats', 'Profile'].map((label, index) => (
-            <View key={index} style={{
-              alignItems: 'center',
-              opacity: 0.4,
-            }}>
-              <View style={{
-                width: 24,
-                height: 24,
-                backgroundColor: '#E5E5E5',
-                borderRadius: 12,
-                marginBottom: 4,
-              }} />
-              <View style={{
-                width: label.length * 6,
-                height: 12,
-                backgroundColor: '#E5E5E5',
-                borderRadius: 6,
-              }} />
-            </View>
-          ))}
+          <PulsingLogo size={80} />
+          <Text style={{
+            fontSize: 18,
+            fontWeight: '600',
+            color: colors.text,
+            textAlign: 'center',
+            marginTop: 24,
+          }}>
+            Loading...
+          </Text>
         </View>
       </SafeAreaView>
     </Provider>

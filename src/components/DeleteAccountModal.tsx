@@ -50,10 +50,11 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       setTimeout(async () => {
         setShowSuccess(false);
         try {
-          await authService.logout(dispatch);
+          // Use the same sign-out process as the profile sign-out button
+          await authService.signOut();
         } catch (logoutError) {
           console.error('Logout error after account deletion:', logoutError);
-          // Even if logout fails, the account is deleted, so we should still close
+          // Even if logout fails, the account is deleted, so callback should still trigger
         }
         onClose();
       }, 2000);
