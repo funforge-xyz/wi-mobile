@@ -27,6 +27,7 @@ import PostMedia from '../components/PostMedia';
 import EmptyFeedState from '../components/EmptyFeedState';
 import PostDetailsModal from '../components/PostDetailsModal';
 import UserAvatar from '../components/UserAvatar';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { useTranslation } from 'react-i18next';
 import { 
   updateUserLastSeen, 
@@ -103,6 +104,7 @@ export default function FeedScreen({ navigation }: any) {
   const [currentlyPlayingVideo, setCurrentlyPlayingVideo] = useState<string | null>(null);
   const [videoStates, setVideoStates] = useState<{[key: string]: {isPlaying: boolean, isMuted: boolean}}>({});
   const [focusedVideoId, setFocusedVideoId] = useState<string | null>(null);
+  const [mediaLoadingStates, setMediaLoadingStates] = useState<{[key: string]: boolean}>({});
 
   const currentTheme = getTheme(isDarkMode);
 
@@ -357,8 +359,24 @@ export default function FeedScreen({ navigation }: any) {
 
       if (isRefresh) {
         setPosts(connectionPosts);
+        // Initialize loading states for all posts with images
+        const newLoadingStates: {[key: string]: boolean} = {};
+        connectionPosts.forEach(post => {
+          if (post.mediaType === 'picture' && post.mediaURL) {
+            newLoadingStates[post.id] = true;
+          }
+        });
+        setMediaLoadingStates(newLoadingStates);
       } else {
         setPosts(connectionPosts);
+        // Initialize loading states for all posts with images
+        const newLoadingStates: {[key: string]: boolean} = {};
+        connectionPosts.forEach(post => {
+          if (post.mediaType === 'picture' && post.mediaURL) {
+            newLoadingStates[post.id] = true;
+          }
+        });
+        setMediaLoadingStates(newLoadingStates);
       }
 
       if (connectionPosts.length > 0) {
@@ -410,6 +428,18 @@ export default function FeedScreen({ navigation }: any) {
           console.log('Total posts after loading more:', newPosts.length);
           return newPosts;
         });
+        
+        // Initialize loading states for new posts with images
+        setMediaLoadingStates(prev => {
+          const newLoadingStates = { ...prev };
+          morePosts.forEach(post => {
+            if (post.mediaType === 'picture' && post.mediaURL) {
+              newLoadingStates[post.id] = true;
+            }
+          });
+          return newLoadingStates;
+        });
+        
         setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
         setHasMorePosts(morePosts.length === 10);
       } else {
@@ -575,13 +605,35 @@ export default function FeedScreen({ navigation }: any) {
     setShowPostDetailsModal(true);
   };
 
+  const handleMediaLoad = (postId: string) => {
+    setMediaLoadingStates(prev => ({
+      ...prev,
+      [postId]: false
+    }));
+  };
+
   const renderPost = ({ item, index }: { item: ConnectionPost; index: number }) => {
     const isPlaying = playingVideoId === item.id;
+    const isMediaLoading = mediaLoadingStates[item.id] || false;
 
     return (
       <View style={styles.postContainer}>
         {/* Full screen media */}
         <View style={styles.mediaContainer}>
+          {/* Skeleton loading overlay for images */}
+          {item.mediaType === 'picture' && isMediaLoading && (
+            <TouchableWithoutFeedback onPress={() => handleLike(item.id, !item.isLikedByUser)}>
+              <View style={styles.mediaLoadingSkeleton}>
+                <SkeletonLoader
+                  width="100%"
+                  height="100%"
+                  borderRadius={0}
+                  forceDarkTheme={true}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          )}
+
           {item.mediaURL && (
             <PostMedia
               mediaURL={item.mediaURL}
@@ -589,7 +641,7 @@ export default function FeedScreen({ navigation }: any) {
               isFrontCamera={item.isFrontCamera}
               style={styles.media}
               showBorderRadius={false}
-              onLoad={() => {}} // Handle load completion
+              onLoad={() => handleMediaLoad(item.id)}
               onDoubleTap={() => handleLike(item.id, !item.isLikedByUser)}
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
@@ -882,5 +934,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     color: 'white',
+  },
+  mediaLoadingSkeleton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    backgroundColor: 'transparent',
   },
 });
