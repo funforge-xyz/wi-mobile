@@ -6,7 +6,7 @@ import {
   TouchableWithoutFeedback, 
   Animated 
 } from 'react-native';
-import { VideoView } from 'expo-video';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import SkeletonLoader from './SkeletonLoader';
 
