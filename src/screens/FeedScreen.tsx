@@ -117,7 +117,7 @@ export default function FeedScreen({ navigation }: any) {
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
       const { collection, query, where, getDocs } = await import('firebase/firestore');
-      
+
       const auth = getAuth();
       const firestore = getFirestore();
       const currentUser = auth.currentUser;
@@ -128,10 +128,10 @@ export default function FeedScreen({ navigation }: any) {
         collection(firestore, 'connections'),
         where('participants', 'array-contains', currentUser.uid)
       );
-      
+
       const connectionsSnapshot = await getDocs(connectionsQuery);
       const connectedUserIds = new Set<string>();
-      
+
       connectionsSnapshot.docs.forEach(doc => {
         const participants = doc.data().participants;
         participants.forEach((id: string) => {
@@ -140,7 +140,7 @@ export default function FeedScreen({ navigation }: any) {
           }
         });
       });
-      
+
       setConnectionIds(connectedUserIds);
     } catch (error) {
       console.error('Error loading user connections:', error);
@@ -259,7 +259,7 @@ export default function FeedScreen({ navigation }: any) {
 
     const initializeAndSetupAuth = async () => {
       try {
-        const { initializeFirebase, getAuth } = await import('../services/firebase');
+        const { initializeFirebase, getAuth } = await import('../services/firebase';
 
         console.log('FeedScreen: Initializing Firebase...');
         await initializeFirebase();
@@ -612,7 +612,7 @@ export default function FeedScreen({ navigation }: any) {
     if (shouldPlay) {
       setPlayingVideoId(postId);
       setCurrentlyPlayingVideo(postId);
-      
+
       // Pause all other videos
       Object.keys(videoStates).forEach(id => {
         if (id !== postId && videoStates[id]?.isPlaying) {
@@ -700,7 +700,7 @@ export default function FeedScreen({ navigation }: any) {
 
   // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
   const videoPlayerCreated = useRef<Set<string>>(new Set());
-  
+
   useEffect(() => {
     // Clean up players for posts that no longer exist
     Object.keys(videoPlayersRef.current).forEach(postId => {
@@ -767,7 +767,7 @@ export default function FeedScreen({ navigation }: any) {
                 onPress={() => {
                   const [firstName, ...lastNameParts] = item.authorName.split(' ');
                   const lastName = lastNameParts.join(' ');
-                  
+
                   navigation.navigate('UserProfile', {
                     userId: item.authorId,
                     firstName: firstName || '',
@@ -832,7 +832,7 @@ export default function FeedScreen({ navigation }: any) {
             </View>
           </View>
 
-          
+
         </View>
       </View>
     );
@@ -864,7 +864,7 @@ export default function FeedScreen({ navigation }: any) {
           <ActivityIndicator size="small" color="white" />
         </View>
       )}
-      
+
       {posts.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <EmptyFeedState 
@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '600',
   },
-  
+
   descriptionModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
