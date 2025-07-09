@@ -587,6 +587,26 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const onRefresh = async () => {
+    // Reset all pagination and state variables like initial load
+    setLastDoc(null);
+    setLastPostTimestamp(null);
+    setHasMore(true);
+    setHasMorePosts(true);
+    setError(null);
+    setRetryCount(0);
+    
+    // Reset video states
+    setPlayingVideoId(null);
+    setCurrentlyPlayingVideo(null);
+    setVideoStates({});
+    setFocusedVideoId(null);
+    setExpandedDescriptions({});
+    setMediaLoadingStates({});
+    
+    // Reload user connections in case they changed
+    await loadUserConnections();
+    
+    // Load posts with refresh flag
     await loadPosts(true);
   };
 
