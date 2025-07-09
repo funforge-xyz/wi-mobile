@@ -24,8 +24,10 @@ export default function DeleteAccountScreen() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDeletePress = () => {
+    setError(null); // Clear any previous errors
     setShowConfirmModal(true);
   };
 
@@ -48,17 +50,9 @@ export default function DeleteAccountScreen() {
       console.error('Delete account error:', error);
       
       if (error.message.includes('recent login')) {
-        Alert.alert(
-          t('settings.deleteAccount'),
-          'For security reasons, please sign out and sign back in before deleting your account.',
-          [{ text: t('common.ok') }]
-        );
+        setError('For security reasons, please sign out and sign back in before deleting your account.');
       } else {
-        Alert.alert(
-          t('common.error'),
-          'Failed to delete account. Please try again.',
-          [{ text: t('common.ok') }]
-        );
+        setError('Failed to delete account. Please try again.');
       }
     }
   };
@@ -187,6 +181,28 @@ export default function DeleteAccountScreen() {
         }}>
           This action cannot be undone.
         </Text>
+
+        {error && (
+          <View style={{
+            backgroundColor: '#FFE5E5',
+            borderWidth: 1,
+            borderColor: '#FF4444',
+            borderRadius: 8,
+            padding: 16,
+            marginBottom: 20,
+            alignSelf: 'stretch',
+            marginHorizontal: 20,
+          }}>
+            <Text style={{
+              fontSize: 14,
+              color: '#FF4444',
+              textAlign: 'center',
+              fontWeight: '500',
+            }}>
+              {error}
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity
           style={{
@@ -329,7 +345,8 @@ export default function DeleteAccountScreen() {
             borderRadius: 12,
             padding: 32,
             alignItems: 'center',
-            minWidth: 200,
+            width: '75%',
+            maxWidth: 300,
           }}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={{
@@ -370,7 +387,8 @@ export default function DeleteAccountScreen() {
             borderRadius: 12,
             padding: 32,
             alignItems: 'center',
-            minWidth: 200,
+            width: '75%',
+            maxWidth: 300,
           }}>
             <View style={{
               width: 60,

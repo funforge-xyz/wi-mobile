@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -29,6 +28,8 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 
   const handleDeletePress = () => {
     setShowConfirmModal(true);
@@ -37,12 +38,13 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   const handleConfirmDelete = async () => {
     setShowConfirmModal(false);
     setIsLoading(true);
+        setErrorMessage(null);
 
     try {
       await authService.deleteProfile();
       setIsLoading(false);
       setShowSuccess(true);
-      
+
       // Close the success modal after 2 seconds
       setTimeout(() => {
         setShowSuccess(false);
@@ -51,20 +53,11 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
     } catch (error: any) {
       setIsLoading(false);
       console.error('Delete account error:', error);
-      
-      if (error.message.includes('recent login')) {
-        Alert.alert(
-          t('settings.deleteAccount'),
-          'For security reasons, please sign out and sign back in before deleting your account.',
-          [{ text: t('common.ok') }]
-        );
-      } else {
-        Alert.alert(
-          t('common.error'),
-          'Failed to delete account. Please try again.',
-          [{ text: t('common.ok') }]
-        );
-      }
+            if (error.message.includes('recent login')) {
+                setErrorMessage(t('settings.deleteAccount') + ': ' + t('error.recentLogin'));
+            } else {
+                setErrorMessage(t('common.error') + ': ' + t('error.deleteAccount'));
+            }
     }
   };
 
@@ -303,7 +296,8 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             borderRadius: 12,
             padding: 32,
             alignItems: 'center',
-            minWidth: 200,
+            width: '75%',
+            maxWidth: 300,
           }}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={{
@@ -315,6 +309,16 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             }}>
               Deleting Account...
             </Text>
+                      {errorMessage && (
+                        <Text style={{
+                            fontSize: 14,
+                            color: 'red',
+                            marginTop: 8,
+                            textAlign: 'center',
+                        }}>
+                            {errorMessage}
+                        </Text>
+                    )}
             <Text style={{
               fontSize: 14,
               color: colors.textSecondary,
