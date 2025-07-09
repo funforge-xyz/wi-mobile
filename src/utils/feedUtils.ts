@@ -536,10 +536,15 @@ export const loadFeedPosts = async (
         firebaseCommentsCount: postData.commentsCount || 0
       });
 
+      const lastSeen = userData?.lastSeen?.toDate?.();
+      const isOnline = lastSeen && (Date.now() - lastSeen.getTime()) < 2 * 60 * 1000;
+      
       return {
         id: postDoc.id,
         authorId: postData.authorId,
-        authorName: postData.authorName,
+        authorName: userData?.firstName && userData?.lastName ? 
+          `${userData.firstName} ${userData.lastName}` : 
+          postData.authorName || 'Anonymous User',
         authorPhotoURL: userData?.photoURL || '',
         content: postData.content || '',
         mediaURL: postData.mediaURL,
@@ -548,9 +553,11 @@ export const loadFeedPosts = async (
         createdAt: postData.createdAt?.toDate?.() || new Date(),
         likesCount: postData.likesCount || 0,
         commentsCount: postData.commentsCount || 0,
+        showLikeCount: postData.showLikeCount ?? true,
+        allowComments: postData.allowComments ?? true,
         isLikedByUser: isLikedByUser,
-        isAuthorOnline: userData?.lastSeen?.toDate && (Date.now() - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000),
-        isFromConnection: false, // You may want to implement proper connection checking logic here
+        isAuthorOnline: isOnline,
+        isFromConnection: false, // This will be updated in FeedScreen
       };
     })
   );

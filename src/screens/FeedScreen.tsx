@@ -33,7 +33,7 @@ import {
   updateUserLastSeen, 
   loadUserSettings, 
   handleLikePost,
-  loadConnectionPosts 
+  loadFeedPosts 
 } from '../utils/feedUtils';
 import { getTheme } from '../theme';
 import { 
@@ -108,10 +108,44 @@ export default function FeedScreen({ navigation }: any) {
   const [focusedVideoId, setFocusedVideoId] = useState<string | null>(null);
   const [mediaLoadingStates, setMediaLoadingStates] = useState<{[key: string]: boolean}>({});
   const [expandedDescriptions, setExpandedDescriptions] = useState<{[key: string]: boolean}>({});
+  const [connectionIds, setConnectionIds] = useState<Set<string>>(new Set());
 
   const currentTheme = getTheme(isDarkMode);
   const videoPlayersRef = useRef<{[key: string]: any}>({});
 
+  const loadUserConnections = async () => {
+    try {
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      const connectionsQuery = query(
+        collection(firestore, 'connections'),
+        where('participants', 'array-contains', currentUser.uid)
+      );
+      
+      const connectionsSnapshot = await getDocs(connectionsQuery);
+      const connectedUserIds = new Set<string>();
+      
+      connectionsSnapshot.docs.forEach(doc => {
+        const participants = doc.data().participants;
+        participants.forEach((id: string) => {
+          if (id !== currentUser.uid) {
+            connectedUserIds.add(id);
+          }
+        });
+      });
+      
+      setConnectionIds(connectedUserIds);
+    } catch (error) {
+      console.error('Error loading user connections:', error);
+    }
+  };
 
   const viewabilityConfig: ViewabilityConfig = {
     viewAreaCoveragePercentThreshold: 80,
@@ -251,6 +285,9 @@ export default function FeedScreen({ navigation }: any) {
                 setUserRadius(radius);
               }
 
+              // Load user connections
+              await loadUserConnections();
+
               let location = null;
               try {
                 console.log('FeedScreen: Getting user location...');
@@ -351,32 +388,38 @@ export default function FeedScreen({ navigation }: any) {
         }
       }, 15000);
 
-      const connectionPosts = await loadConnectionPosts(
-        effectiveRadius, 
-        effectiveLocation, 
-        null,
-        10
-      );
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
 
-      console.log('FeedScreen - RAW FETCHED POSTS FROM loadConnectionPosts:');
+      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
+      const feedPosts = feedResult.posts;
+
+      // Add connection information to posts
+      const postsWithConnectionInfo = feedPosts.map(post => ({
+        ...post,
+        isFromConnection: connectionIds.has(post.authorId)
+      }));
+
+      console.log('FeedScreen - RAW FETCHED POSTS FROM loadFeedPosts:');
       console.log('='.repeat(80));
-      console.log('Total posts fetched:', connectionPosts.length);
+      console.log('Total posts fetched:', postsWithConnectionInfo.length);
 
       if (isRefresh) {
-        setPosts(connectionPosts);
+        setPosts(postsWithConnectionInfo);
         // Initialize loading states for all posts with images
         const newLoadingStates: {[key: string]: boolean} = {};
-        connectionPosts.forEach(post => {
+        postsWithConnectionInfo.forEach(post => {
           if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
             newLoadingStates[post.id] = true;
           }
         });
         setMediaLoadingStates(newLoadingStates);
       } else {
-        setPosts(connectionPosts);
+        setPosts(postsWithConnectionInfo);
         // Initialize loading states for all posts with images
         const newLoadingStates: {[key: string]: boolean} = {};
-        connectionPosts.forEach(post => {
+        postsWithConnectionInfo.forEach(post => {
           if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
             newLoadingStates[post.id] = true;
           }
@@ -384,11 +427,11 @@ export default function FeedScreen({ navigation }: any) {
         setMediaLoadingStates(newLoadingStates);
       }
 
-      if (connectionPosts.length > 0) {
-        setLastPostTimestamp(connectionPosts[connectionPosts.length - 1].createdAt);
+      if (postsWithConnectionInfo.length > 0) {
+        setLastPostTimestamp(postsWithConnectionInfo[postsWithConnectionInfo.length - 1].createdAt);
       }
 
-      setHasMorePosts(connectionPosts.length === 10);
+      setHasMorePosts(feedResult.hasMore);
 
       if (timeout) clearTimeout(timeout);
     } catch (error) {
@@ -418,18 +461,28 @@ export default function FeedScreen({ navigation }: any) {
       const effectiveRadius = currentUserLocation ? userRadius : 0;
       const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
-      const morePosts = await loadConnectionPosts(
-        effectiveRadius,
-        effectiveLocation,
-        lastPostTimestamp,
-        10
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      // For pagination, we'll need to implement a different approach since loadFeedPosts uses DocumentSnapshot
+      // For now, let's load more posts without pagination
+      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
+      const morePosts = feedResult.posts.filter(post => 
+        !posts.some(existingPost => existingPost.id === post.id)
       );
 
-      console.log('Loaded more posts:', morePosts.length);
+      // Add connection information to new posts
+      const morePostsWithConnectionInfo = morePosts.map(post => ({
+        ...post,
+        isFromConnection: connectionIds.has(post.authorId)
+      }));
 
-      if (morePosts.length > 0) {
+      console.log('Loaded more posts:', morePostsWithConnectionInfo.length);
+
+      if (morePostsWithConnectionInfo.length > 0) {
         setPosts(prevPosts => {
-          const newPosts = [...prevPosts, ...morePosts];
+          const newPosts = [...prevPosts, ...morePostsWithConnectionInfo];
           console.log('Total posts after loading more:', newPosts.length);
           return newPosts;
         });
@@ -437,7 +490,7 @@ export default function FeedScreen({ navigation }: any) {
         // Initialize loading states for new posts with images
         setMediaLoadingStates(prev => {
           const newLoadingStates = { ...prev };
-          morePosts.forEach(post => {
+          morePostsWithConnectionInfo.forEach(post => {
             if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
               newLoadingStates[post.id] = true;
             }
@@ -445,8 +498,8 @@ export default function FeedScreen({ navigation }: any) {
           return newLoadingStates;
         });
 
-        setLastPostTimestamp(morePosts[morePosts.length - 1].createdAt);
-        setHasMorePosts(morePosts.length === 10);
+        setLastPostTimestamp(morePostsWithConnectionInfo[morePostsWithConnectionInfo.length - 1].createdAt);
+        setHasMorePosts(feedResult.hasMore);
       } else {
         console.log('No more posts to load');
         setHasMorePosts(false);
