@@ -49,7 +49,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
-import { Video } from 'expo-video';
+import { useVideoPlayer, useEvent } from 'expo-video';
 
 const { width, height } = Dimensions.get('window');
 
@@ -609,49 +609,9 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     posts.forEach(post => {
       if (post.mediaType === 'video' && post.mediaURL && !videoPlayersRef.current[post.id]) {
-        const player = new Video(post.mediaURL);
-        player.loop = true;
-        player.muted = false;
-
-        // Add status listener to track actual play state
-        player.addListener('statusChange', (status) => {
-          console.log(`Video ${post.id} status changed to:`, status);
-          if (status === 'playing') {
-            // Video actually started playing, update state
-            setVideoStates(prev => ({
-              ...prev,
-              [post.id]: {
-                ...prev[post.id],
-                isPlaying: true,
-                isMuted: prev[post.id]?.isMuted || false
-              }
-            }));
-            setPlayingVideoId(post.id);
-            setCurrentlyPlayingVideo(post.id);
-
-            // Pause other videos
-            Object.keys(videoStates).forEach(id => {
-              if (id !== post.id && videoStates[id]?.isPlaying) {
-                const otherPlayer = videoPlayersRef.current[id];
-                if (otherPlayer) {
-                  otherPlayer.pause();
-                }
-              }
-            });
-          } else if (status === 'paused' || status === 'idle') {
-            // Video actually paused
-            setVideoStates(prev => ({
-              ...prev,
-              [post.id]: {
-                ...prev[post.id],
-                isPlaying: false
-              }
-            }));
-            if (playingVideoId === post.id) {
-              setPlayingVideoId(null);
-              setCurrentlyPlayingVideo(null);
-            }
-          }
+        const player = useVideoPlayer(post.mediaURL, player => {
+          player.loop = true;
+          player.muted = false;
         });
 
         videoPlayersRef.current[post.id] = player;
@@ -661,10 +621,6 @@ export default function FeedScreen({ navigation }: any) {
     // Clean up players for posts that no longer exist
     Object.keys(videoPlayersRef.current).forEach(postId => {
       if (!posts.find(post => post.id === postId)) {
-        const player = videoPlayersRef.current[postId];
-        if (player) {
-          player.removeAllListeners();
-        }
         delete videoPlayersRef.current[postId];
       }
     });
