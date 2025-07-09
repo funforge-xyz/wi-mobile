@@ -13,7 +13,7 @@ interface NearbyUserItemProps {
 
 // Assuming COLORS is defined somewhere, e.g., in styles/colors.ts
 const COLORS = {
-  primary: 'blue', // Example color
+  primary: '#FA4169', // Updated color
   success: 'green', // Example color
 };
 

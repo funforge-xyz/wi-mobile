@@ -1,7 +1,7 @@
 export const APP_NAME = 'Wi Chat';
 
 export const COLORS = {
-  primary: '#007AFF',
+  primary: '#FA4169',
   secondary: '#5856D6',
   background: '#FFFFFF',
   surface: '#F8F9FA',

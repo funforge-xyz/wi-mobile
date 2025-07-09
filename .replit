@@ -30,7 +30,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx expo run:android --dev-client"
+args = "npx expo start --dev-client"
 
 [[ports]]
 localPort = 8081
