@@ -60,7 +60,7 @@ export default function LoginButtons({
             onPress={onGoogleSignIn}
             disabled={isLoading}
           >
-            <Ionicons name="logo-google" size={20} color="#4285F4" />
+            <Ionicons name="logo-google" size={20} color={COLORS.primary} />
             <Text style={styles.socialButtonText}>
               {t('auth.signInWithGoogle')}
             </Text>

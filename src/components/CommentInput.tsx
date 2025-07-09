@@ -36,13 +36,13 @@ const CommentInput = forwardRef<TextInput, CommentInputProps>(({
     <View style={[styles.container, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
       {replyToComment && (
         <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background }]}>
-          <Ionicons name="arrow-undo" size={16} color="#3498db" />
+          <Ionicons name="arrow-undo" size={16} color={COLORS.primary} />
           <Text style={[styles.replyText, { color: currentTheme.text }]}>
-            {t('singlePost.replyingTo')} <Text style={{ color: '#3498db' }}>{replyToComment.authorName}</Text>
+            {t('singlePost.replyingTo')} <Text style={{ color: COLORS.primary }}>{replyToComment.authorName}</Text>
           </Text>
           {onCancelReply && (
             <TouchableOpacity onPress={onCancelReply} style={styles.cancelReplyButton}>
-              <Ionicons name="close" size={16} color="#3498db" />
+              <Ionicons name="close" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           )}
         </View>
