@@ -248,6 +248,20 @@ export default function FeedScreen({ navigation }: any) {
         });
         setPlayingVideoId(null);
         setIsScreenFocused(false);
+        
+        // Update video states to show paused state and mark as tapped when losing focus
+        setVideoStates(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(id => {
+            if (updated[id]?.isPlaying) {
+              updated[id] = {
+                ...updated[id],
+                isPlaying: false
+              };
+            }
+          });
+          return updated;
+        });
       };
     }, [rememberedVideoId, posts.length])
   );

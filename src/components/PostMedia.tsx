@@ -152,6 +152,11 @@ export default function PostMedia({
         activeVideoPlayer.play();
       } else {
         activeVideoPlayer.pause();
+        // When video is paused programmatically (like losing focus), mark as tapped
+        // so the play button shows
+        if (!isVideoPlaying) {
+          setHasBeenTapped(true);
+        }
       }
     }
   }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType, mediaURL]);
