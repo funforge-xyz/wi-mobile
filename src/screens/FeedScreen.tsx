@@ -113,6 +113,20 @@ export default function FeedScreen({ navigation }: any) {
   const currentTheme = getTheme(isDarkMode);
   const videoPlayersRef = useRef<{[key: string]: any}>({});
 
+  // Helper function to calculate distance between two coordinates
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const d = R * c; // Distance in kilometers
+    return d;
+  };
+
   const loadUserConnections = async () => {
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
@@ -406,8 +420,38 @@ export default function FeedScreen({ navigation }: any) {
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
+      // Get current user's location and network for filtering
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      // Load feed posts with proper location and network filtering
       const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
-      const feedPosts = feedResult.posts;
+      let feedPosts = feedResult.posts;
+
+      // Apply additional filtering based on location and network if available
+      if (currentUserLocation && userRadius > 0) {
+        // Calculate bounding box for location filtering
+        const latDelta = userRadius / 111.32; // 1 degree lat ≈ 111.32 km
+        const lonDelta = userRadius / (111.32 * Math.cos(currentUserLocation.latitude * Math.PI / 180));
+
+        const minLat = currentUserLocation.latitude - latDelta;
+        const maxLat = currentUserLocation.latitude + latDelta;
+        const minLon = currentUserLocation.longitude - lonDelta;
+        const maxLon = currentUserLocation.longitude + lonDelta;
+
+        // Filter posts by location
+        feedPosts = feedPosts.filter(post => {
+          if (!post.authorLocation) return false;
+          
+          const authorLat = post.authorLocation.latitude;
+          const authorLon = post.authorLocation.longitude;
+          
+          return authorLat >= minLat && authorLat <= maxLat && 
+                 authorLon >= minLon && authorLon <= maxLon;
+        });
+      }
 
       // Filter out current user's posts and add connection information
       const postsWithConnectionInfo = feedPosts
@@ -420,6 +464,25 @@ export default function FeedScreen({ navigation }: any) {
       console.log('FeedScreen - RAW FETCHED POSTS FROM loadFeedPosts:');
       console.log('='.repeat(80));
       console.log('Total posts fetched:', postsWithConnectionInfo.length);
+      console.log('Current user location:', currentUserLocation);
+      console.log('User radius:', userRadius);
+      console.log('Connection IDs:', Array.from(connectionIds));
+      
+      // Debug: Log which users have posts vs which are in nearby
+      console.log('Authors with posts:', postsWithConnectionInfo.map(p => ({ id: p.authorId, name: p.authorName })));
+      
+      // Log posts that might be from users outside radius
+      postsWithConnectionInfo.forEach(post => {
+        if (currentUserLocation && post.authorLocation) {
+          const distance = calculateDistance(
+            currentUserLocation.latitude,
+            currentUserLocation.longitude,
+            post.authorLocation.latitude,
+            post.authorLocation.longitude
+          );
+          console.log(`Post author ${post.authorName}: ${distance.toFixed(2)}km away, within radius: ${distance <= userRadius}`);
+        }
+      });
 
       if (isRefresh) {
         setPosts(postsWithConnectionInfo);
