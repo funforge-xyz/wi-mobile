@@ -19,7 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { locationService } from '../services/locationService';
 import NotificationBell from '../components/NotificationBell';
 import FeedSkeleton from '../components/FeedSkeleton';
@@ -35,6 +35,7 @@ import {
   handleLikePost,
   loadFeedPosts 
 } from '../utils/feedUtils';
+import { updatePostInFeed } from '../store/feedSlice';
 import { getTheme } from '../theme';
 import { 
   doc, 
@@ -94,6 +95,7 @@ export default function FeedScreen({ navigation }: any) {
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const flatListRef = useRef<FlatList>(null);
   const [videoPlayers, setVideoPlayers] = useState<Map<string, any>>(new Map());
@@ -813,11 +815,6 @@ export default function FeedScreen({ navigation }: any) {
       postId,
       updates: { commentsCount: newCount }
     }));
-  };st.id === postId 
-          ? { ...post, commentsCount: newCount }
-          : post
-      )
-    );
   };
 
   const handleLikesCountChange = (postId: string, newCount: number, isLikedByUser: boolean) => {
