@@ -804,6 +804,7 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const handleCommentsCountChange = (postId: string, newCount: number) => {
+    // Update local posts state
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId ? { ...post, commentsCount: newCount } : post
