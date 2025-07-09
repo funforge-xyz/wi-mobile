@@ -184,7 +184,7 @@ export const loadConnectionPosts = async (
       let distance = 0;
 
       if (isSameNetwork) {
-        // Always include same network users
+        // Always include same network users (highest priority)
         shouldInclude = true;
         distance = calculateDistance(
           userLocation.latitude,
@@ -211,6 +211,9 @@ export const loadConnectionPosts = async (
           shouldInclude = distance <= effectiveRadius;
         }
       }
+
+      // Note: Connection status (isConnection) is now only used for display purposes
+      // Connections are not automatically included unless they're also in proximity
 
       if (shouldInclude) {
         eligibleUsers.set(userId, {
@@ -574,15 +577,15 @@ export async function loadFeedPosts(
       const isConnection = connectedUserIds.has(userId);
 
       // For feed, we want to show posts from:
-      // 1. Connected users (regardless of location/network)
-      // 2. Users within radius OR on same network (if enabled)
+      // 1. Users within radius OR on same network (if enabled)
+      // 2. Connection status is secondary - connections must still be in range
       let shouldInclude = false;
 
-      if (isConnection) {
-        // Always include connected users
+      // Check if user is on same network (highest priority)
+      if (sameNetworkMatchingEnabled && isSameNetwork) {
         shouldInclude = true;
       } else {
-        // Check location bounds
+        // Check location bounds and distance
         const withinBounds = user.location.latitude >= minLat && 
                             user.location.latitude <= maxLat &&
                             user.location.longitude >= minLon && 
@@ -601,12 +604,10 @@ export async function loadFeedPosts(
             shouldInclude = true;
           }
         }
-
-        // Also include if on same network (if enabled)
-        if (sameNetworkMatchingEnabled && isSameNetwork) {
-          shouldInclude = true;
-        }
       }
+
+      // Note: Connection status (isConnection) is now only used for display purposes
+      // Connections are not automatically included unless they're also in proximity
 
       if (shouldInclude) {
         eligibleUsers.set(userId, {
