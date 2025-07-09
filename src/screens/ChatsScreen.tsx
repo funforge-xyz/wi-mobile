@@ -13,6 +13,8 @@ import ChatsSkeleton from '../components/ChatsSkeleton';
 import RequestsSkeleton from '../components/RequestsSkeleton';
 import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal';
 import BlockUserSuccessModal from '../components/BlockUserSuccessModal';
+import DeclineRequestConfirmationModal from '../components/DeclineRequestConfirmationModal';
+import DeclineRequestSuccessModal from '../components/DeclineRequestSuccessModal';
 import { createChatsStyles, getTheme } from '../styles/ChatsStyles';
 import {
   ConnectionRequest,
@@ -123,7 +125,7 @@ export default function ChatsScreen({ navigation }: any) {
     handleReplyToRequest(request, navigation);
   };
 
-  const onDeclineRequest = (request: ConnectionRequest) => {
+  const handleDeclineRequest = (request: ConnectionRequest) => {
     setSelectedRequest(request);
     setShowDeclineModal(true);
   };
@@ -171,11 +173,57 @@ export default function ChatsScreen({ navigation }: any) {
     setSelectedConnection(null);
   };
 
+  const confirmDeclineRequest = async () => {
+    if (!selectedRequest) return;
+
+    try {
+      const { getAuth, getFirestore } = await import('../services/firebase');
+      const { deleteDoc, doc } = await import('firebase/firestore');
+
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
+      await deleteDoc(doc(firestore, 'connectionRequests', selectedRequest.id));
+
+      setConnectionRequests(prev => prev.filter(req => req.id !== selectedRequest.id));
+
+      setShowDeclineModal(false);
+      setShowDeclineSuccessModal(true);
+    } catch (error) {
+      console.error('Error declining request:', error);
+      Alert.alert('Error', 'Failed to decline request');
+      setShowDeclineModal(false);
+    }
+    setSelectedRequest(null);
+  };
+
+  const handleBlockSuccessClose = () => {
+    setShowSuccessModal(false);
+    setSelectedConnection(null);
+    // Navigate to NearbyScreen (People tab)
+    navigation.navigate('Root', { 
+      screen: 'People',
+      params: {
+        screen: 'Nearby',
+        params: {
+          refetchAfterBlock: true,
+        }
+      }
+    });
+  };
+
+  const handleDeclineSuccessClose = () => {
+    setShowDeclineSuccessModal(false);
+  };
+
   const renderRequestItem = ({ item, index }: { item: ConnectionRequest; index: number }) => (
     <ConnectionRequestItem
       item={item}
       onReply={onReplyToRequest}
-      onDecline={onDeclineRequest}
+      onDecline={handleDeclineRequest}
       formatTimeAgo={formatTime}
       currentTheme={currentTheme}
       isLastItem={index === connectionRequests.length - 1}
@@ -293,6 +341,26 @@ export default function ChatsScreen({ navigation }: any) {
       <BlockUserSuccessModal
         visible={showSuccessModal}
         onClose={handleSuccessModalClose}
+        currentTheme={currentTheme}
+      />
+
+      <DeclineRequestConfirmationModal
+        visible={showDeclineModal}
+        onConfirm={confirmDeclineRequest}
+        onCancel={() => {
+          setShowDeclineModal(false);
+          setSelectedRequest(null);
+        }}
+        userName={selectedRequest ? 
+          `${selectedRequest.firstName} ${selectedRequest.lastName}` : 
+          'this user'
+        }
+        currentTheme={currentTheme}
+      />
+
+      <DeclineRequestSuccessModal
+        visible={showDeclineSuccessModal}
+        onClose={handleDeclineSuccessClose}
         currentTheme={currentTheme}
       />
     </SafeAreaView>
