@@ -67,6 +67,6 @@ export const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontFamily: FONTS.medium,
-    color: COLORS.white,
+    color: '#ffffff',
   },
 });
