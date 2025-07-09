@@ -273,7 +273,7 @@ export default function FeedScreen({ navigation }: any) {
 
     const initializeAndSetupAuth = async () => {
       try {
-        const { initializeFirebase, getAuth } = await import('../services/firebase';
+        const { initializeFirebase, getAuth } = await import('../services/firebase');
 
         console.log('FeedScreen: Initializing Firebase...');
         await initializeFirebase();
