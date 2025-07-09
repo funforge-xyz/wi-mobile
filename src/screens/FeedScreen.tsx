@@ -336,11 +336,25 @@ export default function FeedScreen({ navigation }: any) {
               console.log('FeedScreen: Loading user connections...');
               const freshConnectionIds = await loadUserConnections();
 
-              setTimeout(() => {
-                locationService.startLocationTracking().catch((error) => {
-                  console.log('Location tracking not available:', error);
-                });
-              }, 1000);
+              // Start location tracking and wait for initial location update
+              console.log('FeedScreen: Starting location tracking...');
+              const locationTrackingStarted = await locationService.startLocationTracking();
+              
+              if (locationTrackingStarted) {
+                console.log('FeedScreen: Location tracking started successfully');
+                
+                // Wait a moment for the initial location update to complete
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Get the updated location after tracking started
+                const updatedLocation = await locationService.getCurrentLocation();
+                if (updatedLocation) {
+                  console.log('FeedScreen: Updated location obtained:', updatedLocation);
+                  setCurrentUserLocation(updatedLocation);
+                }
+              } else {
+                console.log('FeedScreen: Location tracking failed to start');
+              }
 
               console.log('FeedScreen: Loading posts...');
               await loadPosts(false, freshConnectionIds);
