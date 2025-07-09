@@ -416,11 +416,6 @@ export default function FeedScreen({ navigation }: any) {
         }
       }, 15000);
 
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      // Get current user's location and network for filtering
       const { getAuth, getFirestore } = await import('../services/firebase');
       const auth = getAuth();
       const firestore = getFirestore();
