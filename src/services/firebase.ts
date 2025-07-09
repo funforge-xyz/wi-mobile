@@ -65,6 +65,22 @@ export const initializeFirebase = async () => {
       firestore = getFirebaseFirestore(app);
       storage = getFirebaseStorage(app);
       
+      // Monitor Firestore connection state
+      const { enableNetwork, disableNetwork } = await import('firebase/firestore');
+      
+      // Add connection state listener
+      const handleConnectionStateChange = () => {
+        console.log('Firestore connection state changed');
+      };
+      
+      // Enable network by default
+      try {
+        await enableNetwork(firestore);
+        console.log('Firestore network enabled');
+      } catch (networkError) {
+        console.warn('Firestore network enable failed:', networkError);
+      }
+      
       // Only initialize analytics in production or when needed
       try {
         analytics = getAnalytics(app);

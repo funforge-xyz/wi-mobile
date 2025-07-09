@@ -55,7 +55,12 @@ export const loadConnectionPosts = async (
   lastTimestamp: Date | null = null,
   limit: number = 10
 ): Promise<ConnectionPost[]> => {
-  try {
+  const maxRetries = 3; // Define the maximum number of retries
+  let retryCount = 0;
+
+  return new Promise(async (resolve, reject) => {
+    while (retryCount < maxRetries) {
+      try {
     const { getAuth, getFirestore } = await import('../services/firebase');
     const { 
       collection, 
@@ -317,14 +322,25 @@ export const loadConnectionPosts = async (
     }
 
     // Sort all posts by creation date (newest first)
-    posts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const connectionPosts = posts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          resolve(connectionPosts);
+          break; // If successful, break the retry loop
+        } catch (error) {
+          console.error('Error loading connection posts:', error);
+          retryCount++;
+          console.log(`Attempt ${retryCount} failed. Retrying...`);
 
-    return posts.slice(0, limit);
+          if (retryCount === maxRetries) {
+            console.error('Max retries reached. Rejecting promise.');
+            reject(error);
+          }
 
-  } catch (error) {
-    console.error('Error loading connection posts:', error);
-    return [];
-  }
+          // Implement a delay before retrying, e.g., exponential backoff
+          await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+        }
+      }
+    }
+  );
 };
 
 export const updateUserLastSeen = async (): Promise<void> => {
