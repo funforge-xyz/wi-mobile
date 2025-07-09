@@ -18,7 +18,7 @@ interface DeleteAccountModalProps {
   onClose: () => void;
 }
 
-export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
+const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   visible,
   onClose,
 }) => {
@@ -377,3 +377,5 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
     </>
   );
 };
+
+export default DeleteAccountModal;
