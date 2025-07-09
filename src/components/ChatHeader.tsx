@@ -39,13 +39,13 @@ export default function ChatHeader({
             currentTheme={currentTheme}
             style={styles.headerAvatar}
           />
-          {userOnlineStatus && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />}
+          {/* {userOnlineStatus && <View style={[styles.onlineIndicator, { borderColor: currentTheme.background }]} />} */}
         </View>
         <View style={styles.headerTextContainer}>
           <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{userName}</Text>
-          {userOnlineStatus && (
+          {/* {userOnlineStatus && (
             <Text style={[styles.onlineStatus, { color: COLORS.success }]}>{t('chat.online')}</Text>
-          )}
+          )} */}
         </View>
       </TouchableOpacity>
       <View style={{ width: 24 }} />

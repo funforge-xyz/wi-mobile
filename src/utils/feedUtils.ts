@@ -169,8 +169,8 @@ export const loadConnectionPosts = async (
         return;
       }
 
-      const lastSeen = user.lastSeen?.toDate();
-      const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
+      // const lastSeen = user.lastSeen?.toDate();
+      // const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
 
       // Check if user is on same network
       const isSameNetwork = sameNetworkMatchingEnabled && 
@@ -219,7 +219,7 @@ export const loadConnectionPosts = async (
         eligibleUsers.set(userId, {
           ...user,
           id: userId,
-          isOnline,
+          // isOnline,
           distance,
           isSameNetwork: isSameNetwork || false,
           isConnection
@@ -575,8 +575,8 @@ export async function loadFeedPosts(
         return;
       }
 
-      const lastSeen = user.lastSeen?.toDate();
-      const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
+      // const lastSeen = user.lastSeen?.toDate();
+      // const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
 
       // Check if user is on same network
       const isSameNetwork = sameNetworkMatchingEnabled && 
@@ -623,7 +623,7 @@ export async function loadFeedPosts(
         eligibleUsers.set(userId, {
           ...user,
           id: userId,
-          isOnline,
+          // isOnline,
           isSameNetwork,
           isConnection
         });

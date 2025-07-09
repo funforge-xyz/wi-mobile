@@ -35,7 +35,7 @@ export interface NearbyUser {
   email: string;
   photoURL: string;
   bio: string;
-  isOnline: boolean;
+  // isOnline: boolean;
   distance?: number;
   isSameNetwork: boolean;
 }
@@ -197,8 +197,8 @@ export const loadNearbyUsers = async (
 
     const usersSnapshot = await getDocs(usersQuery, { source: 'server' });
     const nearbyUsers: NearbyUser[] = [];
-    const now = new Date();
-    const onlineThreshold = 2 * 60 * 1000; // 2 minutes
+    // const now = new Date();
+    // const onlineThreshold = 2 * 60 * 1000; // 2 minutes
 
     usersSnapshot.docs.forEach(userDocSnap => {
       const userId = userDocSnap.id;
@@ -217,8 +217,8 @@ export const loadNearbyUsers = async (
         return;
       }
 
-      const lastSeen = user.lastSeen?.toDate();
-      const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
+      // const lastSeen = user.lastSeen?.toDate();
+      // const isOnline = lastSeen && (now.getTime() - lastSeen.getTime()) < onlineThreshold;
 
       // Check if user is on same network
       const isSameNetwork = sameNetworkMatchingEnabled && 
@@ -264,7 +264,7 @@ export const loadNearbyUsers = async (
           email: user.email || '',
           photoURL: user.photoURL || '',
           bio: user.bio || '',
-          isOnline,
+          // isOnline,
           distance,
           isSameNetwork: isSameNetwork || false,
         });

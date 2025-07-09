@@ -151,26 +151,26 @@ export const loadMoreMessages = async (
   }
 };
 
-export const setupOnlineStatusListener = (
-  userId: string,
-  onStatusUpdate: (isOnline: boolean) => void
-): (() => void) => {
-  const firestore = getFirestore();
-  const userRef = doc(firestore, 'users', userId);
+// export const setupOnlineStatusListener = (
+//   userId: string,
+//   onStatusUpdate: (isOnline: boolean) => void
+// ): (() => void) => {
+//   const firestore = getFirestore();
+//   const userRef = doc(firestore, 'users', userId);
 
-  const unsubscribe = onSnapshot(userRef, (doc) => {
-    if (doc.exists()) {
-      const userData = doc.data();
-      const isOnline = userData.lastSeen && 
-        userData.lastSeen.toDate && 
-        (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
+//   const unsubscribe = onSnapshot(userRef, (doc) => {
+//     if (doc.exists()) {
+//       const userData = doc.data();
+//       const isOnline = userData.lastSeen && 
+//         userData.lastSeen.toDate && 
+//         (new Date().getTime() - userData.lastSeen.toDate().getTime()) < 2 * 60 * 1000;
 
-      onStatusUpdate(isOnline);
-    }
-  });
+//       onStatusUpdate(isOnline);
+//     }
+//   });
 
-  return unsubscribe;
-};
+//   return unsubscribe;
+// };
 
 export const markMessagesAsRead = async (chatRoomId: string, userId: string, currentUserId: string) => {
   try {

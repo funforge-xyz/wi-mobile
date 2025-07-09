@@ -10,7 +10,7 @@ import SkeletonLoader from './SkeletonLoader';
 
 interface UserAvatarProps {
   photoURL?: string;
-  isOnline?: boolean;
+  // isOnline?: boolean;
   size?: number;
   currentTheme?: any;
   style?: any;
@@ -18,7 +18,7 @@ interface UserAvatarProps {
 
 export default function UserAvatar({
   photoURL,
-  isOnline = false,
+  // isOnline = false,
   size = 40,
   currentTheme,
   style,
@@ -71,7 +71,7 @@ export default function UserAvatar({
           <Ionicons name="person" size={size * 0.5} color={currentTheme?.textSecondary || defaultTheme.textSecondary} />
         </View>
       )}
-      {isOnline && (
+      {/* {isOnline && (
         <View style={[styles.onlineIndicator, {
           bottom: size * 0.05,
           right: size * 0.05,
@@ -79,7 +79,7 @@ export default function UserAvatar({
           height: size * 0.3,
           borderRadius: size * 0.15,
         }]} />
-      )}
+      )} */}
     </View>
   );
 }

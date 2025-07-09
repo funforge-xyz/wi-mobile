@@ -253,7 +253,7 @@ export const setupRealtimeListeners = async (
 
           const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
           const userData = userDoc.exists() ? userDoc.data() : {};
-          const isOnline = userData?.lastSeen?.toDate && (now - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000);
+          // const isOnline = userData?.lastSeen?.toDate && (now - userData.lastSeen.toDate().getTime() < 2 * 60 * 1000);
 
           const baseConnection: Connection = {
             id: connectionDoc.id,
@@ -266,7 +266,7 @@ export const setupRealtimeListeners = async (
             connectedAt: connectionData?.connectedAt?.toDate() || new Date(),
             lastMessage: '',
             lastMessageTime: undefined,
-            isOnline,
+            // isOnline,
             unreadCount: 0,
           };
 

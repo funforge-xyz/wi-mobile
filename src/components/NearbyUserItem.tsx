@@ -46,7 +46,7 @@ export default function NearbyUserItem({
               <Ionicons name="person" size={24} color={currentTheme.textSecondary} />
             </View>
           )}
-          {user.isOnline === true && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />}
+          {/* {user.isOnline === true && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />} */}
         </View>
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: currentTheme.text }]}>
