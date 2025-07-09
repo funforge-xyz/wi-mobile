@@ -313,9 +313,6 @@ export default function FeedScreen({ navigation }: any) {
                 setUserRadius(radius);
               }
 
-              // Load user connections
-              await loadUserConnections();
-
               let location = null;
               try {
                 console.log('FeedScreen: Getting user location...');
@@ -332,6 +329,10 @@ export default function FeedScreen({ navigation }: any) {
                 setLoading(false);
                 return;
               }
+
+              // Load user connections BEFORE loading posts
+              console.log('FeedScreen: Loading user connections...');
+              await loadUserConnections();
 
               setTimeout(() => {
                 locationService.startLocationTracking().catch((error) => {
