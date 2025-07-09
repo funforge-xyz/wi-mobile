@@ -162,13 +162,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         }).start();
       } else {
         const user = await authService.signInWithEmail(email, password);
-        
+
         // Load user's preferred language from Firebase after successful login
         if (user?.uid) {
           const { loadUserLanguagePreference } = await import('../store/userSlice');
           dispatch(loadUserLanguagePreference(user.uid));
         }
-        
+
         onLoginSuccess?.();
       }
     } catch (error: any) {
@@ -179,20 +179,33 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   const handleGoogleSignIn = async () => {
+    if (isLoading) return;
+
+    if (!authService.isGoogleSignInAvailable()) {
+      setErrorMessage('Google Sign-In is not available in Expo Go. Please use email/password or switch to a custom development build.');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage('');
+
     try {
       const user = await authService.signInWithGoogle();
-      
-      // Load user's preferred language from Firebase after successful login
-      if (user?.uid) {
-        const { loadUserLanguagePreference } = await import('../store/userSlice');
-        dispatch(loadUserLanguagePreference(user.uid));
+      if (user) {
+        console.log('Google sign in successful:', user.uid);
       }
-      
-      onLoginSuccess?.();
     } catch (error: any) {
-      setErrorMessage(getErrorMessage(error));
+      console.error('Google sign in error:', error);
+
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        setErrorMessage(t('auth.accountExistsWithDifferentCredential'));
+      } else if (error.code === 'auth/invalid-credential') {
+        setErrorMessage(t('auth.invalidCredentials'));
+      } else if (error.message?.includes('Expo Go')) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage(t('auth.googleSignInFailed'));
+      }
     } finally {
       setIsLoading(false);
     }

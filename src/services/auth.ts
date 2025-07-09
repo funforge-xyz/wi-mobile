@@ -12,19 +12,32 @@ import {
   GoogleAuthProvider,
   signInWithCredential
 } from 'firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth } from './firebase';
 import { Credentials } from './storage';
+import Constants from 'expo-constants';
 
 export class AuthService {
   private credentials = new Credentials();
   private onSignOutCallback?: () => void;
+  private GoogleSignin: any = null;
+  private isExpoGo = Constants.appOwnership === 'expo';
 
   constructor() {
-    // Configure Google Sign-In
-    GoogleSignin.configure({
-      webClientId: '38067432350-your-web-client-id-here.apps.googleusercontent.com', // Replace with your actual web client ID from Firebase console
-    });
+    // Only configure Google Sign-In if not in Expo Go
+    if (!this.isExpoGo) {
+      try {
+        this.GoogleSignin = require('@react-native-google-signin/google-signin').GoogleSignin;
+        this.GoogleSignin.configure({
+          webClientId: '38067432350-your-web-client-id-here.apps.googleusercontent.com', // Replace with your actual web client ID from Firebase console
+        });
+      } catch (error) {
+        console.log('Google Sign-In not available in this environment');
+      }
+    }
+  }
+
+  isGoogleSignInAvailable(): boolean {
+    return !this.isExpoGo && this.GoogleSignin !== null;
   }
 
   // Alias for signInWithEmail for backward compatibility
@@ -183,9 +196,15 @@ export class AuthService {
   }
 
   async signInWithGoogle(): Promise<FirebaseUser | null> {
+    if (!this.isGoogleSignInAvailable()) {
+      throw new Error('Google Sign-In is not available in Expo Go. Please use a custom development build.');
+    }
+
     try {
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
+      const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
+      
+      await this.GoogleSignin.hasPlayServices();
+      const { idToken } = await this.GoogleSignin.signIn();
       
       const auth = getAuth();
       const googleCredential = GoogleAuthProvider.credential(idToken);
@@ -250,11 +269,13 @@ export class AuthService {
       await this.credentials.removeToken();
       await this.credentials.removeUser();
       // Sign out from Google if user was signed in with Google
-      try {
-        await GoogleSignin.revokeAccess();
-        await GoogleSignin.signOut();
-      } catch (googleSignOutError) {
-        console.log('Google sign out error (user may not have been signed in with Google):', googleSignOutError);
+      if (this.isGoogleSignInAvailable()) {
+        try {
+          await this.GoogleSignin.revokeAccess();
+          await this.GoogleSignin.signOut();
+        } catch (googleSignOutError) {
+          console.log('Google sign out error (user may not have been signed in with Google):', googleSignOutError);
+        }
       }
 
       // Trigger navigation reset
