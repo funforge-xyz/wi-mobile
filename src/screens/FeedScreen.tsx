@@ -409,11 +409,13 @@ export default function FeedScreen({ navigation }: any) {
       const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
       const feedPosts = feedResult.posts;
 
-      // Add connection information to posts
-      const postsWithConnectionInfo = feedPosts.map(post => ({
-        ...post,
-        isFromConnection: connectionIds.has(post.authorId)
-      }));
+      // Filter out current user's posts and add connection information
+      const postsWithConnectionInfo = feedPosts
+        .filter(post => post.authorId !== currentUser?.uid) // Exclude current user's posts
+        .map(post => ({
+          ...post,
+          isFromConnection: connectionIds.has(post.authorId)
+        }));
 
       console.log('FeedScreen - RAW FETCHED POSTS FROM loadFeedPosts:');
       console.log('='.repeat(80));
@@ -483,6 +485,7 @@ export default function FeedScreen({ navigation }: any) {
       // For now, let's load more posts without pagination
       const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
       const morePosts = feedResult.posts.filter(post => 
+        post.authorId !== currentUser?.uid && // Exclude current user's posts
         !posts.some(existingPost => existingPost.id === post.id)
       );
 
