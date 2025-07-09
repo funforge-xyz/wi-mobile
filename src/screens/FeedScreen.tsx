@@ -35,7 +35,7 @@ import {
   handleLikePost,
   loadFeedPosts 
 } from '../utils/feedUtils';
-import { updatePostInFeed } from '../store/feedSlice';
+import { updatePost } from '../store/feedSlice';
 import { getTheme } from '../theme';
 import { 
   doc, 
@@ -811,7 +811,7 @@ export default function FeedScreen({ navigation }: any) {
     );
 
     // Also update Redux state to keep it in sync
-    dispatch(updatePostInFeed({
+    dispatch(updatePost({
       postId,
       updates: { commentsCount: newCount }
     }));
