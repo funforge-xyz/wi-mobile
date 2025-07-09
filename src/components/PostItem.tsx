@@ -60,6 +60,8 @@ interface PostItemProps {
   onVideoBlur?: () => void;
   videoPlayer?: any;
   showImageBorderRadius?: boolean;
+  onCommentsCountChange?: (postId: string, newCount: number) => void;
+  onLikesCountChange?: (postId: string, newCount: number, isLikedByUser: boolean) => void;
 }
 
 export default function PostItem({
@@ -81,6 +83,8 @@ export default function PostItem({
   onVideoBlur,
   videoPlayer,
   showImageBorderRadius = true,
+  onCommentsCountChange,
+  onLikesCountChange,
 }: PostItemProps) {
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
@@ -339,7 +343,7 @@ export default function PostItem({
       <PostActions
         liked={post.isLikedByUser}
         likesCount={post.likesCount}
-        commentsCount={post.commentsCount}
+        commentsCount={commentsCount}
         showLikeCount={post.showLikeCount}
         allowComments={post.allowComments}
         onLikePress={handleLikePress}

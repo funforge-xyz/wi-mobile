@@ -248,7 +248,7 @@ export default function FeedScreen({ navigation }: any) {
         });
         setPlayingVideoId(null);
         setIsScreenFocused(false);
-        
+
         // Update video states to show paused state and mark as tapped when losing focus
         setVideoStates(prev => {
           const updated = { ...prev };
@@ -715,6 +715,36 @@ export default function FeedScreen({ navigation }: any) {
     }));
   };
 
+  const handleVideoMuteToggle = (postId: string) => {
+    setVideoStates(prev => ({
+      ...prev,
+      [postId]: {
+        ...prev[postId],
+        isMuted: !prev[postId]?.isMuted
+      }
+    }));
+  };
+
+  const handleCommentsCountChange = (postId: string, newCount: number) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, commentsCount: newCount }
+          : post
+      )
+    );
+  };
+
+  const handleLikesCountChange = (postId: string, newCount: number, isLikedByUser: boolean) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likesCount: newCount, isLikedByUser }
+          : post
+      )
+    );
+  };
+
   // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
   const videoPlayerCreated = useRef<Set<string>>(new Set());
 
@@ -770,6 +800,8 @@ export default function FeedScreen({ navigation }: any) {
                 handleVideoPlayPauseToggle(item.id, !currentlyPlaying);
               }}
               postId={item.id}
+              onCommentsCountChange={handleCommentsCountChange}
+              onLikesCountChange={handleLikesCountChange}
             />
           )}
 
