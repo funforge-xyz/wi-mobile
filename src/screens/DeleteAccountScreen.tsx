@@ -41,7 +41,7 @@ export default function DeleteAccountScreen() {
 
   const handleConfirmDelete = async () => {
     if (!password.trim()) {
-      setPasswordError('Password is required');
+      setPasswordError(t('auth.passwordRequired'));
       return;
     }
 
@@ -91,16 +91,16 @@ export default function DeleteAccountScreen() {
         error.message.includes('wrong-password') ||
         error.message.includes('invalid-credential')) {
         // Don't close the confirmation modal, just show the error
-        setPasswordError('Incorrect password. Please try again.');
+        setPasswordError(t('auth.wrongPassword'));
         setPassword(''); // Clear the password field
 
       } else if (error.message.includes('recent login')) {
         // setShowConfirmModal(false);
-        setError('For security reasons, please sign out and sign back in before deleting your account.');
+        setError(t('profile.reAuthenticationMessage'));
 
       } else {
         // setShowConfirmModal(false);
-        setError('Failed to delete account. Please try again.');
+        setError(t('profile.failedToDelete'));
       }
     }
   };
@@ -181,7 +181,7 @@ export default function DeleteAccountScreen() {
           marginBottom: 12,
           textAlign: 'center',
         }}>
-          Delete Your Account
+          {t('settings.deleteAccount')}
         </Text>
 
         <Text style={{
@@ -192,7 +192,7 @@ export default function DeleteAccountScreen() {
           marginBottom: 40,
           paddingHorizontal: 20,
         }}>
-          This action will permanently delete your account and all associated data including:
+          {t('settings.deletingAccountRemovesData')}
         </Text>
 
         <View style={{
@@ -200,11 +200,11 @@ export default function DeleteAccountScreen() {
           marginBottom: 40,
         }}>
           {[
-            'All your posts and media',
-            'All connections and messages',
-            'All likes and comments',
-            'Your profile information',
-            'All account data'
+            t('settings.yourPostsAndComments'),
+            t('settings.yourChatHistory'),
+            t('settings.yourConnectionsAndFollowers'),
+            t('settings.yourProfileInfo'),
+            t('settings.deletingAccount')
           ].map((item, index) => (
             <View key={index} style={{
               flexDirection: 'row',
@@ -230,7 +230,7 @@ export default function DeleteAccountScreen() {
           fontWeight: '500',
           marginBottom: 40,
         }}>
-          This action cannot be undone.
+          {t('settings.thisActionCannotBeUndone')}
         </Text>
 
         {error && (
@@ -271,7 +271,7 @@ export default function DeleteAccountScreen() {
             fontWeight: '600',
             color: '#FFFFFF',
           }}>
-            Delete My Account
+            {t('settings.deleteMyAccount')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -319,7 +319,7 @@ export default function DeleteAccountScreen() {
                 marginBottom: 8,
                 textAlign: 'center',
               }}>
-                Confirm Deletion
+                {t('settings.deleteAccount')}
               </Text>
               <Text style={{
                 fontSize: 14,
@@ -328,7 +328,7 @@ export default function DeleteAccountScreen() {
                 lineHeight: 20,
                 marginBottom: 20,
               }}>
-                Are you absolutely sure you want to delete your account? This will remove all your posts, connections, and data permanently.
+                {t('settings.thisActionIsPermanent')}
               </Text>
 
               {!isLoading && <>
@@ -338,7 +338,7 @@ export default function DeleteAccountScreen() {
                   marginBottom: 8,
                   fontWeight: '500',
                 }}>
-                  Enter your password to confirm:
+                  {t('settings.enterCurrentPassword')}:
                 </Text>
 
                 <View style={{
@@ -359,7 +359,7 @@ export default function DeleteAccountScreen() {
                       backgroundColor: colors.background,
                       width: '100%',
                     }}
-                    placeholder="Enter your password"
+                    placeholder={t('settings.enterCurrentPassword')}
                     placeholderTextColor={colors.textSecondary}
                     secureTextEntry={!showPassword}
                     value={password}
@@ -448,7 +448,7 @@ export default function DeleteAccountScreen() {
                       fontWeight: '500',
                       color: '#FFFFFF',
                     }}>
-                      Deleting...
+                      {t('settings.deletingAccount')}...
                     </Text>
                   </View>
                 ) : (
@@ -457,7 +457,7 @@ export default function DeleteAccountScreen() {
                     fontWeight: '500',
                     color: '#FFFFFF',
                   }}>
-                    Yes, Delete
+                    {t('common.yes')}, {t('common.delete')}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -504,14 +504,14 @@ export default function DeleteAccountScreen() {
               marginBottom: 8,
               textAlign: 'center',
             }}>
-              Account Deleted
+              {t('settings.accountDeleted')}
             </Text>
             <Text style={{
               fontSize: 14,
               color: colors.textSecondary,
               textAlign: 'center',
             }}>
-              Your account has been permanently deleted.
+              {t('settings.accountDeletedSuccessfully')}
             </Text>
           </View>
         </View>

@@ -87,6 +87,7 @@
     "weakPassword": "Password does not meet security requirements",
     "invalidCredentials": "Invalid email or password. Please check your credentials",
     "unknownError": "An error occurred. Please try again",
+    "passwordRequired": "Password is required",
     "emailNotVerified": "Please verify your email address before signing in. Check your inbox for a verification link"
   },
   "feed": {
@@ -303,6 +304,7 @@
     "yourConnectionsAndFollowers": "Your connections and followers",
     "thisActionCannotBeUndone": "This action cannot be undone and your data cannot be recovered.",
     "deleteMyAccount": "Delete My Account",
+    "thisActionIsPermanent": "Are you absolutely sure you want to delete your account? This will remove all your posts, connections, and data permanently.",
     "enterFirstName": "Enter your first name",
     "enterLastName": "Enter your last name",
     "tellUsAboutYourself": "Tell us about yourself",
