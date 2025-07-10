@@ -45,12 +45,17 @@ export default function DeleteAccountScreen() {
       return;
     }
 
-    setShowConfirmModal(false);
+    // Clear previous errors
+    setPasswordError(null);
+    setError(null);
+    
+    // Show loading
     setIsLoading(true);
 
     try {
       await authService.deleteProfileWithPassword(password);
       setIsLoading(false);
+      setShowConfirmModal(false);
       setShowSuccess(true);
       
       // Close the success modal after 2 seconds and sign out
@@ -77,12 +82,19 @@ export default function DeleteAccountScreen() {
       setIsLoading(false);
       console.error('Delete account error:', error);
       
-      if (error.message.includes('wrong-password') || error.message.includes('invalid-credential') || error.code === 'auth/invalid-credential') {
-        setShowConfirmModal(true); // Keep confirmation modal open
+      // Check for credential errors - keep modal open and show password error
+      if (error.code === 'auth/invalid-credential' || 
+          error.code === 'auth/wrong-password' ||
+          error.message.includes('wrong-password') || 
+          error.message.includes('invalid-credential')) {
+        // Don't close the confirmation modal, just show the error
         setPasswordError('Incorrect password. Please try again.');
+        setPassword(''); // Clear the password field
       } else if (error.message.includes('recent login')) {
+        setShowConfirmModal(false);
         setError('For security reasons, please sign out and sign back in before deleting your account.');
       } else {
+        setShowConfirmModal(false);
         setError('Failed to delete account. Please try again.');
       }
     }
