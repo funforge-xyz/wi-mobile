@@ -165,13 +165,30 @@ export class AuthService {
         const firestore = getFirestore();
         const userDocRef = doc(firestore, 'users', user.uid);
 
+        // Handle photoURL properly - if it's an object, extract the URLs
+        let photoURL = '';
+        let thumbnailURL = '';
+        
+        if (profileData?.photoURL) {
+          if (typeof profileData.photoURL === 'object' && 'fullUrl' in profileData.photoURL) {
+            photoURL = profileData.photoURL.fullUrl;
+            thumbnailURL = profileData.photoURL.thumbnailUrl;
+          } else if (typeof profileData.photoURL === 'string') {
+            photoURL = profileData.photoURL;
+            thumbnailURL = profileData.thumbnailURL || profileData.photoURL;
+          }
+        } else {
+          photoURL = user.photoURL || '';
+          thumbnailURL = profileData?.thumbnailURL || '';
+        }
+
         await setDoc(userDocRef, {
           email: user.email,
           firstName: profileData?.firstName || '',
           lastName: profileData?.lastName || '',
           bio: profileData?.bio || '',
-          photoURL: profileData?.photoURL || user.photoURL || '',
-          thumbnailURL: profileData?.thumbnailURL || '',
+          photoURL: photoURL,
+          thumbnailURL: thumbnailURL,
           trackingRadius: 100, // Default 100m in meters
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
