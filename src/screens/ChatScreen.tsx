@@ -13,7 +13,6 @@ import { createChatStyles } from '../styles/ChatStyles';
 import {
   Message,
   createChatRoomId,
-  updateUserLastSeen,
   setupMessageListener,
   markMessagesAsRead,
   checkPendingRequestStatus,
@@ -65,22 +64,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   useEffect(() => {
     initializeChat();
 
-    // Update user's lastSeen timestamp when component mounts
-    updateUserLastSeen(getCurrentUserId());
-
-    // Handle app state changes to update lastSeen
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'active') {
-        updateUserLastSeen(getCurrentUserId());
-      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-        updateUserLastSeen(getCurrentUserId());
-      }
-    };
-
-    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-
     return () => {
-      appStateSubscription?.remove();
       // Clean up message listener
       if (messageUnsubscribe) {
         messageUnsubscribe();

@@ -29,23 +29,7 @@ export interface Connection {
   unreadCount?: number;
 }
 
-export const updateUserLastSeen = async () => {
-  try {
-    const { getAuth } = await import('../services/firebase');
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
 
-    if (!currentUser) return;
-
-    const firestore = getFirestore();
-    const userRef = doc(firestore, 'users', currentUser.uid);
-    await setDoc(userRef, {
-      lastSeen: new Date(),
-    }, { merge: true });
-  } catch (error) {
-    console.error('Error updating last seen:', error);
-  }
-};
 
 export const formatTimeAgo = (date: Date, t: (key: string, options?: any) => string) => {
   const now = new Date();
@@ -166,7 +150,6 @@ export const setupRealtimeListeners = async (
 
     if (!currentUser) return { unsubscribeRequests: null, unsubscribeConnections: null };
 
-    updateUserLastSeen();
     const firestore = getFirestore();
     const now = Date.now();
 

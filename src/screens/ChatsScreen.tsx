@@ -19,7 +19,6 @@ import { createChatsStyles, getTheme } from '../styles/ChatsStyles';
 import {
   ConnectionRequest,
   Connection,
-  updateUserLastSeen,
   formatTimeAgo,
   handleReplyToRequest,
   handleDeclineRequest,
@@ -47,12 +46,7 @@ export default function ChatsScreen({ navigation }: any) {
 
   const currentTheme = getTheme(isDarkMode);
 
-  // Update lastSeen when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      updateUserLastSeen();
-    }, [])
-  );
+  
 
   useEffect(() => {
     let unsubscribeRequests: (() => void) | null = null;
@@ -84,32 +78,11 @@ export default function ChatsScreen({ navigation }: any) {
 
     initializeListeners();
 
-    // Update lastSeen every 30 seconds while app is active
-    const lastSeenInterval = setInterval(() => {
-      if (AppState.currentState === 'active') {
-        updateUserLastSeen();
-      }
-    }, 30000);
-
-    // Handle app state changes to update lastSeen
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'active') {
-        updateUserLastSeen();
-      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-        // Update lastSeen when app goes to background to show user as offline
-        updateUserLastSeen();
-      }
-    };
-
-    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-
     // Cleanup listeners on unmount
     return () => {
       if (unsubscribeRequests) unsubscribeRequests();
       if (unsubscribeConnections) unsubscribeConnections();
       if (unsubscribeAuth) unsubscribeAuth();
-      clearInterval(lastSeenInterval);
-      appStateSubscription?.remove();
     };
   }, []);
 

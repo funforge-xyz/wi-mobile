@@ -49,6 +49,11 @@ function deg2rad(deg: number) {
   return deg * (Math.PI/180);
 }
 
+export const updateUserLastSeen = async () => {
+  // This function has been removed - no longer tracking online status
+  return;
+};
+
 export const loadConnectionPosts = async (
   userRadius: number,
   currentUserLocation: any,

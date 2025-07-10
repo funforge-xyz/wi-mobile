@@ -30,7 +30,6 @@ import UserAvatar from '../components/UserAvatar';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useTranslation } from 'react-i18next';
 import { 
-  updateUserLastSeen, 
   loadUserSettings, 
   handleLikePost,
   loadFeedPosts 
@@ -372,18 +371,10 @@ export default function FeedScreen({ navigation }: any) {
         });
 
         const handleAppStateChange = (nextAppState: string) => {
-          if (nextAppState === 'active') {
-            updateUserLastSeen().catch(console.error);
-          } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-            updateUserLastSeen().catch(console.error);
-          }
+          // App state change handler - no online status tracking
         };
 
         appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-
-        lastSeenInterval = setInterval(() => {
-          updateUserLastSeen().catch(console.error);
-        }, 30000);
 
       } catch (error) {
         console.error('Error initializing Firebase or setting up auth listener:', error);
@@ -395,7 +386,6 @@ export default function FeedScreen({ navigation }: any) {
 
     return () => {
       if (unsubscribe) unsubscribe();
-      if (lastSeenInterval) clearInterval(lastSeenInterval);
       if (appStateSubscription) appStateSubscription?.remove();
     };
   }, []);
