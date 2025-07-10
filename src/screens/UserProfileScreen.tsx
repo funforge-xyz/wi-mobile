@@ -329,7 +329,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       await Promise.all(deletePromises);
 
-      // Update local state
+      // Update local state immediately
       setIsConnected(false);
       
       setShowDeleteConnectionModal(false);
@@ -360,6 +360,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         />
 
         <UserProfileActions
+          key={`profile-actions-${isConnected}`}
           onConnect={() => {}}
           onMessage={() => {}}
           onBlock={handleBlockUser}
