@@ -202,28 +202,28 @@ export class AuthService {
 
     try {
       const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
-      
+
       await this.GoogleSignin.hasPlayServices();
       const { idToken } = await this.GoogleSignin.signIn();
-      
+
       const auth = getAuth();
       const googleCredential = GoogleAuthProvider.credential(idToken);
       const userCredential = await signInWithCredential(auth, googleCredential);
       const user = userCredential.user;
-      
+
       if (user) {
         // Get ID token and store for persistence
         const token = await user.getIdToken(false);
         await this.credentials.setToken(token);
-        
+
         // Check if this is a new user and create Firestore document if needed
         const { getFirestore } = await import('./firebase');
         const { doc, getDoc, setDoc } = await import('firebase/firestore');
-        
+
         const firestore = getFirestore();
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-        
+
         if (!userDoc.exists()) {
           // Create user document for new Google sign-in users
           await setDoc(userDocRef, {
@@ -238,7 +238,7 @@ export class AuthService {
             updatedAt: new Date().toISOString(),
           });
         }
-        
+
         await this.credentials.setUser({
           uid: user.uid,
           email: user.email,
@@ -247,10 +247,10 @@ export class AuthService {
           emailVerified: user.emailVerified,
           lastSignInTime: user.metadata.lastSignInTime,
         });
-        
+
         console.log('User signed in with Google and persisted:', user.uid);
       }
-      
+
       return user;
     } catch (error) {
       console.error('Google sign in error:', error);
@@ -313,21 +313,21 @@ export class AuthService {
     try {
       const auth = getAuth();
       const currentUser = auth.currentUser;
-      
+
       // If no Firebase user, clear local storage and return false
       if (!currentUser) {
         await this.credentials.removeToken();
         await this.credentials.removeUser();
         return false;
       }
-      
+
       // Check if email is verified
       if (!currentUser.emailVerified) {
         await this.credentials.removeToken();
         await this.credentials.removeUser();
         return false;
       }
-      
+
       // Check if we have a valid token
       const token = await this.credentials.getToken();
       if (!token) {
@@ -341,7 +341,7 @@ export class AuthService {
           return false;
         }
       }
-      
+
       // Validate token is not expired by trying to refresh it
       try {
         await currentUser.getIdToken(true); // Force refresh to validate
@@ -451,22 +451,22 @@ export class AuthService {
 
   private async safeDeleteUser(user: any, password: string): Promise<void> {
     const { deleteUser, EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
-    
+
     try {
       // Delete all user data first, regardless of whether re-auth is needed
       await this.deleteUserData(user);
-      
+
       await deleteUser(user);
       console.log("User deleted successfully");
-      
+
       // Clear local storage and trigger navigation
       await this.credentials.removeToken();
       await this.credentials.removeUser();
-      
+
       if (this.onSignOutCallback) {
         this.onSignOutCallback();
       }
-      
+
     } catch (error: any) {
       if (error.code === "auth/requires-recent-login") {
         console.log("Re-authenticating...");
@@ -475,21 +475,21 @@ export class AuthService {
 
         try {
           await reauthenticateWithCredential(user, credential);
-          
+
           // Now delete all user data from Firestore before deleting the user
           await this.deleteUserData(user);
-          
+
           await deleteUser(user);
           console.log("User re-authenticated and deleted");
-          
+
           // Clear local storage and trigger navigation
           await this.credentials.removeToken();
           await this.credentials.removeUser();
-          
+
           if (this.onSignOutCallback) {
             this.onSignOutCallback();
           }
-          
+
         } catch (reauthError: any) {
           console.error("Re-authentication failed:", reauthError.message);
           throw reauthError;
