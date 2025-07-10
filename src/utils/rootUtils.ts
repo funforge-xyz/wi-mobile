@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/auth';
-import { Settings } from '../services/storage';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth } from '../services/firebase';
+import { Settings } from '../services/settings';
 
 export const getTabBarIcon = (routeName: string, focused: boolean): keyof typeof Ionicons.glyphMap => {
   const iconMap: Record<string, { focused: string; unfocused: string }> = {
@@ -30,7 +32,6 @@ export const initializeFirebaseAndAuth = async (): Promise<boolean> => {
     const auth = getAuth();
 
     // Get auth instance and wait for initial auth state
-    const { onAuthStateChanged, signOut } = await import('firebase/auth');
 
     // Wait for auth state to be determined with a longer timeout
     return new Promise((resolve) => {
