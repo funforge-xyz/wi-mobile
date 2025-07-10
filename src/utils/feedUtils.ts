@@ -240,7 +240,7 @@ export const loadConnectionPosts = async (
       if (userA.isSameNetwork && !userB.isSameNetwork) return -1;
       if (!userA.isSameNetwork && userB.isSameNetwork) return 1;
 
-      // Secondary sort: distance ASC (closer users first)
+            // Secondary sort: distance ASC (closer users first)
       return (userA.distance || 0) - (userB.distance || 0);
     });
 
@@ -339,29 +339,6 @@ export const loadConnectionPosts = async (
       }
     }
   );
-};
-
-export const updateUserLastSeen = async (): Promise<void> => {
-  try {
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      return;
-    }
-
-    const firestore = getFirestore();
-    const userDocRef = doc(firestore, 'users', currentUser.uid);
-
-    // Use server timestamp for consistency
-    const { serverTimestamp, updateDoc } = await import('firebase/firestore');
-    await updateDoc(userDocRef, {
-      lastSeen: serverTimestamp()
-    });
-
-  } catch (error) {
-    console.error('Error updating user last seen:', error);
-  }
 };
 
 export const loadUserSettings = async (): Promise<number | null> => {
