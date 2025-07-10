@@ -49,11 +49,13 @@ export default function DeleteAccountScreen() {
     setPasswordError(null);
     setError(null);
     
-    // Show loading
+    // Show loading in confirmation modal first
     setIsLoading(true);
 
     try {
       await authService.deleteProfileWithPassword(password);
+      
+      // After successful deletion, close confirmation modal and show success
       setIsLoading(false);
       setShowConfirmModal(false);
       setShowSuccess(true);
@@ -421,18 +423,37 @@ export default function DeleteAccountScreen() {
                   paddingVertical: 12,
                   paddingHorizontal: 16,
                   borderRadius: 8,
-                  backgroundColor: '#FF4444',
+                  backgroundColor: isLoading ? '#FF6666' : '#FF4444',
                   alignItems: 'center',
+                  opacity: isLoading ? 0.7 : 1,
                 }}
                 onPress={handleConfirmDelete}
+                disabled={isLoading}
               >
-                <Text style={{
-                  fontSize: 16,
-                  fontWeight: '500',
-                  color: '#FFFFFF',
-                }}>
-                  Yes, Delete
-                </Text>
+                {isLoading ? (
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <Text style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      color: '#FFFFFF',
+                    }}>
+                      Deleting...
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    color: '#FFFFFF',
+                  }}>
+                    Yes, Delete
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
