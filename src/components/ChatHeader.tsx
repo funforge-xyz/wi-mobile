@@ -9,7 +9,6 @@ interface ChatHeaderProps {
   onHeaderPress: () => void;
   userName: string;
   userPhotoURL?: string;
-  userOnlineStatus: boolean;
   currentTheme: any;
   t: (key: string) => string;
 }
@@ -19,7 +18,6 @@ export default function ChatHeader({
   onHeaderPress,
   userName,
   userPhotoURL,
-  userOnlineStatus,
   currentTheme,
   t,
 }: ChatHeaderProps) {

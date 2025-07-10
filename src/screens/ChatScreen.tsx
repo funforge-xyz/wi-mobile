@@ -15,7 +15,6 @@ import {
   createChatRoomId,
   updateUserLastSeen,
   setupMessageListener,
-  setupOnlineStatusListener,
   markMessagesAsRead,
   checkPendingRequestStatus,
   sendChatMessage,
@@ -128,7 +127,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       const blocked = await checkIfUserIsBlocked(userId);
       console.log('Blocked check result for user', userId, ':', blocked);
       setIsUserBlocked(blocked);
-      
+
       if (blocked) {
         setLoading(false);
         return;
@@ -150,7 +149,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           } else {
             setHasMoreMessages(true);
           }
-          
+
           setLoading(false);
         },
         () => {
@@ -162,7 +161,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       setMessageUnsubscribe(() => unsubscribe);
 
       // Set up online status listener for the other user
-      setupOnlineStatusListener(userId, setUserOnlineStatus);
+      // setupOnlineStatusListener(userId, setUserOnlineStatus);
 
       // Check for pending request status
       const status = await checkPendingRequestStatus(currentUserId, userId);
@@ -228,27 +227,27 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
       console.log('LoadMore blocked:', { loadingMore, hasMoreMessages, messagesLength: messages.length });
       return;
     }
-    
+
     console.log('Loading more messages...');
     setLoadingMore(true);
-    
+
     try {
       // Get the oldest message (last item in array for inverted list)
       const oldestMessage = messages[messages.length - 1];
       console.log('Oldest message timestamp:', oldestMessage.createdAt);
       console.log('Current messages length:', messages.length);
-      
+
       const olderMessages = await loadMoreMessages(chatRoomId, oldestMessage, 30);
       console.log('Loaded older messages:', olderMessages.length);
-      
+
       if (olderMessages.length > 0) {
         setMessages(prevMessages => {
           // Create a Set of existing message IDs to prevent duplicates
           const existingIds = new Set(prevMessages.map(msg => msg.id));
-          
+
           // Filter out any messages that already exist
           const uniqueOlderMessages = olderMessages.filter(msg => !existingIds.has(msg.id));
-          
+
           // For inverted list: append older messages to the end of array
           const newMessages = [...prevMessages, ...uniqueOlderMessages];
           console.log('Total messages after load more:', newMessages.length);
@@ -256,7 +255,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           return newMessages;
         });
       }
-      
+
       // If we got less than the limit, no more messages available
       if (olderMessages.length < 30) {
         console.log('No more messages available');
@@ -291,11 +290,10 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
           onHeaderPress={() => {}} // Disabled for blocked users
           userName={userName}
           userPhotoURL={userPhotoURL}
-          userOnlineStatus={false}
           currentTheme={currentTheme}
           t={t}
         />
-        
+
         <View style={[chatStyles.loadingContainer, { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
           <Text style={[{ color: currentTheme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }]}>
             {t('userProfile.userIsBlocked')}
@@ -315,7 +313,6 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
         onHeaderPress={handleHeaderPress}
         userName={userName}
         userPhotoURL={userPhotoURL}
-        userOnlineStatus={userOnlineStatus}
         currentTheme={currentTheme}
         t={t}
       />
