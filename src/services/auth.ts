@@ -453,6 +453,9 @@ export class AuthService {
     const { deleteUser, EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
     
     try {
+      // Delete all user data first, regardless of whether re-auth is needed
+      await this.deleteUserData(user);
+      
       await deleteUser(user);
       console.log("User deleted successfully");
       

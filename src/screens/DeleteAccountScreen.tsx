@@ -29,11 +29,13 @@ export default function DeleteAccountScreen() {
   const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleDeletePress = () => {
     setError(null); // Clear any previous errors
     setPassword('');
     setPasswordError(null);
+    setShowPassword(false);
     setShowConfirmModal(true);
   };
 
@@ -57,17 +59,17 @@ export default function DeleteAccountScreen() {
         try {
           // Use the same sign-out process as the profile sign-out button
           await authService.signOut();
-          // Navigate back to login screen
-          navigation.reset({
+          // Navigate back to root login screen
+          (navigation as any).reset({
             index: 0,
-            routes: [{ name: 'Login' as never }],
+            routes: [{ name: 'Root' as never }],
           });
         } catch (logoutError) {
           console.error('Logout error after account deletion:', logoutError);
-          // Even if logout fails, the account is deleted, navigate to login
-          navigation.reset({
+          // Even if logout fails, the account is deleted, navigate to root
+          (navigation as any).reset({
             index: 0,
-            routes: [{ name: 'Login' as never }],
+            routes: [{ name: 'Root' as never }],
           });
         }
       }, 2000);
@@ -90,6 +92,7 @@ export default function DeleteAccountScreen() {
     setShowConfirmModal(false);
     setPassword('');
     setPasswordError(null);
+    setShowPassword(false);
   };
 
   const handleBackPress = () => {
@@ -320,28 +323,50 @@ export default function DeleteAccountScreen() {
                 Enter your password to confirm:
               </Text>
               
-              <TextInput
-                style={{
-                  borderWidth: 1,
-                  borderColor: passwordError ? '#FF4444' : colors.border,
-                  borderRadius: 8,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  fontSize: 16,
-                  color: colors.text,
-                  backgroundColor: colors.background,
-                  marginBottom: passwordError ? 4 : 0,
-                }}
-                placeholder="Enter your password"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  setPasswordError(null);
-                }}
-                autoFocus
-              />
+              <View style={{
+                position: 'relative',
+                width: '100%',
+                marginBottom: passwordError ? 4 : 0,
+              }}>
+                <TextInput
+                  style={{
+                    borderWidth: 1,
+                    borderColor: passwordError ? '#FF4444' : colors.border,
+                    borderRadius: 8,
+                    paddingHorizontal: 12,
+                    paddingVertical: 12,
+                    paddingRight: 50,
+                    fontSize: 16,
+                    color: colors.text,
+                    backgroundColor: colors.background,
+                    width: '100%',
+                  }}
+                  placeholder="Enter your password"
+                  placeholderTextColor={colors.textSecondary}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setPasswordError(null);
+                  }}
+                  autoFocus
+                />
+                <TouchableOpacity
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: 12,
+                    padding: 4,
+                  }}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Icon 
+                    name={showPassword ? "visibility-off" : "visibility"} 
+                    size={20} 
+                    color={colors.textSecondary} 
+                  />
+                </TouchableOpacity>
+              </View>
               
               {passwordError && (
                 <Text style={{
