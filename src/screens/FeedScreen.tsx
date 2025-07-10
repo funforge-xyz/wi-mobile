@@ -15,6 +15,7 @@ import {
   Alert,
   Animated,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -983,7 +984,18 @@ export default function FeedScreen({ navigation }: any) {
       )}
 
       {posts.length === 0 ? (
-        <View style={styles.emptyStateContainer}>
+        <ScrollView 
+          contentContainerStyle={styles.emptyStateContainer}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor="white"
+              colors={["white"]}
+              progressBackgroundColor="transparent"
+            />
+          }
+        >
           <EmptyFeedState 
             currentTheme={currentTheme} 
             title={currentUserLocation ? t('feed.noPosts') : undefined}
@@ -992,7 +1004,7 @@ export default function FeedScreen({ navigation }: any) {
               loadPosts(true);
             }}
           />
-        </View>
+        </ScrollView>
       ) : (
         <FlatList
           ref={flatListRef}
