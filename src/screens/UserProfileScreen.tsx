@@ -202,6 +202,17 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       await Promise.all(deletePromises);
 
+      // Remove nearby_request notifications sent by current user to others
+      const nearbyNotificationsQuery = query(
+        collection(firestore, 'notifications'),
+        where('fromUserId', '==', currentUser.uid),
+        where('type', '==', 'nearby_request')
+      );
+      const nearbyNotificationsSnapshot = await getDocs(nearbyNotificationsQuery);
+
+      const notificationDeletePromises = nearbyNotificationsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(notificationDeletePromises);
+
       console.log('User blocked successfully');
       setShowBlockModal(false);
       setShowSuccessModal(true);

@@ -121,6 +121,18 @@ export const blockUser = async (userId: string, connectionId: string) => {
       await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
     }
 
+    // Remove nearby_request notifications sent by current user to others
+    const nearbyNotificationsQuery = query(
+      collection(firestore, 'notifications'),
+      where('fromUserId', '==', currentUser.uid),
+      where('type', '==', 'nearby_request')
+    );
+    const nearbyNotificationsSnapshot = await getDocs(nearbyNotificationsQuery);
+
+    for (const notificationDoc of nearbyNotificationsSnapshot.docs) {
+      await deleteDoc(doc(firestore, 'notifications', notificationDoc.id));
+    }
+
     // Update Redux state to remove blocked user from nearby list and connections
     const { store } = await import('../store');
     const { removeBlockedUser } = await import('../store/nearbySlice');
