@@ -6,6 +6,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -29,20 +30,30 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
 
   const handleDeletePress = () => {
+    setPassword('');
+    setPasswordError(null);
+    setErrorMessage(null);
     setShowConfirmModal(true);
   };
 
   const handleConfirmDelete = async () => {
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      return;
+    }
+
     setShowConfirmModal(false);
     setIsLoading(true);
-        setErrorMessage(null);
+    setErrorMessage(null);
 
     try {
-      await authService.deleteProfile();
+      await authService.deleteProfileWithPassword(password);
       setIsLoading(false);
       setShowSuccess(true);
 
@@ -61,16 +72,22 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
     } catch (error: any) {
       setIsLoading(false);
       console.error('Delete account error:', error);
-            if (error.message.includes('recent login')) {
-                setErrorMessage(t('settings.deleteAccount') + ': ' + t('error.recentLogin'));
-            } else {
-                setErrorMessage(t('common.error') + ': ' + t('error.deleteAccount'));
-            }
+      
+      if (error.message.includes('wrong-password') || error.message.includes('invalid-credential')) {
+        setShowConfirmModal(true); // Reopen confirmation modal
+        setPasswordError('Incorrect password. Please try again.');
+      } else if (error.message.includes('recent login')) {
+        setErrorMessage('For security reasons, please sign out and sign back in before deleting your account.');
+      } else {
+        setErrorMessage('Failed to delete account. Please try again.');
+      }
     }
   };
 
   const handleCancelConfirm = () => {
     setShowConfirmModal(false);
+    setPassword('');
+    setPasswordError(null);
   };
 
   const handleClose = () => {
@@ -234,9 +251,52 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                 color: colors.textSecondary,
                 textAlign: 'center',
                 lineHeight: 20,
+                marginBottom: 20,
               }}>
                 Are you absolutely sure you want to delete your account? This will remove all your posts, connections, and data permanently.
               </Text>
+              
+              <Text style={{
+                fontSize: 14,
+                color: colors.text,
+                marginBottom: 8,
+                fontWeight: '500',
+              }}>
+                Enter your password to confirm:
+              </Text>
+              
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: passwordError ? '#FF4444' : colors.border,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  fontSize: 16,
+                  color: colors.text,
+                  backgroundColor: colors.background,
+                  marginBottom: passwordError ? 4 : 0,
+                }}
+                placeholder="Enter your password"
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setPasswordError(null);
+                }}
+                autoFocus
+              />
+              
+              {passwordError && (
+                <Text style={{
+                  fontSize: 12,
+                  color: '#FF4444',
+                  marginBottom: 8,
+                }}>
+                  {passwordError}
+                </Text>
+              )}
             </View>
 
             <View style={{

@@ -7,6 +7,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,18 +27,27 @@ export default function DeleteAccountScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleDeletePress = () => {
     setError(null); // Clear any previous errors
+    setPassword('');
+    setPasswordError(null);
     setShowConfirmModal(true);
   };
 
   const handleConfirmDelete = async () => {
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      return;
+    }
+
     setShowConfirmModal(false);
     setIsLoading(true);
 
     try {
-      await authService.deleteProfile();
+      await authService.deleteProfileWithPassword(password);
       setIsLoading(false);
       setShowSuccess(true);
       
@@ -65,7 +75,10 @@ export default function DeleteAccountScreen() {
       setIsLoading(false);
       console.error('Delete account error:', error);
       
-      if (error.message.includes('recent login')) {
+      if (error.message.includes('wrong-password') || error.message.includes('invalid-credential')) {
+        setShowConfirmModal(true); // Reopen confirmation modal
+        setPasswordError('Incorrect password. Please try again.');
+      } else if (error.message.includes('recent login')) {
         setError('For security reasons, please sign out and sign back in before deleting your account.');
       } else {
         setError('Failed to delete account. Please try again.');
@@ -75,6 +88,8 @@ export default function DeleteAccountScreen() {
 
   const handleCancelConfirm = () => {
     setShowConfirmModal(false);
+    setPassword('');
+    setPasswordError(null);
   };
 
   const handleBackPress = () => {
@@ -291,9 +306,52 @@ export default function DeleteAccountScreen() {
                 color: colors.textSecondary,
                 textAlign: 'center',
                 lineHeight: 20,
+                marginBottom: 20,
               }}>
                 Are you absolutely sure you want to delete your account? This will remove all your posts, connections, and data permanently.
               </Text>
+              
+              <Text style={{
+                fontSize: 14,
+                color: colors.text,
+                marginBottom: 8,
+                fontWeight: '500',
+              }}>
+                Enter your password to confirm:
+              </Text>
+              
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: passwordError ? '#FF4444' : colors.border,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  fontSize: 16,
+                  color: colors.text,
+                  backgroundColor: colors.background,
+                  marginBottom: passwordError ? 4 : 0,
+                }}
+                placeholder="Enter your password"
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setPasswordError(null);
+                }}
+                autoFocus
+              />
+              
+              {passwordError && (
+                <Text style={{
+                  fontSize: 12,
+                  color: '#FF4444',
+                  marginBottom: 8,
+                }}>
+                  {passwordError}
+                </Text>
+              )}
             </View>
 
             <View style={{

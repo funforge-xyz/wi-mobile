@@ -427,6 +427,213 @@ export class AuthService {
     }
   }
 
+  async deleteProfileWithPassword(password: string): Promise<void> {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error('No authenticated user');
+      }
+
+      if (!user.email) {
+        throw new Error('User email not available');
+      }
+
+      // Use safe delete function with password-based re-authentication
+      await this.safeDeleteUser(user, password);
+
+    } catch (error) {
+      console.error('Profile deletion error:', error);
+      throw error;
+    }
+  }
+
+  private async safeDeleteUser(user: any, password: string): Promise<void> {
+    const { deleteUser, EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
+    
+    try {
+      await deleteUser(user);
+      console.log("User deleted successfully");
+      
+      // Clear local storage and trigger navigation
+      await this.credentials.removeToken();
+      await this.credentials.removeUser();
+      
+      if (this.onSignOutCallback) {
+        this.onSignOutCallback();
+      }
+      
+    } catch (error: any) {
+      if (error.code === "auth/requires-recent-login") {
+        console.log("Re-authenticating...");
+
+        const credential = EmailAuthProvider.credential(user.email, password);
+
+        try {
+          await reauthenticateWithCredential(user, credential);
+          
+          // Now delete all user data from Firestore before deleting the user
+          await this.deleteUserData(user);
+          
+          await deleteUser(user);
+          console.log("User re-authenticated and deleted");
+          
+          // Clear local storage and trigger navigation
+          await this.credentials.removeToken();
+          await this.credentials.removeUser();
+          
+          if (this.onSignOutCallback) {
+            this.onSignOutCallback();
+          }
+          
+        } catch (reauthError: any) {
+          console.error("Re-authentication failed:", reauthError.message);
+          throw reauthError;
+        }
+      } else {
+        console.error("Delete failed:", error.message);
+        throw error;
+      }
+    }
+  }
+
+  private async deleteUserData(user: any): Promise<void> {
+    // Get user data to find profile picture URL
+    const { getFirestore } = await import('./firebase');
+    const { doc, getDoc, collection, query, where, getDocs, writeBatch } = await import('firebase/firestore');
+
+    const firestore = getFirestore();
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    // Delete profile picture from storage if it exists
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      if (userData.photoURL && userData.photoURL.includes('firebase')) {
+        try {
+          const { storageService } = await import('./storage');
+          await storageService.deleteProfilePicture(userData.photoURL);
+        } catch (storageError) {
+          console.error('Error deleting profile picture:', storageError);
+          // Continue with profile deletion even if image deletion fails
+        }
+      }
+    }
+
+    // Use batched writes for better performance
+    const batch = writeBatch(firestore);
+
+    // 1. Delete all user's posts and their associated data
+    const postsQuery = query(
+      collection(firestore, 'posts'),
+      where('authorId', '==', user.uid)
+    );
+    const postsSnapshot = await getDocs(postsQuery);
+
+    for (const postDoc of postsSnapshot.docs) {
+      // Delete all comments for this post
+      const commentsQuery = query(
+        collection(firestore, 'posts', postDoc.id, 'comments')
+      );
+      const commentsSnapshot = await getDocs(commentsQuery);
+      commentsSnapshot.forEach((commentDoc) => {
+        batch.delete(commentDoc.ref);
+      });
+
+      // Delete all likes for this post
+      const likesQuery = query(
+        collection(firestore, 'posts', postDoc.id, 'likes')
+      );
+      const likesSnapshot = await getDocs(likesQuery);
+      likesSnapshot.forEach((likeDoc) => {
+        batch.delete(likeDoc.ref);
+      });
+
+      // Delete the post itself
+      batch.delete(postDoc.ref);
+    }
+
+    // 2. Delete all comments made by this user on other posts
+    const allPostsQuery = query(collection(firestore, 'posts'));
+    const allPostsSnapshot = await getDocs(allPostsQuery);
+
+    for (const postDoc of allPostsSnapshot.docs) {
+      const userCommentsQuery = query(
+        collection(firestore, 'posts', postDoc.id, 'comments'),
+        where('authorId', '==', user.uid)
+      );
+      const userCommentsSnapshot = await getDocs(userCommentsQuery);
+      userCommentsSnapshot.forEach((commentDoc) => {
+        batch.delete(commentDoc.ref);
+      });
+
+      // Delete all likes made by this user on other posts
+      const userLikesQuery = query(
+        collection(firestore, 'posts', postDoc.id, 'likes'),
+        where('authorId', '==', user.uid)
+      );
+      const userLikesSnapshot = await getDocs(userLikesQuery);
+      userLikesSnapshot.forEach((likeDoc) => {
+        batch.delete(likeDoc.ref);
+      });
+    }
+
+    // 3. Delete all connections where this user is a participant
+    const connectionsQuery = query(
+      collection(firestore, 'connections'),
+      where('participants', 'array-contains', user.uid)
+    );
+    const connectionsSnapshot = await getDocs(connectionsQuery);
+    connectionsSnapshot.forEach((connectionDoc) => {
+      batch.delete(connectionDoc.ref);
+    });
+
+    // 4. Delete all connection requests to or from this user
+    const outgoingRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('fromUserId', '==', user.uid)
+    );
+    const outgoingRequestsSnapshot = await getDocs(outgoingRequestsQuery);
+    outgoingRequestsSnapshot.forEach((requestDoc) => {
+      batch.delete(requestDoc.ref);
+    });
+
+    const incomingRequestsQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('toUserId', '==', user.uid)
+    );
+    const incomingRequestsSnapshot = await getDocs(incomingRequestsQuery);
+    incomingRequestsSnapshot.forEach((requestDoc) => {
+      batch.delete(requestDoc.ref);
+    });
+
+    // 5. Delete blocked users records
+    const blockedByUserQuery = query(
+      collection(firestore, 'blockedUsers'),
+      where('blockerUserId', '==', user.uid)
+    );
+    const blockedByUserSnapshot = await getDocs(blockedByUserQuery);
+    blockedByUserSnapshot.forEach((blockedDoc) => {
+      batch.delete(blockedDoc.ref);
+    });
+
+    const blockedUserQuery = query(
+      collection(firestore, 'blockedUsers'),
+      where('blockedUserId', '==', user.uid)
+    );
+    const blockedUserSnapshot = await getDocs(blockedUserQuery);
+    blockedUserSnapshot.forEach((blockedDoc) => {
+      batch.delete(blockedDoc.ref);
+    });
+
+    // 6. Delete user document
+    batch.delete(userDocRef);
+
+    // Commit all deletions
+    await batch.commit();
+  }
+
   async deleteProfile(): Promise<void> {
     try {
       const auth = getAuth();
