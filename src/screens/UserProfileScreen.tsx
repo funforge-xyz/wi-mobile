@@ -5,6 +5,8 @@ import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
 import BlockUserConfirmationModal from '../components/BlockUserConfirmationModal';
 import BlockUserSuccessModal from '../components/BlockUserSuccessModal';
+import DeleteConnectionConfirmModal from '../components/DeleteConnectionConfirmModal';
+import DeleteConnectionSuccessModal from '../components/DeleteConnectionSuccessModal';
 import UserProfileHeader from '../components/UserProfileHeader';
 import UserProfileDisplay from '../components/UserProfileDisplay';
 import UserProfileActions from '../components/UserProfileActions';
@@ -49,6 +51,8 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   const [loading, setLoading] = useState(true);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDeleteConnectionModal, setShowDeleteConnectionModal] = useState(false);
+  const [showDeleteConnectionSuccessModal, setShowDeleteConnectionSuccessModal] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -264,21 +268,22 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
     );
   }
 
+  const handleDeleteConnection = () => {
+    setShowDeleteConnectionModal(true);
+  };
+
   const confirmDeleteConnection = async () => {
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
-      const { collection, query, where, getDocs, deleteDoc, doc, writeBatch } = await import('firebase/firestore');
-
+      const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+      
       const auth = getAuth();
       const firestore = getFirestore();
       const currentUser = auth.currentUser;
 
-      if (!currentUser || !route?.params?.userId) return;
+      if (!currentUser) return;
 
-      const otherUserId = route.params.userId;
-      const batch = writeBatch(firestore);
-
-      // Find and delete the connection
+      // Delete the connection
       const connectionsRef = collection(firestore, 'connections');
       const connectionQuery = query(
         connectionsRef,
@@ -287,25 +292,27 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       const snapshot = await getDocs(connectionQuery);
       const connectionToDelete = snapshot.docs.find(doc => 
-        doc.data().participants.includes(otherUserId)
+        doc.data().participants.includes(profile.id)
       );
 
       if (connectionToDelete) {
-        batch.delete(doc(firestore, 'connections', connectionToDelete.id));
+        await deleteDoc(doc(firestore, 'connections', connectionToDelete.id));
       }
 
       // Delete any connection requests between these users
       const requestsRef = collection(firestore, 'connectionRequests');
-
+      
+      // Check for requests from current user to other user
       const outgoingQuery = query(
         requestsRef,
         where('fromUserId', '==', currentUser.uid),
-        where('toUserId', '==', otherUserId)
+        where('toUserId', '==', profile.id)
       );
-
+      
+      // Check for requests from other user to current user
       const incomingQuery = query(
         requestsRef,
-        where('fromUserId', '==', otherUserId),
+        where('fromUserId', '==', profile.id),
         where('toUserId', '==', currentUser.uid)
       );
 
@@ -314,47 +321,27 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         getDocs(incomingQuery)
       ]);
 
-      // Add connection request deletions to batch
-      [...outgoingSnapshot.docs, ...incomingSnapshot.docs].forEach(requestDoc => {
-        batch.delete(requestDoc.ref);
-      });
+      // Delete all found requests
+      const deletePromises = [
+        ...outgoingSnapshot.docs.map(doc => deleteDoc(doc.ref)),
+        ...incomingSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      ];
 
-      // Delete all notifications between these users
-      const notificationsRef = collection(firestore, 'notifications');
+      await Promise.all(deletePromises);
 
-      // Notifications sent by current user to other user
-      const notificationsSentQuery = query(
-        notificationsRef,
-        where('fromUserId', '==', currentUser.uid),
-        where('toUserId', '==', otherUserId)
-      );
-
-      // Notifications received by current user from other user
-      const notificationsReceivedQuery = query(
-        notificationsRef,
-        where('fromUserId', '==', otherUserId),
-        where('toUserId', '==', currentUser.uid)
-      );
-
-      const [sentNotificationsSnapshot, receivedNotificationsSnapshot] = await Promise.all([
-        getDocs(notificationsSentQuery),
-        getDocs(notificationsReceivedQuery)
-      ]);
-
-      // Add notification deletions to batch
-      [...sentNotificationsSnapshot.docs, ...receivedNotificationsSnapshot.docs].forEach(notificationDoc => {
-        batch.delete(notificationDoc.ref);
-      });
-
-      // Commit all deletions in a single batch
-      await batch.commit();
-
-      console.log('Connection deleted successfully');
+      // Update local state
+      setIsConnected(false);
+      
       setShowDeleteConnectionModal(false);
       setShowDeleteConnectionSuccessModal(true);
     } catch (error) {
       console.error('Error deleting connection:', error);
+      setShowDeleteConnectionModal(false);
     }
+  };
+
+  const handleDeleteConnectionSuccessClose = () => {
+    setShowDeleteConnectionSuccessModal(false);
   };
 
   return (
@@ -376,7 +363,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
           onConnect={() => {}}
           onMessage={() => {}}
           onBlock={handleBlockUser}
-          onDeleteConnection={() => navigation.navigate('Profile')}
+          onDeleteConnection={handleDeleteConnection}
           currentTheme={currentTheme}
           isConnected={isConnected}
           hasConnectionRequest={false}
@@ -401,6 +388,20 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       <BlockUserSuccessModal
         visible={showSuccessModal}
         onClose={handleBlockSuccessClose}
+        currentTheme={currentTheme}
+      />
+
+      <DeleteConnectionConfirmModal
+        visible={showDeleteConnectionModal}
+        onConfirm={confirmDeleteConnection}
+        onCancel={() => setShowDeleteConnectionModal(false)}
+        userName={`${profile.firstName} ${profile.lastName}`}
+        currentTheme={currentTheme}
+      />
+
+      <DeleteConnectionSuccessModal
+        visible={showDeleteConnectionSuccessModal}
+        onClose={handleDeleteConnectionSuccessClose}
         currentTheme={currentTheme}
       />
     </SafeAreaView>
