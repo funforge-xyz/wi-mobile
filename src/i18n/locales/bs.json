@@ -478,6 +478,7 @@
     "anonymousUser": "Anonimni korisnik",
     "blockUser": "Blokiraj korisnika",
     "blockUserConfirmation": "Da li ste sigurni da želite da blokirate ovog korisnika? Biće uklonjeni iz vaših konekcija i nećete ih vidjeti u objavljenim sadržajima.",
+    "blockUserConfirmationWithName": "Da li ste sigurni da želite da blokirate {{userName}}? Biće uklonjeni iz vaših konekcija i nećete ih vidjeti u objavljenim sadržajima.",
     "userBlocked": "Korisnik je blokiran",
     "failedToBlock": "Neuspješno blokiranje korisnika",
     "failedToLoadProfile": "Neuspješno učitavanje korisničkog profila",
