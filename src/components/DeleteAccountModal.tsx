@@ -216,7 +216,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
       {/* Confirmation Modal */}
       <Modal
-        visible={showConfirmModal}
+        visible={showConfirmModal && !isLoading}
         transparent
         animationType="fade"
         onRequestClose={handleCancelConfirm}
@@ -381,7 +381,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
       {/* Loading Modal */}
       <Modal
-        visible={isLoading}
+        visible={isLoading && !showSuccess}
         transparent
         animationType="fade"
       >
@@ -409,16 +409,6 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             }}>
               Deleting Account...
             </Text>
-                      {errorMessage && (
-                        <Text style={{
-                            fontSize: 14,
-                            color: 'red',
-                            marginTop: 8,
-                            textAlign: 'center',
-                        }}>
-                            {errorMessage}
-                        </Text>
-                    )}
             <Text style={{
               fontSize: 14,
               color: colors.textSecondary,

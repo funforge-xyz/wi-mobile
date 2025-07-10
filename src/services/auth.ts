@@ -470,7 +470,7 @@ export class AuthService {
     }
   }
 
-  
+
 
   private async deleteUserData(user: any): Promise<void> {
     // Get user data to find profile picture URL

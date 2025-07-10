@@ -275,7 +275,7 @@ export default function DeleteAccountScreen() {
 
       {/* Confirmation Modal */}
       <Modal
-        visible={showConfirmModal}
+        visible={showConfirmModal && !isLoading}
         transparent
         animationType="fade"
         onRequestClose={handleCancelConfirm}
@@ -462,7 +462,7 @@ export default function DeleteAccountScreen() {
 
       {/* Loading Modal */}
       <Modal
-        visible={isLoading}
+        visible={isLoading && !showSuccess}
         transparent
         animationType="fade"
       >
