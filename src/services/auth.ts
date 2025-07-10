@@ -440,8 +440,29 @@ export class AuthService {
         throw new Error('User email not available');
       }
 
-      // Use safe delete function with password-based re-authentication
-      await this.safeDeleteUser(user, password);
+      // First, re-authenticate to validate password
+      const { EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
+      console.log("Re-authenticating user before deletion...");
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+      console.log("Re-authentication successful");
+
+      // If we get here, password is correct. Now delete all user data
+      await this.deleteUserData(user);
+
+      // Finally, delete the Firebase Auth user account
+      const { deleteUser } = await import('firebase/auth');
+      await deleteUser(user);
+      console.log("User account deleted successfully");
+
+      // Clear local storage
+      await this.credentials.removeToken();
+      await this.credentials.removeUser();
+
+      // Trigger navigation reset
+      if (this.onSignOutCallback) {
+        this.onSignOutCallback();
+      }
 
     } catch (error) {
       console.error('Profile deletion error:', error);
@@ -449,35 +470,7 @@ export class AuthService {
     }
   }
 
-  private async safeDeleteUser(user: any, password: string): Promise<void> {
-    const { deleteUser, EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
-
-    try {
-      // Always re-authenticate first to validate password
-      console.log("Re-authenticating user before deletion...");
-      const credential = EmailAuthProvider.credential(user.email, password);
-      await reauthenticateWithCredential(user, credential);
-
-      // Delete all user data from Firestore
-      await this.deleteUserData(user);
-
-      // Delete the Firebase Auth user account
-      await deleteUser(user);
-      console.log("User re-authenticated and deleted successfully");
-
-      // Clear local storage and trigger navigation
-      await this.credentials.removeToken();
-      await this.credentials.removeUser();
-
-      if (this.onSignOutCallback) {
-        this.onSignOutCallback();
-      }
-
-    } catch (error: any) {
-      console.error("Delete operation failed:", error.message);
-      throw error;
-    }
-  }
+  
 
   private async deleteUserData(user: any): Promise<void> {
     // Get user data to find profile picture URL
