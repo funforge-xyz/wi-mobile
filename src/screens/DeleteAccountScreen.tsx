@@ -48,18 +48,19 @@ export default function DeleteAccountScreen() {
     // Clear previous errors
     setPasswordError(null);
     setError(null);
-    
+
     // Show loading in confirmation modal first
     setIsLoading(true);
 
     try {
       await authService.deleteProfileWithPassword(password);
-      
+
+
       // After successful deletion, close confirmation modal and show success
       setIsLoading(false);
       setShowConfirmModal(false);
       setShowSuccess(true);
-      
+
       // Close the success modal after 2 seconds and sign out
       setTimeout(async () => {
         setShowSuccess(false);
@@ -83,20 +84,22 @@ export default function DeleteAccountScreen() {
     } catch (error: any) {
       setIsLoading(false);
       console.error('Delete account error:', error);
-      
+
       // Check for credential errors - keep modal open and show password error
-      if (error.code === 'auth/invalid-credential' || 
-          error.code === 'auth/wrong-password' ||
-          error.message.includes('wrong-password') || 
-          error.message.includes('invalid-credential')) {
+      if (error.code === 'auth/invalid-credential' ||
+        error.code === 'auth/wrong-password' ||
+        error.message.includes('wrong-password') ||
+        error.message.includes('invalid-credential')) {
         // Don't close the confirmation modal, just show the error
         setPasswordError('Incorrect password. Please try again.');
         setPassword(''); // Clear the password field
+
       } else if (error.message.includes('recent login')) {
-        setShowConfirmModal(false);
+        // setShowConfirmModal(false);
         setError('For security reasons, please sign out and sign back in before deleting your account.');
+
       } else {
-        setShowConfirmModal(false);
+        // setShowConfirmModal(false);
         setError('Failed to delete account. Please try again.');
       }
     }
@@ -137,10 +140,10 @@ export default function DeleteAccountScreen() {
           }}
           disabled={isLoading || showSuccess}
         >
-          <Icon 
-            name="arrow-back" 
-            size={24} 
-            color={isLoading || showSuccess ? colors.textSecondary : colors.text} 
+          <Icon
+            name="arrow-back"
+            size={24}
+            color={isLoading || showSuccess ? colors.textSecondary : colors.text}
           />
         </TouchableOpacity>
         <Text style={{
@@ -275,7 +278,7 @@ export default function DeleteAccountScreen() {
 
       {/* Confirmation Modal */}
       <Modal
-        visible={showConfirmModal && !isLoading}
+        visible={showConfirmModal}
         transparent
         animationType="fade"
         onRequestClose={handleCancelConfirm}
@@ -327,61 +330,63 @@ export default function DeleteAccountScreen() {
               }}>
                 Are you absolutely sure you want to delete your account? This will remove all your posts, connections, and data permanently.
               </Text>
-              
-              <Text style={{
-                fontSize: 14,
-                color: colors.text,
-                marginBottom: 8,
-                fontWeight: '500',
-              }}>
-                Enter your password to confirm:
-              </Text>
-              
-              <View style={{
-                position: 'relative',
-                width: '100%',
-                marginBottom: passwordError ? 4 : 0,
-              }}>
-                <TextInput
-                  style={{
-                    borderWidth: 1,
-                    borderColor: passwordError ? '#FF4444' : colors.border,
-                    borderRadius: 8,
-                    paddingHorizontal: 12,
-                    paddingVertical: 12,
-                    paddingRight: 50,
-                    fontSize: 16,
-                    color: colors.text,
-                    backgroundColor: colors.background,
-                    width: '100%',
-                  }}
-                  placeholder="Enter your password"
-                  placeholderTextColor={colors.textSecondary}
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    setPasswordError(null);
-                  }}
-                  autoFocus
-                />
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    right: 12,
-                    top: 12,
-                    padding: 4,
-                  }}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Icon 
-                    name={showPassword ? "visibility-off" : "visibility"} 
-                    size={20} 
-                    color={colors.textSecondary} 
+
+              {!isLoading && <>
+                <Text style={{
+                  fontSize: 14,
+                  color: colors.text,
+                  marginBottom: 8,
+                  fontWeight: '500',
+                }}>
+                  Enter your password to confirm:
+                </Text>
+
+                <View style={{
+                  position: 'relative',
+                  width: '100%',
+                  marginBottom: passwordError ? 4 : 0,
+                }}>
+                  <TextInput
+                    style={{
+                      borderWidth: 1,
+                      borderColor: passwordError ? '#FF4444' : colors.border,
+                      borderRadius: 8,
+                      paddingHorizontal: 12,
+                      paddingVertical: 12,
+                      paddingRight: 50,
+                      fontSize: 16,
+                      color: colors.text,
+                      backgroundColor: colors.background,
+                      width: '100%',
+                    }}
+                    placeholder="Enter your password"
+                    placeholderTextColor={colors.textSecondary}
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      setPasswordError(null);
+                    }}
+                    autoFocus
                   />
-                </TouchableOpacity>
-              </View>
-              
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: 12,
+                      padding: 4,
+                    }}
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Icon
+                      name={showPassword ? "visibility-off" : "visibility"}
+                      size={20}
+                      color={colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </>}
+
               {passwordError && (
                 <Text style={{
                   fontSize: 12,
@@ -397,7 +402,7 @@ export default function DeleteAccountScreen() {
               flexDirection: 'row',
               gap: 12,
             }}>
-              <TouchableOpacity
+              {!isLoading && <TouchableOpacity
                 style={{
                   flex: 1,
                   paddingVertical: 12,
@@ -407,6 +412,7 @@ export default function DeleteAccountScreen() {
                   alignItems: 'center',
                 }}
                 onPress={handleCancelConfirm}
+                disabled={isLoading}
               >
                 <Text style={{
                   fontSize: 16,
@@ -415,7 +421,7 @@ export default function DeleteAccountScreen() {
                 }}>
                   {t('common.cancel')}
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity>}
 
               <TouchableOpacity
                 style={{
@@ -456,48 +462,6 @@ export default function DeleteAccountScreen() {
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Loading Modal */}
-      <Modal
-        visible={isLoading && !showSuccess}
-        transparent
-        animationType="fade"
-      >
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        }}>
-          <View style={{
-            backgroundColor: colors.surface,
-            borderRadius: 12,
-            padding: 32,
-            alignItems: 'center',
-            width: '75%',
-            maxWidth: 300,
-          }}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={{
-              fontSize: 16,
-              fontWeight: '500',
-              color: colors.text,
-              marginTop: 16,
-              textAlign: 'center',
-            }}>
-              Deleting Account...
-            </Text>
-            <Text style={{
-              fontSize: 14,
-              color: colors.textSecondary,
-              marginTop: 8,
-              textAlign: 'center',
-            }}>
-              Please wait while we delete your account and all associated data.
-            </Text>
           </View>
         </View>
       </Modal>
