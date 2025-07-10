@@ -30,6 +30,14 @@ export default function EmptyFeedState({
   const [hasLocationPermission, setHasLocationPermission] = useState<boolean | null>(null);
   const [isLocationTracking, setIsLocationTracking] = useState(false);
 
+  // Force dark mode theme for feed screen
+  const darkTheme = {
+    text: '#FFFFFF',
+    textSecondary: '#B0B0B0',
+    primary: '#FA4169',
+    buttonText: '#FFFFFF'
+  };
+
   useEffect(() => {
     checkLocationStatus();
   }, []);
@@ -103,19 +111,19 @@ export default function EmptyFeedState({
 
   return (
     <View style={styles.emptyState}>
-      <Ionicons name={content.icon as any} size={64} color={currentTheme.textSecondary} />
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]}>
+      <Ionicons name={content.icon as any} size={64} color={darkTheme.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: darkTheme.text }]}>
         {content.title}
       </Text>
-      <Text style={[styles.emptySubtitle, { color: currentTheme.textSecondary }]}>
+      <Text style={[styles.emptySubtitle, { color: darkTheme.textSecondary }]}>
         {content.subtitle}
       </Text>
       {content.showButton && (
         <TouchableOpacity 
-          style={[styles.locationButton, { backgroundColor: currentTheme.primary }]}
+          style={[styles.locationButton, { backgroundColor: darkTheme.primary }]}
           onPress={handleEnableLocation}
         >
-          <Text style={[styles.locationButtonText, { color: currentTheme.buttonText }]}>
+          <Text style={[styles.locationButtonText, { color: darkTheme.buttonText }]}>
             {content.buttonText}
           </Text>
         </TouchableOpacity>
