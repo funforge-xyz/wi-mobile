@@ -453,11 +453,17 @@ export class AuthService {
     const { deleteUser, EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
 
     try {
-      // Delete all user data first, regardless of whether re-auth is needed
+      // Always re-authenticate first to validate password
+      console.log("Re-authenticating user before deletion...");
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      // Delete all user data from Firestore
       await this.deleteUserData(user);
 
+      // Delete the Firebase Auth user account
       await deleteUser(user);
-      console.log("User deleted successfully");
+      console.log("User re-authenticated and deleted successfully");
 
       // Clear local storage and trigger navigation
       await this.credentials.removeToken();
@@ -468,36 +474,8 @@ export class AuthService {
       }
 
     } catch (error: any) {
-      if (error.code === "auth/requires-recent-login") {
-        console.log("Re-authenticating...");
-
-        const credential = EmailAuthProvider.credential(user.email, password);
-
-        try {
-          await reauthenticateWithCredential(user, credential);
-
-          // Now delete all user data from Firestore before deleting the user
-          await this.deleteUserData(user);
-
-          await deleteUser(user);
-          console.log("User re-authenticated and deleted");
-
-          // Clear local storage and trigger navigation
-          await this.credentials.removeToken();
-          await this.credentials.removeUser();
-
-          if (this.onSignOutCallback) {
-            this.onSignOutCallback();
-          }
-
-        } catch (reauthError: any) {
-          console.error("Re-authentication failed:", reauthError.message);
-          throw reauthError;
-        }
-      } else {
-        console.error("Delete failed:", error.message);
-        throw error;
-      }
+      console.error("Delete operation failed:", error.message);
+      throw error;
     }
   }
 
