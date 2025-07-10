@@ -77,8 +77,8 @@ export default function DeleteAccountScreen() {
       setIsLoading(false);
       console.error('Delete account error:', error);
       
-      if (error.message.includes('wrong-password') || error.message.includes('invalid-credential')) {
-        setShowConfirmModal(true); // Reopen confirmation modal
+      if (error.message.includes('wrong-password') || error.message.includes('invalid-credential') || error.code === 'auth/invalid-credential') {
+        setShowConfirmModal(true); // Keep confirmation modal open
         setPasswordError('Incorrect password. Please try again.');
       } else if (error.message.includes('recent login')) {
         setError('For security reasons, please sign out and sign back in before deleting your account.');
