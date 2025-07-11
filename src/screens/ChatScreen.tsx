@@ -42,7 +42,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps) {
   const [sending, setSending] = useState(false);
   const [chatRoomId, setChatRoomId] = useState('');
   const [userOnlineStatus, setUserOnlineStatus] = useState(false);
-  const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received'>('none');
+  const [pendingRequestStatus, setPendingRequestStatus] = useState<'none' | 'sent' | 'received' | 'connected'>('none');
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [messageUnsubscribe, setMessageUnsubscribe] = useState<(() => void) | null>(null);

@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../config/constants';
 
 interface ChatStatusBannerProps {
-  pendingRequestStatus: 'none' | 'sent' | 'received';
+  pendingRequestStatus: 'none' | 'sent' | 'received' | 'connected';
   t: (key: string) => string;
 }
 
@@ -11,7 +11,7 @@ export default function ChatStatusBanner({
   pendingRequestStatus,
   t,
 }: ChatStatusBannerProps) {
-  if (pendingRequestStatus === 'none') {
+  if (pendingRequestStatus === 'none' || pendingRequestStatus === 'connected') {
     return null;
   }
 

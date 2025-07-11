@@ -207,13 +207,43 @@ export const markMessagesAsRead = async (chatRoomId: string, userId: string, cur
 export const checkPendingRequestStatus = async (
   currentUserId: string,
   userId: string
-): Promise<'none' | 'sent' | 'received'> => {
+): Promise<'none' | 'sent' | 'received' | 'connected'> => {
   try {
     if (!currentUserId) return 'none';
 
     const firestore = getFirestore();
 
-    // Check if current user sent a request to the other user
+    // First check if there's an active connection
+    const connectionsQuery = query(
+      collection(firestore, 'connections'),
+      where('participants', 'array-contains', currentUserId),
+      where('status', '==', 'active')
+    );
+    const connectionsSnapshot = await getDocs(connectionsQuery);
+
+    for (const connectionDoc of connectionsSnapshot.docs) {
+      const connectionData = connectionDoc.data();
+      if (connectionData.participants.includes(userId)) {
+        return 'connected';
+      }
+    }
+
+    // Check for accepted requests (which should create connections but just in case)
+    const acceptedRequestQuery = query(
+      collection(firestore, 'connectionRequests'),
+      where('status', '==', 'accepted')
+    );
+    const acceptedRequestSnapshot = await getDocs(acceptedRequestQuery);
+
+    for (const requestDoc of acceptedRequestSnapshot.docs) {
+      const requestData = requestDoc.data();
+      if ((requestData.fromUserId === currentUserId && requestData.toUserId === userId) ||
+          (requestData.fromUserId === userId && requestData.toUserId === currentUserId)) {
+        return 'connected';
+      }
+    }
+
+    // Check if current user sent a pending request to the other user
     const sentRequestQuery = query(
       collection(firestore, 'connectionRequests'),
       where('fromUserId', '==', currentUserId),
@@ -226,7 +256,7 @@ export const checkPendingRequestStatus = async (
       return 'sent';
     }
 
-    // Check if the other user sent a request to current user
+    // Check if the other user sent a pending request to current user
     const receivedRequestQuery = query(
       collection(firestore, 'connectionRequests'),
       where('fromUserId', '==', userId),
@@ -302,8 +332,11 @@ export const sendChatMessage = async (
       read: false,
     });
 
-    // Create connection request if no existing pending request AND not replying to a request
-    if (!hasExistingRequest && !isReplyToRequest) {
+    // Check connection status to prevent duplicate requests
+    const connectionStatus = await checkPendingRequestStatus(currentUserId, receiverId);
+    
+    // Create connection request only if no existing relationship AND not replying to a request
+    if (!hasExistingRequest && !isReplyToRequest && connectionStatus === 'none') {
       const currentUserDoc = await getDoc(doc(firestore, 'users', currentUserId));
       const currentUserData = currentUserDoc.data();
 
@@ -322,16 +355,7 @@ export const sendChatMessage = async (
         chatId: chatRoomId,
       });
 
-      // Remove user from nearby Redux state after sending connection request
-      try {
-        const { store } = await import('../store');
-        const { removeUserFromNearby } = await import('../store/nearbySlice');
-        store.dispatch(removeUserFromNearby(receiverId));
-        console.log('User removed from nearby list after connection request:', receiverId);
-      } catch (reduxError) {
-        console.error('Error removing user from nearby list:', reduxError);
-        // Don't throw here as the main operation succeeded
-      }
+      
     }
 
     // Update chat document with last message info
@@ -410,16 +434,7 @@ export const createConnectionRequest = async (
 
     console.log('Connection request created successfully');
 
-      // Remove user from nearby Redux state after sending connection request
-      try {
-        const { store } = await import('../store');
-        const { removeUserFromNearby } = await import('../store/nearbySlice');
-        store.dispatch(removeUserFromNearby(toUserId));
-        console.log('User removed from nearby list after connection request:', toUserId);
-      } catch (reduxError) {
-        console.error('Error removing user from nearby list:', reduxError);
-        // Don't throw here as the main operation succeeded
-      }
+      
 
       return { success: true, requestId: docRef.id };
     } catch (error) {
