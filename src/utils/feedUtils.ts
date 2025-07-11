@@ -110,7 +110,7 @@ export const loadConnectionPosts = async (
     }
 
     const userLocation = userData.location || currentUserLocation;
-    const currentUserRadius = userData.radius || userRadius || 0.1; // Default 100m
+    const currentUserRadius = userData.trackingRadius ? userData.trackingRadius / 1000 : userRadius || 0.1; // Default 100m
     const sameNetworkMatchingEnabled = userData.sameNetworkMatching ?? true;
     const currentUserNetworkId = userData.currentNetworkId;
 
@@ -210,7 +210,7 @@ export const loadConnectionPosts = async (
           );
 
           // Get user's radius preference, use smaller of the two or default
-          const userRadius = user.radius || 0.1;
+          const userRadius = user.trackingRadius ? user.trackingRadius / 1000 : 0.1;
           const effectiveRadius = Math.min(currentUserRadius, userRadius);
 
           shouldInclude = distance <= effectiveRadius;
