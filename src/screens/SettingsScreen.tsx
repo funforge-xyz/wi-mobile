@@ -56,7 +56,7 @@ export default function SettingsScreen() {
   const profile = useAppSelector((state) => state.user.profile);
 
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
-  const [trackingRadius, setTrackingRadius] = useState(1);
+  const [trackingRadius, setTrackingRadius] = useState(0.1);
   const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
   const [sameNetworkMatchingEnabled, setSameNetworkMatchingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

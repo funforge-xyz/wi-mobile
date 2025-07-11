@@ -89,7 +89,7 @@ export default function FeedScreen({ navigation }: any) {
   const [notificationKey, setNotificationKey] = useState(0);
   const [isScreenFocused, setIsScreenFocused] = useState(true);
   const [rememberedVideoId, setRememberedVideoId] = useState<string | null>(null);
-  const [userRadius, setUserRadius] = useState<number>(10);
+  const [trackingRadius, setTrackingRadius] = useState<number>(0.1);
   const [currentUserLocation, setCurrentUserLocation] = useState<any>(null);
   const [lastPostTimestamp, setLastPostTimestamp] = useState<Date | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
@@ -314,7 +314,7 @@ export default function FeedScreen({ navigation }: any) {
 
               const radius = await loadUserSettings();
               if (radius) {
-                setUserRadius(radius);
+                setTrackingRadius(radius);
               }
 
               let location = null;
@@ -392,9 +392,9 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
 
   const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>) => {
-    console.log('loadPosts called:', { isRefresh, currentUserLocation, userRadius });
+    console.log('loadPosts called:', { isRefresh, currentUserLocation, trackingRadius });
 
-    const effectiveRadius = currentUserLocation ? userRadius : 0;
+    const effectiveRadius = currentUserLocation ? trackingRadius : 0;
     const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
     const { getAuth } = await import('../services/firebase');
@@ -451,7 +451,7 @@ export default function FeedScreen({ navigation }: any) {
       console.log('='.repeat(80));
       console.log('Total posts fetched:', postsWithConnectionInfo.length);
       console.log('Current user location:', currentUserLocation);
-      console.log('User radius:', userRadius);
+      console.log('Tracking radius:', trackingRadius);
       console.log('Connection IDs:', Array.from(connectionIds));
 
       // Debug: Log which users have posts vs which are in nearby
@@ -466,7 +466,7 @@ export default function FeedScreen({ navigation }: any) {
             post.authorLocation.latitude,
             post.authorLocation.longitude
           );
-          console.log(`Post author ${post.authorName}: ${distance.toFixed(2)}km away, within radius: ${distance <= userRadius}`);
+          console.log(`Post author ${post.authorName}: ${distance.toFixed(2)}km away, within radius: ${distance <= trackingRadius}`);
         }
       });
 
@@ -536,7 +536,7 @@ export default function FeedScreen({ navigation }: any) {
       console.log('Loading more posts...');
       setLoadingMore(true);
 
-      const effectiveRadius = currentUserLocation ? userRadius : 0;
+      const effectiveRadius = currentUserLocation ? trackingRadius : 0;
       const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
       const { getAuth } = await import('../services/firebase');
@@ -589,7 +589,7 @@ export default function FeedScreen({ navigation }: any) {
       setLoadingMore(false);
     }
     }, 300); // 300ms debounce
-  }, [hasMorePosts, lastPostTimestamp, loadingMore, currentUserLocation, userRadius, connectionIds]);
+  }, [hasMorePosts, lastPostTimestamp, loadingMore, currentUserLocation, trackingRadius, connectionIds]);
 
   const onRefresh = async () => {
     // Reset all pagination and state variables like initial load

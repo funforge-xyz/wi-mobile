@@ -348,26 +348,34 @@ export const loadConnectionPosts = async (
 
 export const loadUserSettings = async (): Promise<number | null> => {
   try {
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
+    const settings = new Settings();
+    let savedRadiusInMeters = await settings.getTrackingRadius();
 
-    if (!currentUser) {
-      return null;
+    // Try to get from Firebase if available
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser || await authService.getCurrentUser();
+
+      if (currentUser) {
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists() && userDoc.data().trackingRadius) {
+          savedRadiusInMeters = userDoc.data().trackingRadius;
+        }
+      }
+    } catch (error) {
+      console.log('Could not load radius from Firebase, using local storage');
     }
 
-    const firestore = getFirestore();
-    const userDocRef = doc(firestore, 'users', currentUser.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      return userData.radius || null;
-    }
-
-    return null;
+    // Convert meters to kilometers, default to 0.1km (100m) if not set
+    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 0.1;
+    return radiusInKm;
   } catch (error) {
     console.error('Error loading user settings:', error);
-    return null;
+    return 0.1; // Default to 0.1km (100m)
   }
 };
 
