@@ -31,7 +31,11 @@ export const loadSettings = async (
   try {
     const settings = await settingsService.loadSettings();
     setPushNotificationsEnabled(settings.pushNotificationsEnabled);
-    setTrackingRadius(settings.trackingRadius);
+    
+    // Convert tracking radius from meters to kilometers for display
+    const radiusInKm = settings.trackingRadius / 1000;
+    setTrackingRadius(radiusInKm);
+    
     const locationTracking = await settingsService.getLocationTracking();
     setLocationTrackingEnabled(locationTracking);
 

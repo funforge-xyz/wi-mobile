@@ -348,11 +348,10 @@ export const loadConnectionPosts = async (
 
 export const loadUserSettings = async (): Promise<number | null> => {
   try {
-    const { storageService, Settings } = await import('../services/storage');
+    const { settingsService } = await import('../services/settings');
     const { authService } = await import('../services/auth');
-    
-    const settings = new Settings();
-    let savedRadiusInMeters = await settings.getTrackingRadius();
+
+    let savedRadiusInMeters = await settingsService.getTrackingRadius();
 
     // Try to get from Firebase if available
     try {
