@@ -124,7 +124,7 @@ export const loadNearbyUsers = async (
     }
 
     const currentUserLocation = userData.location;
-    const currentUserRadius = userData.trackingRadius ? userData.trackingRadius / 1000 : 100; // Convert meters to km, default 100km
+    const currentUserRadius = userData.trackingRadius ? userData.trackingRadius / 1000 : 0.1; // Convert meters to km, default 100m
     const sameNetworkMatchingEnabled = userData.sameNetworkMatching ?? true;
     const currentUserNetworkId = userData.currentNetworkId;
 
@@ -249,7 +249,7 @@ export const loadNearbyUsers = async (
           );
 
           // Get user's radius preference, use smaller of the two or default
-          const userRadius = user.trackingRadius ? user.trackingRadius / 1000 : 100;
+          const userRadius = user.trackingRadius ? user.trackingRadius / 1000 : 0.1; // Convert meters to km, default 100m
           const effectiveRadius = Math.min(currentUserRadius, userRadius);
 
           shouldInclude = distance <= effectiveRadius;

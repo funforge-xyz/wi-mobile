@@ -378,7 +378,7 @@ export const loadUserSettings = async (): Promise<number | null> => {
     return radiusInKm;
   } catch (error) {
     console.error('Error loading user settings:', error);
-    return 100; // Default to 100km
+    return 0.1; // Default to 100m (0.1km)
   }
 };
 
@@ -492,7 +492,7 @@ export async function loadFeedPosts(
     // Get user settings
     const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
     const userData = userDoc.data();
-    const userRadius = userData?.trackingRadius ? userData.trackingRadius / 1000 : 100; // Convert meters to km, default 100km
+    const userRadius = userData?.trackingRadius ? userData.trackingRadius / 1000 : 0.1; // Convert meters to km, default 100m
     const sameNetworkMatchingEnabled = userData?.sameNetworkMatchingEnabled || false;
     const currentUserNetworkId = userData?.currentNetworkId || null;
     const userLocation = userData?.location;

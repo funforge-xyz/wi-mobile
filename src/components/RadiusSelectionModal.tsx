@@ -28,7 +28,7 @@ export default function RadiusSelectionModal({
 }: RadiusSelectionModalProps) {
   const { t } = useTranslation();
 
-  const radiusOptions = [0.1, 0.2, 0.5]; // 100m, 200m, 500m in kilometers
+  const radiusOptions = [0.1, 0.5, 1, 5, 10, 50, 100]; // 100m, 500m, 1km, 5km, 10km, 50km, 100km
 
   return (
     <Modal 
