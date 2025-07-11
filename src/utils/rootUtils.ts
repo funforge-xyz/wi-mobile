@@ -155,12 +155,12 @@ export const checkOnboardingStatus = async (): Promise<boolean> => {
 };
 
 export const handleOnboardingComplete = async (
-  setShowOnboarding: (value: boolean) => void
+  // setShowOnboarding: (value: boolean) => void
 ) => {
   const { Settings } = await import('../services/storage');
   const settings = new Settings();
   await settings.setOnboardingDone(true);
-  setShowOnboarding(false);
+  // setShowOnboarding(false);
 };
 
 export const setupSignOutCallback = (

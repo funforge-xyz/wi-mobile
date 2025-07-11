@@ -138,7 +138,7 @@ export default function RootScreen() {
 
   const handleOnboardingComplete = async () => {
     try {
-      await utilHandleOnboardingComplete(settings, setShowOnboarding);
+      await utilHandleOnboardingComplete();
       // Ensure we explicitly set showOnboarding to false
       setShowOnboarding(false);
     } catch (error) {
