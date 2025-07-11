@@ -37,6 +37,8 @@ import {
   showImagePickerOptions,
   getCurrentLanguageName,
   changeLanguage,
+  loadSettings,
+  loadUserData,
 } from '../utils/settingsUtils';
 import ProfileEditSuccessModal from '../components/ProfileEditSuccessModal';
 import { useDataRefresh } from '../hooks/useDataRefresh';

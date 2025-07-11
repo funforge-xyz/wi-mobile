@@ -21,73 +21,31 @@ export interface UserProfile {
   bio: string;
 }
 
+// Load settings from storage
 export const loadSettings = async (
   setPushNotificationsEnabled: (value: boolean) => void,
   setTrackingRadius: (value: number) => void,
   setLocationTrackingEnabled: (value: boolean) => void
 ) => {
   try {
-    const settings = new Settings();
-    const pushEnabled = await settingsService.getPushNotifications();
-    let savedRadiusInMeters = await settings.getTrackingRadius();
-
-    try {
-      const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser || await authService.getCurrentUser();
-
-      if (currentUser) {
-        const firestore = getFirestore();
-        const userDocRef = doc(firestore, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists() && userDoc.data().trackingRadius) {
-          savedRadiusInMeters = userDoc.data().trackingRadius;
-        }
-      }
-    } catch (error) {
-      console.log('Could not load radius from Firebase, using local storage');
-    }
-
-    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 0.1; // Default to 100m (0.1km)
-    setTrackingRadius(radiusInKm);
-
-    const hasLocationPermissions = await locationService.checkPermissions();
-    const isTracking = locationService.isLocationTrackingActive();
-    setLocationTrackingEnabled(hasLocationPermissions && isTracking);
-
-    
+    const settings = await settingsService.loadSettings();
+    setPushNotificationsEnabled(settings.pushNotificationsEnabled);
+    setTrackingRadius(settings.trackingRadius);
+    setLocationTrackingEnabled(settings.locationTrackingEnabled);
   } catch (error) {
     console.error('Error loading settings:', error);
   }
 };
 
-export const loadUserData = async (setEditedProfile: (profile: UserProfile) => void, setIsLoading: (loading: boolean) => void) => {
-  setIsLoading(true);
+// Load user data for profile editing
+export const loadUserData = async (
+  setEditedProfile: (profile: any) => void,
+  setIsLoading: (loading: boolean) => void
+) => {
   try {
-    const { getAuth } = await import('../services/firebase');
-    const auth = getAuth();
-    const user = auth.currentUser || await authService.getCurrentUser();
-
-    if (user) {
-      const firestore = getFirestore();
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        setEditedProfile({
-          id: userDoc.data().id || '',
-          firstName: userDoc.data().firstName || '',
-          lastName: userDoc.data().lastName || '',
-          email: userDoc.data().email || '',
-          photoURL: userDoc.data().photoURL || '',
-          thumbnailURL: userDoc.data().thumbnailURL || userDoc.data().photoURL || '',
-          bio: userDoc.data().bio || '',
-        });
-      } else {
-        console.warn('User document not found');
-      }
-    }
+    setIsLoading(true);
+    // This will be handled by the profile state from Redux
+    // No need to fetch here as it's already available in the component
   } catch (error) {
     console.error('Error loading user data:', error);
   } finally {
