@@ -511,13 +511,26 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
-  const loadMorePosts = async () => {
-    console.log('loadMorePosts called:', { loadingMore, hasMorePosts, lastPostTimestamp });
+  const loadMorePostsRef = useRef<NodeJS.Timeout>();
 
-    if (loadingMore || !hasMorePosts || !lastPostTimestamp) {
-      console.log('Skipping loadMorePosts:', { loadingMore, hasMorePosts, lastPostTimestamp });
+  const loadMorePosts = useCallback(async () => {
+    console.log('loadMorePosts called:', { hasMorePosts, lastPostTimestamp, loadingMore });
+
+    if (!hasMorePosts || loadingMore || !lastPostTimestamp) {
+      console.log('Skipping loadMorePosts:', { hasMorePosts, lastPostTimestamp, loadingMore });
       return;
     }
+
+    // Clear any existing timeout
+    if (loadMorePostsRef.current) {
+      clearTimeout(loadMorePostsRef.current);
+    }
+
+    // Debounce the call
+    loadMorePostsRef.current = setTimeout(async () => {
+      if (!hasMorePosts || loadingMore || !lastPostTimestamp) {
+        return;
+      }
 
     try {
       console.log('Loading more posts...');
@@ -575,7 +588,8 @@ export default function FeedScreen({ navigation }: any) {
     } finally {
       setLoadingMore(false);
     }
-  };
+    }, 300); // 300ms debounce
+  }, [hasMorePosts, lastPostTimestamp, loadingMore, currentUserLocation, userRadius, connectionIds]);
 
   const onRefresh = async () => {
     // Reset all pagination and state variables like initial load
@@ -796,7 +810,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const handleCommentsCountChange = (postId: string, newCount: number) => {
     console.log('FeedScreen - handleCommentsCountChange:', postId, newCount);
-    
+
     // Update local posts state with the exact count passed from modal
     setPosts(prevPosts => {
       const updated = prevPosts.map(post => 
@@ -813,7 +827,7 @@ export default function FeedScreen({ navigation }: any) {
     }));
   };
 
-  
+
 
   // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
   const videoPlayerCreated = useRef<Set<string>>(new Set());
@@ -1036,6 +1050,8 @@ export default function FeedScreen({ navigation }: any) {
               progressBackgroundColor="transparent"
             />
           }
+          onEndReached={loadMorePosts}
+          onEndReachedThreshold={0.5}
         />
       )}
 
