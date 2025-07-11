@@ -30,7 +30,7 @@ export default function ChangePasswordSuccessModal({
     if (visible) {
       const timer = setTimeout(() => {
         onClose();
-      }, 2000); // Auto-close after 2 seconds
+      }, 2500); // Auto-close after 2.5 seconds
 
       return () => clearTimeout(timer);
     }

@@ -106,6 +106,11 @@ export default function ChangePasswordModal({
         duration: 300,
         useNativeDriver: true,
       }).start();
+
+      // Clear input fields after successful password change
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error: any) {
       console.error('Change password error:', error);
 
@@ -168,7 +173,7 @@ export default function ChangePasswordModal({
                     setError(null);
                   }}
                   secureTextEntry
-                  editable={!isLoading}
+                  editable={!isLoading && !showSuccess}
                 />
               </View>
             </View>
@@ -190,7 +195,7 @@ export default function ChangePasswordModal({
                     setError(null);
                   }}
                   secureTextEntry
-                  editable={!isLoading}
+                  editable={!isLoading && !showSuccess}
                 />
               </View>
             </View>
@@ -212,7 +217,7 @@ export default function ChangePasswordModal({
                     setError(null);
                   }}
                   secureTextEntry
-                  editable={!isLoading}
+                  editable={!isLoading && !showSuccess}
                 />
               </View>
             </View>
