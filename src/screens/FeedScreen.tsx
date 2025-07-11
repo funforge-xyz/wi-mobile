@@ -29,6 +29,7 @@ import EmptyFeedState from '../components/EmptyFeedState';
 import PostDetailsModal from '../components/PostDetailsModal';
 import UserAvatar from '../components/UserAvatar';
 import SkeletonLoader from '../components/SkeletonLoader';
+import LocationPermissionModal from '../components/LocationPermissionModal';
 import { useTranslation } from 'react-i18next';
 import { 
   loadUserSettings, 
@@ -111,6 +112,8 @@ export default function FeedScreen({ navigation }: any) {
   const [mediaLoadingStates, setMediaLoadingStates] = useState<{[key: string]: boolean}>({});
   const [expandedDescriptions, setExpandedDescriptions] = useState<{[key: string]: boolean}>({});
   const [connectionIds, setConnectionIds] = useState<Set<string>>(new Set());
+  const [locationPermissionStatus, setLocationPermissionStatus] = useState<'checking' | 'granted' | 'denied'>('checking');
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const currentTheme = getTheme(isDarkMode);
   const videoPlayersRef = useRef<{[key: string]: any}>({});
@@ -330,6 +333,17 @@ export default function FeedScreen({ navigation }: any) {
               if (radius.status === 'fulfilled' && radius.value) {
                 setTrackingRadius(radius.value);
               }
+
+              // Check location permissions first
+              const hasLocationPermissions = await locationService.checkPermissions();
+              if (!hasLocationPermissions) {
+                console.log('FeedScreen: No location permissions');
+                setLocationPermissionStatus('denied');
+                setLoading(false);
+                return;
+              }
+
+              setLocationPermissionStatus('granted');
 
               // Handle location
               if (location.status === 'fulfilled') {
@@ -801,6 +815,32 @@ export default function FeedScreen({ navigation }: any) {
     }));
   };
 
+  const handleLocationEnabled = async () => {
+    setShowLocationModal(false);
+    setLocationPermissionStatus('checking');
+    setLoading(true);
+    
+    try {
+      const hasPermissions = await locationService.requestPermissions();
+      if (hasPermissions) {
+        setLocationPermissionStatus('granted');
+        const location = await locationService.getCurrentLocation();
+        if (location) {
+          setCurrentUserLocation(location);
+          await locationService.startLocationTracking();
+          await loadPosts(true);
+        }
+      } else {
+        setLocationPermissionStatus('denied');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error enabling location:', error);
+      setLocationPermissionStatus('denied');
+      setLoading(false);
+    }
+  };
+
 
 
   // Create video players for all video posts - moved outside useEffect to avoid hook rule violations
@@ -1015,11 +1055,10 @@ export default function FeedScreen({ navigation }: any) {
         >
           <EmptyFeedState 
             currentTheme={currentTheme} 
-            title={currentUserLocation ? t('feed.noPosts') : undefined}
-            subtitle={currentUserLocation ? t('feed.shareFirst') : undefined}
-            onLocationEnabled={() => {
-              loadPosts(true);
-            }}
+            title={locationPermissionStatus === 'granted' && currentUserLocation ? t('feed.noPosts') : undefined}
+            subtitle={locationPermissionStatus === 'granted' && currentUserLocation ? t('feed.shareFirst') : undefined}
+            locationPermissionStatus={locationPermissionStatus}
+            onLocationEnabled={handleLocationEnabled}
           />
         </ScrollView>
       ) : (
@@ -1072,6 +1111,14 @@ export default function FeedScreen({ navigation }: any) {
             handleCommentsCountChange(selectedPostId, newCount);
           }
         }}
+      />
+
+      <LocationPermissionModal
+        isVisible={showLocationModal}
+        onRequestPermission={handleLocationEnabled}
+        onCancel={() => setShowLocationModal(false)}
+        permissionDenied={locationPermissionStatus === 'denied'}
+        hasTriedRequest={locationPermissionStatus !== 'checking'}
       />
     </View>
   );

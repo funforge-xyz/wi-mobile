@@ -16,6 +16,7 @@ interface EmptyFeedStateProps {
   title?: string;
   subtitle?: string;
   icon?: string;
+  locationPermissionStatus?: 'checking' | 'granted' | 'denied';
   onLocationEnabled?: () => void;
 }
 
@@ -24,11 +25,10 @@ export default function EmptyFeedState({
   title, 
   subtitle, 
   icon = "newspaper-outline",
+  locationPermissionStatus = 'checking',
   onLocationEnabled
 }: EmptyFeedStateProps) {
   const { t } = useTranslation();
-  const [hasLocationPermission, setHasLocationPermission] = useState<boolean | null>(null);
-  const [isLocationTracking, setIsLocationTracking] = useState(false);
 
   // Force dark mode theme for feed screen
   const darkTheme = {
@@ -38,44 +38,15 @@ export default function EmptyFeedState({
     buttonText: '#FFFFFF'
   };
 
-  useEffect(() => {
-    checkLocationStatus();
-  }, []);
-
-  const checkLocationStatus = async () => {
-    try {
-      const hasPermissions = await locationService.checkPermissions();
-      const isTracking = locationService.isLocationTrackingActive();
-      
-      setHasLocationPermission(hasPermissions);
-      setIsLocationTracking(isTracking);
-    } catch (error) {
-      console.error('Error checking location status:', error);
-      setHasLocationPermission(false);
+  const handleEnableLocation = () => {
+    if (onLocationEnabled) {
+      onLocationEnabled();
     }
   };
 
-  const handleEnableLocation = async () => {
-    try {
-      const hasPermissions = await locationService.requestPermissions();
-      if (hasPermissions) {
-        // Start location tracking
-        await locationService.startLocationTracking();
-        setHasLocationPermission(true);
-        setIsLocationTracking(true);
-        // Notify parent component to refresh the feed
-        if (onLocationEnabled) {
-          onLocationEnabled();
-        }
-      }
-    } catch (error) {
-      console.error('Error enabling location:', error);
-    }
-  };
-
-  // Determine what to show based on location status
+  // Determine what to show based on location status from parent
   const getDisplayContent = () => {
-    if (hasLocationPermission === null) {
+    if (locationPermissionStatus === 'checking') {
       // Still checking permissions
       return {
         title: t('feed.loading'),
@@ -86,7 +57,7 @@ export default function EmptyFeedState({
       };
     }
 
-    if (!hasLocationPermission || !isLocationTracking) {
+    if (locationPermissionStatus === 'denied') {
       // Location not enabled
       return {
         title: t('feed.empty.locationRequired'),
