@@ -232,7 +232,7 @@ export default function ChangePasswordModal({
         visible={showSuccess}
         onClose={handleSuccessModalClose}
         currentTheme={currentTheme}
-        successAnimation={successAnimation}
+        animation={successAnimation}
       />
     </>
   );
