@@ -283,6 +283,11 @@ export class AuthService {
 
   async signOut(): Promise<void> {
     try {
+      // Stop location tracking and cleanup background tasks
+      const { locationService } = await import('./locationService');
+      await locationService.stopLocationTracking();
+      console.log('Location tracking stopped during sign out');
+
       const auth = getAuth();
       await signOut(auth);
       await this.credentials.removeToken();
@@ -309,6 +314,11 @@ export class AuthService {
 
   async logout(dispatch: any): Promise<void> {
     try {
+      // Stop location tracking and cleanup background tasks
+      const { locationService } = await import('./locationService');
+      await locationService.stopLocationTracking();
+      console.log('Location tracking stopped during logout');
+
       // Clear all Redux state first
       dispatch({ type: 'user/logout' });
       dispatch({ type: 'feed/logout' });
@@ -473,6 +483,11 @@ export class AuthService {
       const { deleteUser } = await import('firebase/auth');
       await deleteUser(user);
       console.log("User account deleted successfully");
+
+      // Stop location tracking and cleanup background tasks
+      const { locationService } = await import('./locationService');
+      await locationService.stopLocationTracking();
+      console.log('Location tracking stopped during account deletion');
 
       // Clear local storage
       await this.credentials.removeToken();
@@ -810,8 +825,13 @@ export const logout = async (): Promise<void> => {
     const { clearFeedData } = await import('../store/feedSlice');
     const { logout: nearbyLogout } = await import('../store/nearbySlice');
     const { store } = await import('../store');
+    const { locationService } = await import('./locationService');
 
     const auth = getAuth();
+
+    // Stop location tracking and cleanup background tasks
+    await locationService.stopLocationTracking();
+    console.log('Location tracking stopped during logout');
 
     // Clear Redux state first
     store.dispatch(userLogout());
