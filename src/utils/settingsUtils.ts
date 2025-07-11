@@ -32,8 +32,31 @@ export const loadSettings = async (
     const settings = await settingsService.loadSettings();
     setPushNotificationsEnabled(settings.pushNotificationsEnabled);
     
+    let finalRadiusInMeters = settings.trackingRadius;
+
+    // Try to get the latest radius from Firebase
+    try {
+      const { getAuth } = await import('../services/firebase');
+      const auth = getAuth();
+      const currentUser = auth.currentUser || await authService.getCurrentUser();
+
+      if (currentUser) {
+        const firestore = getFirestore();
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists() && userDoc.data().trackingRadius) {
+          finalRadiusInMeters = userDoc.data().trackingRadius;
+          // Update local storage with Firebase value
+          await settingsService.setTrackingRadius(finalRadiusInMeters);
+        }
+      }
+    } catch (firebaseError) {
+      console.log('Could not sync radius from Firebase, using local value');
+    }
+    
     // Convert tracking radius from meters to kilometers for display
-    const radiusInKm = settings.trackingRadius / 1000;
+    const radiusInKm = finalRadiusInMeters / 1000;
     setTrackingRadius(radiusInKm);
     
     const locationTracking = await settingsService.getLocationTracking();
