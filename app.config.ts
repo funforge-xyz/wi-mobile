@@ -22,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "**/*"
   ],
   ios: {
+    buildNumber: "2",
     googleServicesFile: "./GoogleService-Info.plist",
     supportsTablet: true,
     bundleIdentifier: "com.wichatapp",
