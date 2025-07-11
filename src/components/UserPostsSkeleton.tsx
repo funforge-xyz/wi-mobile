@@ -15,8 +15,8 @@ export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps)
   const currentTheme = getTheme(isDarkMode);
 
   const renderSkeletonGridItem = (index: number) => {
-    const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
-    const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio
+    const itemWidth = Math.floor((width - 4) / 3); // 3 columns with proper spacing
+    const itemHeight = Math.floor((itemWidth * 3) / 2); // 2:3 aspect ratio
 
     return (
       <View
@@ -25,8 +25,8 @@ export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps)
           {
             width: itemWidth,
             height: itemHeight,
-            marginRight: (index + 1) % 3 === 0 ? 0 : 1,
-            marginBottom: 1,
+            marginRight: (index + 1) % 3 === 0 ? 0 : 2,
+            marginBottom: 2,
             backgroundColor: currentTheme.skeleton,
             overflow: 'hidden',
           }
@@ -140,7 +140,8 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 0,
+    paddingHorizontal: 2,
+    justifyContent: 'flex-start',
   },
   gridSkeletonItem: {
     backgroundColor: '#f0f0f0',
