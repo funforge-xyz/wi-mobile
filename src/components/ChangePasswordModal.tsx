@@ -29,6 +29,9 @@ export default function ChangePasswordModal({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successAnimation] = useState(new Animated.Value(0));
@@ -37,6 +40,9 @@ export default function ChangePasswordModal({
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
     setError(null);
     onClose();
   };
@@ -102,6 +108,9 @@ export default function ChangePasswordModal({
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       
       // Close the change password modal first
       onClose();
@@ -174,9 +183,20 @@ export default function ChangePasswordModal({
                     setCurrentPassword(text);
                     setError(null);
                   }}
-                  secureTextEntry
+                  secureTextEntry={!showCurrentPassword}
                   editable={!isLoading}
                 />
+                <TouchableOpacity
+                  onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                  style={{ padding: 4 }}
+                  disabled={isLoading}
+                >
+                  <Ionicons
+                    name={showCurrentPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={currentTheme.textSecondary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -196,9 +216,20 @@ export default function ChangePasswordModal({
                     setNewPassword(text);
                     setError(null);
                   }}
-                  secureTextEntry
+                  secureTextEntry={!showNewPassword}
                   editable={!isLoading}
                 />
+                <TouchableOpacity
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                  style={{ padding: 4 }}
+                  disabled={isLoading}
+                >
+                  <Ionicons
+                    name={showNewPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={currentTheme.textSecondary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -218,9 +249,20 @@ export default function ChangePasswordModal({
                     setConfirmPassword(text);
                     setError(null);
                   }}
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   editable={!isLoading}
                 />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{ padding: 4 }}
+                  disabled={isLoading}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={currentTheme.textSecondary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
