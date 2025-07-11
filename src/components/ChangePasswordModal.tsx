@@ -48,7 +48,6 @@ export default function ChangePasswordModal({
       useNativeDriver: true,
     }).start(() => {
       setShowSuccess(false);
-      onClose();
     });
   };
 
@@ -99,18 +98,21 @@ export default function ChangePasswordModal({
       setIsLoading(true);
       await authService.changePassword(currentPassword, newPassword);
 
-      // Show success modal with animation
+      // Clear input fields after successful password change
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      // Close the change password modal first
+      onClose();
+      
+      // Then show success modal with animation
       setShowSuccess(true);
       Animated.timing(successAnimation, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-
-      // Clear input fields after successful password change
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
     } catch (error: any) {
       console.error('Change password error:', error);
 
