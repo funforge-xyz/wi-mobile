@@ -15,60 +15,53 @@ let updateTimeout: NodeJS.Timeout | null = null;
 const MIN_UPDATE_INTERVAL = 30000; // 30 seconds minimum between updates
 const MIN_DISTANCE_THRESHOLD = 10; // 10 meters minimum distance change
 
-// Flag to ensure task is only defined once
-let isTaskDefined = false;
+// Define the background task at module level (during app initialization)
+// This ensures it's available when the system tries to execute it
+TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+  if (error) {
+    console.error('Background location task error:', error);
+    return;
+  }
 
-// Function to define the background task (called only when needed)
-const initializeLocationTask = async (): Promise<void> => {
-  if (isTaskDefined) return;
-  
-  try {
-    const alreadyDefined = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
-    if (alreadyDefined) {
-      isTaskDefined = true;
-      return;
-    }
+  if (data) {
+    try {
+      const { locations } = data as any;
+      const location = locations[0];
 
-    TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-      if (error) {
-        console.error('Background location task error:', error);
-        return;
-      }
-
-      if (data) {
+      if (location) {
+        // Get the LocationService instance safely
         try {
-          const { locations } = data as any;
-          const location = locations[0];
+          const locationService = LocationService.getInstance();
 
-          if (location) {
-            const locationService = LocationService.getInstance();
+          // Check if we should allow this background update
+          if (locationService.shouldAllowBackgroundUpdate()) {
+            await updateUserLocationInFirestore(
+              location.coords.latitude,
+              location.coords.longitude
+            );
 
-            // Check if we should allow this background update
-            if (locationService.shouldAllowBackgroundUpdate()) {
-              await updateUserLocationInFirestore(
-                location.coords.latitude,
-                location.coords.longitude
-              );
-
-              // Increment background update counter only if not in foreground
-              if (!locationService.isInForeground) {
-                locationService.backgroundUpdateCount++;
-                console.log(`Background location update ${locationService.backgroundUpdateCount}/${locationService.maxBackgroundUpdates}`);
-              }
+            // Increment background update counter only if not in foreground
+            if (!locationService.isInForeground) {
+              locationService.backgroundUpdateCount++;
+              console.log(`Background location update ${locationService.backgroundUpdateCount}/${locationService.maxBackgroundUpdates}`);
             }
           }
-        } catch (taskError) {
-          console.error('Error processing location in background task:', taskError);
+        } catch (instanceError) {
+          console.error('Error getting LocationService instance in background task:', instanceError);
+          // Still try to update location even if instance access fails
+          await updateUserLocationInFirestore(
+            location.coords.latitude,
+            location.coords.longitude
+          );
         }
       }
-    });
-    
-    isTaskDefined = true;
-    console.log('✅ Background location task defined successfully');
-  } catch (defineError) {
-    console.error('Failed to define location background task:', defineError);
+    } catch (taskError) {
+      console.error('Error processing location in background task:', taskError);
+    }
   }
-};
+});
+
+console.log('✅ Background location task defined at module level');
 
 export class LocationService {
   private static instance: LocationService;
@@ -157,9 +150,6 @@ export class LocationService {
         return false;
       }
 
-      // Initialize the background task first
-      await initializeLocationTask();
-
       // Get current location first with timeout and fallback
       console.log('🗺️ Starting location tracking - getting initial position...');
       let currentLocation;
@@ -217,12 +207,7 @@ export class LocationService {
       );
       console.log('✅ Initial location updated successfully');
 
-      // Ensure the background task is properly defined before starting
-      const isTaskDefinedNow = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
-      if (!isTaskDefinedNow) {
-        console.log('❌ Location task not defined, cannot proceed');
-        return false;
-      }
+      // Task is already defined at module level, so it should always be available
       console.log('✅ Background location task is ready');
 
       // Start background location updates
@@ -266,10 +251,7 @@ export class LocationService {
 
   async stopLocationTracking(): Promise<void> {
     try {
-      const isTaskDefinedNow = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
-      if (isTaskDefinedNow) {
-        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      }
+      await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       this.stopForegroundLocationUpdates();
       this.isTracking = false;
       console.log('Location tracking stopped (foreground + background)');
