@@ -7,6 +7,13 @@ const LOCATION_TASK_NAME = 'background-location-task';
 const BACKGROUND_UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
 const FOREGROUND_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+// Debouncing and duplicate prevention
+let lastUpdateTime = 0;
+let lastLocation: { latitude: number; longitude: number } | null = null;
+let updateTimeout: NodeJS.Timeout | null = null;
+const MIN_UPDATE_INTERVAL = 30000; // 30 seconds minimum between updates
+const MIN_DISTANCE_THRESHOLD = 10; // 10 meters minimum distance change
+
 // Define the background task with error handling
 try {
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -22,14 +29,14 @@ try {
 
         if (location) {
           const locationService = LocationService.getInstance();
-          
+
           // Check if we should allow this background update
           if (locationService.shouldAllowBackgroundUpdate()) {
             await updateUserLocationInFirestore(
               location.coords.latitude,
               location.coords.longitude
             );
-            
+
             // Increment background update counter only if not in foreground
             if (!locationService.isInForeground) {
               locationService.backgroundUpdateCount++;
@@ -105,7 +112,7 @@ export class LocationService {
       // Request background permissions
       console.log('📍 Requesting background location permission...');
       const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-      
+
       if (backgroundStatus !== 'granted') {
         console.log('❌ Background location permission denied');
         if (this.permissionModalCallback) {
@@ -223,12 +230,12 @@ export class LocationService {
       }
 
       this.isTracking = true;
-      
+
       // Start foreground location updates if in foreground
       if (this.isInForeground) {
         this.startForegroundLocationUpdates();
       }
-      
+
       console.log('🎯 Location tracking is now active (foreground + background)');
       return true;
     } catch (error) {
@@ -338,7 +345,7 @@ export class LocationService {
     this.backgroundUpdateCount = 0; // Reset counter when app comes to foreground
     console.log('🌟 App in foreground - location tracking switched to foreground mode');
     console.log('📊 Background update counter reset, tracking status:', this.isTracking);
-    
+
     // Update location immediately when coming to foreground
     if (this.isTracking) {
       this.updateLocationNow();
@@ -360,12 +367,12 @@ export class LocationService {
     if (this.isInForeground) {
       return true; // Always allow foreground updates
     }
-    
+
     if (this.backgroundUpdateCount >= this.maxBackgroundUpdates) {
       console.log(`Background update limit reached (${this.maxBackgroundUpdates}), skipping update`);
       return false;
     }
-    
+
     return true;
   }
 
@@ -374,7 +381,7 @@ export class LocationService {
     if (this.foregroundLocationInterval) {
       clearInterval(this.foregroundLocationInterval);
     }
-    
+
     console.log('🔄 Starting foreground location updates (5-minute interval)');
     this.foregroundLocationInterval = setInterval(async () => {
       if (this.isInForeground && this.isTracking) {
@@ -411,8 +418,25 @@ export class LocationService {
 // Helper function to update user location in Firestore
 async function updateUserLocationInFirestore(latitude: number, longitude: number): Promise<void> {
   try {
+    const now = Date.now();
+
+    // Check if we should skip this update due to debouncing
+    if (now - lastUpdateTime < MIN_UPDATE_INTERVAL) {
+      console.log('⏳ Skipping location update - too soon since last update');
+      return;
+    }
+
+    // Check if location has changed significantly
+    if (lastLocation) {
+      const distance = calculateDistance(lastLocation, {latitude, longitude});
+      if (distance < MIN_DISTANCE_THRESHOLD) {
+        console.log('📍 Skipping location update - distance change too small:', distance + 'm');
+        return;
+      }
+    }
+
     console.log('📤 updateUserLocationInFirestore() called with coords:', { latitude, longitude });
-    
+
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
@@ -430,7 +454,7 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const { wifiService } = await import('./wifiService');
     const wifiInfo = await wifiService.getCurrentWifiInfo();
     console.log('📶 WiFi info:', { isConnected: wifiInfo.isConnected, networkId: wifiInfo.networkId });
-    
+
     const updateData: any = {
       location: {
         latitude,
@@ -450,6 +474,9 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
       updateData.currentNetworkId = null;
       console.log('📶 Clearing network info (not connected to WiFi)');
     }
+        // Update tracking variables only after successful update
+    lastUpdateTime = now;
+    lastLocation = {latitude, longitude};
 
     console.log('💾 Updating Firestore document...');
     await updateDoc(userRef, updateData);
@@ -463,5 +490,24 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     console.error('❌ Error updating user location in Firestore:', error);
   }
 }
+
+// Helper function to calculate distance between two coordinates in meters
+const calculateDistance = (
+  coord1: { latitude: number; longitude: number },
+  coord2: { latitude: number; longitude: number }
+): number => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = coord1.latitude * Math.PI / 180;
+  const φ2 = coord2.latitude * Math.PI / 180;
+  const Δφ = (coord2.latitude - coord1.latitude) * Math.PI / 180;
+  const Δλ = (coord2.longitude - coord1.longitude) * Math.PI / 180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // Distance in meters
+};
 
 export const locationService = LocationService.getInstance();
