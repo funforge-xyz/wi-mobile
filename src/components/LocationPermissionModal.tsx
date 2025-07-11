@@ -20,13 +20,14 @@ interface LocationPermissionModalProps {
   hasTriedRequest?: boolean;
 }
 
-const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({
-  isVisible,
-  onRequestPermission,
-  onCancel,
-  permissionDenied = false,
-  hasTriedRequest = false,
-}) => {
+const LocationPermissionModal: React.FC<LocationPermissionModalProps> = (props) => {
+  const {
+    isVisible,
+    onRequestPermission,
+    onCancel,
+    permissionDenied = false,
+    hasTriedRequest = false,
+  } = props;
   const { t } = useTranslation();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const currentTheme = getTheme(isDarkMode);
