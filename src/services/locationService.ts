@@ -15,53 +15,69 @@ let updateTimeout: NodeJS.Timeout | null = null;
 const MIN_UPDATE_INTERVAL = 30000; // 30 seconds minimum between updates
 const MIN_DISTANCE_THRESHOLD = 10; // 10 meters minimum distance change
 
-// Define the background task at module level (during app initialization)
-// This ensures it's available when the system tries to execute it
-TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-  if (error) {
-    console.error('Background location task error:', error);
+// Define the background task only once to prevent multiple definitions
+let isTaskDefined = false;
+
+const defineLocationTask = () => {
+  if (isTaskDefined) {
+    console.log('⚠️ Background location task already defined, skipping');
     return;
   }
 
-  if (data) {
-    try {
-      const { locations } = data as any;
-      const location = locations[0];
+  try {
+    TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+      if (error) {
+        console.error('Background location task error:', error);
+        return;
+      }
 
-      if (location) {
-        // Get the LocationService instance safely
+      if (data) {
         try {
-          const locationService = LocationService.getInstance();
+          const { locations } = data as any;
+          const location = locations[0];
 
-          // Check if we should allow this background update
-          if (locationService.shouldAllowBackgroundUpdate()) {
-            await updateUserLocationInFirestore(
-              location.coords.latitude,
-              location.coords.longitude
-            );
+          if (location) {
+            // Get the LocationService instance safely
+            try {
+              const locationService = LocationService.getInstance();
 
-            // Increment background update counter only if not in foreground
-            if (!locationService.isInForeground) {
-              locationService.backgroundUpdateCount++;
-              console.log(`Background location update ${locationService.backgroundUpdateCount}/${locationService.maxBackgroundUpdates}`);
+              // Check if we should allow this background update
+              if (locationService.shouldAllowBackgroundUpdate()) {
+                await updateUserLocationInFirestore(
+                  location.coords.latitude,
+                  location.coords.longitude
+                );
+
+                // Increment background update counter only if not in foreground
+                if (!locationService.isInForeground) {
+                  locationService.backgroundUpdateCount++;
+                  console.log(`Background location update ${locationService.backgroundUpdateCount}/${locationService.maxBackgroundUpdates}`);
+                }
+              }
+            } catch (instanceError) {
+              console.error('Error getting LocationService instance in background task:', instanceError);
+              // Still try to update location even if instance access fails
+              await updateUserLocationInFirestore(
+                location.coords.latitude,
+                location.coords.longitude
+              );
             }
           }
-        } catch (instanceError) {
-          console.error('Error getting LocationService instance in background task:', instanceError);
-          // Still try to update location even if instance access fails
-          await updateUserLocationInFirestore(
-            location.coords.latitude,
-            location.coords.longitude
-          );
+        } catch (taskError) {
+          console.error('Error processing location in background task:', taskError);
         }
       }
-    } catch (taskError) {
-      console.error('Error processing location in background task:', taskError);
-    }
-  }
-});
+    });
 
-console.log('✅ Background location task defined at module level');
+    isTaskDefined = true;
+    console.log('✅ Background location task defined successfully');
+  } catch (error) {
+    console.error('❌ Error defining background location task:', error);
+  }
+};
+
+// Define the task immediately but with protection
+defineLocationTask();
 
 export class LocationService {
   private static instance: LocationService;
@@ -207,7 +223,8 @@ export class LocationService {
       );
       console.log('✅ Initial location updated successfully');
 
-      // Task is already defined at module level, so it should always be available
+      // Ensure task is defined before starting location updates
+      defineLocationTask();
       console.log('✅ Background location task is ready');
 
       // Start background location updates
