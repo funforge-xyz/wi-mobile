@@ -6,16 +6,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: "wi-chat-app",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/images/app_icon.png",
+  icon: "./assets/images/app_icon_bg.png",
   userInterfaceStyle: "automatic",
   splash: {
-    image: "./assets/images/welcome.png",
+    image: "./assets/images/app_icon.png",
     resizeMode: "contain",
-    backgroundColor: "#6366F1",
+    backgroundColor: "#FA4169",
     dark: {
-      image: "./assets/images/welcome.png",
+      image: "./assets/images/app_icon.png",
       resizeMode: "contain",
-      backgroundColor: "#121212"
+      backgroundColor: "#FA4169"
     }
   },
   assetBundlePatterns: [
@@ -37,7 +37,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     googleServicesFile: "./google-services.json",
     adaptiveIcon: {
-      foregroundImage: "./assets/images/app_icon.png",
+      foregroundImage: "./assets/images/app_icon_bg.png",
       backgroundColor: "#FA4169"
     },
     package: "com.wichatapp",
@@ -53,10 +53,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   notification: {
-    icon: "./assets/images/app_icon.png"
+    icon: "./assets/images/app_icon_bg.png"
   },
   web: {
-    favicon: "./assets/images/app_icon.png"
+    favicon: "./assets/images/app_icon_bg.png"
   },
   plugins: [
     "expo-camera",
