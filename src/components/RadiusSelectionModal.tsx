@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -65,8 +64,8 @@ export default function RadiusSelectionModal({
                   borderWidth: trackingRadius === radius ? 2 : 1,
                 }
               ]}
-              onPress={() => {
-                onRadiusChange(radius);
+              onPress={async () => {
+                await onRadiusChange(radius);
                 onClose();
               }}
               activeOpacity={0.7}

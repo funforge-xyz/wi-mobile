@@ -31,6 +31,7 @@ import { getTheme } from '../theme';
 import {
   handleTogglePushNotifications,
   handleToggleLocationTracking,
+  handleToggleSameNetworkMatching,
   handleTrackingRadiusChange,
   handleImagePicker,
   handleCameraCapture,
