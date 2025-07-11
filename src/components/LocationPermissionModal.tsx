@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   View,
@@ -10,7 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../hooks/redux';
-import { getTheme } from '../utils/modalUtils';
+import { getTheme } from '../theme';
 
 interface LocationPermissionModalProps {
   isVisible: boolean;
