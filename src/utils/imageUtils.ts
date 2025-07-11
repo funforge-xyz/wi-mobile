@@ -15,7 +15,7 @@ export const compressImage = async (uri: string): Promise<string> => {
     let compressedUri = uri;
 
     // Keep compressing until under 5MB or quality gets too low
-    while (initialSize > 5242880 && quality > 0.1) { // 5MB = 5242880 bytes
+    while (initialSize > 5242880 && quality > 0.3) { // 5MB = 5242880 bytes
       const result = await ImageManipulator.manipulateAsync(
         compressedUri,
         [{ resize: { width: 1920 } }], // Resize to max width 1920px

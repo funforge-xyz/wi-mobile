@@ -282,7 +282,7 @@ export const compressImage = async (uri: string): Promise<string> => {
     let quality = 0.8;
     let compressedUri = uri;
 
-    while (initialSize > 5242880 && quality > 0.1) {
+    while (initialSize > 5242880 && quality > 0.3) {
       const result = await manipulateAsync(
         compressedUri,
         [{ resize: { width: 1920 } }],
