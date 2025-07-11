@@ -139,7 +139,7 @@ export class LocationService {
       try {
         console.log('📍 Attempting to get current location with best navigation accuracy...');
         currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.BestForNavigation,
+          accuracy: Location.Accuracy.Highest,
           timeInterval: 15000, // 15 second timeout for high accuracy
         });
         console.log('✅ Got current location (balanced):', {
@@ -206,7 +206,7 @@ export class LocationService {
           accuracy: 'BestForNavigation'
         });
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-          accuracy: Location.Accuracy.BestForNavigation,
+          accuracy: Location.Accuracy.Highest,
           timeInterval: BACKGROUND_UPDATE_INTERVAL,
           distanceInterval: 10, // Update if moved more than 10 meters
           deferredUpdatesInterval: BACKGROUND_UPDATE_INTERVAL,
@@ -265,7 +265,7 @@ export class LocationService {
       try {
         console.log('📍 Trying best navigation accuracy...');
         location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.BestForNavigation,
+          accuracy: Location.Accuracy.Highest,
           timeInterval: 15000,
         });
         console.log('✅ Got location (balanced):', {
