@@ -312,54 +312,49 @@ export default function FeedScreen({ navigation }: any) {
                 return;
               }
 
-              const radius = await loadUserSettings();
-              if (radius) {
-                setTrackingRadius(radius);
-              }
-
-              let location = null;
-              try {
-                console.log('FeedScreen: Getting user location...');
-                location = await Promise.race([
+              // Run all initialization operations in parallel where possible
+              console.log('FeedScreen: Starting parallel initialization...');
+              
+              const [radius, location, freshConnectionIds] = await Promise.allSettled([
+                loadUserSettings(),
+                Promise.race([
                   locationService.getCurrentLocation(),
                   new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Location timeout')), 10000)
+                    setTimeout(() => reject(new Error('Location timeout')), 8000)
                   )
-                ]);
-                console.log('FeedScreen: Location obtained:', location);
-                setCurrentUserLocation(location);
-              } catch (locationError) {
-                console.log('FeedScreen: Location service not available:', locationError);
+                ]),
+                loadUserConnections()
+              ]);
+
+              // Handle radius setting
+              if (radius.status === 'fulfilled' && radius.value) {
+                setTrackingRadius(radius.value);
+              }
+
+              // Handle location
+              if (location.status === 'fulfilled') {
+                console.log('FeedScreen: Location obtained:', location.value);
+                setCurrentUserLocation(location.value);
+                
+                // Start location tracking in background (don't wait for it)
+                locationService.startLocationTracking().then(started => {
+                  if (started) {
+                    console.log('FeedScreen: Location tracking started successfully');
+                  }
+                });
+              } else {
+                console.log('FeedScreen: Location service not available:', location.reason);
                 setLoading(false);
                 return;
               }
 
-              // Load user connections BEFORE loading posts
-              console.log('FeedScreen: Loading user connections...');
-              const freshConnectionIds = await loadUserConnections();
-
-              // Start location tracking and wait for initial location update
-              console.log('FeedScreen: Starting location tracking...');
-              const locationTrackingStarted = await locationService.startLocationTracking();
-
-              if (locationTrackingStarted) {
-                console.log('FeedScreen: Location tracking started successfully');
-
-                // Wait a moment for the initial location update to complete
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                // Get the updated location after tracking started
-                const updatedLocation = await locationService.getCurrentLocation();
-                if (updatedLocation) {
-                  console.log('FeedScreen: Updated location obtained:', updatedLocation);
-                  setCurrentUserLocation(updatedLocation);
-                }
-              } else {
-                console.log('FeedScreen: Location tracking failed to start');
-              }
+              // Handle connections
+              const connectionsData = freshConnectionIds.status === 'fulfilled' 
+                ? freshConnectionIds.value 
+                : new Set<string>();
 
               console.log('FeedScreen: Loading posts...');
-              await loadPosts(false, freshConnectionIds);
+              await loadPosts(false, connectionsData);
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
