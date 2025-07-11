@@ -25,7 +25,6 @@ export default function ChatInput({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={[styles.container, { 
-        backgroundColor: currentTheme.surface,
         borderTopColor: currentTheme.border
       }]}>
         <View style={styles.inputContainer}>

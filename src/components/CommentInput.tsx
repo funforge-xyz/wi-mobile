@@ -33,7 +33,7 @@ const CommentInput = forwardRef<TextInput, CommentInputProps>(({
   const { t } = useTranslation();
 
   return (
-    <View style={[styles.container, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border }]}>
+    <View style={[styles.container, { borderTopColor: currentTheme.border }]}>
       {replyToComment && (
         <View style={[styles.replyIndicator, { backgroundColor: currentTheme.background }]}>
           <Ionicons name="arrow-undo" size={16} color={COLORS.primary} />
