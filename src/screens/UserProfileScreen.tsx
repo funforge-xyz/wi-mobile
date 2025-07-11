@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ScrollView, ActivityIndicator, View, Text } from 'react-native';
+import { ScrollView, ActivityIndicator, View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../config/constants';
 import { useAppSelector } from '../hooks/redux';
@@ -283,19 +283,22 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       if (!currentUser) return;
 
-      // Delete the connection
+      // Find the connection to delete
       const connectionsRef = collection(firestore, 'connections');
-      const connectionQuery = query(
+      const connectionsQuery = query(
         connectionsRef,
-        where('participants', 'array-contains', currentUser.uid)
+        where('participants', 'array-contains', currentUser.uid),
+        where('status', '==', 'active')
       );
 
-      const snapshot = await getDocs(connectionQuery);
-      const connectionToDelete = snapshot.docs.find(doc => 
-        doc.data().participants.includes(profile.id)
-      );
+      const snapshot = await getDocs(connectionsQuery);
+      const connectionToDelete = snapshot.docs.find(doc => {
+        const data = doc.data();
+        return data.participants.includes(profile.id);
+      });
 
       if (connectionToDelete) {
+        // Delete the connection
         await deleteDoc(doc(firestore, 'connections', connectionToDelete.id));
       }
 
@@ -329,13 +332,14 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       await Promise.all(deletePromises);
 
-      // Update local state immediately
+      // Update local state
       setIsConnected(false);
       
       setShowDeleteConnectionModal(false);
       setShowDeleteConnectionSuccessModal(true);
     } catch (error) {
       console.error('Error deleting connection:', error);
+      Alert.alert('Error', 'Failed to delete connection');
       setShowDeleteConnectionModal(false);
     }
   };
