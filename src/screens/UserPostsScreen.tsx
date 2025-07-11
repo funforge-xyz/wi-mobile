@@ -317,7 +317,6 @@ export default function UserPostsScreen({ route, navigation }: any) {
             ListEmptyComponent={renderEmptyState}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.gridContent}
-            columnWrapperStyle={styles.gridRow}
           />
         </>
       )}
