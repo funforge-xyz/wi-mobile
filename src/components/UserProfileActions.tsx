@@ -11,8 +11,8 @@ import BlockUserSuccessModal from './BlockUserSuccessModal';
 interface UserProfileActionsProps {
   onConnect: () => void;
   onMessage: () => void;
-  onBlock: () => void;
-  onDeleteConnection: () => void;
+  onBlock?: () => void;
+  onDeleteConnection?: () => void;
   currentTheme: any;
   isConnected: boolean;
   hasConnectionRequest: boolean;
@@ -50,7 +50,9 @@ export default function UserProfileActions({
   const handleConfirmDeleteConnection = () => {
     setShowDeleteConnectionModal(false);
     console.log("Deleting connection for user:", userName); // Add log before deletion
-    onDeleteConnection();
+    if (onDeleteConnection) {
+        onDeleteConnection();
+    }
     setShowDeleteConnectionSuccessModal(true);
   };
 
@@ -153,8 +155,8 @@ export default function UserProfileActions({
           </Text>
         </TouchableOpacity>
 
-        {/* Delete Connection Button - Only show if connected */}
-        {isConnected && (
+        {/* Delete Connection Button - Only show if connected and onDeleteConnection is provided */}
+        {isConnected && onDeleteConnection && (
           <TouchableOpacity
             style={[localStyles.actionButton, localStyles.deleteButton, { borderColor: currentTheme.border }]}
             onPress={handleDeleteConnectionPress}
@@ -167,17 +169,19 @@ export default function UserProfileActions({
           </TouchableOpacity>
         )}
 
-        {/* Block User Button */}
-        <TouchableOpacity
-          style={[localStyles.actionButton, localStyles.blockButton, { borderColor: currentTheme.border }]}
-          onPress={disableInternalModals ? onBlock : () => setShowBlockModal(true)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="ban" size={20} color="#FF3B30" />
-          <Text style={[localStyles.actionButtonText, localStyles.blockButtonText]}>
-            {t('userProfile.blockUser', 'Block User')}
-          </Text>
-        </TouchableOpacity>
+        {/* Block User Button - Only show if onBlock is provided */}
+        {onBlock && (
+          <TouchableOpacity
+            style={[localStyles.actionButton, localStyles.blockButton, { borderColor: currentTheme.border }]}
+            onPress={disableInternalModals ? onBlock : () => setShowBlockModal(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="ban" size={20} color="#FF3B30" />
+            <Text style={[localStyles.actionButtonText, localStyles.blockButtonText]}>
+              {t('userProfile.blockUser', 'Block User')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Delete Connection Confirmation Modal */}

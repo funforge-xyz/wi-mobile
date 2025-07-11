@@ -430,8 +430,8 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
               userPhotoURL: profile.photoURL || ''
             });
           }}
-          onBlock={() => {}} // Temporarily disabled
-          onDeleteConnection={() => {}} // Temporarily disabled
+          // onBlock={() => {}} // Temporarily disabled
+          // onDeleteConnection={() => {}} // Temporarily disabled
           currentTheme={currentTheme}
           isConnected={isConnected}
           hasConnectionRequest={false}
