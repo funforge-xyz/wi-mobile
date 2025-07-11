@@ -23,7 +23,11 @@ export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps)
         key={index}
         style={[
           {
-            width: itemWidth,
+            flex: 1,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '32%',
+            maxWidth: itemWidth,
             height: itemHeight,
             marginRight: (index + 1) % 3 === 0 ? 0 : 2,
             marginBottom: 2,

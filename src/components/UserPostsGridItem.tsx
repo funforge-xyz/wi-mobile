@@ -41,7 +41,7 @@ export default function UserPostsGridItem({
 }: UserPostsGridItemProps) {
   const [imageLoading, setImageLoading] = useState(true);
 
-  const itemWidth = (width - 2) / 3; // 3 columns with 1px gaps
+  const itemWidth = (width - 4) / 3; // 3 columns with gaps
   const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (height is bigger)
   const thumbnailUrl = item.thumbnailURL || item.mediaURL;
 
@@ -53,10 +53,13 @@ export default function UserPostsGridItem({
       style={[
         styles.gridItem,
         {
-          width: itemWidth,
+          flex: 1,
+          flexGrow: 1,
+          flexShrink: 1,
+          maxWidth: itemWidth,
           height: itemHeight,
-          marginRight: (index + 1) % 3 === 0 ? 0 : 1,
-          marginBottom: 1,
+          marginRight: (index + 1) % 3 === 0 ? 0 : 2,
+          marginBottom: 2,
         }
       ]}
       onPress={() => onPress(item)}

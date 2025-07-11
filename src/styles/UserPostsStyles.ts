@@ -168,11 +168,16 @@ export const styles = StyleSheet.create({
     paddingTop: SPACING.sm,
   },
   gridRow: {
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
+    flexGrow: 1,
+    flexShrink: 1,
   },
   gridItem: {
     position: 'relative',
     overflow: 'hidden',
+    flexBasis: '32%',
+    flexGrow: 1,
+    flexShrink: 1,
   },
   gridItemImage: {
     width: '100%',
