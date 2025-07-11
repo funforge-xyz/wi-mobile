@@ -153,6 +153,7 @@ export default function SinglePostDisplay({
                   width={width}
                   height={width * 5/4}
                   borderRadius={0}
+                  forceDarkTheme={true}
                 />
               </View>
             </TouchableWithoutFeedback>

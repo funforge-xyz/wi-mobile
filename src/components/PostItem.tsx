@@ -316,6 +316,7 @@ export default function PostItem({
                   width="100%"
                   height="100%"
                   borderRadius={0}
+                  forceDarkTheme={true}
                 />
               </View>
             </TouchableWithoutFeedback>
