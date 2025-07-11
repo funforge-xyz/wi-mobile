@@ -267,53 +267,6 @@ export const validatePassword = (password: string, t: (key: string) => string): 
   };
 };
 
-export const handleChangePassword = async (
-  currentPassword: string,
-  newPassword: string,
-  confirmPassword: string,
-  setCurrentPassword: (value: string) => void,
-  setNewPassword: (value: string) => void,
-  setConfirmPassword: (value: string) => void,
-  setShowChangePasswordModal: (show: boolean) => void,
-  setIsLoading: (loading: boolean) => void,
-  t: (key: string) => string
-) => {
-  if (!currentPassword || !newPassword || !confirmPassword) {
-    Alert.alert(t('common.error'), t('settings.pleaseFillInAllFields'));
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    Alert.alert(t('common.error'), t('settings.newPasswordsDoNotMatch'));
-    return;
-  }
-
-  if (currentPassword === newPassword) {
-    Alert.alert(t('common.error'), t('settings.newPasswordMustBeDifferent'));
-    return;
-  }
-
-  const passwordValidation = validatePassword(newPassword, t);
-  if (!passwordValidation.isValid) {
-    Alert.alert(t('settings.passwordRequirementsNotMet'), passwordValidation.errors.join('\n'));
-    return;
-  }
-
-  setIsLoading(true);
-  try {
-    await authService.changePassword(currentPassword, newPassword);
-    Alert.alert(t('common.success'), t('settings.passwordChangedSuccessfully'));
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setShowChangePasswordModal(false);
-  } catch (error: any) {
-    Alert.alert(t('common.error'), error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
 // Delete account logic is now handled directly in DeleteAccountModal component
 
 export const compressImage = async (uri: string): Promise<string> => {

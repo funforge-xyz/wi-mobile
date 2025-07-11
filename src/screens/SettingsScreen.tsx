@@ -35,7 +35,6 @@ import {
   handleToggleLocationTracking,
   handleToggleSameNetworkMatching,
   handleTrackingRadiusChange,
-  handleChangePassword,
   handleImagePicker,
   handleCameraCapture,
   showImagePickerOptions,

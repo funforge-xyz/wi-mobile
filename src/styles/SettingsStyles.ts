@@ -351,4 +351,25 @@ export const modalStyles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginLeft: SPACING.sm,
   },
+  requirementItem: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    marginBottom: SPACING.xs,
+    lineHeight: 20,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: SPACING.xl,
+    gap: SPACING.sm,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    lineHeight: 20,
+  },
 });
