@@ -25,13 +25,20 @@ export interface UserProfile {
 export const loadSettings = async (
   setPushNotificationsEnabled: (value: boolean) => void,
   setTrackingRadius: (value: number) => void,
-  setLocationTrackingEnabled: (value: boolean) => void
+  setLocationTrackingEnabled: (value: boolean) => void,
+  setSameNetworkMatchingEnabled?: (value: boolean) => void
 ) => {
   try {
     const settings = await settingsService.loadSettings();
     setPushNotificationsEnabled(settings.pushNotificationsEnabled);
     setTrackingRadius(settings.trackingRadius);
-    setLocationTrackingEnabled(settings.locationTrackingEnabled);
+    const locationTracking = await settingsService.getLocationTracking();
+    setLocationTrackingEnabled(locationTracking);
+
+    if (setSameNetworkMatchingEnabled) {
+      const sameNetworkMatching = await settingsService.getSameNetworkMatching();
+      setSameNetworkMatchingEnabled(sameNetworkMatching);
+    }
   } catch (error) {
     console.error('Error loading settings:', error);
   }

@@ -55,6 +55,7 @@ export default function SettingsScreen() {
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [trackingRadius, setTrackingRadius] = useState(0.1);
   const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
+  const [sameNetworkMatchingEnabled, setSameNetworkMatchingEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -85,7 +86,7 @@ export default function SettingsScreen() {
   }
 
   useEffect(() => {
-    loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled);
+    loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled, setSameNetworkMatchingEnabled);
     loadUserData(setEditedProfile, setIsLoading);
   }, []);
 
@@ -303,6 +304,16 @@ export default function SettingsScreen() {
             description={t('settings.enableBackgroundLocation')}
             value={locationTrackingEnabled}
             onValueChange={(value) => handleToggleLocationTracking(value, setLocationTrackingEnabled, setIsLoading, t)}
+            disabled={isLoading}
+            currentTheme={currentTheme}
+          />
+
+          <SettingsToggleRow
+            icon="wifi"
+            title={t('settings.sameNetworkMatching')}
+            description={t('settings.sameNetworkMatchingEnabled')}
+            value={sameNetworkMatchingEnabled}
+            onValueChange={(value) => handleToggleSameNetworkMatching(value, setSameNetworkMatchingEnabled, setIsLoading, t)}
             disabled={isLoading}
             currentTheme={currentTheme}
           />
