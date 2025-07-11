@@ -155,7 +155,6 @@
     "removePhoto": "Remove Photo",
     "selectPhoto": "Select Photo",
     "choosePhotoOption": "Choose an option",
-    "takePhoto": "Take Photo",
     "chooseFromLibrary": "Choose from Library",
     "permissionDenied": "Permission Denied",
     "cameraPermissionRequired": "Camera permission is required to take photos",
