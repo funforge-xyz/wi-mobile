@@ -110,7 +110,7 @@ export const loadConnectionPosts = async (
     }
 
     const userLocation = userData.location || currentUserLocation;
-    const currentUserRadius = userData.radius || userRadius || 100; // Default 100km
+    const currentUserRadius = userData.radius || userRadius || 0.1; // Default 100m
     const sameNetworkMatchingEnabled = userData.sameNetworkMatching ?? true;
     const currentUserNetworkId = userData.currentNetworkId;
 
@@ -210,7 +210,7 @@ export const loadConnectionPosts = async (
           );
 
           // Get user's radius preference, use smaller of the two or default
-          const userRadius = user.radius || 100;
+          const userRadius = user.radius || 0.1;
           const effectiveRadius = Math.min(currentUserRadius, userRadius);
 
           shouldInclude = distance <= effectiveRadius;
@@ -373,12 +373,12 @@ export const loadUserSettings = async (): Promise<number | null> => {
       console.log('Could not load radius from Firebase, using local storage');
     }
 
-    // Convert meters to kilometers, default to 100km if not set
-    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 100;
+    // Convert meters to kilometers, default to 100 meters (0.1km) if not set
+    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 0.1;
     return radiusInKm;
   } catch (error) {
     console.error('Error loading user settings:', error);
-    return 0.1; // Default to 100m (0.1km)
+    return 0.1; // Default to 100 meters
   }
 };
 
