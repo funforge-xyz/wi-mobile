@@ -348,6 +348,9 @@ export const loadConnectionPosts = async (
 
 export const loadUserSettings = async (): Promise<number | null> => {
   try {
+    const { storageService, Settings } = await import('../services/storage');
+    const { authService } = await import('../services/auth');
+    
     const settings = new Settings();
     let savedRadiusInMeters = await settings.getTrackingRadius();
 
@@ -370,12 +373,12 @@ export const loadUserSettings = async (): Promise<number | null> => {
       console.log('Could not load radius from Firebase, using local storage');
     }
 
-    // Convert meters to kilometers, default to 0.1km (100m) if not set
-    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 0.1;
+    // Convert meters to kilometers, default to 100km if not set
+    const radiusInKm = savedRadiusInMeters ? savedRadiusInMeters / 1000 : 100;
     return radiusInKm;
   } catch (error) {
     console.error('Error loading user settings:', error);
-    return 0.1; // Default to 0.1km (100m)
+    return 100; // Default to 100km
   }
 };
 
@@ -489,7 +492,7 @@ export async function loadFeedPosts(
     // Get user settings
     const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
     const userData = userDoc.data();
-    const userRadius = userData?.radius || 10;
+    const userRadius = userData?.trackingRadius ? userData.trackingRadius / 1000 : 100; // Convert meters to km, default 100km
     const sameNetworkMatchingEnabled = userData?.sameNetworkMatchingEnabled || false;
     const currentUserNetworkId = userData?.currentNetworkId || null;
     const userLocation = userData?.location;
