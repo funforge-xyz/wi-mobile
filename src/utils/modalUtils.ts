@@ -9,19 +9,19 @@ export const showImagePickerOptions = (
   t: TFunction
 ) => {
   Alert.alert(
-    t('settings.selectPhoto'),
-    t('settings.choosePhotoOption'),
+    t('addPost.selectPhoto'),
+    t('addPost.choosePhotoOption'),
     [
       {
         text: t('common.cancel'),
         style: 'cancel',
       },
       {
-        text: t('settings.takePhoto'),
+        text: t('addPost.takePhoto'),
         onPress: onCameraCapture,
       },
       {
-        text: t('settings.chooseFromLibrary'),
+        text: t('addPost.chooseFromLibrary'),
         onPress: onImagePicker,
       },
     ],

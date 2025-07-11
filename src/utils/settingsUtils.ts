@@ -272,7 +272,7 @@ export const showImagePickerOptions = (
   handleImagePicker: () => void,
   t: (key: string) => string
 ) => {
-  const options = [t('settings.takePhoto'), t('settings.chooseFromLibrary'), t('common.cancel')];
+  const options = [t('addPost.takePhoto'), t('addPost.chooseFromLibrary'), t('common.cancel')];
 
   if (Platform.OS === 'ios') {
     ActionSheetIOS.showActionSheetWithOptions(
@@ -295,11 +295,11 @@ export const showImagePickerOptions = (
         style: 'cancel' as const,
       },
       {
-        text: t('settings.chooseFromLibrary'),
+        text: t('addPost.chooseFromLibrary'),
         onPress: handleImagePicker,
       },
       {
-        text: t('settings.takePhoto'),
+        text: t('addPost.takePhoto'),
         onPress: handleCameraCapture,
       },
     ];
