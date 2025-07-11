@@ -28,6 +28,7 @@ interface PostMediaProps {
   videoPlayer?: any;
   isLoading?: boolean;
   postId?: string;
+  forceDarkTheme?: boolean;
 }
 
 export default function PostMedia({
@@ -47,6 +48,7 @@ export default function PostMedia({
   videoPlayer,
   isLoading = false,
   postId,
+  forceDarkTheme = false,
 }: PostMediaProps) {
   const [hasBeenTapped, setHasBeenTapped] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);

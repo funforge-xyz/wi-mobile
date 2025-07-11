@@ -62,6 +62,7 @@ interface PostItemProps {
   showImageBorderRadius?: boolean;
   onCommentsCountChange?: (postId: string, newCount: number) => void;
   onLikesCountChange?: (postId: string, newCount: number, isLikedByUser: boolean) => void;
+  forceDarkTheme?: boolean;
 }
 
 export default function PostItem({
@@ -85,6 +86,7 @@ export default function PostItem({
   showImageBorderRadius = true,
   onCommentsCountChange,
   onLikesCountChange,
+  forceDarkTheme = false,
 }: PostItemProps) {
   const [showPostDetailsModal, setShowPostDetailsModal] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(!!post.mediaURL);
@@ -153,11 +155,11 @@ export default function PostItem({
 
       const db = getFirestore();
       const likesRef = collection(db, 'posts', post.id, 'likes');
-      
+
       // Check if user already liked this post
       const existingLikeQuery = query(likesRef, where('authorId', '==', currentUser.uid));
       const existingLikeSnapshot = await getDocs(existingLikeQuery);
-      
+
       if (!existingLikeSnapshot.empty) {
         // User has already liked - remove the like
         const likeDoc = existingLikeSnapshot.docs[0];
@@ -170,7 +172,7 @@ export default function PostItem({
           createdAt: new Date()
         });
       }
-      
+
       // Trigger parent component update
       onLikePress();
     } catch (error) {
@@ -316,7 +318,7 @@ export default function PostItem({
                   width="100%"
                   height="100%"
                   borderRadius={0}
-                  forceDarkTheme={true}
+                  forceDarkTheme={forceDarkTheme}
                 />
               </View>
             </TouchableWithoutFeedback>
