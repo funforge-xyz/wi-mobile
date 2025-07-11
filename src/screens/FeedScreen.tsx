@@ -1082,14 +1082,14 @@ const styles = StyleSheet.create({
   emptyStateContainer: {
     flex: 1,
     backgroundColor: 'black',
-    paddingBottom: 80,
+    // paddingBottom: 80,
   },
   feedList: {
     flex: 1,
     backgroundColor: 'black',
   },
   feedContentContainer: {
-    paddingBottom: 80,
+    // paddingBottom: 80,
   },
   postContainer: {
     width: width,

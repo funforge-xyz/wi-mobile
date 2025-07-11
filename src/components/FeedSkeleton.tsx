@@ -12,14 +12,14 @@ export default function FeedSkeleton({ count = 3 }: FeedSkeletonProps) {
   const renderSkeletonPost = (index: number) => (
     <View key={index} style={styles.postContainer}>
       {/* Full screen media skeleton */}
-      <View style={styles.mediaContainer}>
+      {/* <View style={styles.mediaContainer}>
         <SkeletonLoader
           width={width}
           height={height}
           borderRadius={0}
           forceDarkTheme={true}
         />
-      </View>
+      </View> */}
 
       {/* Bottom overlay with user info and actions - matches FeedScreen layout */}
       <View style={styles.bottomOverlay}>
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   bottomOverlay: {
     position: 'absolute',
-    bottom: 120, // Matches FeedScreen bottom: 120
+    bottom: 140,
     left: 0,
     right: 0,
     flexDirection: 'row',
