@@ -24,8 +24,7 @@ export interface UserProfile {
 export const loadSettings = async (
   setPushNotificationsEnabled: (value: boolean) => void,
   setTrackingRadius: (value: number) => void,
-  setLocationTrackingEnabled: (value: boolean) => void,
-  setSameNetworkMatchingEnabled?: (value: boolean) => void
+  setLocationTrackingEnabled: (value: boolean) => void
 ) => {
   try {
     const settings = new Settings();
@@ -57,11 +56,7 @@ export const loadSettings = async (
     const isTracking = locationService.isLocationTrackingActive();
     setLocationTrackingEnabled(hasLocationPermissions && isTracking);
 
-    // Retrieve Same Network Matching from storage and set it
-    const sameNetworkMatchingEnabled = await AsyncStorage.getItem('sameNetworkMatchingEnabled');
-    if (setSameNetworkMatchingEnabled) {
-      setSameNetworkMatchingEnabled(sameNetworkMatchingEnabled === 'true'); // Convert string to boolean
-    }
+    
   } catch (error) {
     console.error('Error loading settings:', error);
   }

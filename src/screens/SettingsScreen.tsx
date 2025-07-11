@@ -29,12 +29,8 @@ import ChangePasswordSuccessModal from '../components/ChangePasswordSuccessModal
 import { styles } from '../styles/SettingsStyles';
 import { getTheme } from '../theme';
 import {
-  UserProfile,
-  loadSettings,
-  loadUserData,
   handleTogglePushNotifications,
   handleToggleLocationTracking,
-  handleToggleSameNetworkMatching,
   handleTrackingRadiusChange,
   handleImagePicker,
   handleCameraCapture,
@@ -42,7 +38,6 @@ import {
   getCurrentLanguageName,
   changeLanguage,
 } from '../utils/settingsUtils';
-import { useNetworkMonitoring } from '../hooks/useNetworkMonitoring';
 import ProfileEditSuccessModal from '../components/ProfileEditSuccessModal';
 import { useDataRefresh } from '../hooks/useDataRefresh';
 import { loadProfile } from '../utils/profileUtils';
@@ -58,7 +53,6 @@ export default function SettingsScreen() {
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [trackingRadius, setTrackingRadius] = useState(0.1);
   const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
-  const [sameNetworkMatchingEnabled, setSameNetworkMatchingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -67,7 +61,7 @@ export default function SettingsScreen() {
   const [showChangePasswordSuccessModal, setShowChangePasswordSuccessModal] = useState(false);
   const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
   const [showSettingsOption, setShowSettingsOption] = useState(false);
-  
+
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
     firstName: '',
@@ -81,30 +75,15 @@ export default function SettingsScreen() {
   const [successAnimation] = useState(new Animated.Value(0));
   const [changePasswordSuccessAnimation] = useState(new Animated.Value(0));
 
-  // Network monitoring state
-  const { 
-    wifiInfo, 
-    isNetworkMonitoring, 
-    startNetworkMonitoring, 
-    stopNetworkMonitoring,
-    networkQuality 
-  } = useNetworkMonitoring();
-  const [realTimeNetworkEnabled, setRealTimeNetworkEnabled] = useState(false);
-
   const settings = new Settings();
   const currentTheme = getTheme(isDarkMode);
-
-  // Computed network status
-  const currentNetworkStatus = wifiInfo ? 
-    `${wifiInfo.ssid || t('settings.unknownNetwork')} (${networkQuality})` : 
-    t('settings.notConnected');
 
   if (loading) {
     return <SettingsSkeleton />;
   }
 
   useEffect(() => {
-    loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled, setSameNetworkMatchingEnabled);
+    loadSettings(setPushNotificationsEnabled, setTrackingRadius, setLocationTrackingEnabled);
     loadUserData(setEditedProfile, setIsLoading);
   }, []);
 
@@ -283,27 +262,6 @@ export default function SettingsScreen() {
     navigation.navigate('DeleteAccount');
   };
 
-  const showNetworkInfo = () => {
-    Alert.alert(
-      t('settings.networkInformation'),
-      `${t('settings.ssid')}: ${wifiInfo?.ssid || t('settings.unavailable')}\n${t('settings.bssid')}: ${wifiInfo?.bssid || t('settings.unavailable')}\n${t('settings.ipAddress')}: ${wifiInfo?.ipAddress || t('settings.unavailable')}\n${t('settings.networkQuality')}: ${networkQuality}`
-    );
-  };
-
-  const handleToggleRealTimeNetwork = (value: boolean, setRealTimeNetworkEnabled: (value: boolean) => void, setIsLoading: (value: boolean) => void, t: any) => {
-    setIsLoading(true);
-    if (value) {
-      startNetworkMonitoring();
-      setRealTimeNetworkEnabled(true);
-      Alert.alert(t('settings.realTimeNetworkEnabled'), t('settings.realTimeNetworkEnabledDescription'));
-    } else {
-      stopNetworkMonitoring();
-      setRealTimeNetworkEnabled(false);
-      Alert.alert(t('settings.realTimeNetworkDisabled'), t('settings.realTimeNetworkDisabledDescription'));
-    }
-    setIsLoading(false);
-  };
-
   const handleChangePasswordSuccess = () => {
     setShowChangePasswordModal(false);
     setShowChangePasswordSuccessModal(true);
@@ -373,28 +331,6 @@ export default function SettingsScreen() {
             description={`${t('settings.connectWithin')} ${trackingRadius * 1000} ${t('settings.meters')}`}
             value={`${trackingRadius * 1000}m`}
             onPress={showRadiusOptions}
-            currentTheme={currentTheme}
-          />
-
-          <SettingsToggleRow
-            icon="wifi"
-            title={t('settings.sameNetworkMatching')}
-            description={sameNetworkMatchingEnabled ? t('settings.sameNetworkMatchingEnabled') : t('settings.sameNetworkMatchingDisabled')}
-            value={sameNetworkMatchingEnabled}
-            onValueChange={(value) => handleToggleSameNetworkMatching(value, setSameNetworkMatchingEnabled, setIsLoading, t)}
-            disabled={isLoading}
-            currentTheme={currentTheme}
-          />
-
-
-
-          <SettingsToggleRow
-            icon="refresh"
-            title={t('settings.realTimeNetworkMonitoring')}
-            description={t('settings.realTimeNetworkDescription')}
-            value={realTimeNetworkEnabled}
-            onValueChange={(value) => handleToggleRealTimeNetwork(value, setRealTimeNetworkEnabled, setIsLoading, t)}
-            disabled={isLoading}
             currentTheme={currentTheme}
           />
         </SettingsSection>
@@ -501,7 +437,7 @@ export default function SettingsScreen() {
         animation={changePasswordSuccessAnimation}
       />
 
-      
+
 
       {/* Push Notification Permission Modal */}
       <PushNotificationModal
