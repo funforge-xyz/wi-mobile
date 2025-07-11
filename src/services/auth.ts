@@ -190,6 +190,7 @@ export class AuthService {
           photoURL: photoURL,
           thumbnailURL: thumbnailURL,
           trackingRadius: 100, // Default 100m in meters
+          sameNetworkMatching: true, // Default to true for new accounts
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
@@ -251,6 +252,7 @@ export class AuthService {
             photoURL: user.photoURL || '',
             thumbnailURL: '',
             trackingRadius: 100, // Default 100m in meters
+            sameNetworkMatching: true, // Default to true for new accounts
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           });

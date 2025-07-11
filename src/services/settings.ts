@@ -8,6 +8,14 @@ export interface AppSettings {
   darkMode: boolean;
 }
 
+export const DEFAULT_SETTINGS: AppSettings = {
+  sameNetworkMatching: true,
+  trackingRadius: 100,
+  locationTrackingEnabled: false,
+  pushNotificationsEnabled: true,
+  darkMode: false,
+};
+
 const DEFAULT_SETTINGS: AppSettings = {
   sameNetworkMatching: false,
   trackingRadius: 1,
