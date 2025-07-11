@@ -598,17 +598,28 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true, freshConnectionIds);
   };
 
-  const handleLike = async (postId: string, newLikedState: boolean) => {
+  const handleLike = async (postId: string, toggleLike?: boolean) => {
     const currentPost = posts.find(post => post.id === postId);
     if (!currentPost) return;
 
     const firestore = getFirestore();
     const auth = getAuth();
     const user = auth.currentUser;
+    if (!user) return;
+
+    // Determine new like state - if toggleLike is provided, use !currentPost.isLikedByUser, otherwise use the passed value
+    const newLikedState = toggleLike !== undefined ? !currentPost.isLikedByUser : toggleLike;
+    
+    // If the state wouldn't change, return early
+    if (newLikedState === currentPost.isLikedByUser) {
+      console.log('FeedScreen - Like state unchanged, skipping');
+      return;
+    }
 
     const currentLiked = currentPost.isLikedByUser;
     const currentLikesCount = currentPost.likesCount;
 
+    // Update UI immediately for responsiveness
     setPosts(prevPosts => prevPosts.map(post => 
       post.id === postId 
         ? { 
@@ -626,22 +637,31 @@ export default function FeedScreen({ navigation }: any) {
       const postRef = doc(firestore, 'posts', postId);
 
       if (newLikedState) {
-        await addDoc(likesCollectionRef, {
-          authorId: user?.uid,
-          authorName: user?.displayName || 'Anonymous',
-          createdAt: new Date(),
-        });
-        await updateDoc(postRef, {
-          likesCount: increment(1)
-        });
+        // Check if user already liked this post
+        const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user.uid));
+        const userLikeSnapshot = await getDocs(userLikeQuery);
         
-        // Send like notification
-        const { createLikeNotification } = await import('../services/notifications');
-        await createLikeNotification(postId, currentPost.authorId);
-        
-        console.log('FeedScreen - Successfully added like to Firebase');
+        if (userLikeSnapshot.empty) {
+          await addDoc(likesCollectionRef, {
+            authorId: user.uid,
+            authorName: user.displayName || 'Anonymous',
+            createdAt: new Date(),
+          });
+          await updateDoc(postRef, {
+            likesCount: increment(1)
+          });
+          
+          // Send like notification
+          const { createLikeNotification } = await import('../services/notifications');
+          await createLikeNotification(postId, currentPost.authorId);
+          
+          console.log('FeedScreen - Successfully added like to Firebase');
+        } else {
+          console.log('FeedScreen - User already liked this post');
+        }
       } else {
-        const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
+        // Remove like
+        const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user.uid));
         const userLikeSnapshot = await getDocs(userLikeQuery);
 
         if (!userLikeSnapshot.empty) {
@@ -656,6 +676,7 @@ export default function FeedScreen({ navigation }: any) {
         }
       }
 
+      // Fetch updated post data to ensure accuracy
       const updatedPostDoc = await getDoc(postRef);
       if (updatedPostDoc.exists()) {
         const updatedPostData = updatedPostDoc.data();
@@ -672,6 +693,7 @@ export default function FeedScreen({ navigation }: any) {
     } catch (error) {
       console.error('FeedScreen - Error handling like:', error);
 
+      // Revert UI changes on error
       setPosts(prevPosts => prevPosts.map(post => 
         post.id === postId 
           ? { 
@@ -866,7 +888,7 @@ export default function FeedScreen({ navigation }: any) {
         <View style={styles.mediaContainer}>
           {/* Skeleton loading overlay for images */}
           {item.mediaType === 'picture' && isMediaLoading && (
-            <TouchableWithoutFeedback onPress={() => handleLike(item.id, !item.isLikedByUser)}>
+            <TouchableWithoutFeedback onPress={() => handleLike(item.id, true)}>
               <View style={styles.mediaLoadingSkeleton}>
                 <SkeletonLoader
                   width="100%"
@@ -888,7 +910,7 @@ export default function FeedScreen({ navigation }: any) {
               onLoad={() => handleMediaLoad(item.id)}
               onDoubleTap={() => {
                 console.log('PostMedia double tap - liking post:', item.id);
-                handleLike(item.id, !item.isLikedByUser);
+                handleLike(item.id, true);
               }}
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
@@ -955,7 +977,7 @@ export default function FeedScreen({ navigation }: any) {
             <View style={styles.rightActions}>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => handleLike(item.id, !item.isLikedByUser)}
+                onPress={() => handleLike(item.id, true)}
               >
                 <Ionicons
                   name={item.isLikedByUser ? "heart" : "heart-outline"}
