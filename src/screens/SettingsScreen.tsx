@@ -24,6 +24,7 @@ import EditProfileModal from '../components/EditProfileModal';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
 import RadiusSelectionModal from '../components/RadiusSelectionModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
+import ChangePasswordSuccessModal from '../components/ChangePasswordSuccessModal';
 
 import { styles } from '../styles/SettingsStyles';
 import { getTheme } from '../theme';
@@ -63,6 +64,7 @@ export default function SettingsScreen() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showRadiusModal, setShowRadiusModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showChangePasswordSuccessModal, setShowChangePasswordSuccessModal] = useState(false);
   const [showPushNotificationModal, setShowPushNotificationModal] = useState(false);
   const [showSettingsOption, setShowSettingsOption] = useState(false);
   
@@ -77,6 +79,7 @@ export default function SettingsScreen() {
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successAnimation] = useState(new Animated.Value(0));
+  const [changePasswordSuccessAnimation] = useState(new Animated.Value(0));
 
   // Network monitoring state
   const { 
@@ -301,6 +304,26 @@ export default function SettingsScreen() {
     setIsLoading(false);
   };
 
+  const handleChangePasswordSuccess = () => {
+    setShowChangePasswordModal(false);
+    setShowChangePasswordSuccessModal(true);
+    Animated.timing(changePasswordSuccessAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleChangePasswordSuccessClose = () => {
+    Animated.timing(changePasswordSuccessAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowChangePasswordSuccessModal(false);
+    });
+  };
+
 
 
   return (
@@ -467,6 +490,15 @@ export default function SettingsScreen() {
         currentTheme={currentTheme}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        onSuccess={handleChangePasswordSuccess}
+      />
+
+      {/* Change Password Success Modal */}
+      <ChangePasswordSuccessModal
+        visible={showChangePasswordSuccessModal}
+        onClose={handleChangePasswordSuccessClose}
+        currentTheme={currentTheme}
+        animation={changePasswordSuccessAnimation}
       />
 
       

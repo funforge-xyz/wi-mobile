@@ -173,7 +173,7 @@ export default function ChangePasswordModal({
                     setError(null);
                   }}
                   secureTextEntry
-                  editable={!isLoading && !showSuccess}
+                  editable={!isLoading}
                 />
               </View>
             </View>
@@ -195,7 +195,7 @@ export default function ChangePasswordModal({
                     setError(null);
                   }}
                   secureTextEntry
-                  editable={!isLoading && !showSuccess}
+                  editable={!isLoading}
                 />
               </View>
             </View>
@@ -217,7 +217,7 @@ export default function ChangePasswordModal({
                     setError(null);
                   }}
                   secureTextEntry
-                  editable={!isLoading && !showSuccess}
+                  editable={!isLoading}
                 />
               </View>
             </View>
