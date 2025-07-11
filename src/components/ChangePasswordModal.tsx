@@ -1,20 +1,14 @@
-
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TextInput,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useState } from 'react';
+import { Modal, View, Text, TouchableOpacity, TextInput, ActivityIndicator, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../config/constants';
-import { styles, modalStyles } from '../styles/SettingsStyles';
+import { styles } from '../styles/SettingsStyles';
+import { modalStyles } from '../styles/SettingsStyles';
 import { authService } from '../services/auth';
+import ChangePasswordSuccessModal from './ChangePasswordSuccessModal';
 
 interface ChangePasswordModalProps {
   visible: boolean;
@@ -35,22 +29,28 @@ export default function ChangePasswordModal({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successAnimation] = useState(new Animated.Value(0));
 
   const handleClose = () => {
-    if (!isLoading && !showSuccess) {
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setError(null);
-      onClose();
-    }
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setError(null);
+    onClose();
   };
 
-  const handleCloseSuccess = () => {
-    setShowSuccess(false);
-    handleClose();
+  const handleSuccessModalClose = () => {
+    Animated.timing(successAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSuccess(false);
+      onClose();
+    });
   };
 
   const validatePassword = (password: string): boolean => {
@@ -99,15 +99,17 @@ export default function ChangePasswordModal({
     try {
       setIsLoading(true);
       await authService.changePassword(currentPassword, newPassword);
-      
-      // Clear form and show success
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+
+      // Show success modal with animation
       setShowSuccess(true);
+      Animated.timing(successAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     } catch (error: any) {
       console.error('Change password error:', error);
-      
+
       if (error.message.includes('Current password is incorrect') || 
           error.message.includes('wrong-password') ||
           error.message.includes('invalid-credential')) {
@@ -227,58 +229,12 @@ export default function ChangePasswordModal({
           </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
-
-      {/* Success Modal */}
-      <Modal
+      <ChangePasswordSuccessModal
         visible={showSuccess}
-        transparent
-        animationType="fade"
-      >
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        }}>
-          <View style={{
-            backgroundColor: currentTheme.surface,
-            borderRadius: 12,
-            padding: 32,
-            alignItems: 'center',
-            minWidth: 280,
-            maxWidth: 320,
-          }}>
-            <View style={{
-              width: 60,
-              height: 60,
-              borderRadius: 30,
-              backgroundColor: COLORS.success,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}>
-              <Ionicons name="checkmark" size={30} color="#FFFFFF" />
-            </View>
-            <Text style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: currentTheme.text,
-              marginBottom: 8,
-              textAlign: 'center',
-            }}>
-              {t('settings.passwordChangedSuccessfully')}
-            </Text>
-            <Text style={{
-              fontSize: 14,
-              color: currentTheme.textSecondary,
-              textAlign: 'center',
-              lineHeight: 20,
-            }}>
-              {t('settings.passwordChangedMessage')}
-            </Text>
-          </View>
-        </View>
-      </Modal>
+        onClose={handleSuccessModalClose}
+        currentTheme={currentTheme}
+        successAnimation={successAnimation}
+      />
     </>
   );
 }
