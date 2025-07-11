@@ -42,7 +42,7 @@ export default function UserPostsGridItem({
   const [imageLoading, setImageLoading] = useState(true);
 
   const itemWidth = width / 3; // Perfect 3 columns with no gaps
-  const itemHeight = itemWidth; // Square aspect ratio
+  const itemHeight = (itemWidth * 3) / 2; // 2:3 aspect ratio (width:height)
   const thumbnailUrl = item.thumbnailURL || item.mediaURL;
 
   // Debug logging for isFrontCamera

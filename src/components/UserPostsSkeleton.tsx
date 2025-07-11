@@ -16,7 +16,7 @@ export default function UserPostsSkeleton({ count = 9 }: UserPostsSkeletonProps)
 
   const renderSkeletonGridItem = (index: number) => {
     const itemWidth = Math.floor((width - 4) / 3); // 3 columns with proper spacing
-    const itemHeight = Math.floor((itemWidth * 3) / 2); // 2:3 aspect ratio
+    const itemHeight = Math.floor((itemWidth * 3) / 2); // 2:3 aspect ratio (width:height)
 
     return (
       <View

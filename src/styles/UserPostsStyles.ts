@@ -170,6 +170,7 @@ export const styles = StyleSheet.create({
   gridItem: {
     position: 'relative',
     overflow: 'hidden',
+    aspectRatio: 2/3, // Width:Height ratio of 2:3
   },
   gridItemImage: {
     width: '100%',
