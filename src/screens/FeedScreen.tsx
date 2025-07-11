@@ -394,44 +394,30 @@ export default function FeedScreen({ navigation }: any) {
   const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>) => {
     console.log('loadPosts called:', { isRefresh, currentUserLocation, trackingRadius });
 
-    const effectiveRadius = currentUserLocation ? trackingRadius : 0;
-    const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
-
     const { getAuth } = await import('../services/firebase');
     const auth = getAuth();
     if (!auth.currentUser) {
       console.log('User not authenticated, skipping post loading');
       setLoading(false);
       setRefreshing(false);
+      setError('Authentication required');
       return;
     }
 
     console.log('Loading posts:', { isRefresh, currentUserLocation });
 
-    let timeout: NodeJS.Timeout;
-
     try {
       if (isRefresh) {
         setRefreshing(true);
+        setError(null);
       } else {
         setLoading(true);
+        setError(null);
       }
 
-      timeout = setTimeout(() => {
-        console.log('Loading timeout - resetting loading state');
-        if (isRefresh) {
-          setRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-      }, 15000);
-
-      const { getAuth, getFirestore } = await import('../services/firebase');
-      const auth = getAuth();
-      const firestore = getFirestore();
       const currentUser = auth.currentUser;
 
-      // Load feed posts with proper location and network filtering
+      // Load feed posts with timeout and retry logic built-in
       const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
       let feedPosts = feedResult.posts;
 
@@ -439,7 +425,6 @@ export default function FeedScreen({ navigation }: any) {
       const activeConnectionIds = freshConnectionIds || connectionIds;
 
       // Filter out current user's posts and add connection information
-      // (loadFeedPosts already handles location filtering properly)
       const postsWithConnectionInfo = feedPosts
         .filter(post => post.authorId !== currentUser?.uid) // Exclude current user's posts
         .map(post => ({
@@ -447,28 +432,7 @@ export default function FeedScreen({ navigation }: any) {
           isFromConnection: activeConnectionIds.has(post.authorId)
         }));
 
-      console.log('FeedScreen - RAW FETCHED POSTS FROM loadFeedPosts:');
-      console.log('='.repeat(80));
-      console.log('Total posts fetched:', postsWithConnectionInfo.length);
-      console.log('Current user location:', currentUserLocation);
-      console.log('Tracking radius:', trackingRadius);
-      console.log('Connection IDs:', Array.from(connectionIds));
-
-      // Debug: Log which users have posts vs which are in nearby
-      console.log('Authors with posts:', postsWithConnectionInfo.map(p => ({ id: p.authorId, name: p.authorName })));
-
-      // Log posts that might be from users outside radius
-      postsWithConnectionInfo.forEach(post => {
-        if (currentUserLocation && post.authorLocation) {
-          const distance = calculateDistance(
-            currentUserLocation.latitude,
-            currentUserLocation.longitude,
-            post.authorLocation.latitude,
-            post.authorLocation.longitude
-          );
-          console.log(`Post author ${post.authorName}: ${distance.toFixed(2)}km away, within radius: ${distance <= trackingRadius}`);
-        }
-      });
+      console.log('FeedScreen - Posts loaded successfully:', postsWithConnectionInfo.length);
 
       if (isRefresh) {
         setPosts(postsWithConnectionInfo);
@@ -497,11 +461,21 @@ export default function FeedScreen({ navigation }: any) {
       }
 
       setHasMorePosts(feedResult.hasMore);
+      setRetryCount(0); // Reset retry count on success
 
-      if (timeout) clearTimeout(timeout);
     } catch (error) {
       console.error('Error loading posts:', error);
-      if (timeout) clearTimeout(timeout);
+      setError(error instanceof Error ? error.message : 'Failed to load posts');
+      
+      // Implement retry logic for failed loads
+      if (retryCount < 3) {
+        console.log(`Retrying feed load (attempt ${retryCount + 1})`);
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => {
+          loadPosts(isRefresh, freshConnectionIds);
+        }, Math.pow(2, retryCount) * 1000); // Exponential backoff
+        return;
+      }
     } finally {
       if (isRefresh) {
         setRefreshing(false);
@@ -985,6 +959,34 @@ export default function FeedScreen({ navigation }: any) {
     return (
       <SafeAreaView style={styles.container}>
         <FeedSkeleton count={1} />
+        {error && retryCount > 0 && (
+          <View style={styles.errorRetryContainer}>
+            <Text style={styles.errorText}>
+              {error} (Retry {retryCount}/3)
+            </Text>
+          </View>
+        )}
+      </SafeAreaView>
+    );
+  }
+
+  if (error && !loading && posts.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Unable to load feed</Text>
+          <Text style={styles.errorSubtitle}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={() => {
+              setError(null);
+              setRetryCount(0);
+              loadPosts(true);
+            }}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -1231,5 +1233,50 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 10,
     backgroundColor: 'transparent',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  errorTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  errorSubtitle: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorRetryContainer: {
+    position: 'absolute',
+    bottom: 120,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 0, 0.3)',
+  },
+  errorText: {
+    color: 'white',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
