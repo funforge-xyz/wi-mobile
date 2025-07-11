@@ -1,0 +1,63 @@
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ WARN  TaskManager: Task "background-location-task" has been executed but looks like it is not defined. Make sure that "TaskManager.defineTask" is called during initialization phase.
+ LOG  User is authenticated, checking additional auth service
+ LOG  Auth service confirms authentication
+ LOG  User has completed onboarding
+ LOG  Loading user data for: caA35UKUg7UwYzT8DRmQHTUpbQK2
+ LOG  User data loaded successfully
+ LOG  FeedScreen: Initializing Firebase...
+ LOG  FeedScreen: Firebase initialized successfully
+ LOG  FeedScreen: Getting user location...
+ LOG  📍 getCurrentLocation() called - checking permissions...
+ LOG  ✅ Permissions OK, getting current location...
+ LOG  📍 Trying best navigation accuracy...
+ LOG  ✅ Got location (balanced): {"accuracy": 5, "lat": 37.4219983, "lng": -122.084}
+ LOG  📍 getCurrentLocation() returning: {"latitude": 37.4219983, "longitude": -122.084}
+ LOG  FeedScreen: Location obtained: {"latitude": 37.4219983, "longitude": -122.084}
+ LOG  FeedScreen: Loading user connections...
+ LOG  FeedScreen: Starting location tracking...
+ LOG  🗺️ Requesting location permissions...
+ LOG  ✅ Location permission already granted
+ LOG  ✅ Background location task defined successfully
+ LOG  🗺️ Starting location tracking - getting initial position...
+ LOG  📍 Attempting to get current location with best navigation accuracy...
+ LOG  ✅ Got current location (balanced): {"accuracy": 5, "lat": 37.4219983, "lng": -122.084}
+ LOG  📤 Updating initial location in Firestore...
+ LOG  📤 updateUserLocationInFirestore() called with coords: {"latitude": 37.4219983, "longitude": -122.084}
+ LOG  👤 Authenticated user: caA35UKUg7UwYzT8DRmQHTUpbQK2
+ LOG  📶 Getting WiFi network info...
+ LOG  📶 WiFi info: {"isConnected": false, "networkId": null}
+ LOG  📶 Clearing network info (not connected to WiFi)
+ LOG  💾 Updating Firestore document...
+ LOG  ✅ User location and network updated in Firestore successfully: {"location": {"latitude": 37.4219983, "longitude": -122.084}, "networkId": null, "timestamp": "2025-07-11T20:15:17.174Z"}
+ LOG  ✅ Initial location updated successfully
+ LOG  🔄 Starting background location updates... {"accuracy": "BestForNavigation", "distanceInterval": "10 meters", "updateInterval": "10 minutes"}
+ WARN  Background location is limited in Expo Go:
+On Android, it is not available at all.
+On iOS, it works when running in the Simulator.
+You can use this API, and all others, in a development build. Learn more: https://expo.fyi/dev-client.
+ LOG  ✅ Background location updates started successfully
+ LOG  🔄 Starting foreground location updates (5-minute interval)
+ LOG  🎯 Location tracking is now active (foreground + background)
+ LOG  FeedScreen: Location tracking started successfully
+ LOG  📍 getCurrentLocation() called - checking permissions...
+ LOG  ✅ Permissions OK, getting current location...
