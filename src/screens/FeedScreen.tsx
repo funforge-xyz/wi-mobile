@@ -609,12 +609,6 @@ export default function FeedScreen({ navigation }: any) {
 
     // Determine new like state - if shouldLike is provided, use it, otherwise toggle current state
     const newLikedState = shouldLike !== undefined ? shouldLike : !currentPost.isLikedByUser;
-    
-    // If the state wouldn't change, return early
-    if (newLikedState === currentPost.isLikedByUser) {
-      console.log('FeedScreen - Like state unchanged, skipping');
-      return;
-    }
 
     const currentLiked = currentPost.isLikedByUser;
     const currentLikesCount = currentPost.likesCount;
@@ -670,6 +664,11 @@ export default function FeedScreen({ navigation }: any) {
           await updateDoc(postRef, {
             likesCount: increment(-1)
           });
+          
+          // Remove like notification when unliking
+          const { removeLikeNotification } = await import('../services/notifications');
+          await removeLikeNotification(postId, currentPost.authorId, user.uid);
+          
           console.log('FeedScreen - Successfully removed like from Firebase');
         } else {
           console.log('FeedScreen - No like document found to remove');

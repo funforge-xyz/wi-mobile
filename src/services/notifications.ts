@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc, collection, query, where, getDocs, addDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { getAuth } from './firebase';
 import { EXPO_PROJECT_ID } from 'react-native-dotenv';
@@ -41,7 +41,7 @@ export const initializeNotifications = async () => {
 
 export const registerForPushNotifications = async () => {
   console.log('🔔 Registering for push notifications...');
-  
+
   if (!Device.isDevice) {
     console.log('❌ Push notifications only work on physical devices');
     return null;
@@ -72,19 +72,19 @@ export const registerForPushNotifications = async () => {
       EXPO_PROJECT_ID ? { projectId: EXPO_PROJECT_ID } : {}
     );
     const token = tokenData.data;
-    
+
     // Generate access token for secure push notifications
     const accessToken = await generatePushAccessToken();
-    
+
     console.log('🚀 EXPO PUSH TOKEN RECEIVED:');
     console.log('📱 Token:', token);
     console.log('🔑 ACCESS TOKEN:', accessToken);
     console.log('🔗 Use this token to send test notifications via Expo Push Notification Tool');
     console.log('🌐 Test URL: https://expo.dev/notifications');
-    
+
     // Save both tokens to Firestore
     await saveTokenToFirestore(token, accessToken);
-    
+
     // Configure notification channel for Android
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
@@ -132,7 +132,7 @@ const generatePushAccessToken = async (): Promise<string> => {
   try {
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    
+
     if (!currentUser) {
       throw new Error('No authenticated user');
     }
@@ -140,11 +140,11 @@ const generatePushAccessToken = async (): Promise<string> => {
     // Generate a secure access token using user's ID token
     const idToken = await currentUser.getIdToken();
     const timestamp = Date.now();
-    
+
     // Create a unique access token combining user data and timestamp
     const tokenData = `${currentUser.uid}-${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
     const accessToken = btoa(tokenData); // Base64 encode for security
-    
+
     console.log('🔑 Generated push access token for secure notifications');
     return accessToken;
   } catch (error) {
@@ -204,7 +204,7 @@ export const createNearbyRequestNotification = async (targetUserId: string, from
     // Get current user's profile to construct full name
     const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
     const userData = userDoc.data();
-    
+
     const fullName = userData?.firstName && userData?.lastName 
       ? `${userData.firstName} ${userData.lastName}`
       : userData?.firstName || userData?.displayName || fromUserName || 'Someone';
@@ -225,40 +225,64 @@ export const createNearbyRequestNotification = async (targetUserId: string, from
   }
 };
 
-export const createLikeNotification = async (postId: string, postAuthorId: string): Promise<void> => {
+export const createLikeNotification = async (postId: string, postAuthorId: string) => {
   try {
-    const { getAuth } = await import('./firebase');
     const auth = getAuth();
+    const firestore = getFirestore();
     const currentUser = auth.currentUser;
 
     if (!currentUser || currentUser.uid === postAuthorId) {
-      return; // Don't notify yourself
+      return; // Don't create notification for own posts
     }
 
-    const firestore = getFirestore();
-
-    // Get current user's profile
+    // Get current user's profile data
     const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
-    const userData = userDoc.data();
-    
-    const fullName = userData?.firstName && userData?.lastName 
+    const userData = userDoc.exists() ? userDoc.data() : {};
+    const userName = userData.firstName && userData.lastName 
       ? `${userData.firstName} ${userData.lastName}`
-      : userData?.firstName || userData?.displayName || 'Someone';
+      : currentUser.displayName || 'Someone';
 
+    // Create notification
     await addDoc(collection(firestore, 'notifications'), {
-      type: 'post_like',
-      title: 'New Like',
-      body: `${fullName} liked your post`,
-      targetUserId: postAuthorId,
+      type: 'like',
       fromUserId: currentUser.uid,
-      fromUserName: fullName,
-      fromUserPhotoURL: userData?.photoURL || '',
+      fromUserName: userName,
+      fromUserPhotoURL: userData.photoURL || currentUser.photoURL || null,
+      toUserId: postAuthorId,
       postId: postId,
-      read: false,
+      message: `${userName} liked your post`,
       createdAt: new Date(),
+      read: false,
     });
+
+    console.log('Like notification created successfully');
   } catch (error) {
     console.error('Error creating like notification:', error);
+  }
+};
+
+export const removeLikeNotification = async (postId: string, postAuthorId: string, fromUserId: string) => {
+  try {
+    const firestore = getFirestore();
+
+    // Find and delete the like notification
+    const notificationsQuery = query(
+      collection(firestore, 'notifications'),
+      where('type', '==', 'like'),
+      where('fromUserId', '==', fromUserId),
+      where('toUserId', '==', postAuthorId),
+      where('postId', '==', postId)
+    );
+
+    const notificationsSnapshot = await getDocs(notificationsQuery);
+
+    if (!notificationsSnapshot.empty) {
+      const deletePromises = notificationsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      console.log('Like notification removed successfully');
+    }
+  } catch (error) {
+    console.error('Error removing like notification:', error);
   }
 };
 
@@ -277,7 +301,7 @@ export const createCommentNotification = async (postId: string, postAuthorId: st
     // Get current user's profile
     const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
     const userData = userDoc.data();
-    
+
     const fullName = userData?.firstName && userData?.lastName 
       ? `${userData.firstName} ${userData.lastName}`
       : userData?.firstName || userData?.displayName || 'Someone';
