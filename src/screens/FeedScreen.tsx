@@ -290,7 +290,6 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let appStateSubscription: any;
-    let lastSeenInterval: NodeJS.Timeout | number;
 
     const initializeAndSetupAuth = async () => {
       try {
@@ -315,60 +314,65 @@ export default function FeedScreen({ navigation }: any) {
                 return;
               }
 
-              // Run all initialization operations in parallel where possible
-              console.log('FeedScreen: Starting parallel initialization...');
+              // First, check location permissions before doing anything else
+              console.log('FeedScreen: Checking location permissions...');
+              setLocationPermissionStatus('checking');
               
-              const [radius, location, freshConnectionIds] = await Promise.allSettled([
-                loadUserSettings(),
-                Promise.race([
-                  locationService.getCurrentLocation(),
-                  new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Location timeout')), 8000)
-                  )
-                ]),
-                loadUserConnections()
-              ]);
-
-              // Handle radius setting
-              if (radius.status === 'fulfilled' && radius.value) {
-                setTrackingRadius(radius.value);
-              }
-
-              // Check location permissions first
               const hasLocationPermissions = await locationService.checkPermissions();
               if (!hasLocationPermissions) {
-                console.log('FeedScreen: No location permissions');
+                console.log('FeedScreen: No location permissions - showing enable location screen');
                 setLocationPermissionStatus('denied');
                 setLoading(false);
                 return;
               }
 
+              console.log('FeedScreen: Location permissions granted, proceeding with initialization...');
               setLocationPermissionStatus('granted');
 
-              // Handle location
-              if (location.status === 'fulfilled') {
-                console.log('FeedScreen: Location obtained:', location.value);
-                setCurrentUserLocation(location.value);
+              // Load user settings for radius
+              const radius = await loadUserSettings();
+              if (radius) {
+                setTrackingRadius(radius);
+              }
+
+              // Get current location
+              let location;
+              try {
+                console.log('FeedScreen: Getting current location...');
+                location = await Promise.race([
+                  locationService.getCurrentLocation(),
+                  new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Location timeout')), 8000)
+                  )
+                ]);
                 
-                // Start location tracking in background (don't wait for it)
-                locationService.startLocationTracking().then(started => {
-                  if (started) {
-                    console.log('FeedScreen: Location tracking started successfully');
-                  }
-                });
-              } else {
-                console.log('FeedScreen: Location service not available:', location.reason);
+                if (location) {
+                  console.log('FeedScreen: Location obtained:', location);
+                  setCurrentUserLocation(location);
+                  
+                  // Start location tracking in background
+                  locationService.startLocationTracking().then(started => {
+                    if (started) {
+                      console.log('FeedScreen: Location tracking started successfully');
+                    }
+                  });
+                } else {
+                  console.log('FeedScreen: No location available');
+                  setLoading(false);
+                  return;
+                }
+              } catch (locationError) {
+                console.log('FeedScreen: Failed to get location:', locationError);
                 setLoading(false);
                 return;
               }
 
-              // Handle connections
-              const connectionsData = freshConnectionIds.status === 'fulfilled' 
-                ? freshConnectionIds.value 
-                : new Set<string>();
+              // Load user connections
+              const freshConnectionIds = await loadUserConnections();
 
-              console.log('FeedScreen: Loading posts...');
-              await loadPosts(false, connectionsData);
+              // Finally, load posts now that location is confirmed
+              console.log('FeedScreen: Location confirmed, loading posts...');
+              await loadPosts(false, freshConnectionIds);
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
@@ -410,6 +414,23 @@ export default function FeedScreen({ navigation }: any) {
       setLoading(false);
       setRefreshing(false);
       setError('Authentication required');
+      return;
+    }
+
+    // Ensure location permissions are granted before loading posts
+    if (locationPermissionStatus !== 'granted') {
+      console.log('Location permissions not granted, cannot load posts');
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    // Ensure we have location data before proceeding
+    if (!currentUserLocation) {
+      console.log('No current user location available, cannot load posts');
+      setLoading(false);
+      setRefreshing(false);
+      setError('Location required to load feed');
       return;
     }
 
@@ -844,12 +865,32 @@ export default function FeedScreen({ navigation }: any) {
     try {
       const hasPermissions = await locationService.requestPermissions();
       if (hasPermissions) {
+        console.log('Location permissions granted, restarting full initialization...');
         setLocationPermissionStatus('granted');
+        
+        // Load user settings for radius
+        const radius = await loadUserSettings();
+        if (radius) {
+          setTrackingRadius(radius);
+        }
+
+        // Get current location
         const location = await locationService.getCurrentLocation();
         if (location) {
           setCurrentUserLocation(location);
+          
+          // Start location tracking
           await locationService.startLocationTracking();
-          await loadPosts(true);
+          
+          // Load user connections
+          const freshConnectionIds = await loadUserConnections();
+          
+          // Load posts with all data ready
+          await loadPosts(true, freshConnectionIds);
+        } else {
+          console.log('Failed to get current location after permissions granted');
+          setLocationPermissionStatus('denied');
+          setLoading(false);
         }
       } else {
         setLocationPermissionStatus('denied');
