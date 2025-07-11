@@ -598,7 +598,7 @@ export default function FeedScreen({ navigation }: any) {
     await loadPosts(true, freshConnectionIds);
   };
 
-  const handleLike = async (postId: string, toggleLike?: boolean) => {
+  const handleLike = async (postId: string, shouldLike?: boolean) => {
     const currentPost = posts.find(post => post.id === postId);
     if (!currentPost) return;
 
@@ -607,8 +607,8 @@ export default function FeedScreen({ navigation }: any) {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Determine new like state - if toggleLike is provided, use !currentPost.isLikedByUser, otherwise use the passed value
-    const newLikedState = toggleLike !== undefined ? !currentPost.isLikedByUser : toggleLike;
+    // Determine new like state - if shouldLike is provided, use it, otherwise toggle current state
+    const newLikedState = shouldLike !== undefined ? shouldLike : !currentPost.isLikedByUser;
     
     // If the state wouldn't change, return early
     if (newLikedState === currentPost.isLikedByUser) {
@@ -910,7 +910,9 @@ export default function FeedScreen({ navigation }: any) {
               onLoad={() => handleMediaLoad(item.id)}
               onDoubleTap={() => {
                 console.log('PostMedia double tap - liking post:', item.id);
-                handleLike(item.id, true);
+                if (!item.isLikedByUser) {
+                  handleLike(item.id, true);
+                }
               }}
               isVideoPlaying={isPlaying}
               isVideoMuted={false}
@@ -977,7 +979,7 @@ export default function FeedScreen({ navigation }: any) {
             <View style={styles.rightActions}>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => handleLike(item.id, true)}
+                onPress={() => handleLike(item.id)}
               >
                 <Ionicons
                   name={item.isLikedByUser ? "heart" : "heart-outline"}
