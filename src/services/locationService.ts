@@ -15,16 +15,20 @@ let updateTimeout: NodeJS.Timeout | null = null;
 const MIN_UPDATE_INTERVAL = 30000; // 30 seconds minimum between updates
 const MIN_DISTANCE_THRESHOLD = 10; // 10 meters minimum distance change
 
-// Track if background task has been defined
+// Flag to ensure task is only defined once
 let isTaskDefined = false;
 
-// Define the background task with error handling - only when needed
-const defineBackgroundTask = () => {
-  if (isTaskDefined) {
-    return;
-  }
-
+// Function to define the background task (called only when needed)
+const defineLocationTask = async () => {
+  if (isTaskDefined) return;
+  
   try {
+    const alreadyDefined = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
+    if (alreadyDefined) {
+      isTaskDefined = true;
+      return;
+    }
+
     TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
       if (error) {
         console.error('Background location task error:', error);
@@ -58,8 +62,9 @@ const defineBackgroundTask = () => {
         }
       }
     });
+    
     isTaskDefined = true;
-    console.log('Background location task defined successfully');
+    console.log('✅ Background location task defined successfully');
   } catch (defineError) {
     console.error('Failed to define location background task:', defineError);
   }
@@ -152,8 +157,8 @@ export class LocationService {
         return false;
       }
 
-      // Define the background task before using it
-      defineBackgroundTask();
+      // Define the background task first
+      await defineLocationTask();
 
       // Get current location first with timeout and fallback
       console.log('🗺️ Starting location tracking - getting initial position...');
@@ -213,8 +218,8 @@ export class LocationService {
       console.log('✅ Initial location updated successfully');
 
       // Ensure the background task is properly defined before starting
-      const isTaskDefinedCheck = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
-      if (!isTaskDefinedCheck) {
+      const isTaskDefinedNow = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
+      if (!isTaskDefinedNow) {
         console.log('Location task not defined, cannot proceed');
         return false;
       }
@@ -260,8 +265,8 @@ export class LocationService {
 
   async stopLocationTracking(): Promise<void> {
     try {
-      const isTaskDefinedCheck = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
-      if (isTaskDefinedCheck) {
+      const isTaskDefinedNow = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
+      if (isTaskDefinedNow) {
         await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       }
       this.stopForegroundLocationUpdates();
@@ -429,7 +434,7 @@ export class LocationService {
   }
 }
 
-// Helper function to update user location in Firestore
+// Helper function to update user location in Firestore (only called when needed)
 async function updateUserLocationInFirestore(latitude: number, longitude: number): Promise<void> {
   try {
     const now = Date.now();
@@ -463,7 +468,7 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
     const firestore = getFirestore();
     const userRef = doc(firestore, 'users', currentUser.uid);
 
-    // Get enhanced WiFi network info
+    // Get enhanced WiFi network info only when updating location
     console.log('📶 Getting WiFi network info...');
     const { wifiService } = await import('./wifiService');
     const wifiInfo = await wifiService.getCurrentWifiInfo();
@@ -488,7 +493,8 @@ async function updateUserLocationInFirestore(latitude: number, longitude: number
       updateData.currentNetworkId = null;
       console.log('📶 Clearing network info (not connected to WiFi)');
     }
-        // Update tracking variables only after successful update
+    
+    // Update tracking variables only after successful update
     lastUpdateTime = now;
     lastLocation = {latitude, longitude};
 
