@@ -141,19 +141,20 @@ export default function UserProfileActions({
   return (
     <>
       <View style={[localStyles.container, { backgroundColor: currentTheme.background }]}>
+        {/* Send Message Button - Always available */}
+        <TouchableOpacity
+          style={[localStyles.actionButton, localStyles.chatButton, { borderColor: currentTheme.border }]}
+          onPress={onMessage}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chatbubbles-outline" size={20} color="#007AFF" />
+          <Text style={[localStyles.actionButtonText, localStyles.chatButtonText]}>
+            {t('userProfile.sendMessage', 'Send a message')}
+          </Text>
+        </TouchableOpacity>
+
         {/* Delete Connection Button - Only show if connected */}
         {isConnected && (
-          <>
-          <TouchableOpacity
-            style={[localStyles.actionButton, localStyles.chatButton, { borderColor: currentTheme.border }]}
-            onPress={onMessage}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chatbubbles-outline" size={20} color="#007AFF" />
-            <Text style={[localStyles.actionButtonText, localStyles.chatButtonText]}>
-              {t('userProfile.sendMessage', 'Send a message')}
-            </Text>
-          </TouchableOpacity>
           <TouchableOpacity
             style={[localStyles.actionButton, localStyles.deleteButton, { borderColor: currentTheme.border }]}
             onPress={handleDeleteConnectionPress}
@@ -164,7 +165,6 @@ export default function UserProfileActions({
               {t('userProfile.deleteConnection', 'Delete Connection')}
             </Text>
           </TouchableOpacity>
-          </>
         )}
 
         {/* Block User Button */}
