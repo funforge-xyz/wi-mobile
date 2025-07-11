@@ -130,8 +130,8 @@ export default function UserProfileActions({
       color: '#fff',
     },
     chatButton: {
-      backgroundColor: '#34C759',
-      borderColor: '#34C759',
+      backgroundColor: '#007AFF',
+      borderColor: '#007AFF',
     },
     chatButtonText: {
       color: '#fff',
@@ -149,9 +149,9 @@ export default function UserProfileActions({
             onPress={onMessage}
             activeOpacity={0.7}
           >
-            <Ionicons name="chatbubbles" size={20} color="#fff" />
+            <Ionicons name="chatbubbles-outline" size={20} color="#fff" />
             <Text style={[localStyles.actionButtonText, localStyles.chatButtonText]}>
-              {t('userProfile.chat', 'Chat')}
+              Send a message
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
