@@ -51,6 +51,7 @@ package-lock.json
 .expo
 
 google-services.json
+GoogleService-Info.plist
 
 .env
 
