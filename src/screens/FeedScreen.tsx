@@ -905,7 +905,7 @@ export default function FeedScreen({ navigation }: any) {
                   <Text style={styles.authorName}>{item.authorName}</Text>
                   {item.isFromConnection && (
                     <View style={styles.connectionBadge}>
-                      <Text style={styles.connectionText}>Connection</Text>
+                      <Text style={styles.connectionText}>{t('feed.connection')}</Text>
                     </View>
                   )}
                 </View>

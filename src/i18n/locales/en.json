@@ -101,6 +101,7 @@
     "viewComments": "View all {{count}} comments",
     "addComment": "Add a comment...",
     "postComment": "Post",
+    "connection": "Connection",
     "empty": {
       "locationRequired": "Location Required",
       "enableLocationDescription": "Enable location services to see posts from people nearby and start connecting with your community.",

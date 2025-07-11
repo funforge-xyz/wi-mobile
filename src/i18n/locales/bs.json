@@ -102,6 +102,7 @@
     "comments": "Komentari",
     "likes": "Sviđanja",
     "failedToLoad": "Neuspješno učitavanje objava",
+    "connection": "Konekcija",
     "empty": {
       "locationRequired": "Potrebna lokacija",
       "enableLocationDescription": "Omogućite usluge lokacije da vidite objave ljudi u blizini i počnete se povezivati sa svojom zajednicom.",
