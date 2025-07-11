@@ -15,7 +15,7 @@ export default function UserProfileDisplay({ profile, currentTheme, styles }: Us
         uri={profile?.thumbnailURL || profile?.photoURL}
         style={styles.avatar}
         showPlaceholder={true}
-        placeholderIcon="person-add"
+        placeholderIcon="person"
         placeholderSize={40}
         placeholderBackgroundColor={currentTheme.surface}
         placeholderIconColor={currentTheme.textSecondary}
