@@ -29,7 +29,6 @@ export default function ChangePasswordModal({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successAnimation] = useState(new Animated.Value(0));
