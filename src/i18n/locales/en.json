@@ -480,6 +480,7 @@
   "userProfile": {
     "title": "Profile",
     "anonymousUser": "Anonymous User",
+    "sendMessage": "Send a message",
     "blockUser": "Block User",
     "blockUserConfirmation": "Are you sure you want to block this user? They will be removed from your connections and you won't see them in nearby feeds.",
     "blockUserConfirmationWithName": "Are you sure you want to block {{userName}}? They will be removed from your connections and you won't see them in nearby feeds.",

@@ -151,7 +151,7 @@ export default function UserProfileActions({
           >
             <Ionicons name="chatbubbles-outline" size={20} color="#007AFF" />
             <Text style={[localStyles.actionButtonText, localStyles.chatButtonText]}>
-              Send a message
+              {t('userProfile.sendMessage', 'Send a message')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
