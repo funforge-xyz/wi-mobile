@@ -253,13 +253,7 @@ export const loadConnectionPosts = async (
     const posts: ConnectionPost[] = [];
     const postsPerUser = Math.ceil(limit / Math.min(sortedUserIds.length, 10)); // Distribute pageSize among users
 
-    // Get current user's likes to check if posts are liked
-    const currentUserLikesQuery = query(
-      collection(firestore, 'likes'),
-      where('userId', '==', currentUser.uid)
-    );
-    const likesSnapshot = await getDocs(currentUserLikesQuery);
-    const likedPostIds = new Set(likesSnapshot.docs.map(doc => doc.data().postId));
+    // We'll check likes per post using the correct subcollection structure
 
     for (const userId of sortedUserIds) {
       if (posts.length >= limit) break;
@@ -293,13 +287,28 @@ export const loadConnectionPosts = async (
         const postData = postDoc.data();
         const postId = postDoc.id;
 
+        // Check if current user liked this specific post
+        let isLikedByUser = false;
+        try {
+          const likesQuery = query(
+            collection(firestore, 'posts', postId, 'likes'),
+            where('authorId', '==', currentUser.uid)
+          );
+          const userLikeSnapshot = await getDocs(likesQuery);
+          isLikedByUser = !userLikeSnapshot.empty;
+        } catch (error) {
+          console.log('Error checking like status for post:', postId, error);
+          isLikedByUser = false;
+        }
+
         console.log('feedUtils - Firebase post data:', {
           id: postId,
           isFrontCamera: postData.isFrontCamera,
           mediaType: postData.mediaType,
           hasMediaURL: !!postData.mediaURL,
           firebaseLikesCount: postData.likesCount || 0,
-          firebaseCommentsCount: postData.commentsCount || 0
+          firebaseCommentsCount: postData.commentsCount || 0,
+          isLikedByUser
         });
 
         posts.push({
@@ -317,7 +326,7 @@ export const loadConnectionPosts = async (
           commentsCount: postData.commentsCount || 0,
           showLikeCount: postData.showLikeCount ?? true,
           allowComments: postData.allowComments ?? true,
-          isLikedByUser: likedPostIds.has(postId),
+          isLikedByUser,
           isAuthorOnline: userInfo.isOnline,
           isFromConnection: userInfo.isConnection
         });
@@ -604,13 +613,9 @@ export async function loadFeedPosts(
         const allPosts: any[] = [];
         const batchSize = 10;
 
-        // Get current user's likes in one query
-        const allLikesQuery = query(
-          collection(firestore, 'likes'),
-          where('userId', '==', currentUser.uid)
-        );
-        const likesSnapshot = await getDocs(allLikesQuery);
-        const likedPostIds = new Set(likesSnapshot.docs.map(doc => doc.data().postId));
+        // We'll check likes per post instead of using a global likes collection
+        // since the actual like structure uses subcollections under each post
+        const likedPostIds = new Set<string>();
 
         // Process posts in batches
         for (let i = 0; i < eligibleUserIds.length; i += batchSize) {
@@ -635,11 +640,25 @@ export async function loadFeedPosts(
 
           const postsSnapshot = await getDocs(postsQuery);
 
-          postsSnapshot.docs.forEach(postDoc => {
+          for (const postDoc of postsSnapshot.docs) {
             const post = postDoc.data();
             const authorData = userDataMap.get(post.authorId);
 
-            if (!authorData) return;
+            if (!authorData) continue;
+
+            // Check if current user liked this specific post
+            let isLikedByUser = false;
+            try {
+              const likesQuery = query(
+                collection(firestore, 'posts', postDoc.id, 'likes'),
+                where('authorId', '==', currentUser.uid)
+              );
+              const userLikeSnapshot = await getDocs(likesQuery);
+              isLikedByUser = !userLikeSnapshot.empty;
+            } catch (error) {
+              console.log('Error checking like status for post:', postDoc.id, error);
+              isLikedByUser = false;
+            }
 
             allPosts.push({
               id: postDoc.id,
@@ -647,11 +666,11 @@ export async function loadFeedPosts(
               authorName: `${authorData.firstName} ${authorData.lastName}`,
               authorPhotoURL: authorData.photoURL || '',
               createdAt: post.createdAt.toDate(),
-              isLikedByUser: likedPostIds.has(postDoc.id),
+              isLikedByUser,
               isAuthorOnline: false, // Remove online status for performance
               isFromConnection: connectedUserIds.has(post.authorId)
             });
-          });
+          }
         }
 
         // Sort and limit posts
