@@ -225,6 +225,81 @@ export const createNearbyRequestNotification = async (targetUserId: string, from
   }
 };
 
+export const createLikeNotification = async (postId: string, postAuthorId: string): Promise<void> => {
+  try {
+    const { getAuth } = await import('./firebase');
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser || currentUser.uid === postAuthorId) {
+      return; // Don't notify yourself
+    }
+
+    const firestore = getFirestore();
+
+    // Get current user's profile
+    const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+    const userData = userDoc.data();
+    
+    const fullName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`
+      : userData?.firstName || userData?.displayName || 'Someone';
+
+    await addDoc(collection(firestore, 'notifications'), {
+      type: 'post_like',
+      title: 'New Like',
+      body: `${fullName} liked your post`,
+      targetUserId: postAuthorId,
+      fromUserId: currentUser.uid,
+      fromUserName: fullName,
+      fromUserPhotoURL: userData?.photoURL || '',
+      postId: postId,
+      read: false,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error creating like notification:', error);
+  }
+};
+
+export const createCommentNotification = async (postId: string, postAuthorId: string, commentText: string): Promise<void> => {
+  try {
+    const { getAuth } = await import('./firebase');
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser || currentUser.uid === postAuthorId) {
+      return; // Don't notify yourself
+    }
+
+    const firestore = getFirestore();
+
+    // Get current user's profile
+    const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
+    const userData = userDoc.data();
+    
+    const fullName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`
+      : userData?.firstName || userData?.displayName || 'Someone';
+
+    await addDoc(collection(firestore, 'notifications'), {
+      type: 'post_comment',
+      title: 'New Comment',
+      body: `${fullName} commented on your post`,
+      targetUserId: postAuthorId,
+      fromUserId: currentUser.uid,
+      fromUserName: fullName,
+      fromUserPhotoURL: userData?.photoURL || '',
+      postId: postId,
+      commentText: commentText.substring(0, 100), // Truncate long comments
+      read: false,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error creating comment notification:', error);
+  }
+};
+
 export const handleBackgroundMessage = (message: any) => {
   console.log('Background message received:', message);
   // Handle background message

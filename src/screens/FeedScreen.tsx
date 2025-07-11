@@ -620,6 +620,11 @@ export default function FeedScreen({ navigation }: any) {
         await updateDoc(postRef, {
           likesCount: increment(1)
         });
+        
+        // Send like notification
+        const { createLikeNotification } = await import('../services/notifications');
+        await createLikeNotification(postId, currentPost.authorId);
+        
         console.log('FeedScreen - Successfully added like to Firebase');
       } else {
         const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user?.uid));
