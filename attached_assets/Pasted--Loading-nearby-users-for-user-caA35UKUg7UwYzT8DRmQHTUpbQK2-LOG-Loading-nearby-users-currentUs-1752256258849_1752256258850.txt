@@ -1,0 +1,97 @@
+ Loading nearby users for user: caA35UKUg7UwYzT8DRmQHTUpbQK2
+ LOG  Loading nearby users: {"currentUserId": "caA35UKUg7UwYzT8DRmQHTUpbQK2", "page": 0, "reset": true}
+ LOG  Loading nearby users for user: caA35UKUg7UwYzT8DRmQHTUpbQK2
+ LOG  Loading nearby users: {"currentUserId": "caA35UKUg7UwYzT8DRmQHTUpbQK2", "page": 0, "reset": true}
+ LOG  Nearby users result: {"hasMore": false, "lastDoc": null, "users": []}
+ LOG  Successfully loaded nearby users: {"hasMore": false, "page": 0, "reset": true, "users": []}
+ LOG  Nearby users result: {"hasMore": false, "lastDoc": null, "users": []}
+ LOG  Successfully loaded nearby users: {"hasMore": false, "page": 0, "reset": true, "users": []}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadPosts called: {"currentUserLocation": {"latitude": 42.3438, "longitude": 18.8078}, "isRefresh": true, "userRadius": 10}
+ LOG  Loading posts: {"currentUserLocation": {"latitude": 42.3438, "longitude": 18.8078}, "isRefresh": true}
+ LOG  loadFeedPosts called with: {"currentUserId": "caA35UKUg7UwYzT8DRmQHTUpbQK2", "limit": 10}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  loadMorePosts called: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
+ LOG  Skipping loadMorePosts: {"hasMorePosts": true, "lastPostTimestamp": null, "loadingMore": false}
