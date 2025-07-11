@@ -222,32 +222,12 @@ export default function SettingsScreen() {
     setIsEditingProfile(false);
   };
 
-  const handleRemoveImage = async () => {
-    try {
-      setIsLoading(true);
-
-      if (profile?.photoURL || profile?.thumbnailURL) {
-        try {
-          await storageService.deleteProfilePicture(profile.photoURL, profile.thumbnailURL);
-        } catch (error) {
-          console.error('Error deleting from storage:', error);
-        }
-      }
-
-      setEditedProfile({
-        ...editedProfile,
-        photoURL: '',
-        thumbnailURL: '',
-      });
-
-      Alert.alert(t('settings.imageRemoved'), t('settings.pressSaveToUpdate'));
-
-    } catch (error) {
-      console.error('Error removing profile picture:', error);
-      Alert.alert(t('common.error'), t('settings.failedToRemoveProfilePicture'));
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRemoveImage = () => {
+    setEditedProfile({
+      ...editedProfile,
+      photoURL: '',
+      thumbnailURL: '',
+    });
   };
 
   const showRadiusOptions = () => {
