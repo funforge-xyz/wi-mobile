@@ -279,7 +279,7 @@ export const compressImage = async (uri: string): Promise<string> => {
 
     console.log('Initial image size:', (initialSize / 1024 / 1024).toFixed(2), 'MB');
 
-    let quality = 0.8;
+    let quality = 0.7;
     let compressedUri = uri;
 
     while (initialSize > 5242880 && quality > 0.3) {

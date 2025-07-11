@@ -178,7 +178,7 @@ export class StorageService {
         imageUri,
         [{ resize: { width: 300 } }],
         {
-          compress: 0.8,
+          compress: 0.7,
           format: SaveFormat.JPEG,
         }
       );
@@ -267,7 +267,7 @@ export class StorageService {
       // Generate thumbnail from first frame (time: 0)
       const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
         time: 0, // First frame
-        quality: 0.8,
+        quality: 0.7,
       });
 
       // Compress the thumbnail using existing image manipulation
@@ -277,7 +277,7 @@ export class StorageService {
         uri,
         [{ resize: { width: 600 } }], // Resize to reasonable size
         {
-          compress: 0.8,
+          compress: 0.7,
           format: SaveFormat.JPEG,
         }
       );
