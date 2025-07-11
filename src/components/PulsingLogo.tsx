@@ -41,10 +41,8 @@ const PulsingLogo: React.FC<PulsingLogoProps> = ({ size = 60 }) => {
         transform: [{ scale: pulseAnim }],
         width: size,
         height: size,
-        borderRadius: size / 2,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: colors.primary,
         elevation: 5,
         padding: size * 0.1,
       }}>

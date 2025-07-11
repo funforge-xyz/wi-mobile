@@ -253,12 +253,6 @@ export const modalStyles = StyleSheet.create({
     fontFamily: FONTS.medium,
     marginBottom: SPACING.sm,
   },
-  requirementItem: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    marginBottom: SPACING.xs,
-    lineHeight: 20,
-  },
   warningSection: {
     alignItems: 'center',
     paddingTop: SPACING.xl,
@@ -363,7 +357,7 @@ export const modalStyles = StyleSheet.create({
     padding: SPACING.md,
     borderRadius: 12,
     borderWidth: 1,
-    marginBottom: SPACING.xl,
+    marginBlock: SPACING.md,
     gap: SPACING.sm,
   },
   errorText: {

@@ -19,7 +19,10 @@ const MIN_DISTANCE_THRESHOLD = 10; // 10 meters minimum distance change
 let isTaskDefined = false;
 
 const defineLocationTask = () => {
-  if (isTaskDefined) {
+
+  
+
+  if (isTaskDefined || TaskManager.isTaskDefined(LOCATION_TASK_NAME)) {
     console.log('⚠️ Background location task already defined, skipping');
     return;
   }
