@@ -97,29 +97,35 @@ export const blockUser = async (userId: string, connectionId: string) => {
       await deleteDoc(doc(firestore, 'connections', connectionId));
     }
 
-    // Remove any pending connection requests (sent by current user)
+    // Remove any pending connection requests in both directions
+    const requestsRef = collection(firestore, 'connectionRequests');
+    
+    // Requests sent by current user to blocked user
     const sentRequestsQuery = query(
-      collection(firestore, 'connectionRequests'),
+      requestsRef,
       where('fromUserId', '==', currentUser.uid),
       where('toUserId', '==', userId)
     );
-    const sentRequestsSnapshot = await getDocs(sentRequestsQuery);
     
-    for (const requestDoc of sentRequestsSnapshot.docs) {
-      await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
-    }
-
-    // Remove any pending connection requests (sent by blocked user)
+    // Requests sent by blocked user to current user
     const receivedRequestsQuery = query(
-      collection(firestore, 'connectionRequests'),
+      requestsRef,
       where('fromUserId', '==', userId),
       where('toUserId', '==', currentUser.uid)
     );
-    const receivedRequestsSnapshot = await getDocs(receivedRequestsQuery);
-    
-    for (const requestDoc of receivedRequestsSnapshot.docs) {
-      await deleteDoc(doc(firestore, 'connectionRequests', requestDoc.id));
-    }
+
+    const [sentRequestsSnapshot, receivedRequestsSnapshot] = await Promise.all([
+      getDocs(sentRequestsQuery),
+      getDocs(receivedRequestsQuery)
+    ]);
+
+    // Delete all connection requests between these users
+    const deletePromises = [
+      ...sentRequestsSnapshot.docs.map(doc => deleteDoc(doc.ref)),
+      ...receivedRequestsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+    ];
+
+    await Promise.all(deletePromises);
 
     // Remove nearby_request notifications sent by current user to others
     const nearbyNotificationsQuery = query(
