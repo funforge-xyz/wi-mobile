@@ -283,7 +283,7 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
       if (!currentUser) return;
 
-      // Find the connection to delete
+      // Delete the connection
       const connectionsRef = collection(firestore, 'connections');
       const connectionsQuery = query(
         connectionsRef,
@@ -346,6 +346,9 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
 
   const handleDeleteConnectionSuccessClose = () => {
     setShowDeleteConnectionSuccessModal(false);
+    // Go back two steps - from UserProfile -> Chat -> ChatsScreen
+    navigation.goBack();
+    navigation.goBack();
   };
 
   return (
