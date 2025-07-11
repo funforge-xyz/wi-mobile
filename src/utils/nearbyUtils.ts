@@ -132,8 +132,8 @@ export const loadNearbyUsers = async (
       return { users: [], lastDoc: null, hasMore: false };
     }
 
-    // Get blocked users, connections, and connection requests in parallel - force server data
-    const [blockedByMeQuery, blockedMeQuery, connectionsQuery, connectionRequestsSentQuery, connectionRequestsReceivedQuery] = await Promise.all([
+    // Get blocked users - force server data
+    const [blockedByMeQuery, blockedMeQuery] = await Promise.all([
       getDocs(query(
         collection(firestore, 'blockedUsers'),
         where('blockedBy', '==', currentUser.uid)
@@ -141,20 +141,6 @@ export const loadNearbyUsers = async (
       getDocs(query(
         collection(firestore, 'blockedUsers'),
         where('blockedUser', '==', currentUser.uid)
-      ), { source: 'server' }),
-      getDocs(query(
-        collection(firestore, 'connections'),
-        where('participants', 'array-contains', currentUser.uid)
-      ), { source: 'server' }),
-      getDocs(query(
-        collection(firestore, 'connectionRequests'),
-        where('fromUserId', '==', currentUser.uid),
-        where('status', '==', 'pending')
-      ), { source: 'server' }),
-      getDocs(query(
-        collection(firestore, 'connectionRequests'),
-        where('toUserId', '==', currentUser.uid),
-        where('status', '==', 'pending')
       ), { source: 'server' })
     ]);
 
@@ -162,18 +148,6 @@ export const loadNearbyUsers = async (
     const blockedUserIds = new Set([
       ...blockedByMeQuery.docs.map(doc => doc.data().blockedUser), // Users I blocked
       ...blockedMeQuery.docs.map(doc => doc.data().blockedBy) // Users who blocked me
-    ]);
-
-    const connectedUserIds = new Set(
-      connectionsQuery.docs.flatMap(doc => 
-        doc.data().participants.filter((id: string) => id !== currentUser.uid)
-      )
-    );
-
-    // Include users with pending connection requests (both sent and received)
-    const requestedUserIds = new Set([
-      ...connectionRequestsSentQuery.docs.map(doc => doc.data().toUserId), // Users I sent requests to
-      ...connectionRequestsReceivedQuery.docs.map(doc => doc.data().fromUserId) // Users who sent requests to me
     ]);
 
     // Calculate bounding box for location-based filtering
@@ -204,11 +178,9 @@ export const loadNearbyUsers = async (
       const userId = userDocSnap.id;
       const user = userDocSnap.data();
 
-      // Skip current user, blocked users, connected users, and users with pending requests
+      // Skip current user and blocked users only
       if (userId === currentUser.uid || 
-          blockedUserIds.has(userId) || 
-          connectedUserIds.has(userId) ||
-          requestedUserIds.has(userId)) {
+          blockedUserIds.has(userId)) {
         return;
       }
 
