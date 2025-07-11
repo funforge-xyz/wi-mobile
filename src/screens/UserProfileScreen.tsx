@@ -273,6 +273,10 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
   };
 
   const confirmDeleteConnection = async () => {
+    console.log('=== DELETE CONNECTION STARTED ===');
+    console.log('Current user:', profile.id);
+    console.log('Profile ID:', profile.id);
+    
     try {
       const { getAuth, getFirestore } = await import('../services/firebase');
       const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
@@ -281,7 +285,13 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
       const firestore = getFirestore();
       const currentUser = auth.currentUser;
 
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('❌ No current user found');
+        return;
+      }
+
+      console.log('✅ Current user:', currentUser.uid);
+      console.log('✅ Target user:', profile.id);
 
       // Delete the connection
       const connectionsRef = collection(firestore, 'connections');
@@ -291,15 +301,24 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         where('status', '==', 'active')
       );
 
+      console.log('🔍 Searching for connections...');
       const snapshot = await getDocs(connectionsQuery);
+      console.log('📊 Found connections:', snapshot.size);
+
       const connectionToDelete = snapshot.docs.find(doc => {
         const data = doc.data();
-        return data.participants.includes(profile.id);
+        console.log('🔍 Checking connection:', doc.id, 'participants:', data.participants);
+        const hasTargetUser = data.participants.includes(profile.id);
+        console.log('✅ Has target user:', hasTargetUser);
+        return hasTargetUser;
       });
 
       if (connectionToDelete) {
-        // Delete the connection
+        console.log('🗑️ Deleting connection:', connectionToDelete.id);
         await deleteDoc(doc(firestore, 'connections', connectionToDelete.id));
+        console.log('✅ Connection deleted successfully');
+      } else {
+        console.log('❌ No connection found to delete');
       }
 
       // Delete any connection requests between these users
@@ -319,36 +338,68 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         where('toUserId', '==', currentUser.uid)
       );
 
+      console.log('🔍 Searching for connection requests...');
       const [outgoingSnapshot, incomingSnapshot] = await Promise.all([
         getDocs(outgoingQuery),
         getDocs(incomingQuery)
       ]);
 
+      console.log('📊 Outgoing requests:', outgoingSnapshot.size);
+      console.log('📊 Incoming requests:', incomingSnapshot.size);
+
       // Delete all found requests
       const deletePromises = [
-        ...outgoingSnapshot.docs.map(doc => deleteDoc(doc.ref)),
-        ...incomingSnapshot.docs.map(doc => deleteDoc(doc.ref))
+        ...outgoingSnapshot.docs.map(doc => {
+          console.log('🗑️ Deleting outgoing request:', doc.id);
+          return deleteDoc(doc.ref);
+        }),
+        ...incomingSnapshot.docs.map(doc => {
+          console.log('🗑️ Deleting incoming request:', doc.id);
+          return deleteDoc(doc.ref);
+        })
       ];
 
-      await Promise.all(deletePromises);
+      if (deletePromises.length > 0) {
+        await Promise.all(deletePromises);
+        console.log('✅ All connection requests deleted');
+      } else {
+        console.log('ℹ️ No connection requests to delete');
+      }
 
       // Update local state
+      console.log('🔄 Updating local state...');
       setIsConnected(false);
       
       setShowDeleteConnectionModal(false);
       setShowDeleteConnectionSuccessModal(true);
+      
+      console.log('✅ DELETE CONNECTION COMPLETED SUCCESSFULLY');
     } catch (error) {
-      console.error('Error deleting connection:', error);
-      Alert.alert('Error', 'Failed to delete connection');
+      console.error('❌ Error deleting connection:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
+      Alert.alert('Error', 'Failed to delete connection. Please try again.');
       setShowDeleteConnectionModal(false);
     }
   };
 
   const handleDeleteConnectionSuccessClose = () => {
+    console.log('🔄 Handling delete connection success close');
     setShowDeleteConnectionSuccessModal(false);
-    // Go back two steps - from UserProfile -> Chat -> ChatsScreen
-    navigation.goBack();
-    navigation.goBack();
+    
+    // Check if we can go back multiple steps
+    if (navigation.canGoBack()) {
+      console.log('✅ Navigating back to previous screen');
+      navigation.goBack();
+    } else {
+      console.log('✅ Navigating to Chats screen');
+      navigation.navigate('Root', { 
+        screen: 'Chats'
+      });
+    }
   };
 
   return (
@@ -369,7 +420,14 @@ export default function UserProfileScreen({ route, navigation }: UserProfileProp
         <UserProfileActions
           key={`profile-actions-${isConnected}`}
           onConnect={() => {}}
-          onMessage={() => {}}
+          onMessage={() => {
+            // Navigate to chat with this user
+            navigation.navigate('Chat', {
+              userId: profile.id,
+              userName: `${profile.firstName} ${profile.lastName}`,
+              userPhotoURL: profile.photoURL || ''
+            });
+          }}
           onBlock={handleBlockUser}
           onDeleteConnection={handleDeleteConnection}
           currentTheme={currentTheme}

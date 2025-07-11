@@ -49,6 +49,7 @@ export default function UserProfileActions({
 
   const handleConfirmDeleteConnection = () => {
     setShowDeleteConnectionModal(false);
+    console.log("Deleting connection for user:", userName); // Add log before deletion
     onDeleteConnection();
     setShowDeleteConnectionSuccessModal(true);
   };
@@ -121,6 +122,20 @@ export default function UserProfileActions({
     blockButtonText: {
       color: '#FF3B30',
     },
+    connectButton: {
+      backgroundColor: '#007AFF',
+      borderColor: '#007AFF',
+    },
+    connectButtonText: {
+      color: '#fff',
+    },
+    chatButton: {
+      backgroundColor: '#34C759',
+      borderColor: '#34C759',
+    },
+    chatButtonText: {
+      color: '#fff',
+    },
   });
 
   return (
@@ -128,6 +143,17 @@ export default function UserProfileActions({
       <View style={[localStyles.container, { backgroundColor: currentTheme.background }]}>
         {/* Delete Connection Button - Only show if connected */}
         {isConnected && (
+          <>
+          <TouchableOpacity
+            style={[localStyles.actionButton, localStyles.chatButton, { borderColor: currentTheme.border }]}
+            onPress={onMessage}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chatbubbles" size={20} color="#fff" />
+            <Text style={[localStyles.actionButtonText, localStyles.chatButtonText]}>
+              {t('userProfile.chat', 'Chat')}
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[localStyles.actionButton, localStyles.deleteButton, { borderColor: currentTheme.border }]}
             onPress={handleDeleteConnectionPress}
@@ -138,6 +164,7 @@ export default function UserProfileActions({
               {t('userProfile.deleteConnection', 'Delete Connection')}
             </Text>
           </TouchableOpacity>
+          </>
         )}
 
         {/* Block User Button */}
