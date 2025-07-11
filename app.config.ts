@@ -16,7 +16,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       image: "./assets/images/app_icon.png",
       resizeMode: "contain",
       backgroundColor: "#FA4169"
-    }
+    },
+    imageWidth: 200
   },
   assetBundlePatterns: [
     "**/*"
