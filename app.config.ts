@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     edgeToEdgeEnabled: true,
-    googleServicesFile: "./google-services.json",
+    googleServicesFile: process.env.AGS || '',
     adaptiveIcon: {
       foregroundImage: "./assets/images/app_icon_bg.png",
       backgroundColor: "#FA4169"
