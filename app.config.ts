@@ -58,7 +58,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-camera",
-    "expo-location",
+    [
+      "expo-location",
+      {
+        "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location.",
+        "isAndroidBackgroundLocationEnabled": true,
+        "isAndroidForegroundServiceEnabled": true
+      }
+    ],
     "expo-notifications",
     "expo-font",
     "expo-system-ui",

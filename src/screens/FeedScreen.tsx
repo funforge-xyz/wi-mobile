@@ -51,8 +51,8 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { getFirestore, getAuth } from '../services/firebase';
-import { useVideoPlayer, useEvent } from 'expo-video';
 import { COLORS } from '../config/constants';
+import * as Location from 'expo-location';
 
 const { width, height } = Dimensions.get('window');
 
@@ -358,10 +358,12 @@ export default function FeedScreen({ navigation }: any) {
             let userHasLocationData = false;
             let userHasWifiData = false;
             let sameNetworkMatching = false;
+            let userLocation = null;
 
             if (userDoc.exists()) {
               const userData = userDoc.data();
-              userHasLocationData = userData.location && userData.location.latitude && userData.location.longitude;
+              userLocation = userData.location;
+              userHasLocationData = !!userData.location && !!userData.location.latitude && !!userData.location.longitude;
               userHasWifiData = userData.currentNetworkId;
               sameNetworkMatching = userData.sameNetworkMatching || false;
               
@@ -384,8 +386,8 @@ export default function FeedScreen({ navigation }: any) {
                 console.log('📍 Getting current location...');
                 try {
                   const locationResult = await Location.getCurrentPositionAsync({
-                    accuracy: Location.Accuracy.Highest,
-                    timeInterval: 15000,
+                    accuracy: Location.Accuracy.High,
+                    // timeInterval: 5000,
                   });
                   currentLocation = {
                     latitude: locationResult.coords.latitude,
@@ -396,6 +398,10 @@ export default function FeedScreen({ navigation }: any) {
                   console.error('❌ Failed to get current location:', locationError);
                   setLoading(false);
                   return;
+                }
+              } else {
+                if(userLocation) {
+                  setCurrentUserLocation(userLocation);
                 }
               }
 
@@ -430,7 +436,7 @@ export default function FeedScreen({ navigation }: any) {
               console.log('✅ User data updated in Firebase');
             } else {
               // User already has required data, just get current location for local state
-              if (userHasLocationData) {
+              if (userHasLocationData && userDoc.exists()) {
                 const userData = userDoc.data();
                 setCurrentUserLocation(userData.location);
                 console.log('✅ Using existing location data from Firebase');
@@ -494,6 +500,8 @@ export default function FeedScreen({ navigation }: any) {
       if (appStateSubscription) appStateSubscription?.remove();
     };
   }, []);
+
+  console.log({currentUserLocation});
 
   const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>, explicitLocation?: any, explicitPermissionStatus?: string, explicitTrackingRadius?: number) => {
     const effectiveLocation = explicitLocation || currentUserLocation;
