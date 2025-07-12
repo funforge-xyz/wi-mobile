@@ -438,14 +438,24 @@ export const handleLikePost = async (
 export const handlePostLike = async (
   postId: string,
   newLikedState: boolean,
-  currentUser: any
+  currentUser: any,
+  postAuthorId?: string
 ): Promise<void> => {
   try {
     const firestore = getFirestore();
-    const { addDoc, deleteDoc, collection, query, where, getDocs, doc, updateDoc, increment } = await import('firebase/firestore');
+    const { addDoc, deleteDoc, collection, query, where, getDocs, doc, updateDoc, increment, getDoc } = await import('firebase/firestore');
 
     const postRef = doc(firestore, 'posts', postId);
     const likesCollectionRef = collection(firestore, 'posts', postId, 'likes');
+
+    // Get post author ID if not provided
+    let authorId = postAuthorId;
+    if (!authorId) {
+      const postDoc = await getDoc(postRef);
+      if (postDoc.exists()) {
+        authorId = postDoc.data().authorId;
+      }
+    }
 
     if (newLikedState) {
       // Like: add a like document and update post likesCount
@@ -457,11 +467,35 @@ export const handlePostLike = async (
       await updateDoc(postRef, {
         likesCount: increment(1)
       });
+
+      // Create like notification
+      if (authorId && authorId !== currentUser.uid) {
+        const { createLikeNotification } = await import('../services/notifications');
+        await createLikeNotification(postId, authorId);
+      }
+
       console.log('feedUtils - Successfully added like to Firebase');
     } else {
       // Unlike: remove the like document and update post likesCount
       const userLikeQuery = query(likesCollectionRef, where('authorId', '==', currentUser.uid));
       const userLikeSnapshot = await getDocs(userLikeQuery);
+      
+      if (!userLikeSnapshot.empty) {
+        const deletePromises = userLikeSnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+        
+        await updateDoc(postRef, {
+          likesCount: increment(-1)
+        });
+
+        // Remove like notification
+        if (authorId && authorId !== currentUser.uid) {
+          const { removeLikeNotification } = await import('../services/notifications');
+          await removeLikeNotification(postId, authorId, currentUser.uid);
+        }
+
+        console.log('feedUtils - Successfully removed like from Firebase');
+      });
 
       if (!userLikeSnapshot.empty) {
         const likeDoc = userLikeSnapshot.docs[0];
