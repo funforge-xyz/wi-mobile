@@ -59,6 +59,7 @@
     "accountCreated": "Nalog kreiran!",
     "verificationEmailSent": "Molimo provjerite vaš email i kliknite na link za verifikaciju prije prijavljivanja.",
     "googleSignInUnavailable": "Google prijava je privremeno nedostupna u razvoju",
+    "googleSignInFailed": "Google prijava neuspješna. Molimo pokušajte ponovo.",
     "uploadPictureFailed": "Neuspješno učitavanje profilne slike. Molimo pokušajte ponovo.",
     "forgotPasswordTitle": "Resetiranje lozinke",
     "forgotPasswordDescription": "Unesite vašu email adresu i poslat ćemo vam link za resetiranje lozinke.",
