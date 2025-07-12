@@ -271,12 +271,27 @@ export class LocationService {
 
   async stopLocationTracking(): Promise<void> {
     try {
-      await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      // Stop background location updates
+      if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME)) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+        console.log('✅ Background location updates stopped');
+      }
+      
+      // Stop foreground location updates
       this.stopForegroundLocationUpdates();
+      
+      // Reset tracking state
       this.isTracking = false;
-      console.log('Location tracking stopped (foreground + background)');
+      this.backgroundUpdateCount = 0;
+      this.isInForeground = true;
+      
+      console.log('🛑 Location tracking stopped completely (foreground + background)');
     } catch (error) {
-      console.error('Error stopping location tracking:', error);
+      console.error('❌ Error stopping location tracking:', error);
+      // Even if there's an error, reset the state
+      this.isTracking = false;
+      this.backgroundUpdateCount = 0;
+      this.isInForeground = true;
     }
   }
 
@@ -433,6 +448,30 @@ export class LocationService {
       }
     } catch (error) {
       console.error('❌ Error updating location immediately:', error);
+    }
+  }
+
+  // Complete cleanup for logout/app termination
+  async cleanup(): Promise<void> {
+    try {
+      await this.stopLocationTracking();
+      
+      // Clear any remaining intervals
+      if (this.foregroundLocationInterval) {
+        clearInterval(this.foregroundLocationInterval);
+        this.foregroundLocationInterval = undefined;
+      }
+      
+      // Reset all state
+      this.isTracking = false;
+      this.backgroundUpdateCount = 0;
+      this.maxBackgroundUpdates = 5;
+      this.isInForeground = true;
+      this.permissionModalCallback = undefined;
+      
+      console.log('🧹 LocationService cleanup completed');
+    } catch (error) {
+      console.error('❌ Error during LocationService cleanup:', error);
     }
   }
 }

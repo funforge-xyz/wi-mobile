@@ -366,7 +366,7 @@ export class AuthService {
     try {
       // Stop location tracking and cleanup background tasks
       const { locationService } = await import('./locationService');
-      await locationService.stopLocationTracking();
+      await locationService.cleanup();
       console.log('Location tracking stopped during sign out');
 
       const auth = getAuth();
@@ -397,7 +397,7 @@ export class AuthService {
     try {
       // Stop location tracking and cleanup background tasks
       const { locationService } = await import('./locationService');
-      await locationService.stopLocationTracking();
+      await locationService.cleanup();
       console.log('Location tracking stopped during logout');
 
       // Clear all Redux state first
@@ -567,7 +567,7 @@ export class AuthService {
 
       // Stop location tracking and cleanup background tasks
       const { locationService } = await import('./locationService');
-      await locationService.stopLocationTracking();
+      await locationService.cleanup();
       console.log('Location tracking stopped during account deletion');
 
       // Clear local storage
