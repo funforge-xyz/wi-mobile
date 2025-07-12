@@ -15,9 +15,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "**/*"
   ],
   ios: {
+    supportsTablet: false,
+    config: {
+      usesNonExemptEncryption: false
+    },
     buildNumber: "4",
     googleServicesFile: "./GoogleService-Info.plist",
-    supportsTablet: true,
     bundleIdentifier: "com.wichatapp",
     infoPlist: {
       NSLocationAlwaysAndWhenInUseUsageDescription: "WiChat needs location access to find nearby users and enable location-based features.",
