@@ -372,7 +372,7 @@ export default function FeedScreen({ navigation }: any) {
 
               // Finally, load posts now that location is confirmed
               console.log('FeedScreen: Location confirmed, loading posts...');
-              await loadPosts(false, freshConnectionIds, location, 'granted');
+              await loadPosts(false, freshConnectionIds, location, 'granted', radius);
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
@@ -404,11 +404,12 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>, explicitLocation?: any, explicitPermissionStatus?: string) => {
+  const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>, explicitLocation?: any, explicitPermissionStatus?: string, explicitTrackingRadius?: number) => {
     const effectiveLocation = explicitLocation || currentUserLocation;
     const effectivePermissionStatus = explicitPermissionStatus || locationPermissionStatus;
+    const effectiveTrackingRadius = explicitTrackingRadius || trackingRadius;
     
-    console.log('loadPosts called:', { isRefresh, effectiveLocation, trackingRadius, effectivePermissionStatus });
+    console.log('loadPosts called:', { isRefresh, effectiveLocation, effectiveTrackingRadius, effectivePermissionStatus });
 
     const { getAuth } = await import('../services/firebase');
     const auth = getAuth();
@@ -451,7 +452,7 @@ export default function FeedScreen({ navigation }: any) {
       const currentUser = auth.currentUser;
 
       // Load feed posts with timeout and retry logic built-in
-      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
+      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid, effectiveTrackingRadius);
       let feedPosts = feedResult.posts;
 
       // Use fresh connection data if provided, otherwise use current state
@@ -505,7 +506,7 @@ export default function FeedScreen({ navigation }: any) {
         console.log(`Retrying feed load (attempt ${retryCount + 1})`);
         setRetryCount(prev => prev + 1);
         setTimeout(() => {
-          loadPosts(isRefresh, freshConnectionIds);
+          loadPosts(isRefresh, freshConnectionIds, explicitLocation, explicitPermissionStatus, explicitTrackingRadius);
         }, Math.pow(2, retryCount) * 1000); // Exponential backoff
         return;
       }
@@ -552,7 +553,7 @@ export default function FeedScreen({ navigation }: any) {
 
       // For pagination, we'll need to implement a different approach since loadFeedPosts uses DocumentSnapshot
       // For now, let's load more posts without pagination
-      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid);
+      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid, effectiveRadius);
       const morePosts = feedResult.posts.filter(post => 
         post.authorId !== currentUser?.uid && // Exclude current user's posts
         !posts.some(existingPost => existingPost.id === post.id)
@@ -619,7 +620,7 @@ export default function FeedScreen({ navigation }: any) {
     const freshConnectionIds = await loadUserConnections();
 
     // Load posts with refresh flag and fresh connection data
-    await loadPosts(true, freshConnectionIds, currentUserLocation, locationPermissionStatus);
+    await loadPosts(true, freshConnectionIds, currentUserLocation, locationPermissionStatus, trackingRadius);
   };
 
   const handleLike = async (postId: string, shouldLike?: boolean) => {
@@ -889,7 +890,7 @@ export default function FeedScreen({ navigation }: any) {
           const freshConnectionIds = await loadUserConnections();
           
           // Load posts with all data ready
-          await loadPosts(true, freshConnectionIds, location, 'granted');
+          await loadPosts(true, freshConnectionIds, location, 'granted', radius);
         } else {
           console.log('Failed to get current location after permissions granted');
           setLocationPermissionStatus('denied');
@@ -1088,7 +1089,7 @@ export default function FeedScreen({ navigation }: any) {
             onPress={() => {
               setError(null);
               setRetryCount(0);
-              loadPosts(true, undefined, currentUserLocation, locationPermissionStatus);
+              loadPosts(true, undefined, currentUserLocation, locationPermissionStatus, trackingRadius);
             }}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>

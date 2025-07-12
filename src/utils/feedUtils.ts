@@ -518,7 +518,8 @@ import { DocumentSnapshot } from 'firebase/firestore';
 export async function loadFeedPosts(
   limit: number = 10,
   lastDoc?: DocumentSnapshot,
-  currentUserId?: string
+  currentUserId?: string,
+  explicitTrackingRadius?: number
 ): Promise<{ posts: any[]; hasMore: boolean }> {
   const maxRetries = 3;
   let retryCount = 0;
@@ -544,7 +545,7 @@ export async function loadFeedPosts(
         // Get user settings with timeout
         const userDoc = await getDoc(doc(firestore, 'users', currentUser.uid));
         const userData = userDoc.data();
-        const userRadius = userData?.trackingRadius ? userData.trackingRadius / 1000 : 0.1;
+        const userRadius = explicitTrackingRadius || (userData?.trackingRadius ? userData.trackingRadius / 1000 : 0.1);
         const sameNetworkMatchingEnabled = userData?.sameNetworkMatchingEnabled || false;
         const currentUserNetworkId = userData?.currentNetworkId || null;
         const userLocation = userData?.location;
