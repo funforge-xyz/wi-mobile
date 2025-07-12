@@ -113,6 +113,10 @@ export default function App() {
             if (!user.emailVerified) {
               console.log('User email not verified, signing out');
               await signOut(auth);
+            } else {
+              // Register for push notifications when user is authenticated
+              const { registerForPushNotifications } = await import('./src/services/notifications');
+              await registerForPushNotifications();
             }
           } catch (error) {
             console.error('Error reloading user in auth listener:', error);

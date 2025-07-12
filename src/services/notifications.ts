@@ -242,17 +242,18 @@ export const createLikeNotification = async (postId: string, postAuthorId: strin
       ? `${userData.firstName} ${userData.lastName}`
       : currentUser.displayName || 'Someone';
 
-    // Create notification
+    // Create notification with consistent field names
     await addDoc(collection(firestore, 'notifications'), {
       type: 'like',
+      title: 'New Like',
+      body: `${userName} liked your post`,
+      targetUserId: postAuthorId,
       fromUserId: currentUser.uid,
       fromUserName: userName,
-      fromUserPhotoURL: userData.photoURL || currentUser.photoURL || null,
-      toUserId: postAuthorId,
+      fromUserPhotoURL: userData.photoURL || currentUser.photoURL || '',
       postId: postId,
-      message: `${userName} liked your post`,
-      createdAt: new Date(),
       read: false,
+      createdAt: new Date(),
     });
 
     console.log('Like notification created successfully');
@@ -265,12 +266,12 @@ export const removeLikeNotification = async (postId: string, postAuthorId: strin
   try {
     const firestore = getFirestore();
 
-    // Find and delete the like notification
+    // Find and delete the like notification with consistent field names
     const notificationsQuery = query(
       collection(firestore, 'notifications'),
       where('type', '==', 'like'),
       where('fromUserId', '==', fromUserId),
-      where('toUserId', '==', postAuthorId),
+      where('targetUserId', '==', postAuthorId),
       where('postId', '==', postId)
     );
 
@@ -307,7 +308,7 @@ export const createCommentNotification = async (postId: string, postAuthorId: st
       : userData?.firstName || userData?.displayName || 'Someone';
 
     await addDoc(collection(firestore, 'notifications'), {
-      type: 'post_comment',
+      type: 'comment',
       title: 'New Comment',
       body: `${fullName} commented on your post`,
       targetUserId: postAuthorId,
