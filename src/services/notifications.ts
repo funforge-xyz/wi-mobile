@@ -310,7 +310,7 @@ export const createCommentNotification = async (postId: string, postAuthorId: st
     await addDoc(collection(firestore, 'notifications'), {
       type: 'comment',
       title: 'New Comment',
-      body: `${fullName} commented on your post`,
+      body: `${fullName} replied to`,
       targetUserId: postAuthorId,
       fromUserId: currentUser.uid,
       fromUserName: fullName,
