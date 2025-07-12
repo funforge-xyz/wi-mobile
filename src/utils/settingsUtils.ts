@@ -101,35 +101,23 @@ export const handleTogglePushNotifications = async (
       const token = await initializeNotifications();
       if (token) {
         setPushNotificationsEnabled(true);
-        Alert.alert(t('common.success'), t('settings.pushNotificationsEnabledSuccessfully'));
+        // Success - no alert needed, just enable the setting
       } else {
         setPushNotificationsEnabled(false);
-        if (setShowPushNotificationModal && setShowSettingsOption) {
+        if (setShowPushNotificationModal) {
           setShowPushNotificationModal(true);
-        } else {
-          Alert.alert(
-            t('settings.permissionRequired'),
-            t('settings.enableNotificationsInDeviceSettings'),
-            [
-              {
-                text: t('common.cancel'),
-                style: 'cancel',
-              },
-              {
-                text: t('settings.openSettings'),
-                onPress: () => Linking.openSettings(),
-              },
-            ]
-          );
         }
       }
     } else {
       setPushNotificationsEnabled(false);
-      Alert.alert(t('settings.disabled'), t('settings.pushNotificationsDisabled'));
+      // No alert when disabling notifications
     }
   } catch (error) {
     console.error('Error toggling push notifications:', error);
-    Alert.alert(t('common.error'), t('settings.failedToUpdateNotificationSettings'));
+    // Only show error for actual failures, not permission denials
+    if (setShowPushNotificationModal) {
+      setShowPushNotificationModal(true);
+    }
   } finally {
     setIsLoading(false);
   }

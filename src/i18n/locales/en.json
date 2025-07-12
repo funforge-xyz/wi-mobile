@@ -569,5 +569,16 @@
     "deleteConnectionMessage": "Are you sure you want to delete your connection with {{userName}}? This action cannot be undone.",
     "connectionDeleted": "Connection Deleted",
     "connectionDeletedMessage": "The connection has been successfully removed."
+  },
+  "pushNotifications": {
+    "permissionRequired": "Permission Required",
+    "notificationPermissionTitle": "Enable Notifications",
+    "notificationPermissionDescription": "To receive important updates and stay connected, please enable notifications in your device settings.",
+    "newMessageNotifications": "New message notifications",
+    "likeNotifications": "Like notifications",
+    "commentNotifications": "Comment notifications",
+    "connectionNotifications": "New connection requests",
+    "openSettings": "Open Settings",
+    "enableNotificationsInDeviceSettings": "Please enable notifications in your device settings to receive important updates"
   }
 }

@@ -351,8 +351,7 @@
     "commentNotifications": "Obavještenja o komentarima",
     "connectionNotifications": "Zahtjevi za nova povezivanja",
     "openSettings": "Otvori Podešavanja",
-    "enableNotificationsInDeviceSettings": "Molimo omogućite obavještenja u postavkama vašeg uređaja da biste primali važna ažuriranja",
-    "permissionRequired": "Potrebna je dozvola"
+    "enableNotificationsInDeviceSettings": "Molimo omogućite obavještenja u postavkama vašeg uređaja da biste primali važna ažuriranja"
   },
   "notifications": {
     "title": "Obavještenja",
@@ -533,7 +532,7 @@
     "acceptanceTitle": "1. Prihvatanje uslova",
     "acceptanceText": "Pristupanjem i korištenjem ove aplikacije, prihvatate i slažete se da budete vezani uslovima i odredbama ovog sporazuma.",
     "privacyTitle": "2. Politika privatnosti",
-    "privacyText": "Vaša privatnost je važna za nas. Prikupljamo i koristimo vaše informacije u skladu sa našom Politikom privatnosti, koja je uključena u ove Uslove putem reference.",
+    "privacyText": "Vaša privatnost je važna za nas. Prikuplamo i koristimo vaše informacije u skladu sa našom Politikom privatnosti, koja je uključena u ove Uslove putem reference.",
     "conductTitle": "3. Ponašanje korisnika",
     "conductText": "Slažete se da ćete koristiti aplikaciju način koji je u skladu sa svim važećim zakonima i propisima. Ne smijete koristiti aplikaciju u nezakonite svrhe ili u svrhe zabranjene pod ovom klauzulom.",
     "contentTitle": "4. Smjernice za sadržaj",
