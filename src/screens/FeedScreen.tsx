@@ -445,7 +445,7 @@ export default function FeedScreen({ navigation }: any) {
 
             // Step 6: Start location tracking
             console.log('🔄 Step 6: Starting location tracking...');
-            const trackingStarted = await locationService.startLocationTracking();
+            const trackingStarted = locationService.startLocationTracking();
             if (!trackingStarted) {
               console.log('⚠️ Location tracking failed to start');
             } else {

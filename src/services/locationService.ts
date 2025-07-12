@@ -5,7 +5,7 @@ import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { getAuth } from './firebase';
 
 const LOCATION_TASK_NAME = 'background-location-task';
-const BACKGROUND_UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const BACKGROUND_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 const FOREGROUND_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Debouncing and duplicate prevention
@@ -235,11 +235,11 @@ export class LocationService {
         console.log('🔄 Starting background location updates...', {
           updateInterval: BACKGROUND_UPDATE_INTERVAL / 1000 / 60 + ' minutes',
           distanceInterval: '10 meters',
-          accuracy: 'BestForNavigation'
+          accuracy: 'High'
         });
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
           accuracy: Location.Accuracy.High,
-          // timeInterval: BACKGROUND_UPDATE_INTERVAL,
+          timeInterval: BACKGROUND_UPDATE_INTERVAL,
           distanceInterval: 10, // Update if moved more than 10 meters
           deferredUpdatesInterval: BACKGROUND_UPDATE_INTERVAL,
           showsBackgroundLocationIndicator: true,
@@ -415,17 +415,17 @@ export class LocationService {
 
   // Start foreground location updates (every 5 minutes)
   private startForegroundLocationUpdates(): void {
-    if (this.foregroundLocationInterval) {
-      clearInterval(this.foregroundLocationInterval);
-    }
+    // if (this.foregroundLocationInterval) {
+    //   clearInterval(this.foregroundLocationInterval);
+    // }
 
-    console.log('🔄 Starting foreground location updates (5-minute interval)');
-    this.foregroundLocationInterval = setInterval(async () => {
-      if (this.isInForeground && this.isTracking) {
-        console.log('⏰ Foreground location update triggered');
-        await this.updateLocationNow();
-      }
-    }, FOREGROUND_UPDATE_INTERVAL);
+    // console.log('🔄 Starting foreground location updates (5-minute interval)');
+    // this.foregroundLocationInterval = setInterval(async () => {
+    //   if (this.isInForeground && this.isTracking) {
+    //     console.log('⏰ Foreground location update triggered');
+    //     await this.updateLocationNow();
+    //   }
+    // }, FOREGROUND_UPDATE_INTERVAL);
   }
 
   // Stop foreground location updates
