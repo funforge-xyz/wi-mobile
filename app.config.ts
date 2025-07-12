@@ -20,7 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       usesNonExemptEncryption: false
     },
     buildNumber: "4",
-    googleServicesFile: process.env.IGS || '',
+    googleServicesFile: process.env.IGS || './GoogleService-Info.plist',
     bundleIdentifier: "com.wichatapp",
     infoPlist: {
       NSLocationAlwaysAndWhenInUseUsageDescription: "WiChat needs location access to find nearby users and enable location-based features.",

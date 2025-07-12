@@ -323,6 +323,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             onEmailAuth={handleEmailAuth}
             onGoogleSignIn={handleGoogleSignIn}
             onSwitchMode={() => setIsSignUp(!isSignUp)}
+            hideGoogleButton={true}
           />
         </View>
       </KeyboardAwareScrollView>
