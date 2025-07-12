@@ -9,21 +9,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: "./assets/images/app_icon_bg.png",
   userInterfaceStyle: "automatic",
   splash: {
-    image: "./assets/images/app_icon.png",
-    resizeMode: "contain",
     backgroundColor: "#FA4169",
-    dark: {
-      image: "./assets/images/app_icon.png",
-      resizeMode: "contain",
-      backgroundColor: "#FA4169"
-    },
-    imageWidth: 200
   },
   assetBundlePatterns: [
     "**/*"
   ],
   ios: {
-    buildNumber: "2",
+    buildNumber: "4",
     googleServicesFile: "./GoogleService-Info.plist",
     supportsTablet: true,
     bundleIdentifier: "com.wichatapp",
@@ -66,7 +58,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-location",
     "expo-notifications",
     "expo-font",
-    "expo-system-ui"
+    "expo-system-ui",
+    [
+      "expo-splash-screen",
+      {
+        "backgroundColor": "#FA4169",
+        "dark": {
+          "image": "./assets/images/app_icon.png",
+          "backgroundColor": "#FA4169"
+        },
+        "image": "./assets/images/app_icon.png",
+        "imageWidth": 144
+      }
+    ]
   ],
   extra: {
     eas: {
