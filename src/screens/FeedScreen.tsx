@@ -372,7 +372,7 @@ export default function FeedScreen({ navigation }: any) {
 
               // Finally, load posts now that location is confirmed
               console.log('FeedScreen: Location confirmed, loading posts...');
-              await loadPosts(false, freshConnectionIds);
+              await loadPosts(false, freshConnectionIds, location, 'granted');
             } catch (error) {
               console.error('Error during user initialization:', error);
               setLoading(false);
@@ -404,8 +404,11 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>) => {
-    console.log('loadPosts called:', { isRefresh, currentUserLocation, trackingRadius });
+  const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>, explicitLocation?: any, explicitPermissionStatus?: string) => {
+    const effectiveLocation = explicitLocation || currentUserLocation;
+    const effectivePermissionStatus = explicitPermissionStatus || locationPermissionStatus;
+    
+    console.log('loadPosts called:', { isRefresh, effectiveLocation, trackingRadius, effectivePermissionStatus });
 
     const { getAuth } = await import('../services/firebase');
     const auth = getAuth();
@@ -418,7 +421,7 @@ export default function FeedScreen({ navigation }: any) {
     }
 
     // Ensure location permissions are granted before loading posts
-    if (locationPermissionStatus !== 'granted') {
+    if (effectivePermissionStatus !== 'granted') {
       console.log('Location permissions not granted, cannot load posts');
       setLoading(false);
       setRefreshing(false);
@@ -426,7 +429,7 @@ export default function FeedScreen({ navigation }: any) {
     }
 
     // Ensure we have location data before proceeding
-    if (!currentUserLocation) {
+    if (!effectiveLocation) {
       console.log('No current user location available, cannot load posts');
       setLoading(false);
       setRefreshing(false);
@@ -434,7 +437,7 @@ export default function FeedScreen({ navigation }: any) {
       return;
     }
 
-    console.log('Loading posts:', { isRefresh, currentUserLocation });
+    console.log('Loading posts:', { isRefresh, effectiveLocation });
 
     try {
       if (isRefresh) {
@@ -616,7 +619,7 @@ export default function FeedScreen({ navigation }: any) {
     const freshConnectionIds = await loadUserConnections();
 
     // Load posts with refresh flag and fresh connection data
-    await loadPosts(true, freshConnectionIds);
+    await loadPosts(true, freshConnectionIds, currentUserLocation, locationPermissionStatus);
   };
 
   const handleLike = async (postId: string, shouldLike?: boolean) => {
@@ -886,7 +889,7 @@ export default function FeedScreen({ navigation }: any) {
           const freshConnectionIds = await loadUserConnections();
           
           // Load posts with all data ready
-          await loadPosts(true, freshConnectionIds);
+          await loadPosts(true, freshConnectionIds, location, 'granted');
         } else {
           console.log('Failed to get current location after permissions granted');
           setLocationPermissionStatus('denied');
@@ -1085,7 +1088,7 @@ export default function FeedScreen({ navigation }: any) {
             onPress={() => {
               setError(null);
               setRetryCount(0);
-              loadPosts(true);
+              loadPosts(true, undefined, currentUserLocation, locationPermissionStatus);
             }}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>
