@@ -495,7 +495,7 @@ export const handlePostLike = async (
         }
 
         console.log('feedUtils - Successfully removed like from Firebase');
-      });
+      };
 
       if (!userLikeSnapshot.empty) {
         const likeDoc = userLikeSnapshot.docs[0];

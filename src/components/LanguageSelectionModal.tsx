@@ -63,7 +63,7 @@ export default function LanguageSelectionModal({
               style={[
                 modalStyles.radiusOption,
                 {
-                  backgroundColor: currentLanguage === language.code ? `${COLORS.primary}15` : currentTheme.surface,
+                  backgroundColor: currentTheme.surface,
                   borderColor: currentLanguage === language.code ? COLORS.primary : currentTheme.border,
                   borderWidth: currentLanguage === language.code ? 2 : 1,
                 }
@@ -71,7 +71,7 @@ export default function LanguageSelectionModal({
               onPress={() => onLanguageChange(language.code)}
               activeOpacity={0.7}
             >
-              <View style={modalStyles.radiusOptionContent}>
+              <View style={{...modalStyles.radiusOptionContent}}>
                 <View style={modalStyles.radiusOptionLeft}>
                   <Text style={[
                     modalStyles.radiusOptionText,

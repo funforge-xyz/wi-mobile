@@ -59,7 +59,7 @@ export default function RadiusSelectionModal({
               style={[
                 modalStyles.radiusOption,
                 {
-                  backgroundColor: trackingRadius === radius ? `${COLORS.primary}15` : currentTheme.surface,
+                  backgroundColor: currentTheme.surface,
                   borderColor: trackingRadius === radius ? COLORS.primary : currentTheme.border,
                   borderWidth: trackingRadius === radius ? 2 : 1,
                 }
