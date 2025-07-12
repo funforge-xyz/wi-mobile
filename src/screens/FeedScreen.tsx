@@ -291,112 +291,203 @@ export default function FeedScreen({ navigation }: any) {
     let unsubscribe: (() => void) | undefined;
     let appStateSubscription: any;
 
-    const initializeAndSetupAuth = async () => {
+    const initializeApp = async () => {
       try {
-        const { initializeFirebase, getAuth } = await import('../services/firebase');
+        console.log('🚀 Starting app initialization...');
+        setLoading(true);
+        setLocationPermissionStatus('checking');
 
-        console.log('FeedScreen: Initializing Firebase...');
+        // Step 1: Request foreground location permissions
+        console.log('📍 Step 1: Requesting foreground location permissions...');
+        const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
+        
+        if (foregroundStatus !== 'granted') {
+          console.log('❌ Foreground location permission denied');
+          setLocationPermissionStatus('denied');
+          setLoading(false);
+          return;
+        }
+        console.log('✅ Foreground location permissions granted');
+
+        // Step 2: Request background location permissions
+        console.log('📍 Step 2: Requesting background location permissions...');
+        const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+        
+        if (backgroundStatus !== 'granted') {
+          console.log('❌ Background location permission denied');
+          setLocationPermissionStatus('denied');
+          setLoading(false);
+          return;
+        }
+        console.log('✅ Background location permissions granted');
+
+        // Step 3: Initialize Firebase and get user auth data
+        console.log('🔥 Step 3: Initializing Firebase...');
+        const { initializeFirebase, getAuth, getFirestore } = await import('../services/firebase');
         await initializeFirebase();
-        console.log('FeedScreen: Firebase initialized successfully');
-
         const auth = getAuth();
-
+        const firestore = getFirestore();
+        
         unsubscribe = auth.onAuthStateChanged(async (user: any) => {
-          if (user) {
-            try {
-              await user.reload();
+          if (!user) {
+            console.log('❌ No authenticated user found');
+            setLoading(false);
+            setPosts([]);
+            return;
+          }
 
-              const currentUser = auth.currentUser;
-              if (!currentUser) {
-                console.log('User not found after reload');
-                setLoading(false);
-                setPosts([]);
-                return;
-              }
+          try {
+            await user.reload();
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+              console.log('❌ User not found after reload');
+              setLoading(false);
+              setPosts([]);
+              return;
+            }
 
-              // First, check location permissions before doing anything else
-              console.log('FeedScreen: Checking location permissions...');
-              setLocationPermissionStatus('checking');
+            console.log('👤 User authenticated:', currentUser.uid);
+            setLocationPermissionStatus('granted');
+
+            // Step 4: Get user document to check location and WiFi data
+            console.log('📄 Step 4: Checking user data in Firebase...');
+            const { doc, getDoc } = await import('firebase/firestore');
+            const userDocRef = doc(firestore, 'users', currentUser.uid);
+            const userDoc = await getDoc(userDocRef);
+            
+            let userHasLocationData = false;
+            let userHasWifiData = false;
+            let sameNetworkMatching = false;
+
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              userHasLocationData = userData.location && userData.location.latitude && userData.location.longitude;
+              userHasWifiData = userData.currentNetworkId;
+              sameNetworkMatching = userData.sameNetworkMatching || false;
               
-              const hasLocationPermissions = await locationService.checkPermissions();
-              if (!hasLocationPermissions) {
-                console.log('FeedScreen: No location permissions - showing enable location screen');
-                setLocationPermissionStatus('denied');
-                setLoading(false);
-                return;
-              }
+              console.log('📊 User data status:', {
+                hasLocation: userHasLocationData,
+                hasWifi: userHasWifiData,
+                wifiMatching: sameNetworkMatching
+              });
+            }
 
-              console.log('FeedScreen: Location permissions granted, proceeding with initialization...');
-              setLocationPermissionStatus('granted');
+            // Step 5: Update Firebase if user doesn't have required data
+            const needsLocationUpdate = !userHasLocationData;
+            const needsWifiUpdate = sameNetworkMatching && !userHasWifiData;
 
-              // Load user settings for radius
-              const radius = await loadUserSettings();
-              if (radius) {
-                setTrackingRadius(radius);
-              }
-
-              // Get current location
-              let location;
-              try {
-                console.log('FeedScreen: Getting current location...');
-                location = await Promise.race([
-                  locationService.getCurrentLocation(),
-                  new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Location timeout')), 8000)
-                  )
-                ]);
-                
-                if (location) {
-                  console.log('FeedScreen: Location obtained:', location);
-                  setCurrentUserLocation(location);
-                  
-                  // Start location tracking in background
-                  locationService.startLocationTracking().then(started => {
-                    if (started) {
-                      console.log('FeedScreen: Location tracking started successfully');
-                    }
+            if (needsLocationUpdate || needsWifiUpdate) {
+              console.log('📤 Step 5: Updating missing user data in Firebase...');
+              
+              let currentLocation = null;
+              if (needsLocationUpdate) {
+                console.log('📍 Getting current location...');
+                try {
+                  const locationResult = await Location.getCurrentPositionAsync({
+                    accuracy: Location.Accuracy.Highest,
+                    timeInterval: 15000,
                   });
-                } else {
-                  console.log('FeedScreen: No location available');
+                  currentLocation = {
+                    latitude: locationResult.coords.latitude,
+                    longitude: locationResult.coords.longitude
+                  };
+                  console.log('✅ Current location obtained:', currentLocation);
+                } catch (locationError) {
+                  console.error('❌ Failed to get current location:', locationError);
                   setLoading(false);
                   return;
                 }
-              } catch (locationError) {
-                console.log('FeedScreen: Failed to get location:', locationError);
-                setLoading(false);
-                return;
               }
 
-              // Load user connections
-              const freshConnectionIds = await loadUserConnections();
+              let wifiInfo = null;
+              if (needsWifiUpdate) {
+                console.log('📶 Getting WiFi network info...');
+                const { wifiService } = await import('../services/wifiService');
+                wifiInfo = await wifiService.getCurrentWifiInfo();
+                console.log('📶 WiFi info obtained:', wifiInfo);
+              }
 
-              // Finally, load posts now that location is confirmed
-              console.log('FeedScreen: Location confirmed, loading posts...');
-              await loadPosts(false, freshConnectionIds, location, 'granted', radius);
-            } catch (error) {
-              console.error('Error during user initialization:', error);
-              setLoading(false);
+              // Update Firebase with missing data
+              const { updateDoc } = await import('firebase/firestore');
+              const updateData: any = {
+                lastSeen: new Date()
+              };
+
+              if (currentLocation) {
+                updateData.location = currentLocation;
+                updateData.lastUpdatedLocation = new Date();
+                setCurrentUserLocation(currentLocation);
+              }
+
+              if (wifiInfo && wifiInfo.isConnected && wifiInfo.networkId) {
+                updateData.currentNetworkId = wifiInfo.networkId;
+                updateData.lastNetworkUpdate = new Date();
+              } else if (needsWifiUpdate) {
+                updateData.currentNetworkId = null;
+              }
+
+              await updateDoc(userDocRef, updateData);
+              console.log('✅ User data updated in Firebase');
+            } else {
+              // User already has required data, just get current location for local state
+              if (userHasLocationData) {
+                const userData = userDoc.data();
+                setCurrentUserLocation(userData.location);
+                console.log('✅ Using existing location data from Firebase');
+              }
             }
-          } else {
-            console.log('No authenticated user found');
+
+            // Step 6: Start location tracking
+            console.log('🔄 Step 6: Starting location tracking...');
+            const trackingStarted = await locationService.startLocationTracking();
+            if (!trackingStarted) {
+              console.log('⚠️ Location tracking failed to start');
+            } else {
+              console.log('✅ Location tracking started successfully');
+            }
+
+            // Step 7: Load user settings and connections
+            console.log('⚙️ Step 7: Loading user settings and connections...');
+            const radius = await loadUserSettings();
+            if (radius) {
+              setTrackingRadius(radius);
+            }
+
+            const freshConnectionIds = await loadUserConnections();
+
+            // Step 8: Load posts
+            console.log('📰 Step 8: Loading posts...');
+            const effectiveLocation = currentUserLocation || (userDoc.exists() ? userDoc.data().location : null);
+            const effectiveRadius = radius || trackingRadius;
+
+            await loadPosts(false, freshConnectionIds, effectiveLocation, 'granted', effectiveRadius);
+            
+            console.log('🎉 App initialization completed successfully');
+
+          } catch (error) {
+            console.error('❌ Error during user initialization:', error);
             setLoading(false);
-            setPosts([]);
           }
         });
 
         const handleAppStateChange = (nextAppState: string) => {
-          // App state change handler - no online status tracking
+          if (nextAppState === 'active') {
+            locationService.onAppForeground();
+          } else if (nextAppState === 'background') {
+            locationService.onAppBackground();
+          }
         };
 
         appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
       } catch (error) {
-        console.error('Error initializing Firebase or setting up auth listener:', error);
+        console.error('❌ Error during app initialization:', error);
+        setLocationPermissionStatus('denied');
         setLoading(false);
       }
     };
 
-    initializeAndSetupAuth();
+    initializeApp();
 
     return () => {
       if (unsubscribe) unsubscribe();
