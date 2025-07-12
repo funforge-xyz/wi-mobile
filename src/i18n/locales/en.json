@@ -95,7 +95,7 @@
     "loading": "Loading...",
     "checkingLocation": "Checking location permissions...",
     "noPosts": "No posts yet",
-    "shareFirst": "Be the first to share something with your network!",
+    "shareFirst": "Pull down to refresh",
     "likesCount": "{{count}} like",
     "likesCount_plural": "{{count}} likes",
     "viewComments": "View all {{count}} comments",

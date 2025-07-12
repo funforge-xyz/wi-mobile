@@ -222,7 +222,8 @@ export class AuthService {
       const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
 
       await this.GoogleSignin.hasPlayServices();
-      const { idToken } = await this.GoogleSignin.signIn();
+      const googleSignInResult = await this.GoogleSignin.signIn();
+      const { idToken, user: googleUser } = googleSignInResult;
 
       const auth = getAuth();
       const googleCredential = GoogleAuthProvider.credential(idToken);
@@ -234,28 +235,78 @@ export class AuthService {
         const token = await user.getIdToken(false);
         await this.credentials.setToken(token);
 
-        // Check if this is a new user and create Firestore document if needed
+        // Always create/update user document with all available Google data
         const { getFirestore } = await import('./firebase');
-        const { doc, getDoc, setDoc } = await import('firebase/firestore');
+        const { doc, getDoc, setDoc, addDoc, collection } = await import('firebase/firestore');
 
         const firestore = getFirestore();
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
-        if (!userDoc.exists()) {
-          // Create user document for new Google sign-in users
-          await setDoc(userDocRef, {
-            email: user.email,
-            firstName: user.displayName?.split(' ')[0] || '',
-            lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-            bio: '',
-            photoURL: user.photoURL || '',
-            thumbnailURL: '',
-            trackingRadius: 100, // Default 100m in meters
-            sameNetworkMatching: true, // Default to true for new accounts
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+        const isNewUser = !userDoc.exists();
+
+        // Extract all available data from Google user profile
+        const userData = {
+          email: user.email || '',
+          firstName: user.displayName?.split(' ')[0] || '',
+          lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+          bio: userDoc.exists() ? userDoc.data().bio || '' : '',
+          photoURL: user.photoURL || '',
+          thumbnailURL: userDoc.exists() ? userDoc.data().thumbnailURL || '' : '',
+          trackingRadius: userDoc.exists() ? userDoc.data().trackingRadius || 100 : 100,
+          sameNetworkMatching: userDoc.exists() ? userDoc.data().sameNetworkMatching ?? true : true,
+          // Additional Google profile data
+          phoneNumber: user.phoneNumber || '',
+          providerId: user.providerId || 'google.com',
+          emailVerified: user.emailVerified,
+          createdAt: userDoc.exists() ? userDoc.data().createdAt : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastSignInAt: new Date().toISOString(),
+          // Google-specific metadata
+          googleProfile: {
+            id: googleUser?.id || '',
+            name: googleUser?.name || user.displayName || '',
+            givenName: googleUser?.givenName || '',
+            familyName: googleUser?.familyName || '',
+            photo: googleUser?.photo || user.photoURL || '',
+            email: googleUser?.email || user.email || '',
+          }
+        };
+
+        // Always create/update user document
+        await setDoc(userDocRef, userData, { merge: true });
+
+        // Log successful Google sign-in to Firebase logs table
+        try {
+          const logsCollectionRef = collection(firestore, 'logs');
+          await addDoc(logsCollectionRef, {
+            type: 'google_signin_success',
+            userId: user.uid,
+            event: 'google_authentication',
+            status: 'success',
+            isNewUser: isNewUser,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'mobile_app',
+            timestamp: new Date().toISOString(),
+            details: {
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              emailVerified: user.emailVerified,
+              providerId: user.providerId,
+              creationTime: user.metadata.creationTime,
+              lastSignInTime: user.metadata.lastSignInTime,
+              googleUserData: {
+                id: googleUser?.id,
+                name: googleUser?.name,
+                givenName: googleUser?.givenName,
+                familyName: googleUser?.familyName,
+                photo: googleUser?.photo,
+                email: googleUser?.email,
+              }
+            }
           });
+        } catch (logError) {
+          console.warn('Failed to log Google sign-in success:', logError);
         }
 
         await this.credentials.setUser({
@@ -267,12 +318,42 @@ export class AuthService {
           lastSignInTime: user.metadata.lastSignInTime,
         });
 
-        console.log('User signed in with Google and persisted:', user.uid);
+        console.log(`Google sign-in successful - ${isNewUser ? 'New' : 'Existing'} user:`, user.uid);
       }
 
       return user;
     } catch (error) {
       console.error('Google sign in error:', error);
+      
+      // Log error to Firebase logs table
+      try {
+        const { getFirestore } = await import('./firebase');
+        const { addDoc, collection } = await import('firebase/firestore');
+        
+        const firestore = getFirestore();
+        const logsCollectionRef = collection(firestore, 'logs');
+        
+        await addDoc(logsCollectionRef, {
+          type: 'google_signin_error',
+          userId: null,
+          event: 'google_authentication',
+          status: 'error',
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'mobile_app',
+          timestamp: new Date().toISOString(),
+          error: {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            code: (error as any)?.code || 'unknown',
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+          details: {
+            errorType: error instanceof Error ? error.constructor.name : typeof error,
+            originalError: error instanceof Error ? error.toString() : String(error),
+          }
+        });
+      } catch (logError) {
+        console.warn('Failed to log Google sign-in error:', logError);
+      }
+      
       throw error;
     }
   }
