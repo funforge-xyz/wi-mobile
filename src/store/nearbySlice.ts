@@ -108,13 +108,21 @@ const nearbySlice = createSlice({
         const { reset } = action.meta.arg;
         state.error = null;
         
-        if (reset) {
+        if (reset && state.users.length === 0) {
+          // Only show skeleton on initial load (when no users exist)
           state.loading = true;
           state.refreshing = false;
           state.loadingMore = false;
+        } else if (reset && state.users.length > 0) {
+          // This is a refresh operation
+          state.loading = false;
+          state.refreshing = true;
+          state.loadingMore = false;
         } else {
+          // This is load more
           state.loadingMore = true;
           state.loading = false;
+          state.refreshing = false;
         }
       })
       .addCase(loadNearbyUsers.fulfilled, (state, action) => {
