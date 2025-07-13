@@ -106,7 +106,7 @@
     "connection": "Konekcija",
     "empty": {
       "locationRequired": "Potrebna lokacija",
-      "enableLocationDescription": "Omogućite usluge lokacije da vidite objave ljudi u blizini i počnete se povezivati sa svojom zajednicom.",
+      "enableLocationDescription": "Omogućite usluge lokacije u \"{{type}}\" da vidite objave ljudi u blizini i počnete se povezivati sa svojom zajednicom.",
       "enableLocation": "Omogući lokaciju"
     }
   },
@@ -507,23 +507,23 @@
     "userBlocked": "Korisnik je blokiran",
     "failedToBlock": "Neuspješno blokiranje korisnika",
     "failedToLoadProfile": "Neuspješno učitavanje korisničkog profila",
-    "connectionsCount": "Veze",
+    "connectionsCount": "Konekcije",
     "location": "Lokacija",
     "lastActiveTime": "Zadnji put aktivan",
     "editProfile": "Uredi profil"
   },
   "connections": {
-    "title": "Veze",
-    "searchConnections": "Pretraži veze...",
-    "noConnections": "Nema veza",
-    "noMatchingConnections": "Nema odgovarajućih veza",
+    "title": "Konekcije",
+    "searchConnections": "Pretraži konekcije...",
+    "noConnections": "Nema konekcija",
+    "noMatchingConnections": "Nema odgovarajućih konekcija",
     "connectWithPeople": "Počnite se povezivati s ljudima u blizini da biste ih vidjeli ovdje.",
     "tryDifferentSearch": "Pokušajte s drugim pojmom pretrage.",
     "connectedOn": "Povezano",
     "delete": "Obriši",
     "block": "Blokiraj",
-    "deleteConnectionTitle": "Obriši vezu",
-    "deleteConnectionMessage": "Jeste li sigurni da želite obrisati vezu s {{userName}}? Ova akcija se ne može poništiti.",
+    "deleteConnectionTitle": "Obriši konekciju",
+    "deleteConnectionMessage": "Jeste li sigurni da želite obrisati konekciju s {{userName}}? Ova akcija se ne može poništiti.",
     "connectionDeleted": "Veza obrisana",
     "connectionDeletedMessage": "Veza je uspješno uklonjena."
   },

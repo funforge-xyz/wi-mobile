@@ -171,7 +171,7 @@ export default function App() {
   // Hide splash screen once we're past the initial loading
   useEffect(() => {
     if (!isLoading) {
-      SplashScreen.hideAsync();
+      // SplashScreen.hideAsync();
     }
   }, [isLoading]);
 

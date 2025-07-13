@@ -309,7 +309,7 @@ export class LocationService {
       try {
         console.log('📍 Trying HIGH accuracy...');
         location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
+          accuracy: Location.Accuracy.Balanced,
           // timeInterval: 15000,
         });
         console.log('✅ Got location (balanced):', {
@@ -322,7 +322,7 @@ export class LocationService {
         try {
           console.log('📍 Trying HIGH accuracy...');
           location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
+            accuracy: Location.Accuracy.Balanced,
             // timeInterval: 20000,
           });
           console.log('✅ Got location (low accuracy):', {
@@ -430,11 +430,11 @@ export class LocationService {
 
   // Stop foreground location updates
   private stopForegroundLocationUpdates(): void {
-    if (this.foregroundLocationInterval) {
-      clearInterval(this.foregroundLocationInterval);
-      this.foregroundLocationInterval = undefined;
-      console.log('🛑 Foreground location updates stopped');
-    }
+    // if (this.foregroundLocationInterval) {
+    //   clearInterval(this.foregroundLocationInterval);
+    //   this.foregroundLocationInterval = undefined;
+    //   console.log('🛑 Foreground location updates stopped');
+    // }
   }
 
   // Update location immediately

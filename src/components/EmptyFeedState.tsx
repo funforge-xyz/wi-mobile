@@ -4,7 +4,8 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FONTS, SPACING } from '../config/constants';
@@ -61,9 +62,9 @@ export default function EmptyFeedState({
       // Location not enabled
       return {
         title: t('feed.empty.locationRequired'),
-        subtitle: t('feed.empty.enableLocationDescription'),
+        subtitle: t('feed.empty.enableLocationDescription', {type: Platform.OS === 'ios' ? 'Always':'Allow all the time'}),
         showButton: true,
-        buttonText: t('feed.empty.enableLocation'),
+        buttonText: t('common.retry'),
         icon: 'location-outline'
       };
     }

@@ -208,7 +208,7 @@ export default function CustomCameraView({
           onPress={onClose}
         >
           <Text style={{ color: 'black' }}>
-            {t('common.close')}
+            {t('camera.close')}
           </Text>
         </TouchableOpacity>
       </View>

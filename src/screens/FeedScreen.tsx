@@ -31,21 +31,21 @@ import UserAvatar from '../components/UserAvatar';
 import SkeletonLoader from '../components/SkeletonLoader';
 import LocationPermissionModal from '../components/LocationPermissionModal';
 import { useTranslation } from 'react-i18next';
-import { 
-  loadUserSettings, 
+import {
+  loadUserSettings,
   handleLikePost,
-  loadFeedPosts 
+  loadFeedPosts
 } from '../utils/feedUtils';
 import { updatePost } from '../store/feedSlice';
 import { getTheme } from '../theme';
-import { 
-  doc, 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  deleteDoc, 
-  addDoc ,
+import {
+  doc,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  addDoc,
   updateDoc,
   increment,
   getDoc
@@ -109,27 +109,27 @@ export default function FeedScreen({ navigation }: any) {
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   // Video player management
   const [currentlyPlayingVideo, setCurrentlyPlayingVideo] = useState<string | null>(null);
-  const [videoStates, setVideoStates] = useState<{[key: string]: {isPlaying: boolean, isMuted: boolean}}>({});
+  const [videoStates, setVideoStates] = useState<{ [key: string]: { isPlaying: boolean, isMuted: boolean } }>({});
   const [focusedVideoId, setFocusedVideoId] = useState<string | null>(null);
-  const [mediaLoadingStates, setMediaLoadingStates] = useState<{[key: string]: boolean}>({});
-  const [expandedDescriptions, setExpandedDescriptions] = useState<{[key: string]: boolean}>({});
+  const [mediaLoadingStates, setMediaLoadingStates] = useState<{ [key: string]: boolean }>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
   const [connectionIds, setConnectionIds] = useState<Set<string>>(new Set());
   const [locationPermissionStatus, setLocationPermissionStatus] = useState<'checking' | 'granted' | 'denied'>('checking');
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   const currentTheme = getTheme(isDarkMode);
-  const videoPlayersRef = useRef<{[key: string]: any}>({});
+  const videoPlayersRef = useRef<{ [key: string]: any }>({});
 
   // Helper function to calculate distance between two coordinates
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Radius of the Earth in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const d = R * c; // Distance in kilometers
     return d;
   };
@@ -302,7 +302,7 @@ export default function FeedScreen({ navigation }: any) {
         // Step 1: Request foreground location permissions
         console.log('📍 Step 1: Requesting foreground location permissions...');
         const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
-        
+
         if (foregroundStatus !== 'granted') {
           console.log('❌ Foreground location permission denied');
           setLocationPermissionStatus('denied');
@@ -311,10 +311,12 @@ export default function FeedScreen({ navigation }: any) {
         }
         console.log('✅ Foreground location permissions granted');
 
+        await new Promise(r => setTimeout(r, 500));
+
         // Step 2: Request background location permissions
         console.log('📍 Step 2: Requesting background location permissions...');
         const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-        
+
         if (backgroundStatus !== 'granted') {
           console.log('❌ Background location permission denied');
           setLocationPermissionStatus('denied');
@@ -329,7 +331,7 @@ export default function FeedScreen({ navigation }: any) {
         await initializeFirebase();
         const auth = getAuth();
         const firestore = getFirestore();
-        
+
         unsubscribe = auth.onAuthStateChanged(async (user: any) => {
           if (!user) {
             console.log('❌ No authenticated user found');
@@ -356,7 +358,7 @@ export default function FeedScreen({ navigation }: any) {
             // const { doc, getDoc } = await import('firebase/firestore');
             const userDocRef = doc(firestore, 'users', currentUser.uid);
             const userDoc = await getDoc(userDocRef);
-            
+
             let userHasLocationData = false;
             let userHasWifiData = false;
             let sameNetworkMatching = false;
@@ -368,7 +370,7 @@ export default function FeedScreen({ navigation }: any) {
               userHasLocationData = !!userData.location && !!userData.location.latitude && !!userData.location.longitude;
               userHasWifiData = userData.currentNetworkId;
               sameNetworkMatching = userData.sameNetworkMatching || false;
-              
+
               console.log('📊 User data status:', {
                 hasLocation: userHasLocationData,
                 hasWifi: userHasWifiData,
@@ -379,16 +381,16 @@ export default function FeedScreen({ navigation }: any) {
             // Step 5: Update Firebase if user doesn't have required data
             const needsLocationUpdate = !userHasLocationData;
             const needsWifiUpdate = sameNetworkMatching && !userHasWifiData;
+            let currentLocation = null;
 
             if (needsLocationUpdate || needsWifiUpdate) {
               console.log('📤 Step 5: Updating missing user data in Firebase...');
-              
-              let currentLocation = null;
+
               if (needsLocationUpdate) {
                 console.log('📍 Getting current location...');
                 try {
                   const locationResult = await Location.getCurrentPositionAsync({
-                    accuracy: Location.Accuracy.High,
+                    accuracy: Location.Accuracy.Balanced,
                     // timeInterval: 5000,
                   });
                   currentLocation = {
@@ -402,7 +404,7 @@ export default function FeedScreen({ navigation }: any) {
                   return;
                 }
               } else {
-                if(userLocation) {
+                if (userLocation) {
                   setCurrentUserLocation(userLocation);
                 }
               }
@@ -465,11 +467,11 @@ export default function FeedScreen({ navigation }: any) {
 
             // Step 8: Load posts
             console.log('📰 Step 8: Loading posts...');
-            const effectiveLocation = currentUserLocation || (userDoc.exists() ? userDoc.data().location : null);
+            const effectiveLocation = currentLocation || currentUserLocation || (userDoc.exists() ? userDoc.data().location : null);
             const effectiveRadius = radius || trackingRadius;
 
             await loadPosts(false, freshConnectionIds, effectiveLocation, 'granted', effectiveRadius);
-            
+
             console.log('🎉 App initialization completed successfully');
 
           } catch (error) {
@@ -507,7 +509,7 @@ export default function FeedScreen({ navigation }: any) {
     const effectiveLocation = explicitLocation || currentUserLocation;
     const effectivePermissionStatus = explicitPermissionStatus || locationPermissionStatus;
     const effectiveTrackingRadius = explicitTrackingRadius || trackingRadius;
-    
+
     console.log('loadPosts called:', { isRefresh, effectiveLocation, effectiveTrackingRadius, effectivePermissionStatus });
 
     // const { getAuth } = await import('../services/firebase');
@@ -570,7 +572,7 @@ export default function FeedScreen({ navigation }: any) {
       if (isRefresh) {
         setPosts(postsWithConnectionInfo);
         // Initialize loading states for all posts with images
-        const newLoadingStates: {[key: string]: boolean} = {};
+        const newLoadingStates: { [key: string]: boolean } = {};
         postsWithConnectionInfo.forEach(post => {
           if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
             newLoadingStates[post.id] = true;
@@ -580,7 +582,7 @@ export default function FeedScreen({ navigation }: any) {
       } else {
         setPosts(postsWithConnectionInfo);
         // Initialize loading states for all posts with images
-        const newLoadingStates: {[key: string]: boolean} = {};
+        const newLoadingStates: { [key: string]: boolean } = {};
         postsWithConnectionInfo.forEach(post => {
           if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
             newLoadingStates[post.id] = true;
@@ -599,7 +601,7 @@ export default function FeedScreen({ navigation }: any) {
     } catch (error) {
       console.error('Error loading posts:', error);
       setError(error instanceof Error ? error.message : 'Failed to load posts');
-      
+
       // Implement retry logic for failed loads
       if (retryCount < 3) {
         console.log(`Retrying feed load (attempt ${retryCount + 1})`);
@@ -639,62 +641,62 @@ export default function FeedScreen({ navigation }: any) {
         return;
       }
 
-    try {
-      console.log('Loading more posts...');
-      setLoadingMore(true);
+      try {
+        console.log('Loading more posts...');
+        setLoadingMore(true);
 
-      const effectiveRadius = currentUserLocation ? trackingRadius : 0;
-      const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
+        const effectiveRadius = currentUserLocation ? trackingRadius : 0;
+        const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
-      // const { getAuth } = await import('../services/firebase');
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
+        // const { getAuth } = await import('../services/firebase');
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
 
-      // For pagination, we'll need to implement a different approach since loadFeedPosts uses DocumentSnapshot
-      // For now, let's load more posts without pagination
-      const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid, effectiveRadius);
-      const morePosts = feedResult.posts.filter(post => 
-        post.authorId !== currentUser?.uid && // Exclude current user's posts
-        !posts.some(existingPost => existingPost.id === post.id)
-      );
+        // For pagination, we'll need to implement a different approach since loadFeedPosts uses DocumentSnapshot
+        // For now, let's load more posts without pagination
+        const feedResult = await loadFeedPosts(10, undefined, currentUser?.uid, effectiveRadius);
+        const morePosts = feedResult.posts.filter(post =>
+          post.authorId !== currentUser?.uid && // Exclude current user's posts
+          !posts.some(existingPost => existingPost.id === post.id)
+        );
 
-      // Add connection information to new posts
-      const morePostsWithConnectionInfo = morePosts.map(post => ({
-        ...post,
-        isFromConnection: connectionIds.has(post.authorId)
-      }));
+        // Add connection information to new posts
+        const morePostsWithConnectionInfo = morePosts.map(post => ({
+          ...post,
+          isFromConnection: connectionIds.has(post.authorId)
+        }));
 
-      console.log('Loaded more posts:', morePostsWithConnectionInfo.length);
+        console.log('Loaded more posts:', morePostsWithConnectionInfo.length);
 
-      if (morePostsWithConnectionInfo.length > 0) {
-        setPosts(prevPosts => {
-          const newPosts = [...prevPosts, ...morePostsWithConnectionInfo];
-          console.log('Total posts after loading more:', newPosts.length);
-          return newPosts;
-        });
-
-        // Initialize loading states for new posts with images
-        setMediaLoadingStates(prev => {
-          const newLoadingStates = { ...prev };
-          morePostsWithConnectionInfo.forEach(post => {
-            if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
-              newLoadingStates[post.id] = true;
-            }
+        if (morePostsWithConnectionInfo.length > 0) {
+          setPosts(prevPosts => {
+            const newPosts = [...prevPosts, ...morePostsWithConnectionInfo];
+            console.log('Total posts after loading more:', newPosts.length);
+            return newPosts;
           });
-          return newLoadingStates;
-        });
 
-        setLastPostTimestamp(morePostsWithConnectionInfo[morePostsWithConnectionInfo.length - 1].createdAt);
-        setHasMorePosts(feedResult.hasMore);
-      } else {
-        console.log('No more posts to load');
-        setHasMorePosts(false);
+          // Initialize loading states for new posts with images
+          setMediaLoadingStates(prev => {
+            const newLoadingStates = { ...prev };
+            morePostsWithConnectionInfo.forEach(post => {
+              if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
+                newLoadingStates[post.id] = true;
+              }
+            });
+            return newLoadingStates;
+          });
+
+          setLastPostTimestamp(morePostsWithConnectionInfo[morePostsWithConnectionInfo.length - 1].createdAt);
+          setHasMorePosts(feedResult.hasMore);
+        } else {
+          console.log('No more posts to load');
+          setHasMorePosts(false);
+        }
+      } catch (error) {
+        console.error('Error loading more posts:', error);
+      } finally {
+        setLoadingMore(false);
       }
-    } catch (error) {
-      console.error('Error loading more posts:', error);
-    } finally {
-      setLoadingMore(false);
-    }
     }, 300); // 300ms debounce
   }, [hasMorePosts, lastPostTimestamp, loadingMore, currentUserLocation, trackingRadius, connectionIds]);
 
@@ -738,15 +740,15 @@ export default function FeedScreen({ navigation }: any) {
     const currentLikesCount = currentPost.likesCount;
 
     // Update UI immediately for responsiveness
-    setPosts(prevPosts => prevPosts.map(post => 
-      post.id === postId 
-        ? { 
-            ...post, 
-            isLikedByUser: newLikedState,
-            likesCount: newLikedState 
-              ? post.likesCount + 1 
-              : Math.max(0, post.likesCount - 1)
-          }
+    setPosts(prevPosts => prevPosts.map(post =>
+      post.id === postId
+        ? {
+          ...post,
+          isLikedByUser: newLikedState,
+          likesCount: newLikedState
+            ? post.likesCount + 1
+            : Math.max(0, post.likesCount - 1)
+        }
         : post
     ));
 
@@ -758,7 +760,7 @@ export default function FeedScreen({ navigation }: any) {
         // Check if user already liked this post
         const userLikeQuery = query(likesCollectionRef, where('authorId', '==', user.uid));
         const userLikeSnapshot = await getDocs(userLikeQuery);
-        
+
         if (userLikeSnapshot.empty) {
           await addDoc(likesCollectionRef, {
             authorId: user.uid,
@@ -768,11 +770,11 @@ export default function FeedScreen({ navigation }: any) {
           await updateDoc(postRef, {
             likesCount: increment(1)
           });
-          
+
           // Send like notification
           // const { createLikeNotification } = await import('../services/notifications');
           await createLikeNotification(postId, currentPost.authorId);
-          
+
           console.log('FeedScreen - Successfully added like to Firebase');
         } else {
           console.log('FeedScreen - User already liked this post');
@@ -788,11 +790,11 @@ export default function FeedScreen({ navigation }: any) {
           await updateDoc(postRef, {
             likesCount: increment(-1)
           });
-          
+
           // Remove like notification when unliking
           // const { removeLikeNotification } = await import('../services/notifications');
           await removeLikeNotification(postId, currentPost.authorId, user.uid);
-          
+
           console.log('FeedScreen - Successfully removed like from Firebase');
         } else {
           console.log('FeedScreen - No like document found to remove');
@@ -803,13 +805,13 @@ export default function FeedScreen({ navigation }: any) {
       const updatedPostDoc = await getDoc(postRef);
       if (updatedPostDoc.exists()) {
         const updatedPostData = updatedPostDoc.data();
-        setPosts(prevPosts => prevPosts.map(post => 
-          post.id === postId 
-            ? { 
-                ...post, 
-                likesCount: updatedPostData.likesCount || 0,
-                isLikedByUser: newLikedState
-              }
+        setPosts(prevPosts => prevPosts.map(post =>
+          post.id === postId
+            ? {
+              ...post,
+              likesCount: updatedPostData.likesCount || 0,
+              isLikedByUser: newLikedState
+            }
             : post
         ));
       }
@@ -817,13 +819,13 @@ export default function FeedScreen({ navigation }: any) {
       console.error('FeedScreen - Error handling like:', error);
 
       // Revert UI changes on error
-      setPosts(prevPosts => prevPosts.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              isLikedByUser: currentLiked,
-              likesCount: currentLikesCount
-            }
+      setPosts(prevPosts => prevPosts.map(post =>
+        post.id === postId
+          ? {
+            ...post,
+            isLikedByUser: currentLiked,
+            likesCount: currentLikesCount
+          }
           : post
       ));
     }
@@ -946,7 +948,7 @@ export default function FeedScreen({ navigation }: any) {
 
     // Update local posts state with the exact count passed from modal
     setPosts(prevPosts => {
-      const updated = prevPosts.map(post => 
+      const updated = prevPosts.map(post =>
         post.id === postId ? { ...post, commentsCount: newCount } : post
       );
       console.log('FeedScreen - Updated posts:', updated.find(p => p.id === postId)?.commentsCount);
@@ -964,13 +966,13 @@ export default function FeedScreen({ navigation }: any) {
     setShowLocationModal(false);
     setLocationPermissionStatus('checking');
     setLoading(true);
-    
+
     try {
       const hasPermissions = await locationService.requestPermissions();
       if (hasPermissions) {
         console.log('Location permissions granted, restarting full initialization...');
         setLocationPermissionStatus('granted');
-        
+
         // Load user settings for radius
         const radius = await loadUserSettings();
         if (radius) {
@@ -981,20 +983,20 @@ export default function FeedScreen({ navigation }: any) {
         const location = await locationService.getCurrentLocation();
         if (location) {
           setCurrentUserLocation(location);
-          
+
           // Start location tracking
-          await locationService.startLocationTracking();
-          
+          locationService.startLocationTracking();
+
           // Load user connections
           const freshConnectionIds = await loadUserConnections();
-          
+
           // Load posts with all data ready
           await loadPosts(true, freshConnectionIds, location, 'granted', radius);
         } else {
           console.log('Failed to get current location after permissions granted');
           setLocationPermissionStatus('denied');
-          setLoading(false);
         }
+        setLoading(false);
       } else {
         setLocationPermissionStatus('denied');
         setLoading(false);
@@ -1076,7 +1078,7 @@ export default function FeedScreen({ navigation }: any) {
           <View style={styles.bottomOverlay}>
             {/* Left side - User info and description */}
             <View style={styles.leftContent}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.userInfo}
                 onPress={() => {
                   const [firstName, ...lastNameParts] = item.authorName.split(' ');
@@ -1108,8 +1110,8 @@ export default function FeedScreen({ navigation }: any) {
               </TouchableOpacity>
               {item.content && (
                 <TouchableOpacity onPress={() => toggleDescriptionExpansion(item.id)}>
-                  <Text 
-                    style={styles.description} 
+                  <Text
+                    style={styles.description}
                     numberOfLines={expandedDescriptions[item.id] ? undefined : 3}
                   >
                     {item.content}
@@ -1183,8 +1185,8 @@ export default function FeedScreen({ navigation }: any) {
         <View style={styles.errorContainer}>
           <Text style={styles.errorTitle}>Unable to load feed</Text>
           <Text style={styles.errorSubtitle}>{error}</Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
+          <TouchableOpacity
+            style={styles.retryButton}
             onPress={() => {
               setError(null);
               setRetryCount(0);
@@ -1208,11 +1210,11 @@ export default function FeedScreen({ navigation }: any) {
       )}
 
       {posts.length === 0 ? (
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.emptyStateContainer}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor="white"
               colors={["white"]}
@@ -1220,8 +1222,8 @@ export default function FeedScreen({ navigation }: any) {
             />
           }
         >
-          <EmptyFeedState 
-            currentTheme={currentTheme} 
+          <EmptyFeedState
+            currentTheme={currentTheme}
             title={locationPermissionStatus === 'granted' && currentUserLocation ? t('feed.noPosts') : undefined}
             subtitle={locationPermissionStatus === 'granted' && currentUserLocation ? t('feed.shareFirst') : undefined}
             locationPermissionStatus={locationPermissionStatus}
@@ -1251,8 +1253,8 @@ export default function FeedScreen({ navigation }: any) {
           style={styles.feedList}
           contentContainerStyle={styles.feedContentContainer}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor="white"
               colors={["white"]}

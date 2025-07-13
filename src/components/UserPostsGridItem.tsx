@@ -68,7 +68,7 @@ export default function UserPostsGridItem({
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                right: 0,
+                right: 2,
                 bottom: 0,
                 zIndex: 1
               }

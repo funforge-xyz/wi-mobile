@@ -105,7 +105,7 @@
     "connection": "Connection",
     "empty": {
       "locationRequired": "Location Required",
-      "enableLocationDescription": "Enable location services to see posts from people nearby and start connecting with your community.",
+      "enableLocationDescription": "Enable location services to \"{{type}}\" to see posts from people nearby and start connecting with your community.",
       "enableLocation": "Enable Location"
     }
   },

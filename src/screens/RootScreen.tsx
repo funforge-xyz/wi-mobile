@@ -14,12 +14,14 @@ import { fetchUserProfile, loadUserLanguagePreference } from '../store/userSlice
 import { getAuth } from 'firebase/auth';
 import { authService } from '../services/auth';
 import PulsingLogo from '../components/PulsingLogo';
+import * as SplashScreen from 'expo-splash-screen';
 
 import LoginScreen from './LoginScreen';
 import OnboardingScreen from './OnboardingScreen';
 import RootTabNavigator from '../components/RootTabNavigator';
 import { darkTheme } from '../theme';
 import { COLORS } from '../config/constants';
+import { DarkTheme } from '@react-navigation/native';
 
 export default function RootScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -28,6 +30,8 @@ export default function RootScreen() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const dispatch = useAppDispatch();
   const settings = new Settings();
+
+
 
   useEffect(() => {
     checkAuthState();
@@ -154,15 +158,21 @@ export default function RootScreen() {
     checkAuthState();
   };
 
+  useEffect(() => {
+    if(!isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
+
   if (isLoading) {
     return (
       <View style={{ 
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center',
-        backgroundColor: COLORS.primary
+        backgroundColor: DarkTheme.colors.background
       }}>
-        <PulsingLogo size={144} />
+       <ActivityIndicator size="large" color={COLORS.primary}/>
       </View>
     );
   }
