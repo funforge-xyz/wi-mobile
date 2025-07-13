@@ -157,12 +157,8 @@ export default function NearbyScreen({ navigation, route }: any) {
         onNotificationPress={() => navigation.navigate('Notifications')}
       />
 
-      {loading ? (
+      {loading && !refreshing ? (
         <NearbySkeleton count={5} />
-      ) : refreshing ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={currentTheme.primary} />
-        </View>
       ) : error ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Text style={{ color: currentTheme.text, textAlign: 'center', marginBottom: 16 }}>
