@@ -50,9 +50,11 @@ import {
   increment,
   getDoc
 } from 'firebase/firestore';
-import { getFirestore, getAuth } from '../services/firebase';
+import { getFirestore, getAuth, initializeFirebase } from '../services/firebase';
 import { COLORS } from '../config/constants';
 import * as Location from 'expo-location';
+import { wifiService } from '../services/wifiService';
+import { createLikeNotification, removeLikeNotification } from '../services/notifications';
 
 const { width, height } = Dimensions.get('window');
 
@@ -134,8 +136,8 @@ export default function FeedScreen({ navigation }: any) {
 
   const loadUserConnections = async () => {
     try {
-      const { getAuth, getFirestore } = await import('../services/firebase');
-      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      // const { getAuth, getFirestore } = await import('../services/firebase');
+      // const { collection, query, where, getDocs } = await import('firebase/firestore');
 
       const auth = getAuth();
       const firestore = getFirestore();
@@ -323,7 +325,7 @@ export default function FeedScreen({ navigation }: any) {
 
         // Step 3: Initialize Firebase and get user auth data
         console.log('🔥 Step 3: Initializing Firebase...');
-        const { initializeFirebase, getAuth, getFirestore } = await import('../services/firebase');
+        // const { initializeFirebase, getAuth, getFirestore } = await import('../services/firebase');
         await initializeFirebase();
         const auth = getAuth();
         const firestore = getFirestore();
@@ -351,7 +353,7 @@ export default function FeedScreen({ navigation }: any) {
 
             // Step 4: Get user document to check location and WiFi data
             console.log('📄 Step 4: Checking user data in Firebase...');
-            const { doc, getDoc } = await import('firebase/firestore');
+            // const { doc, getDoc } = await import('firebase/firestore');
             const userDocRef = doc(firestore, 'users', currentUser.uid);
             const userDoc = await getDoc(userDocRef);
             
@@ -408,13 +410,13 @@ export default function FeedScreen({ navigation }: any) {
               let wifiInfo = null;
               if (needsWifiUpdate) {
                 console.log('📶 Getting WiFi network info...');
-                const { wifiService } = await import('../services/wifiService');
+                // const { wifiService } = await import('../services/wifiService');
                 wifiInfo = await wifiService.getCurrentWifiInfo();
                 console.log('📶 WiFi info obtained:', wifiInfo);
               }
 
               // Update Firebase with missing data
-              const { updateDoc } = await import('firebase/firestore');
+              // const { updateDoc } = await import('firebase/firestore');
               const updateData: any = {
                 lastSeen: new Date()
               };
@@ -501,8 +503,6 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, []);
 
-  console.log({currentUserLocation});
-
   const loadPosts = async (isRefresh = false, freshConnectionIds?: Set<string>, explicitLocation?: any, explicitPermissionStatus?: string, explicitTrackingRadius?: number) => {
     const effectiveLocation = explicitLocation || currentUserLocation;
     const effectivePermissionStatus = explicitPermissionStatus || locationPermissionStatus;
@@ -510,7 +510,7 @@ export default function FeedScreen({ navigation }: any) {
     
     console.log('loadPosts called:', { isRefresh, effectiveLocation, effectiveTrackingRadius, effectivePermissionStatus });
 
-    const { getAuth } = await import('../services/firebase');
+    // const { getAuth } = await import('../services/firebase');
     const auth = getAuth();
     if (!auth.currentUser) {
       console.log('User not authenticated, skipping post loading');
@@ -646,7 +646,7 @@ export default function FeedScreen({ navigation }: any) {
       const effectiveRadius = currentUserLocation ? trackingRadius : 0;
       const effectiveLocation = currentUserLocation || { latitude: 0, longitude: 0 };
 
-      const { getAuth } = await import('../services/firebase');
+      // const { getAuth } = await import('../services/firebase');
       const auth = getAuth();
       const currentUser = auth.currentUser;
 
@@ -770,7 +770,7 @@ export default function FeedScreen({ navigation }: any) {
           });
           
           // Send like notification
-          const { createLikeNotification } = await import('../services/notifications');
+          // const { createLikeNotification } = await import('../services/notifications');
           await createLikeNotification(postId, currentPost.authorId);
           
           console.log('FeedScreen - Successfully added like to Firebase');
@@ -790,7 +790,7 @@ export default function FeedScreen({ navigation }: any) {
           });
           
           // Remove like notification when unliking
-          const { removeLikeNotification } = await import('../services/notifications');
+          // const { removeLikeNotification } = await import('../services/notifications');
           await removeLikeNotification(postId, currentPost.authorId, user.uid);
           
           console.log('FeedScreen - Successfully removed like from Firebase');
