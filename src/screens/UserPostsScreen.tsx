@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FlatList, RefreshControl, Alert, Image, View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { FlatList, RefreshControl, Alert, Image, View, Text, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
@@ -300,8 +300,12 @@ export default function UserPostsScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {postsLoading ? (
+      {postsLoading && !refreshing ? (
         <UserPostsSkeleton count={5} />
+      ) : refreshing ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={currentTheme.primary} />
+        </View>
       ) : (
         <>
           {console.log('Posts array in render:', posts.length, posts)}
