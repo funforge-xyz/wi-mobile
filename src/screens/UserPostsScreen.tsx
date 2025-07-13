@@ -302,10 +302,6 @@ export default function UserPostsScreen({ route, navigation }: any) {
 
       {postsLoading && !refreshing ? (
         <UserPostsSkeleton count={5} />
-      ) : refreshing ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={currentTheme.primary} />
-        </View>
       ) : (
         <>
           {console.log('Posts array in render:', posts.length, posts)}
