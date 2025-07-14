@@ -4,8 +4,8 @@ import { useAppSelector } from '../hooks/redux';
 import { getTheme } from '../theme';
 
 interface SkeletonLoaderProps {
-  width: number;
-  height: number;
+  width: number | string;
+  height: number | string;
   borderRadius?: number;
   style?: any;
   forceDarkTheme?: boolean;
@@ -35,9 +35,12 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style,
     return () => animation.stop();
   }, [animatedValue]);
 
+  // Calculate numeric width for animation - use 200 as default for percentage widths
+  const numericWidth = typeof width === 'string' ? 200 : width;
+  
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [-width * 1.5, width * 1.5],
+    outputRange: [-numericWidth * 1.5, numericWidth * 1.5],
   });
 
   return (
@@ -59,7 +62,7 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style,
           {
             backgroundColor: shimmerColor,
             transform: [{ translateX }],
-            width: width * 0.5,
+            width: typeof width === 'string' ? '50%' : width * 0.5,
             opacity: 0.8,
           },
         ]}
