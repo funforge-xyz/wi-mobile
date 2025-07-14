@@ -57,6 +57,7 @@ export default function PostMedia({
   const [externalIsLoading, setExternalIsLoading] = useState(isLoading);
   const lastTapRef = useRef<number | null>(null);
   const [showPauseIndicator, setShowPauseIndicator] = useState(false);
+  const [internalIsLoading, setInternalIsLoading] = useState(true);
 
   // Create video player for video content - only when we have a video
   const shouldCreatePlayer = mediaType === 'video' && mediaURL;
@@ -85,6 +86,7 @@ export default function PostMedia({
   const handleMediaLoad = () => {
     console.log('Media loaded:', mediaType, mediaURL);
     setExternalIsLoading(false);
+    setInternalIsLoading(false);
     onLoad?.();
   };
 
@@ -176,6 +178,20 @@ export default function PostMedia({
 
   return (
     <View style={styles.mediaContainer}>
+      {/* Skeleton loading overlay for images */}
+      {(mediaType === 'picture' || mediaType === 'image') && internalIsLoading && (
+        <TouchableWithoutFeedback onPress={handleDoubleTap}>
+          <View style={styles.mediaLoadingSkeleton}>
+            <SkeletonLoader
+              width="100%"
+              height="100%"
+              borderRadius={showBorderRadius ? 8 : 0}
+              forceDarkTheme={forceDarkTheme}
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      )}
+
       {mediaType === 'video' && activeVideoPlayer ? (
           <View style={styles.videoContainer}>
             <TouchableWithoutFeedback onPress={handleDoubleTap}>
@@ -310,5 +326,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     pointerEvents: 'none',
+  },
+  mediaLoadingSkeleton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    backgroundColor: 'transparent',
   },
 });

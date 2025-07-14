@@ -310,20 +310,6 @@ export default function PostItem({
       {/* Media - Full width, no padding */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
-          {/* Shimmer skeleton overlay while loading */}
-          {isMediaLoading && (
-            <TouchableWithoutFeedback onPress={handleDoubleTap}>
-              <View style={styles.mediaLoadingSkeleton}>
-                <SkeletonLoader
-                  width="100%"
-                  height="100%"
-                  borderRadius={0}
-                  forceDarkTheme={forceDarkTheme}
-                />
-              </View>
-            </TouchableWithoutFeedback>
-          )}
-
           <PostMedia
             mediaURL={post.mediaURL}
             mediaType={post.mediaType}
@@ -339,6 +325,7 @@ export default function PostItem({
             onVideoMuteToggle={() => onVideoMuteToggle?.(post.id)}
             onVideoPlayPause={() => onVideoPlayPauseToggle?.(post.id, !isVideoPlaying)}
             videoPlayer={activeVideoPlayer}
+            forceDarkTheme={forceDarkTheme}
           />
         </View>
       )}
@@ -391,12 +378,4 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  mediaLoadingSkeleton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'transparent',
-  },
-});
+  });

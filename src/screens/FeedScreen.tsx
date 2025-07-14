@@ -1031,20 +1031,6 @@ export default function FeedScreen({ navigation }: any) {
       <View style={styles.postContainer}>
         {/* Full screen media */}
         <View style={styles.mediaContainer}>
-          {/* Skeleton loading overlay for images */}
-          {item.mediaType === 'picture' && isMediaLoading && (
-            <TouchableWithoutFeedback onPress={() => handleLike(item.id, true)}>
-              <View style={styles.mediaLoadingSkeleton}>
-                <SkeletonLoader
-                  width="100%"
-                  height="100%"
-                  borderRadius={0}
-                  forceDarkTheme={true}
-                />
-              </View>
-            </TouchableWithoutFeedback>
-          )}
-
           {item.mediaURL && (
             <PostMedia
               mediaURL={item.mediaURL}
@@ -1440,15 +1426,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     color: 'white',
-  },
-  mediaLoadingSkeleton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
-    backgroundColor: 'transparent',
   },
   errorContainer: {
     flex: 1,

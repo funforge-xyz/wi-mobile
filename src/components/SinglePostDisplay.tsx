@@ -145,19 +145,6 @@ export default function SinglePostDisplay({
       {/* Media - Full width, no padding, 4:5 aspect ratio */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
-          {/* Shimmer skeleton overlay while loading */}
-          {isMediaLoading && (
-            <TouchableWithoutFeedback onPress={handleDoubleTap}>
-              <View style={styles.mediaLoadingSkeleton}>
-                <SkeletonLoader
-                  width={width}
-                  height={width * 5/4}
-                  borderRadius={0}
-                />
-              </View>
-            </TouchableWithoutFeedback>
-          )}
-
           {post.mediaType === 'video' && videoPlayer ? (
             <View style={styles.videoContainer}>
               <TouchableWithoutFeedback onPress={handleDoubleTap}>
@@ -218,12 +205,16 @@ export default function SinglePostDisplay({
             <PostMedia
               mediaURL={post.mediaURL}
               mediaType={post.mediaType}
-              onLoad={() => setIsMediaLoading(false)}
               isFrontCamera={post.isFrontCamera}
               style={styles.media}
+              showBorderRadius={false}
+              onLoad={() => setIsMediaLoading(false)}
               onDoubleTap={handleDoubleTap}
               likeAnimationOpacity={likeAnimationOpacity}
               likeAnimationScale={likeAnimationScale}
+              isVideoPlaying={false}
+              isVideoMuted={false}
+              forceDarkTheme={false}
             />
           )}
         </View>
