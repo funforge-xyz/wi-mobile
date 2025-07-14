@@ -24,7 +24,7 @@ export default function SkeletonLoader({ width, height, borderRadius = 0, style,
     const animation = Animated.loop(
       Animated.timing(animatedValue, {
         toValue: 1,
-        duration: 1500,
+        duration: 1200,
         easing: Easing.inOut(Easing.ease),
         useNativeDriver: false,
       })
