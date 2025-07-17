@@ -152,7 +152,7 @@ export default function SinglePostDisplay({
                 width="100%"
                 height="100%"
                 borderRadius={0}
-                forceDarkTheme={true}
+                forceDarkTheme={false}
               />
             </View>
           )}
