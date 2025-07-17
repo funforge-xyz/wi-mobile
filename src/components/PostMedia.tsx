@@ -207,6 +207,7 @@ export default function PostMedia({
                 contentFit="contain"
                 onVideoViewDidMountForInternalPlayer={() => {
                   console.log('PostMedia - VideoView mounted for:', mediaURL);
+                  setInternalIsLoading(false); // Mark video as loaded when VideoView mounts
                   if (isVideoPlaying && activeVideoPlayer) {
                     console.log('PostMedia - Auto-starting video playback');
                     activeVideoPlayer.play();
