@@ -576,7 +576,7 @@ export default function FeedScreen({ navigation }: any) {
         postsWithConnectionInfo.forEach(post => {
           if (post.mediaURL) {
             // Only show loading for images, videos don't need skeleton loading
-            newLoadingStates[post.id] = (post.mediaType === 'picture' || post.mediaType === 'image');
+            newLoadingStates[post.id] = true;
           }
         });
         setMediaLoadingStates(newLoadingStates);
@@ -587,7 +587,7 @@ export default function FeedScreen({ navigation }: any) {
         postsWithConnectionInfo.forEach(post => {
           if (post.mediaURL) {
             // Only show loading for images, videos don't need skeleton loading
-            newLoadingStates[post.id] = (post.mediaType === 'picture' || post.mediaType === 'image');
+            newLoadingStates[post.id] = true;
           }
         });
         setMediaLoadingStates(newLoadingStates);
@@ -683,7 +683,7 @@ export default function FeedScreen({ navigation }: any) {
             morePostsWithConnectionInfo.forEach(post => {
               if (post.mediaURL) {
                 // Only show loading for images, videos don't need skeleton loading
-                newLoadingStates[post.id] = (post.mediaType === 'picture' || post.mediaType === 'image');
+                newLoadingStates[post.id] = true;
               }
             });
             return newLoadingStates;
@@ -871,7 +871,12 @@ export default function FeedScreen({ navigation }: any) {
     const videoPlayer = videoPlayersRef.current[postId];
     if (videoPlayer) {
       if (shouldPlay) {
+        console.error("FARISSSS")
         videoPlayer.play();
+        setMediaLoadingStates(prev => ({
+          ...prev,
+          [postId]: false
+        }));
       } else {
         videoPlayer.pause();
       }

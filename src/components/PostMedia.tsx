@@ -10,6 +10,7 @@ import {
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import SkeletonLoader from './SkeletonLoader';
+import { useEvent } from 'expo';
 
 interface PostMediaProps {
   mediaURL: string;
@@ -58,6 +59,7 @@ export default function PostMedia({
   const lastTapRef = useRef<number | null>(null);
   const [showPauseIndicator, setShowPauseIndicator] = useState(false);
   const [internalIsLoading, setInternalIsLoading] = useState(true);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   // Create video player for video content - only when we have a video
   const shouldCreatePlayer = mediaType === 'video' && mediaURL;
@@ -146,6 +148,8 @@ export default function PostMedia({
     }
   };
 
+
+
   
 
   // Update video player when playback state changes - like in SinglePostDisplay
@@ -154,6 +158,7 @@ export default function PostMedia({
       activeVideoPlayer.muted = isVideoMuted || false;
       if (isVideoPlaying) {
         activeVideoPlayer.play();
+        setInternalIsLoading(false);
       } else {
         activeVideoPlayer.pause();
         // When video is paused programmatically (like losing focus), mark as tapped
@@ -166,7 +171,13 @@ export default function PostMedia({
   }, [activeVideoPlayer, isVideoPlaying, isVideoMuted, mediaType, mediaURL]);
 
   // Listen to video player events
-  // const { isPlaying: videoIsPlaying } = useEvent(videoPlayer, 'playingChange', { isPlaying: videoPlayer?.playing || false });
+  const { isPlaying: videoIsPlaying } = useEvent(internalVideoPlayer, 'playingChange', { isPlaying: videoPlayer?.playing });
+
+  useEffect(() => {
+    if(videoIsPlaying) {
+      setVideoLoaded(true);
+    }
+  }, [videoIsPlaying]);
 
   if (!mediaURL) return null;
 
@@ -179,7 +190,7 @@ export default function PostMedia({
   return (
     <View style={styles.mediaContainer}>
       {/* Skeleton loading overlay - use internalIsLoading for images, externalIsLoading for videos */}
-      {(mediaType === 'picture' || mediaType === 'image') && (internalIsLoading || externalIsLoading) && (
+      {((mediaType !== 'video') &&  internalIsLoading || mediaType === 'video' && (!videoLoaded || internalIsLoading)) && (
         <TouchableWithoutFeedback onPress={handleDoubleTap}>
           <View style={styles.mediaLoadingSkeleton}>
             <SkeletonLoader
@@ -192,20 +203,6 @@ export default function PostMedia({
         </TouchableWithoutFeedback>
       )}
       
-      {/* Skeleton loading overlay for videos - only use externalIsLoading */}
-      {mediaType === 'video' && externalIsLoading && (
-        <TouchableWithoutFeedback onPress={handleDoubleTap}>
-          <View style={styles.mediaLoadingSkeleton}>
-            <SkeletonLoader
-              width="100%"
-              height="100%"
-              borderRadius={showBorderRadius ? 8 : 0}
-              forceDarkTheme={forceDarkTheme}
-            />
-          </View>
-        </TouchableWithoutFeedback>
-      )}
-
       {mediaType === 'video' && activeVideoPlayer ? (
           <View style={styles.videoContainer}>
             <TouchableWithoutFeedback onPress={handleDoubleTap}>
