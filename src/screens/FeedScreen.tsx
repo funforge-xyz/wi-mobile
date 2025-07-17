@@ -571,20 +571,20 @@ export default function FeedScreen({ navigation }: any) {
 
       if (isRefresh) {
         setPosts(postsWithConnectionInfo);
-        // Initialize loading states for all posts with images
+        // Initialize loading states for all posts with media
         const newLoadingStates: { [key: string]: boolean } = {};
         postsWithConnectionInfo.forEach(post => {
-          if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
+          if ((post.mediaType === 'picture' || post.mediaType === 'image' || post.mediaType === 'video') && post.mediaURL) {
             newLoadingStates[post.id] = true;
           }
         });
         setMediaLoadingStates(newLoadingStates);
       } else {
         setPosts(postsWithConnectionInfo);
-        // Initialize loading states for all posts with images
+        // Initialize loading states for all posts with media
         const newLoadingStates: { [key: string]: boolean } = {};
         postsWithConnectionInfo.forEach(post => {
-          if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
+          if ((post.mediaType === 'picture' || post.mediaType === 'image' || post.mediaType === 'video') && post.mediaURL) {
             newLoadingStates[post.id] = true;
           }
         });
@@ -675,11 +675,11 @@ export default function FeedScreen({ navigation }: any) {
             return newPosts;
           });
 
-          // Initialize loading states for new posts with images
+          // Initialize loading states for new posts with media
           setMediaLoadingStates(prev => {
             const newLoadingStates = { ...prev };
             morePostsWithConnectionInfo.forEach(post => {
-              if ((post.mediaType === 'picture' || post.mediaType === 'image') && post.mediaURL) {
+              if ((post.mediaType === 'picture' || post.mediaType === 'image' || post.mediaType === 'video') && post.mediaURL) {
                 newLoadingStates[post.id] = true;
               }
             });
