@@ -179,7 +179,7 @@ export default function PostMedia({
   return (
     <View style={styles.mediaContainer}>
       {/* Skeleton loading overlay for images */}
-      {(mediaType === 'picture' || mediaType === 'image') && internalIsLoading && (
+      {(mediaType === 'picture' || mediaType === 'image') && (internalIsLoading || externalIsLoading) && (
         <TouchableWithoutFeedback onPress={handleDoubleTap}>
           <View style={styles.mediaLoadingSkeleton}>
             <SkeletonLoader
