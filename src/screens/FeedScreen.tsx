@@ -1055,6 +1055,7 @@ export default function FeedScreen({ navigation }: any) {
               postId={item.id}
               onCommentsCountChange={handleCommentsCountChange}
               forceDarkTheme={true}
+              isLoading={isMediaLoading}
             />
           )}
 
