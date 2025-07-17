@@ -19,7 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     config: {
       usesNonExemptEncryption: false
     },
-    buildNumber: "5",
+    buildNumber: "6",
     googleServicesFile: process.env.IGS || './GoogleService-Info.plist',
     bundleIdentifier: "com.wichatapp",
     infoPlist: {
