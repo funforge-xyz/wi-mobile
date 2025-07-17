@@ -571,21 +571,23 @@ export default function FeedScreen({ navigation }: any) {
 
       if (isRefresh) {
         setPosts(postsWithConnectionInfo);
-        // Initialize loading states for all posts with media
+        // Initialize loading states for posts with media
         const newLoadingStates: { [key: string]: boolean } = {};
         postsWithConnectionInfo.forEach(post => {
-          if ((post.mediaType === 'picture' || post.mediaType === 'image' || post.mediaType === 'video') && post.mediaURL) {
-            newLoadingStates[post.id] = true;
+          if (post.mediaURL) {
+            // Only show loading for images, videos don't need skeleton loading
+            newLoadingStates[post.id] = (post.mediaType === 'picture' || post.mediaType === 'image');
           }
         });
         setMediaLoadingStates(newLoadingStates);
       } else {
         setPosts(postsWithConnectionInfo);
-        // Initialize loading states for all posts with media
+        // Initialize loading states for posts with media
         const newLoadingStates: { [key: string]: boolean } = {};
         postsWithConnectionInfo.forEach(post => {
-          if ((post.mediaType === 'picture' || post.mediaType === 'image' || post.mediaType === 'video') && post.mediaURL) {
-            newLoadingStates[post.id] = true;
+          if (post.mediaURL) {
+            // Only show loading for images, videos don't need skeleton loading
+            newLoadingStates[post.id] = (post.mediaType === 'picture' || post.mediaType === 'image');
           }
         });
         setMediaLoadingStates(newLoadingStates);
@@ -679,8 +681,9 @@ export default function FeedScreen({ navigation }: any) {
           setMediaLoadingStates(prev => {
             const newLoadingStates = { ...prev };
             morePostsWithConnectionInfo.forEach(post => {
-              if ((post.mediaType === 'picture' || post.mediaType === 'image' || post.mediaType === 'video') && post.mediaURL) {
-                newLoadingStates[post.id] = true;
+              if (post.mediaURL) {
+                // Only show loading for images, videos don't need skeleton loading
+                newLoadingStates[post.id] = (post.mediaType === 'picture' || post.mediaType === 'image');
               }
             });
             return newLoadingStates;

@@ -178,8 +178,22 @@ export default function PostMedia({
 
   return (
     <View style={styles.mediaContainer}>
-      {/* Skeleton loading overlay for all media types */}
-      {(mediaType === 'picture' || mediaType === 'image' || mediaType === 'video') && (internalIsLoading || externalIsLoading) && (
+      {/* Skeleton loading overlay - use internalIsLoading for images, externalIsLoading for videos */}
+      {(mediaType === 'picture' || mediaType === 'image') && (internalIsLoading || externalIsLoading) && (
+        <TouchableWithoutFeedback onPress={handleDoubleTap}>
+          <View style={styles.mediaLoadingSkeleton}>
+            <SkeletonLoader
+              width="100%"
+              height="100%"
+              borderRadius={showBorderRadius ? 8 : 0}
+              forceDarkTheme={forceDarkTheme}
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      )}
+      
+      {/* Skeleton loading overlay for videos - only use externalIsLoading */}
+      {mediaType === 'video' && externalIsLoading && (
         <TouchableWithoutFeedback onPress={handleDoubleTap}>
           <View style={styles.mediaLoadingSkeleton}>
             <SkeletonLoader
