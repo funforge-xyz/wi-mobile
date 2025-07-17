@@ -145,6 +145,18 @@ export default function SinglePostDisplay({
       {/* Media - Full width, no padding, 4:5 aspect ratio */}
       {post.mediaURL && (
         <View style={styles.mediaContainer}>
+          {/* Skeleton loading overlay for videos */}
+          {post.mediaType === 'video' && isMediaLoading && (
+            <View style={styles.mediaLoadingSkeleton}>
+              <SkeletonLoader
+                width="100%"
+                height="100%"
+                borderRadius={0}
+                forceDarkTheme={true}
+              />
+            </View>
+          )}
+          
           {post.mediaType === 'video' && videoPlayer ? (
             <View style={styles.videoContainer}>
               <TouchableWithoutFeedback onPress={handleDoubleTap}>
