@@ -339,36 +339,48 @@ export const handleImagePicker = async (
   editedProfile: UserProfile,
   setEditedProfile: (profile: UserProfile) => void,
   setIsLoading: (loading: boolean) => void,
-  t: (key: string) => string
+  t: TFunction
 ) => {
   setIsLoading(true);
-  const imageUri = await launchImagePicker(t);
-  if (imageUri) {
-    setEditedProfile({
-      ...editedProfile,
-      photoURL: imageUri,
-      thumbnailURL: imageUri,
-    });
+  try {
+    const imageUri = await launchImagePicker(t);
+    if (imageUri) {
+      setEditedProfile({
+        ...editedProfile,
+        photoURL: imageUri,
+        thumbnailURL: imageUri,
+      });
+    }
+  } catch (error) {
+    console.error('Error in handleImagePicker:', error);
+    Alert.alert(t('common.error'), t('auth.uploadPictureFailed'));
+  } finally {
+    setIsLoading(false);
   }
-  setIsLoading(false);
 };
 
 export const handleCameraCapture = async (
   editedProfile: UserProfile,
   setEditedProfile: (profile: UserProfile) => void,
   setIsLoading: (loading: boolean) => void,
-  t: (key: string) => string
+  t: TFunction
 ) => {
   setIsLoading(true);
-  const imageUri = await launchCamera(t);
-  if (imageUri) {
-    setEditedProfile({
-      ...editedProfile,
-      photoURL: imageUri,
-      thumbnailURL: imageUri,
-    });
+  try {
+    const imageUri = await launchCamera(t);
+    if (imageUri) {
+      setEditedProfile({
+        ...editedProfile,
+        photoURL: imageUri,
+        thumbnailURL: imageUri,
+      });
+    }
+  } catch (error) {
+    console.error('Error in handleCameraCapture:', error);
+    Alert.alert(t('common.error'), t('addPost.failedToTakePhoto'));
+  } finally {
+    setIsLoading(false);
   }
-  setIsLoading(false);
 };
 
 export const getCurrentLanguageName = (language: string) => {
