@@ -14,6 +14,7 @@
     "eas-build-pre-install": "echo $GOOGLE_SERVICES_JSON_BASE64 | base64 --decode > ./google-servicesss.json && echo $GOOGLE_SERVICES_PLIST_BASE64 | base64 --decode > ./GoogleService-Info.plisttt"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~5.0.5",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/netinfo": "^11.4.1",
@@ -48,6 +49,7 @@
     "firebase": "^11.10.0",
     "i18next": "^25.2.1",
     "react": "19.1.0",
+    "react-dom": "^19.0.0",
     "react-i18next": "^15.5.3",
     "react-native": "0.81.4",
     "react-native-dotenv": "^3.4.11",
@@ -55,6 +57,7 @@
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-reanimated": "~4.1.0",
     "react-native-safe-area-context": "~5.6.0",
+    "react-native-web": "^0.20.0",
     "react-native-worklets": "^0.5.1",
     "react-redux": "^9.2.0"
   },

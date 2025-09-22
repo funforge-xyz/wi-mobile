@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Import translation files
 import en from './locales/en.json';
 import bs from './locales/bs.json';
+import hr from './locales/hr.json';
+import sr from './locales/sr.json';
 
 const LANGUAGE_DETECTOR = {
   type: 'languageDetector' as const,
@@ -36,7 +38,7 @@ i18n
   .use(LANGUAGE_DETECTOR)
   .use(initReactI18next)
   .init({
-    compatibilityJSON: 'v3',
+    compatibilityJSON: 'v4',
     fallbackLng: 'en',
     debug: false,
     resources: {
@@ -45,6 +47,12 @@ i18n
       },
       bs: {
         translation: bs,
+      },
+      hr: {
+        translation: hr,
+      },
+      sr: {
+        translation: sr,
       },
     },
     interpolation: {

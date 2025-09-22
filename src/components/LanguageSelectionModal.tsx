@@ -29,8 +29,10 @@ export default function LanguageSelectionModal({
   const { t } = useTranslation();
 
   const languages = [
-    { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'bs', name: 'Bosnian', nativeName: 'Bosanski' }
+    { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
+    { code: 'bs', name: 'Bosnian', nativeName: 'Bosanski', flag: '🇧🇦' },
+    { code: 'hr', name: 'Croatian', nativeName: 'Hrvatski', flag: '🇭🇷' },
+    { code: 'sr', name: 'Serbian', nativeName: 'Srpski', flag: '🇷🇸' }
   ];
 
   return (
@@ -73,22 +75,27 @@ export default function LanguageSelectionModal({
             >
               <View style={{...modalStyles.radiusOptionContent}}>
                 <View style={modalStyles.radiusOptionLeft}>
-                  <Text style={[
-                    modalStyles.radiusOptionText,
-                    {
-                      color: currentLanguage === language.code ? COLORS.primary : currentTheme.text,
-                      fontFamily: 'System',
-                      fontWeight: 'bold',
-                    }
-                  ]}>
-                    {language.nativeName}
-                  </Text>
-                  <Text style={[
-                    modalStyles.radiusOptionDescription,
-                    { color: currentTheme.textSecondary }
-                  ]}>
-                    {language.name}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontSize: 24 }}>{language.flag}</Text>
+                    <View>
+                      <Text style={[
+                        modalStyles.radiusOptionText,
+                        {
+                          color: currentLanguage === language.code ? COLORS.primary : currentTheme.text,
+                          fontFamily: 'System',
+                          fontWeight: 'bold',
+                        }
+                      ]}>
+                        {language.nativeName}
+                      </Text>
+                      <Text style={[
+                        modalStyles.radiusOptionDescription,
+                        { color: currentTheme.textSecondary }
+                      ]}>
+                        {language.name}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
 
                 {currentLanguage === language.code && (
