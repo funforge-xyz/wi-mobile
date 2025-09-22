@@ -32,7 +32,7 @@ export default function LanguageSelectionModal({
     { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
     { code: 'bs', name: 'Bosnian', nativeName: 'Bosanski', flag: '🇧🇦' },
     { code: 'hr', name: 'Croatian', nativeName: 'Hrvatski', flag: '🇭🇷' },
-    { code: 'sr', name: 'Serbian', nativeName: 'Srpski', flag: '🇷🇸' }
+    { code: 'sr', name: 'Serbian', nativeName: 'Српски', flag: '🇷🇸' }
   ];
 
   return (

@@ -372,7 +372,16 @@ export const handleCameraCapture = async (
 };
 
 export const getCurrentLanguageName = (language: string) => {
-  return language === 'bs' ? 'Bosanski' : 'English';
+  switch (language) {
+    case 'bs':
+      return 'Bosanski';
+    case 'hr':
+      return 'Hrvatski';
+    case 'sr':
+      return 'Српски';
+    default:
+      return 'English';
+  }
 };
 
 export const changeLanguage = async (code: string, i18n: any, setShowLanguageModal: (show: boolean) => void) => {
