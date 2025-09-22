@@ -16,14 +16,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 280,
     maxWidth: 340,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   iconContainer: {
     marginBottom: SPACING.lg,

@@ -104,14 +104,6 @@ const styles = {
     alignItems: 'center',
     maxWidth: 320,
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
   },
   iconContainer: {
     marginBottom: SPACING.lg,

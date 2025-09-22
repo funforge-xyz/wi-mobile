@@ -37,8 +37,6 @@ export default function RootTabNavigator({ isDarkMode }: RootTabNavigatorProps) 
               ...getTabBarStyles(isDarkMode), 
               backgroundColor: 'transparent',
               borderTopWidth: 0,
-              elevation: 0,
-              shadowOpacity: 0,
               position: 'absolute'
             }
           : getTabBarStyles(isDarkMode),

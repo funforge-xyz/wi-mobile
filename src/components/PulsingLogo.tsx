@@ -44,7 +44,6 @@ const PulsingLogo: React.FC<PulsingLogoProps> = ({ size = 60 }) => {
         borderRadius: size / 2,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 5,
         padding: size * 0.1,
         backgroundColor: 'transparent'
       }}>
