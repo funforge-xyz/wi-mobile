@@ -2,6 +2,7 @@ import { Alert, Platform, Linking, ActionSheetIOS } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TFunction } from 'i18next';
 import { storageService, Settings } from '../services/storage';
 import { settingsService } from '../services/settings';
 import { authService } from '../services/auth';
