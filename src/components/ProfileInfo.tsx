@@ -18,7 +18,7 @@ export default function ProfileInfo({ profile, currentTheme, t }: ProfileInfoPro
         uri={profile?.thumbnailURL || profile?.photoURL}
         style={styles.avatar}
         showPlaceholder={true}
-        placeholderIcon="person-add"
+        placeholderIcon="person"
         placeholderSize={40}
         placeholderBackgroundColor={currentTheme.surface}
         placeholderIconColor={currentTheme.textSecondary}
