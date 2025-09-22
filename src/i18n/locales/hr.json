@@ -531,6 +531,42 @@
     "dataSecurityTitle": "4. Sigurnost podataka",
     "dataSecurityText": "Implementiramo prikladne sigurnosne mjere za zaštitu vaših informacija.",
     "contactTitle": "5. Kontaktirajte nas",
-    "contactText": "Ako imate pitanja o ovim Pravilima privatnosti, kontaktirajte nas."
+    "contactText": "Ako imate pitanja o ovim Pravilima privatnosti, kontaktirajte nas.",
+    "lastUpdated": "Zadnje ažurirano: {{date}}"
+  },
+  "camera": {
+    "permissionRequired": "Potrebna je dozvola za kameru",
+    "recording": "Snimanje... Otpustite da zaustavite",
+    "instructions": "Dodirnite za fotografiju, držite za video",
+    "loading": "Učitavanje kamere...",
+    "close": "Zatvori",
+    "photo": "Fotografija",
+    "video": "Video",
+    "maxRecording": "Maks snimanje: 15 sekundi",
+    "next": "Sljedeće",
+    "retake": "Ponovi",
+    "errorTakingPicture": "Neuspješno slikanje",
+    "errorRecordingVideo": "Neuspješno snimanje videa"
+  },
+  "profileDetails": {
+    "connectionsCount": "Veze",
+    "location": "Lokacija",
+    "lastActiveTime": "Zadnji put aktivan",
+    "editProfile": "Uredi profil"
+  },
+  "connections": {
+    "title": "Veze",
+    "searchConnections": "Pretraži veze...",
+    "noConnections": "Nema veza",
+    "noMatchingConnections": "Nema odgovarajućih veza",
+    "connectWithPeople": "Počnite se povezivati s ljudima u blizini da ih vidite ovdje.",
+    "tryDifferentSearch": "Pokušajte drugačiji pojam pretrage.",
+    "connectedOn": "Povezani",
+    "delete": "Obriši",
+    "block": "Blokiraj",
+    "deleteConnectionTitle": "Obriši vezu",
+    "deleteConnectionMessage": "Jeste li sigurni da želite obrisati svoju vezu s {{userName}}? Ova akcija se ne može poništiti.",
+    "connectionDeleted": "Veza obrisana",
+    "connectionDeletedMessage": "Veza je uspješno uklonjena."
   }
 }
