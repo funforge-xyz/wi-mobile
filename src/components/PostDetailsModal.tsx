@@ -468,6 +468,7 @@ export default function PostDetailsModal({
                     currentTheme={currentTheme}
                     newlyAddedReplyParentId={newlyAddedReplyParentId}
                     navigation={navigation}
+                    onClose={onClose}
                   />
                 </View>
               </KeyboardAwareScrollView>
