@@ -35,6 +35,7 @@ interface CommentsListProps {
   onShowReplies: (commentId: string) => void;
   currentTheme: any;
   newlyAddedReplyParentId?: string;
+  navigation?: any;
 }
 
 export default function CommentsList({
@@ -48,6 +49,7 @@ export default function CommentsList({
   onShowReplies,
   currentTheme,
   newlyAddedReplyParentId,
+  navigation,
 }: CommentsListProps) {
   const { t } = useTranslation();
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
@@ -137,6 +139,27 @@ export default function CommentsList({
     });
   };
 
+  const handleCommentAuthorPress = (comment: Comment) => {
+    if (navigation && comment.authorId) {
+      if (comment.authorId === currentUserId) {
+        // Navigate to own profile
+        navigation.navigate('Profile');
+      } else {
+        // Navigate to other user's profile
+        const nameParts = comment.authorName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        navigation.navigate('UserProfile', {
+          userId: comment.authorId,
+          firstName: firstName,
+          lastName: lastName,
+          photoURL: comment.authorPhotoURL || '',
+        });
+      }
+    }
+  };
+
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
@@ -173,17 +196,21 @@ export default function CommentsList({
         comment.parentCommentId && styles.replyComment
       ]}
     >
-      <UserAvatar
-        photoURL={comment.authorPhotoURL}
-        isOnline={false}
-        size={comment.parentCommentId ? 28 : 32}
-        currentTheme={currentTheme}
-      />
+      <TouchableOpacity onPress={() => handleCommentAuthorPress(comment)} activeOpacity={0.7}>
+        <UserAvatar
+          photoURL={comment.authorPhotoURL}
+          isOnline={false}
+          size={comment.parentCommentId ? 28 : 32}
+          currentTheme={currentTheme}
+        />
+      </TouchableOpacity>
       <View style={styles.commentContent}>
         <View style={styles.commentHeader}>
-          <Text style={[styles.commentAuthor, { color: currentTheme.text }]}>
-            {comment.authorName}
-          </Text>
+          <TouchableOpacity onPress={() => handleCommentAuthorPress(comment)} activeOpacity={0.7}>
+            <Text style={[styles.commentAuthor, { color: currentTheme.text }]}>
+              {comment.authorName}
+            </Text>
+          </TouchableOpacity>
           <Text style={[styles.commentTime, { color: currentTheme.textSecondary }]}>
             • {formatTimeAgo(comment.createdAt)}
           </Text>
