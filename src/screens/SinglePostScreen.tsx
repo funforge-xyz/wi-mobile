@@ -726,6 +726,7 @@ export default function SinglePostScreen({ route, navigation }: any) {
                 onShowReplies={handleShowReplies}
                 currentTheme={currentTheme}
                 newlyAddedReplyParentId={newlyAddedReplyParentId}
+                navigation={navigation}
               />
             </View>
           </KeyboardAwareScrollView>
