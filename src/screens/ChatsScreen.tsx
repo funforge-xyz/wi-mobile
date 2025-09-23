@@ -211,6 +211,7 @@ export default function ChatsScreen({ navigation }: any) {
       formatTimeAgo={formatTime}
       currentTheme={currentTheme}
       isLastItem={index === connections.length - 1}
+      navigation={navigation}
     />
   );
 

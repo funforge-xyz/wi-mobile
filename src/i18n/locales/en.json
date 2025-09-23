@@ -582,6 +582,7 @@
     "deleteConnectionTitle": "Delete Connection",
     "deleteConnectionMessage": "Are you sure you want to delete your connection with {{userName}}? This action cannot be undone.",
     "connectionDeleted": "Connection Deleted",
-    "connectionDeletedMessage": "The connection has been successfully removed."
+    "connectionDeletedMessage": "The connection has been successfully removed.",
+    "tapToChat": "Tap to start chatting"
   }
 }

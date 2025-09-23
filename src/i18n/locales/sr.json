@@ -609,6 +609,7 @@
     "deleteConnectionTitle": "Обриши везу",
     "deleteConnectionMessage": "Да ли сте сигурни да желите да обришете своју везу са {{userName}}? Ова акција се не може поништити.",
     "connectionDeleted": "Веза обрисана",
-    "connectionDeletedMessage": "Веза је успешно уклоњена."
+    "connectionDeletedMessage": "Веза је успешно уклоњена.",
+    "tapToChat": "Додирните за почетак разговора"
   }
 }
