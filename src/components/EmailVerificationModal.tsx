@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { COLORS, FONTS, SPACING } from '../constants/theme';
+import { COLORS, FONTS, SPACING } from '../config/constants';
 
 interface EmailVerificationModalProps {
   visible: boolean;
