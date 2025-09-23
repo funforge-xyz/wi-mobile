@@ -89,7 +89,12 @@
     "invalidCredentials": "Nevažeći e-mail ili lozinka. Molimo provjerite svoje podatke",
     "unknownError": "Došlo je do greške. Molimo pokušajte ponovo",
     "passwordRequired": "Lozinka je obavezna",
-    "emailNotVerified": "Molimo potvrdite svoju e-mail adresu prije prijave. Provjerite svoj inbox za vezu za potvrdu"
+    "emailNotVerified": "Molimo potvrdite svoju e-mail adresu prije prijave. Provjerite svoj inbox za vezu za potvrdu",
+    "emailVerificationRequired": "Potrebna potvrda e-mail adrese",
+    "emailVerificationMessage": "Poslali smo vam e-mail za potvrdu na vašu adresu. Molimo provjerite svoj inbox i kliknite na vezu za potvrdu da završite registraciju.",
+    "emailVerificationInstruction": "Nakon potvrde e-mail adrese, molimo prijavite se ponovno da pristupite svom računu.",
+    "gotIt": "Razumijem",
+    "verifyEmailFirst": "Molimo prvo potvrdite svoj e-mail"
   },
   "feed": {
     "title": "Feed",

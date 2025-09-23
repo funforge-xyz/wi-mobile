@@ -87,7 +87,12 @@
     "weakPassword": "Lozinka ne ispunjava bezbednosne zahteve",
     "invalidCredentials": "Neispravan email ili lozinka. Molimo proverite vaše podatke",
     "unknownError": "Dogodila se greška. Molimo pokušajte ponovo",
-    "emailNotVerified": "Molimo verifikujte vašu email adresu pre prijavljivanja. Proverite vaš inbox za verifikacioni link"
+    "emailNotVerified": "Molimo verifikujte vašu email adresu pre prijavljivanja. Proverite vaš inbox za verifikacioni link",
+    "emailVerificationRequired": "Potrebna potvrda email-a",
+    "emailVerificationMessage": "Poslali smo vam email za potvrdu na vašu email adresu. Molimo provjerite svoj inbox i kliknite na link za potvrdu da završite registraciju.",
+    "emailVerificationInstruction": "Nakon potvrde email-a, molimo prijavite se ponovo da pristupite svom nalogu.",
+    "gotIt": "Razumijem",
+    "verifyEmailFirst": "Molimo prvo potvrdite svoj email"
   },
   "feed": {
     "title": "Početna",
