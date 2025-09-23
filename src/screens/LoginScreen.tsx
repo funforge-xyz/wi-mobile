@@ -14,7 +14,7 @@ import LoginImagePicker from '../components/LoginImagePicker';
 import LoginTermsCheckbox from '../components/LoginTermsCheckbox';
 import LoginButtons from '../components/LoginButtons';
 import LanguageSelectionModal from '../components/LanguageSelectionModal';
-import SuccessModal from '../components/SuccessModal';
+import EmailVerificationModal from '../components/EmailVerificationModal';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { getTheme } from '../theme';
@@ -336,10 +336,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         currentLanguage={i18n.language}
       />
 
-      <SuccessModal
+      <EmailVerificationModal
         visible={showSuccessModal}
-        title={t('auth.accountCreated')}
-        message={t('auth.verifyEmail')}
         animation={successAnimation}
         currentTheme={currentTheme}
         onClose={handleSuccessModalClose}
