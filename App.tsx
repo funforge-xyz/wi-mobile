@@ -28,6 +28,7 @@ import CreatePostScreen from './src/screens/CreatePostScreen';
 import { initializeFirebase } from './src/services/firebase';
 import { initializeNotifications, registerForPushNotifications } from './src/services/notifications';
 import { locationService } from './src/services/locationService';
+import { signOut } from 'firebase/auth';
 
 // Types
 import { RootStackParamList } from './src/types/navigation';
