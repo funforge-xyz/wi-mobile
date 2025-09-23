@@ -1275,6 +1275,7 @@ export default function FeedScreen({ navigation }: any) {
             handleCommentsCountChange(selectedPostId, newCount);
           }
         }}
+        navigation={navigation}
       />
 
       <LocationPermissionModal
