@@ -89,7 +89,12 @@
     "invalidCredentials": "Invalid email or password. Please check your credentials",
     "unknownError": "An error occurred. Please try again",
     "passwordRequired": "Password is required",
-    "emailNotVerified": "Please verify your email address before signing in. Check your inbox for a verification link"
+    "emailNotVerified": "Please verify your email address before signing in. Check your inbox for a verification link",
+    "emailVerificationRequired": "Email Verification Required",
+    "emailVerificationMessage": "We've sent a verification email to your email address. Please check your inbox and click the verification link to complete your registration.",
+    "emailVerificationInstruction": "After verifying your email, please sign in again to access your account.",
+    "gotIt": "Got It",
+    "verifyEmailFirst": "Please verify your email first"
   },
   "feed": {
     "title": "Feed",
