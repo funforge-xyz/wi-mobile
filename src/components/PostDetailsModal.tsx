@@ -47,6 +47,7 @@ interface PostDetailsModalProps {
   post?: any;
   currentTheme: any;
   onCommentsCountChange?: (newCount: number) => void;
+  navigation?: any;
 }
 
 export default function PostDetailsModal({ 
@@ -55,7 +56,8 @@ export default function PostDetailsModal({
   postId, 
   post: passedPost,
   currentTheme, 
-  onCommentsCountChange
+  onCommentsCountChange,
+  navigation
 }: PostDetailsModalProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -465,6 +467,7 @@ export default function PostDetailsModal({
                     onShowReplies={() => {}}
                     currentTheme={currentTheme}
                     newlyAddedReplyParentId={newlyAddedReplyParentId}
+                    navigation={navigation}
                   />
                 </View>
               </KeyboardAwareScrollView>
