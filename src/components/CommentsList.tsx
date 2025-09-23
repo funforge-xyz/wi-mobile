@@ -36,6 +36,7 @@ interface CommentsListProps {
   currentTheme: any;
   newlyAddedReplyParentId?: string;
   navigation?: any;
+  onClose?: () => void;
 }
 
 export default function CommentsList({
@@ -50,6 +51,7 @@ export default function CommentsList({
   currentTheme,
   newlyAddedReplyParentId,
   navigation,
+  onClose,
 }: CommentsListProps) {
   const { t } = useTranslation();
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
@@ -156,6 +158,11 @@ export default function CommentsList({
           lastName: lastName,
           photoURL: comment.authorPhotoURL || '',
         });
+      }
+      
+      // Close modal if onClose callback is provided (for modal contexts)
+      if (onClose) {
+        onClose();
       }
     }
   };
