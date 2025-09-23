@@ -9,6 +9,7 @@ interface NearbyUserItemProps {
   currentTheme: any;
   onPress: (user: NearbyUser) => void;
   isLastItem?: boolean;
+  navigation?: any;
 }
 
 // Assuming COLORS is defined somewhere, e.g., in styles/colors.ts
@@ -22,16 +23,28 @@ export default function NearbyUserItem({
   currentTheme,
   onPress,
   isLastItem = false,
+  navigation,
 }: NearbyUserItemProps) {
+
+  const handleProfilePress = () => {
+    if (navigation && user.id) {
+      navigation.navigate('UserProfile', {
+        userId: user.id,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        photoURL: user.photoURL || '',
+        bio: user.bio || '',
+      });
+    }
+  };
   return (
-    <TouchableOpacity
+    <View
       style={[
         isLastItem ? styles.userItemLast : styles.userItem,
         { borderBottomColor: currentTheme.border }
       ]}
-      onPress={() => onPress(user)}
     >
-      <View style={styles.userInfo}>
+      <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7} style={styles.profileSection}>
         <View style={styles.avatarContainer}>
           {user.photoURL ? (
             <AvatarImage 
@@ -48,6 +61,7 @@ export default function NearbyUserItem({
           )}
           {/* {user.isOnline === true && <View style={[styles.onlineIndicator, { borderColor: currentTheme.surface }]} />} */}
         </View>
+        
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: currentTheme.text }]}>
             {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'Anonymous User'}
@@ -63,8 +77,11 @@ export default function NearbyUserItem({
             </Text>
           )}
         </View>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
-    </TouchableOpacity>
+      </TouchableOpacity>
+      
+      <TouchableOpacity onPress={() => onPress(user)} activeOpacity={0.7} style={styles.chatSection}>
+        <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+      </TouchableOpacity>
+    </View>
   );
 }

@@ -136,6 +136,7 @@ export default function NearbyScreen({ navigation, route }: any) {
       currentTheme={currentTheme}
       onPress={handleUserPress}
       isLastItem={index === users.length - 1}
+      navigation={navigation}
     />
   );
 
